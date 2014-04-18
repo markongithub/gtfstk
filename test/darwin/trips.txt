@@ -1,0 +1,1464 @@
+route_id,service_id,trip_id,trip_headsign,direction_id,block_id,shape_id
+1,FULLW,i1_1,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_2,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_3,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_4,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_5,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_6,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_7,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_8,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_9,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_10,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_11,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_12,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_13,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_14,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_15,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_16,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_17,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_18,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_19,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_20,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_21,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_22,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_23,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_24,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1_25,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_26,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_27,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_28,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_29,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_30,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_31,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_32,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_33,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_34,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_35,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_36,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_37,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_38,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_39,Hospital Tiwi Nakara,1,,i1_shp
+1,WESA,i1_40,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_41,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_42,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_43,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_44,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_45,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_46,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_47,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_48,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_49,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_50,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_51,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_52,Hospital Tiwi Nakara,1,,i1_shp
+1,WESU,i1_53,Hospital Tiwi Nakara,1,,i1_shp
+1,FULLW,i1a_1,Hospital Express,1,,i1a_shp
+1h,FULLW,i1h_1,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_2,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_3,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_4,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_5,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_6,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_7,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_8,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_9,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_10,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_11,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_12,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_13,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_14,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_15,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_16,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_17,Hospital Tiwi,1,,i1h_shp
+1h,FULLW,i1h_18,Hospital Tiwi,1,,i1h_shp
+2,FULLW,i2_1,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_2,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_3,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_4,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_5,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_6,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_7,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_8,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_9,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_10,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_11,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_12,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_13,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_14,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_15,Lyons Leanyer Wagaman,1,,i2_shp
+2,FULLW,i2_16,Lyons Leanyer Wagaman,1,,i2_shp
+2,WESA,i2c_1,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_2,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_3,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_4,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_5,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_6,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_7,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_8,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_9,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_10,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_11,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_12,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESA,i2c_13,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_14,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_15,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_16,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_17,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_18,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_19,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_20,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_21,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_22,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_23,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_24,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+2,WESU,i2c_25,Lyons Leanyer Wulagi Wagaman,1,,i2c_shp
+3,FULLW,i3_1,Jingili Moil Anula,1,,i3_shp
+3,FULLW,i3_2,Jingili Moil Anula,1,,i3_shp
+3,FULLW,i3_3,Jingili Moil Anula,1,,i3_shp
+3,FULLW,i3_4,Jingili Moil Anula,1,,i3_shp
+3,FULLW,i3_5,Jingili Moil Anula,1,,i3_shp
+3,FULLW,i3_6,Jingili Moil Anula,1,,i3_shp
+3,FULLW,i3_7,Jingili Moil Anula,1,,i3_shp
+3,FULLW,i3b_1,Jingili Marrara Anula,1,,i3b_shp
+3,FULLW,i3b_2,Jingili Marrara Anula,1,,i3b_shp
+3,FULLW,i3b_3,Jingili Marrara Anula,1,,i3b_shp
+3,FULLW,i3b_4,Jingili Marrara Anula,1,,i3b_shp
+3,FULLW,i3c_1,Jingili Eaton Moil Anula,1,,i3c_shp
+3,FULLW,i3c_2,Jingili Eaton Moil Anula,1,,i3c_shp
+3,FULLW,i3c_3,Jingili Eaton Moil Anula,1,,i3c_shp
+3,FULLW,i3d_1,Jingili Eaton Marrara Moil Anula,1,,i3d_shp
+3,FULLW,i3d_2,Jingili Eaton Marrara Moil Anula,1,,i3d_shp
+3,FULLW,i3d_3,Jingili Eaton Marrara Moil Anula,1,,i3d_shp
+3,FULLW,i3d_4,Jingili Eaton Marrara Moil Anula,1,,i3d_shp
+3,WESA,i3a_1,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESA,i3a_2,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESA,i3a_3,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESA,i3a_4,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESA,i3a_5,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESA,i3a_6,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESU,i3a_7,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESU,i3a_8,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESU,i3a_9,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESU,i3a_10,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESU,i3a_11,Rapid Creek Eaton Marrara Moil Anula,1,,i3a_shp
+3,WESA,i3e_1,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESA,i3e_2,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESA,i3e_3,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESA,i3e_4,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESA,i3e_5,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESA,i3e_6,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESA,i3e_7,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESU,i3e_8,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESU,i3e_9,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESU,i3e_10,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESU,i3e_11,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESU,i3e_12,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESU,i3e_13,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+3,WESU,i3e_14,Rapid Creek Marrara Moil Anula,1,,i3e_shp
+4,FULLW,i4_1,Darwin,1,,i4_shp
+4,FULLW,i4_2,Darwin,1,,i4_shp
+4,FULLW,i4_3,Darwin,1,,i4_shp
+4,FULLW,i4_4,Darwin,1,,i4_shp
+4,FULLW,i4_5,Darwin,1,,i4_shp
+4,FULLW,i4_6,Darwin,1,,i4_shp
+4,FULLW,i4_7,Darwin,1,,i4_shp
+4,FULLW,i4_8,Darwin,1,,i4_shp
+4,FULLW,i4_9,Darwin,1,,i4_shp
+4,FULLW,i4_10,Darwin,1,,i4_shp
+4,FULLW,i4_11,Darwin,1,,i4_shp
+4,FULLW,i4_12,Darwin,1,,i4_shp
+4,FULLW,i4_13,Darwin,1,,i4_shp
+4,FULLW,i4_14,Darwin,1,,i4_shp
+4,FULLW,i4_15,Darwin,1,,i4_shp
+4,FULLW,i4_16,Darwin,1,,i4_shp
+4,FULLW,i4_17,Darwin,1,,i4_shp
+4,FULLW,i4_18,Darwin,1,,i4_shp
+4,FULLW,i4_19,Darwin,1,,i4_shp
+4,FULLW,i4_20,Darwin,1,,i4_shp
+4,FULLW,i4_21,Darwin,1,,i4_shp
+4,FULLW,i4_22,Darwin,1,,i4_shp
+4,FULLW,i4_23,Darwin,1,,i4_shp
+4,FULLW,i4_24,Darwin,1,,i4_shp
+4,FULLW,i4_25,Darwin,1,,i4_shp
+4,FULLW,i4_26,Darwin,1,,i4_shp
+4,FULLW,i4_27,Darwin,1,,i4_shp
+4,FULLW,i4_28,Darwin,1,,i4_shp
+4,FULLW,i4_29,Darwin,1,,i4_shp
+4,FULLW,i4_30,Darwin,1,,i4_shp
+4,FULLW,i4_31,Darwin,1,,i4_shp
+4,FULLW,i4_32,Darwin,1,,i4_shp
+4,FULLW,i4_33,Darwin,1,,i4_shp
+4,FULLW,i4_34,Darwin,1,,i4_shp
+4,FULLW,i4_35,Darwin,1,,i4_shp
+4,FULLWF,i4_36,Darwin,1,,i4_shp
+4,FULLWF,i4_37,Darwin,1,,i4_shp
+4,WESA,i4_38,Darwin,1,,i4_shp
+4,WESA,i4_39,Darwin,1,,i4_shp
+4,WESA,i4_40,Darwin,1,,i4_shp
+4,WESA,i4_41,Darwin,1,,i4_shp
+4,WESA,i4_42,Darwin,1,,i4_shp
+4,WESA,i4_43,Darwin,1,,i4_shp
+4,WESA,i4_44,Darwin,1,,i4_shp
+4,WESA,i4_45,Darwin,1,,i4_shp
+4,WESA,i4_46,Darwin,1,,i4_shp
+4,WESA,i4_47,Darwin,1,,i4_shp
+4,WESA,i4_48,Darwin,1,,i4_shp
+4,WESA,i4_49,Darwin,1,,i4_shp
+4,WESA,i4_50,Darwin,1,,i4_shp
+4,WESA,i4_51,Darwin,1,,i4_shp
+4,WESU,i4_52,Darwin,1,,i4_shp
+4,WESU,i4_53,Darwin,1,,i4_shp
+4,WESU,i4_54,Darwin,1,,i4_shp
+4,WESU,i4_55,Darwin,1,,i4_shp
+4,WESU,i4_56,Darwin,1,,i4_shp
+4,WESU,i4_57,Darwin,1,,i4_shp
+4,WESU,i4_58,Darwin,1,,i4_shp
+4,WESU,i4_59,Darwin,1,,i4_shp
+4,WESU,i4_60,Darwin,1,,i4_shp
+4,WESU,i4_61,Darwin,1,,i4_shp
+4,FULLW,i4a_1,Darwin via Ludmilla,1,,i4a_shp
+4,FULLW,i4a_2,Darwin via Ludmilla,1,,i4a_shp
+4,FULLW,i4e_1,Darwin via Chrisp St,1,,i4e_shp
+4,WESA,i4f_1,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_2,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_3,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_4,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_5,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_6,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_7,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_8,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_9,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_10,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_11,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_12,Darwin via Parap,1,,i4f_shp
+4,WESA,i4f_13,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_14,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_15,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_16,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_17,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_18,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_19,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_20,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_21,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_22,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_23,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_24,Darwin via Parap,1,,i4f_shp
+4,WESU,i4f_25,Darwin via Parap,1,,i4f_shp
+4,FULLW,o4_1,Casuarina,0,,o4_shp
+4,FULLW,o4_2,Casuarina,0,,o4_shp
+4,FULLW,o4_3,Casuarina,0,,o4_shp
+4,FULLW,o4_4,Casuarina,0,,o4_shp
+4,FULLW,o4_5,Casuarina,0,,o4_shp
+4,FULLW,o4_6,Casuarina,0,,o4_shp
+4,FULLW,o4_7,Casuarina,0,,o4_shp
+4,FULLW,o4_8,Casuarina,0,,o4_shp
+4,FULLW,o4_9,Casuarina,0,,o4_shp
+4,FULLW,o4_10,Casuarina,0,,o4_shp
+4,FULLW,o4_11,Casuarina,0,,o4_shp
+4,FULLW,o4_12,Casuarina,0,,o4_shp
+4,FULLW,o4_13,Casuarina,0,,o4_shp
+4,FULLW,o4_14,Casuarina,0,,o4_shp
+4,FULLW,o4_15,Casuarina,0,,o4_shp
+4,FULLW,o4_16,Casuarina,0,,o4_shp
+4,FULLW,o4_17,Casuarina,0,,o4_shp
+4,FULLW,o4_18,Casuarina,0,,o4_shp
+4,FULLW,o4_19,Casuarina,0,,o4_shp
+4,FULLW,o4_20,Casuarina,0,,o4_shp
+4,FULLW,o4_21,Casuarina,0,,o4_shp
+4,FULLW,o4_22,Casuarina,0,,o4_shp
+4,FULLW,o4_23,Casuarina,0,,o4_shp
+4,FULLW,o4_24,Casuarina,0,,o4_shp
+4,FULLW,o4_25,Casuarina,0,,o4_shp
+4,FULLW,o4_26,Casuarina,0,,o4_shp
+4,FULLW,o4_27,Casuarina,0,,o4_shp
+4,FULLW,o4_28,Casuarina,0,,o4_shp
+4,FULLW,o4_29,Casuarina,0,,o4_shp
+4,FULLW,o4_30,Casuarina,0,,o4_shp
+4,FULLW,o4_31,Casuarina,0,,o4_shp
+4,FULLW,o4_32,Casuarina,0,,o4_shp
+4,FULLWF,o4_33,Casuarina,0,,o4_shp
+4,FULLWF,o4_34,Casuarina,0,,o4_shp
+4,FULLWF,o4_35,Casuarina,0,,o4_shp
+4,FULLWF,o4_36,Casuarina,0,,o4_shp
+4,WESA,o4_37,Casuarina,0,,o4_shp
+4,WESA,o4_38,Casuarina,0,,o4_shp
+4,WESA,o4_39,Casuarina,0,,o4_shp
+4,WESA,o4_40,Casuarina,0,,o4_shp
+4,WESA,o4_41,Casuarina,0,,o4_shp
+4,WESA,o4_42,Casuarina,0,,o4_shp
+4,WESA,o4_43,Casuarina,0,,o4_shp
+4,WESA,o4_44,Casuarina,0,,o4_shp
+4,WESA,o4_45,Casuarina,0,,o4_shp
+4,WESA,o4_46,Casuarina,0,,o4_shp
+4,WESA,o4_47,Casuarina,0,,o4_shp
+4,WESA,o4_48,Casuarina,0,,o4_shp
+4,WESA,o4_49,Casuarina,0,,o4_shp
+4,WESA,o4_50,Casuarina,0,,o4_shp
+4,WESU,o4_51,Casuarina,0,,o4_shp
+4,WESU,o4_52,Casuarina,0,,o4_shp
+4,WESU,o4_53,Casuarina,0,,o4_shp
+4,WESU,o4_54,Casuarina,0,,o4_shp
+4,WESU,o4_55,Casuarina,0,,o4_shp
+4,WESU,o4_56,Casuarina,0,,o4_shp
+4,WESU,o4_57,Casuarina,0,,o4_shp
+4,WESU,o4_58,Casuarina,0,,o4_shp
+4,WESU,o4_59,Casuarina,0,,o4_shp
+4,FULLW,o4b_1,Casuarina via Ludmilla,0,,o4b_shp
+4,FULLW,o4c_1,Casuarina via Pandanus Rd Waters St,0,,o4c_shp
+4,WESA,o4f_1,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_2,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_3,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_4,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_5,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_6,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_7,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_8,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_9,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_10,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_11,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_12,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_13,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_14,Casuarina via Parap,0,,o4f_shp
+4,WESA,o4f_15,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_16,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_17,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_18,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_19,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_20,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_21,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_22,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_23,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_24,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_25,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_26,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_27,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_28,Casuarina via Parap,0,,o4f_shp
+4,WESU,o4f_29,Casuarina via Parap,0,,o4f_shp
+5,FULLW,i5_1,Darwin ,1,,i5_shp
+5,FULLW,i5_2,Darwin ,1,,i5_shp
+5,FULLW,i5_3,Darwin ,1,,i5_shp
+5,FULLW,i5_4,Darwin ,1,,i5_shp
+5,FULLW,i5_5,Darwin ,1,,i5_shp
+5,FULLW,i5_6,Darwin ,1,,i5_shp
+5,FULLW,i5_7,Darwin ,1,,i5_shp
+5,FULLW,i5_8,Darwin ,1,,i5_shp
+5,FULLW,i5_9,Darwin ,1,,i5_shp
+5,FULLW,i5a_1,Darwin via Bolter Rd Berrimah Rd Berrimah,1,,i5a_shp
+5,FULLW,i5b_1,Darwin via Bolter Rd,1,,i5b_shp
+5,FULLW,i5d_1,Darwin via Crocodylus,1,,i5d_shp
+5,FULLW,i5d_2,Darwin via Crocodylus,1,,i5d_shp
+5,FULLW,i5d_3,Darwin via Crocodylus,1,,i5d_shp
+5,FULLW,o5_1,Casuarina via Berrimah Northlakes,0,,o5_shp
+5,FULLW,o5_2,Casuarina via Berrimah Northlakes,0,,o5_shp
+5,FULLW,o5_3,Casuarina via Berrimah Northlakes,0,,o5_shp
+5,FULLW,o5_4,Casuarina via Berrimah Northlakes,0,,o5_shp
+5,FULLW,o5_5,Casuarina via Berrimah Northlakes,0,,o5_shp
+5,FULLW,o5_6,Casuarina via Berrimah Northlakes,0,,o5_shp
+5,FULLW,o5_7,Casuarina via Berrimah Northlakes,0,,o5_shp
+5,FULLW,o5c_1,Casuarina via Berrimah Northlakes,0,,o5c_shp
+5,FULLW,o5d_1,Casuarina via Crocodylus,0,,o5d_shp
+5,FULLW,o5d_2,Casuarina via Crocodylus,0,,o5d_shp
+5,FULLW,o5d_3,Casuarina via Crocodylus,0,,o5d_shp
+5,FULLW,o5a_1,Casuarina via Winnellie Berrimah Road,0,,o5a_shp
+5,FULLW,o5a_2,Casuarina via Winnellie Berrimah Road,0,,o5a_shp
+6,FULLW,i6_1,Larrakeyah Casino Fannie Bay Parap,1,,i6_shp
+6,FULLW,i6_2,Larrakeyah Casino Fannie Bay Parap,1,,i6_shp
+6,FULLW,i6_3,Larrakeyah Casino Fannie Bay Parap,1,,i6_shp
+6,FULLW,i6_4,Larrakeyah Casino Fannie Bay Parap,1,,i6_shp
+6,FULLW,i6_5,Larrakeyah Casino Fannie Bay Parap,1,,i6_shp
+6,FULLW,i6a_1,Larrakeyah Casino Fannie Bay Ludmilla Parap,1,,i6a_shp
+6,FULLW,i6b_1,Larrakeyah and St Mary's School  term,1,,i6b_shp
+6,FULLW,i6c_1,St Mary's Larrakeyah School Term,1,,i6c_shp
+6,FULLW,i6d_1,Starts Phillip Street Fannie Bay,1,,i6d_shp
+6,FULLW,i6e_1,via Playford Street Parap,1,,i6e_shp
+6,FULLW,i6e_2,via Playford Street Parap,1,,i6e_shp
+7,FULLW,i7_1,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7_2,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7_3,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7_4,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7_5,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7_6,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7_7,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7_8,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7_9,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7_10,Stuart Park Bayview Tipperary Waters,1,,i7_shp
+7,FULLW,i7a_1,st Mary's Stuart Park Bayview Tipperary Waters,1,,i7a_shp
+8,FULLW,i8_1,Darwin,1,,i8_shp
+8,FULLW,i8_2,Darwin,1,,i8_shp
+8,FULLW,i8_3,Darwin,1,,i8_shp
+8,FULLW,i8_4,Darwin,1,,i8_shp
+8,FULLW,i8_5,Darwin,1,,i8_shp
+8,FULLW,i8_6,Darwin,1,,i8_shp
+8,FULLW,i8_7,Darwin,1,,i8_shp
+8,FULLW,i8_8,Darwin,1,,i8_shp
+8,FULLW,i8_9,Darwin,1,,i8_shp
+8,FULLW,i8_10,Darwin,1,,i8_shp
+8,FULLW,i8_11,Darwin,1,,i8_shp
+8,FULLW,i8_12,Darwin,1,,i8_shp
+8,FULLW,i8_13,Darwin,1,,i8_shp
+8,FULLW,i8_14,Darwin,1,,i8_shp
+8,FULLW,i8_15,Darwin,1,,i8_shp
+8,FULLW,i8_16,Darwin,1,,i8_shp
+8,FULLW,i8_17,Darwin,1,,i8_shp
+8,FULLW,i8_18,Darwin,1,,i8_shp
+8,FULLW,i8_19,Darwin,1,,i8_shp
+8,FULLW,i8_20,Darwin,1,,i8_shp
+8,FULLW,i8_21,Darwin,1,,i8_shp
+8,FULLW,i8_22,Darwin,1,,i8_shp
+8,FULLW,i8_23,Darwin,1,,i8_shp
+8,FULLW,i8_24,Darwin,1,,i8_shp
+8,FULLW,i8_25,Darwin,1,,i8_shp
+8,WESA,i8_26,Darwin,1,,i8_shp
+8,WESA,i8_27,Darwin,1,,i8_shp
+8,WESA,i8_28,Darwin,1,,i8_shp
+8,WESA,i8_29,Darwin,1,,i8_shp
+8,WESA,i8_30,Darwin,1,,i8_shp
+8,WESA,i8_31,Darwin,1,,i8_shp
+8,WESA,i8_32,Darwin,1,,i8_shp
+8,WESA,i8_33,Darwin,1,,i8_shp
+8,WESA,i8_34,Darwin,1,,i8_shp
+8,WESA,i8_35,Darwin,1,,i8_shp
+8,WESA,i8_36,Darwin,1,,i8_shp
+8,WESA,i8_37,Darwin,1,,i8_shp
+8,WESA,i8_38,Darwin,1,,i8_shp
+8,WESA,i8_39,Darwin,1,,i8_shp
+8,WESA,i8_40,Darwin,1,,i8_shp
+8,WESU,i8_41,Darwin,1,,i8_shp
+8,WESU,i8_42,Darwin,1,,i8_shp
+8,WESU,i8_43,Darwin,1,,i8_shp
+8,WESU,i8_44,Darwin,1,,i8_shp
+8,WESU,i8_45,Darwin,1,,i8_shp
+8,WESU,i8_46,Darwin,1,,i8_shp
+8,WESU,i8_47,Darwin,1,,i8_shp
+8,WESU,i8_48,Darwin,1,,i8_shp
+8,WESU,i8_49,Darwin,1,,i8_shp
+8,WESU,i8_50,Darwin,1,,i8_shp
+8,WESU,i8_51,Darwin,1,,i8_shp
+8,WESU,i8_52,Darwin,1,,i8_shp
+8,WESU,i8_53,Darwin,1,,i8_shp
+8,FULLW,i8a_1,Darwin via Smith St ,1,,i8a_shp
+8,FULLW,i8b_1,Darwin via Berrimah Rd,1,,i8b_shp
+8,FULLW,o8_1,Palmerston,0,,o8_shp
+8,FULLW,o8_2,Palmerston,0,,o8_shp
+8,FULLW,o8_3,Palmerston,0,,o8_shp
+8,FULLW,o8_4,Palmerston,0,,o8_shp
+8,FULLW,o8_5,Palmerston,0,,o8_shp
+8,FULLW,o8_6,Palmerston,0,,o8_shp
+8,FULLW,o8_7,Palmerston,0,,o8_shp
+8,FULLW,o8_8,Palmerston,0,,o8_shp
+8,FULLW,o8_9,Palmerston,0,,o8_shp
+8,FULLW,o8_10,Palmerston,0,,o8_shp
+8,FULLW,o8_11,Palmerston,0,,o8_shp
+8,FULLW,o8_12,Palmerston,0,,o8_shp
+8,FULLW,o8_13,Palmerston,0,,o8_shp
+8,FULLW,o8_14,Palmerston,0,,o8_shp
+8,FULLW,o8_15,Palmerston,0,,o8_shp
+8,FULLW,o8_16,Palmerston,0,,o8_shp
+8,FULLW,o8_17,Palmerston,0,,o8_shp
+8,FULLW,o8_18,Palmerston,0,,o8_shp
+8,FULLW,o8_19,Palmerston,0,,o8_shp
+8,FULLW,o8_20,Palmerston,0,,o8_shp
+8,FULLW,o8_21,Palmerston,0,,o8_shp
+8,FULLW,o8_22,Palmerston,0,,o8_shp
+8,FULLW,o8_23,Palmerston,0,,o8_shp
+8,FULLW,o8_24,Palmerston,0,,o8_shp
+8,WESA,o8_25,Palmerston,0,,o8_shp
+8,WESA,o8_26,Palmerston,0,,o8_shp
+8,WESA,o8_27,Palmerston,0,,o8_shp
+8,WESA,o8_28,Palmerston,0,,o8_shp
+8,WESA,o8_29,Palmerston,0,,o8_shp
+8,WESA,o8_30,Palmerston,0,,o8_shp
+8,WESA,o8_31,Palmerston,0,,o8_shp
+8,WESA,o8_32,Palmerston,0,,o8_shp
+8,WESA,o8_33,Palmerston,0,,o8_shp
+8,WESA,o8_34,Palmerston,0,,o8_shp
+8,WESA,o8_35,Palmerston,0,,o8_shp
+8,WESA,o8_36,Palmerston,0,,o8_shp
+8,WESA,o8_37,Palmerston,0,,o8_shp
+8,WESA,o8_38,Palmerston,0,,o8_shp
+8,WESA,o8_39,Palmerston,0,,o8_shp
+8,WESU,o8_40,Palmerston,0,,o8_shp
+8,WESU,o8_41,Palmerston,0,,o8_shp
+8,WESU,o8_42,Palmerston,0,,o8_shp
+8,WESU,o8_43,Palmerston,0,,o8_shp
+8,WESU,o8_44,Palmerston,0,,o8_shp
+8,WESU,o8_45,Palmerston,0,,o8_shp
+8,WESU,o8_46,Palmerston,0,,o8_shp
+8,WESU,o8_47,Palmerston,0,,o8_shp
+8,WESU,o8_48,Palmerston,0,,o8_shp
+8,WESU,o8_49,Palmerston,0,,o8_shp
+8,WESU,o8_50,Palmerston,0,,o8_shp
+8,WESU,o8_51,Palmerston,0,,o8_shp
+8,WESU,o8_52,Palmerston,0,,o8_shp
+8,FULLW,o8a_1,Palmerston,0,,o8a_shp
+8,FULLWTM,o8c_1,Palmerston via St Mary's,0,,o8c_shp
+8,FULLWTM,o8c_2,Palmerston commencing at Mindil Beach,0,,o8c_shp
+9,FULLW,i9_1,Casuarina,1,,i9_shp
+9,FULLW,i9_2,Casuarina,1,,i9_shp
+9,FULLW,i9_3,Casuarina,1,,i9_shp
+9,FULLW,i9_4,Casuarina,1,,i9_shp
+9,FULLW,i9_5,Casuarina,1,,i9_shp
+9,FULLW,i9_6,Casuarina,1,,i9_shp
+9,FULLW,i9_7,Casuarina,1,,i9_shp
+9,FULLW,i9_8,Casuarina,1,,i9_shp
+9,FULLW,i9_9,Casuarina,1,,i9_shp
+9,FULLW,i9_10,Casuarina,1,,i9_shp
+9,FULLW,i9_11,Casuarina,1,,i9_shp
+9,FULLW,i9_12,Casuarina,1,,i9_shp
+9,FULLW,i9_13,Casuarina,1,,i9_shp
+9,FULLW,i9_14,Casuarina,1,,i9_shp
+9,FULLW,i9_15,Casuarina,1,,i9_shp
+9,FULLW,i9_16,Casuarina,1,,i9_shp
+9,FULLW,i9_17,Casuarina,1,,i9_shp
+9,FULLW,i9_18,Casuarina,1,,i9_shp
+9,FULLW,i9_19,Casuarina,1,,i9_shp
+9,FULLW,i9_20,Casuarina,1,,i9_shp
+9,FULLW,i9_21,Casuarina,1,,i9_shp
+9,FULLW,i9_22,Casuarina,1,,i9_shp
+9,WESA,i9_23,Casuarina,1,,i9_shp
+9,WESA,i9_24,Casuarina,1,,i9_shp
+9,WESA,i9_25,Casuarina,1,,i9_shp
+9,WESA,i9_26,Casuarina,1,,i9_shp
+9,WESA,i9_27,Casuarina,1,,i9_shp
+9,WESA,i9_28,Casuarina,1,,i9_shp
+9,WESA,i9_29,Casuarina,1,,i9_shp
+9,WESA,i9_30,Casuarina,1,,i9_shp
+9,WESA,i9_31,Casuarina,1,,i9_shp
+9,WESA,i9_32,Casuarina,1,,i9_shp
+9,WESA,i9_33,Casuarina,1,,i9_shp
+9,WESA,i9_34,Casuarina,1,,i9_shp
+9,WESA,i9_35,Casuarina,1,,i9_shp
+9,WESA,i9_36,Casuarina,1,,i9_shp
+9,WESA,i9_37,Casuarina,1,,i9_shp
+9,WESU,i9_38,Casuarina,1,,i9_shp
+9,WESU,i9_39,Casuarina,1,,i9_shp
+9,WESU,i9_40,Casuarina,1,,i9_shp
+9,WESU,i9_41,Casuarina,1,,i9_shp
+9,WESU,i9_42,Casuarina,1,,i9_shp
+9,WESU,i9_43,Casuarina,1,,i9_shp
+9,WESU,i9_44,Casuarina,1,,i9_shp
+9,WESU,i9_45,Casuarina,1,,i9_shp
+9,WESU,i9_46,Casuarina,1,,i9_shp
+9,WESU,i9_47,Casuarina,1,,i9_shp
+9,WESU,i9_48,Casuarina,1,,i9_shp
+9,WESU,i9_49,Casuarina,1,,i9_shp
+9,WESU,i9_50,Casuarina,1,,i9_shp
+9,FULLW,i9b_1,Casuarina via Leanyer Dr,1,,i9b_shp
+9,FULLW,i9e_1,Casuarina via Crocodylus,1,,i9e_shp
+9,FULLW,i9e_2,Casuarina via Crocodylus,1,,i9e_shp
+9,FULLW,i9e_3,Casuarina via Crocodylus,1,,i9e_shp
+9,FULLW,o9_1,Palmerston,0,,o9_shp
+9,FULLW,o9_2,Palmerston,0,,o9_shp
+9,FULLW,o9_3,Palmerston,0,,o9_shp
+9,FULLW,o9_4,Palmerston,0,,o9_shp
+9,FULLW,o9_5,Palmerston,0,,o9_shp
+9,FULLW,o9_6,Palmerston,0,,o9_shp
+9,FULLW,o9_7,Palmerston,0,,o9_shp
+9,FULLW,o9_8,Palmerston,0,,o9_shp
+9,FULLW,o9_9,Palmerston,0,,o9_shp
+9,FULLW,o9_10,Palmerston,0,,o9_shp
+9,FULLW,o9_11,Palmerston,0,,o9_shp
+9,FULLW,o9_12,Palmerston,0,,o9_shp
+9,FULLW,o9_13,Palmerston,0,,o9_shp
+9,FULLW,o9_14,Palmerston,0,,o9_shp
+9,FULLW,o9_15,Palmerston,0,,o9_shp
+9,FULLW,o9_16,Palmerston,0,,o9_shp
+9,FULLW,o9_17,Palmerston,0,,o9_shp
+9,FULLW,o9_18,Palmerston,0,,o9_shp
+9,FULLW,o9_19,Palmerston,0,,o9_shp
+9,FULLW,o9_20,Palmerston,0,,o9_shp
+9,FULLW,o9_21,Palmerston,0,,o9_shp
+9,FULLW,o9_22,Palmerston,0,,o9_shp
+9,FULLW,o9_23,Palmerston,0,,o9_shp
+9,FULLW,o9_24,Palmerston,0,,o9_shp
+9,FULLW,o9_25,Palmerston,0,,o9_shp
+9,WESA,o9_26,Palmerston,0,,o9_shp
+9,WESA,o9_27,Palmerston,0,,o9_shp
+9,WESA,o9_28,Palmerston,0,,o9_shp
+9,WESA,o9_29,Palmerston,0,,o9_shp
+9,WESA,o9_30,Palmerston,0,,o9_shp
+9,WESA,o9_31,Palmerston,0,,o9_shp
+9,WESA,o9_32,Palmerston,0,,o9_shp
+9,WESA,o9_33,Palmerston,0,,o9_shp
+9,WESA,o9_34,Palmerston,0,,o9_shp
+9,WESA,o9_35,Palmerston,0,,o9_shp
+9,WESA,o9_36,Palmerston,0,,o9_shp
+9,WESA,o9_37,Palmerston,0,,o9_shp
+9,WESA,o9_38,Palmerston,0,,o9_shp
+9,WESA,o9_39,Palmerston,0,,o9_shp
+9,WESA,o9_40,Palmerston,0,,o9_shp
+9,WESA,o9_41,Palmerston,0,,o9_shp
+9,WESU,o9_42,Palmerston,0,,o9_shp
+9,WESU,o9_43,Palmerston,0,,o9_shp
+9,WESU,o9_44,Palmerston,0,,o9_shp
+9,WESU,o9_45,Palmerston,0,,o9_shp
+9,WESU,o9_46,Palmerston,0,,o9_shp
+9,WESU,o9_47,Palmerston,0,,o9_shp
+9,WESU,o9_48,Palmerston,0,,o9_shp
+9,WESU,o9_49,Palmerston,0,,o9_shp
+9,WESU,o9_50,Palmerston,0,,o9_shp
+9,WESU,o9_51,Palmerston,0,,o9_shp
+9,WESU,o9_52,Palmerston,0,,o9_shp
+9,WESU,o9_53,Palmerston,0,,o9_shp
+9,WESU,o9_54,Palmerston,0,,o9_shp
+9,FULLW,o9e_1,Palmerston via Crocodylus,0,,o9e_shp
+9,FULLW,o9e_2,Palmerston via Crocodylus,0,,o9e_shp
+9,FULLW,o9e_3,Palmerston via Crocodylus,0,,o9e_shp
+9,FULLW,o9c_1,Palmerston via Leanyer Dr,0,,o9c_shp
+9,FULLWTM,o9d_1,Vanderlin Drv,0,,o9d_shp
+9,FULLWTM,o9d_2,Vanderlin Drv,0,,o9d_shp
+10,FULLW,i10_1,Darwin,1,,i10_shp
+10,FULLW,i10_2,Darwin,1,,i10_shp
+10,FULLW,i10_3,Darwin,1,,i10_shp
+10,FULLW,i10_4,Darwin,1,,i10_shp
+10,FULLW,i10_5,Darwin,1,,i10_shp
+10,FULLW,i10_6,Darwin,1,,i10_shp
+10,FULLW,i10_7,Darwin,1,,i10_shp
+10,FULLW,i10_8,Darwin,1,,i10_shp
+10,FULLW,i10_9,Darwin,1,,i10_shp
+10,FULLW,i10_10,Darwin,1,,i10_shp
+10,FULLW,i10_11,Darwin,1,,i10_shp
+10,FULLW,i10_12,Darwin,1,,i10_shp
+10,FULLW,i10_13,Darwin,1,,i10_shp
+10,FULLW,i10_14,Darwin,1,,i10_shp
+10,FULLW,i10_15,Darwin,1,,i10_shp
+10,FULLW,i10_16,Darwin,1,,i10_shp
+10,FULLW,i10_17,Darwin,1,,i10_shp
+10,FULLW,i10_18,Darwin,1,,i10_shp
+10,FULLW,i10_19,Darwin,1,,i10_shp
+10,FULLW,i10_20,Darwin,1,,i10_shp
+10,FULLW,i10_21,Darwin,1,,i10_shp
+10,FULLW,i10_22,Darwin,1,,i10_shp
+10,FULLW,i10_23,Darwin,1,,i10_shp
+10,FULLW,i10_24,Darwin,1,,i10_shp
+10,FULLW,i10_25,Darwin,1,,i10_shp
+10,FULLW,i10_26,Darwin,1,,i10_shp
+10,FULLW,i10_27,Darwin,1,,i10_shp
+10,FULLW,i10_28,Darwin,1,,i10_shp
+10,FULLW,i10_29,Darwin,1,,i10_shp
+10,FULLW,i10_30,Darwin,1,,i10_shp
+10,FULLW,i10_31,Darwin,1,,i10_shp
+10,FULLW,i10_32,Darwin,1,,i10_shp
+10,FULLW,i10_33,Darwin,1,,i10_shp
+10,FULLW,i10_34,Darwin,1,,i10_shp
+10,FULLW,i10_35,Darwin,1,,i10_shp
+10,FULLW,i10_36,Darwin,1,,i10_shp
+10,FULLW,i10_37,Darwin,1,,i10_shp
+10,FULLW,i10_38,Darwin,1,,i10_shp
+10,FULLW,i10_39,Darwin,1,,i10_shp
+10,FULLW,i10_40,Darwin,1,,i10_shp
+10,FULLW,i10_41,Darwin,1,,i10_shp
+10,FULLWF,i10_42,Darwin,1,,i10_shp
+10,FULLWF,i10_43,Darwin,1,,i10_shp
+10,WESA,i10_44,Darwin,1,,i10_shp
+10,WESA,i10_45,Darwin,1,,i10_shp
+10,WESA,i10_46,Darwin,1,,i10_shp
+10,WESA,i10_47,Darwin,1,,i10_shp
+10,WESA,i10_48,Darwin,1,,i10_shp
+10,WESA,i10_49,Darwin,1,,i10_shp
+10,WESA,i10_50,Darwin,1,,i10_shp
+10,WESA,i10_51,Darwin,1,,i10_shp
+10,WESA,i10_52,Darwin,1,,i10_shp
+10,WESA,i10_53,Darwin,1,,i10_shp
+10,WESA,i10_54,Darwin,1,,i10_shp
+10,WESA,i10_55,Darwin,1,,i10_shp
+10,WESA,i10_56,Darwin,1,,i10_shp
+10,WESA,i10_57,Darwin,1,,i10_shp
+10,WESA,i10_58,Darwin,1,,i10_shp
+10,WESA,i10_59,Darwin,1,,i10_shp
+10,WESA,i10_60,Darwin,1,,i10_shp
+10,WESA,i10_61,Darwin,1,,i10_shp
+10,WESA,i10_62,Darwin,1,,i10_shp
+10,WESA,i10_63,Darwin,1,,i10_shp
+10,WESA,i10_64,Darwin,1,,i10_shp
+10,WESA,i10_65,Darwin,1,,i10_shp
+10,WESA,i10_66,Darwin,1,,i10_shp
+10,WESA,i10_67,Darwin,1,,i10_shp
+10,WESA,i10_68,Darwin,1,,i10_shp
+10,WESA,i10_69,Darwin,1,,i10_shp
+10,WESA,i10_70,Darwin,1,,i10_shp
+10,WESA,i10_71,Darwin,1,,i10_shp
+10,WESA,i10_72,Darwin,1,,i10_shp
+10,WESA,i10_73,Darwin,1,,i10_shp
+10,WESA,i10_74,Darwin,1,,i10_shp
+10,WESU,i10_75,Darwin,1,,i10_shp
+10,WESU,i10_76,Darwin,1,,i10_shp
+10,WESU,i10_77,Darwin,1,,i10_shp
+10,WESU,i10_78,Darwin,1,,i10_shp
+10,WESU,i10_79,Darwin,1,,i10_shp
+10,WESU,i10_80,Darwin,1,,i10_shp
+10,WESU,i10_81,Darwin,1,,i10_shp
+10,WESU,i10_82,Darwin,1,,i10_shp
+10,WESU,i10_83,Darwin,1,,i10_shp
+10,WESU,i10_84,Darwin,1,,i10_shp
+10,WESU,i10_85,Darwin,1,,i10_shp
+10,WESU,i10_86,Darwin,1,,i10_shp
+10,WESU,i10_87,Darwin,1,,i10_shp
+10,WESU,i10_88,Darwin,1,,i10_shp
+10,WESU,i10_89,Darwin,1,,i10_shp
+10,WESU,i10_90,Darwin,1,,i10_shp
+10,WESU,i10_91,Darwin,1,,i10_shp
+10,WESU,i10_92,Darwin,1,,i10_shp
+10,WESU,i10_93,Darwin,1,,i10_shp
+10,WESU,i10_94,Darwin,1,,i10_shp
+10,WESU,i10_95,Darwin,1,,i10_shp
+10,WESU,i10_96,Darwin,1,,i10_shp
+10,WESU,i10_97,Darwin,1,,i10_shp
+10,WESU,i10_98,Darwin,1,,i10_shp
+10,WESU,i10_99,Darwin,1,,i10_shp
+10,FULLW,i10a_1,Darwin via Smith St,1,,i10a_shp
+10,FULLW,o10_1,Casuarina,0,,o10_shp
+10,FULLW,o10_2,Casuarina,0,,o10_shp
+10,FULLW,o10_3,Casuarina,0,,o10_shp
+10,FULLW,o10_4,Casuarina,0,,o10_shp
+10,FULLW,o10_5,Casuarina,0,,o10_shp
+10,FULLW,o10_6,Casuarina,0,,o10_shp
+10,FULLW,o10_7,Casuarina,0,,o10_shp
+10,FULLW,o10_8,Casuarina,0,,o10_shp
+10,FULLW,o10_9,Casuarina,0,,o10_shp
+10,FULLW,o10_10,Casuarina,0,,o10_shp
+10,FULLW,o10_11,Casuarina,0,,o10_shp
+10,FULLW,o10_12,Casuarina,0,,o10_shp
+10,FULLW,o10_13,Casuarina,0,,o10_shp
+10,FULLW,o10_14,Casuarina,0,,o10_shp
+10,FULLW,o10_15,Casuarina,0,,o10_shp
+10,FULLW,o10_16,Casuarina,0,,o10_shp
+10,FULLW,o10_17,Casuarina,0,,o10_shp
+10,FULLW,o10_18,Casuarina,0,,o10_shp
+10,FULLW,o10_19,Casuarina,0,,o10_shp
+10,FULLW,o10_20,Casuarina,0,,o10_shp
+10,FULLW,o10_21,Casuarina,0,,o10_shp
+10,FULLW,o10_22,Casuarina,0,,o10_shp
+10,FULLW,o10_23,Casuarina,0,,o10_shp
+10,FULLW,o10_24,Casuarina,0,,o10_shp
+10,FULLW,o10_25,Casuarina,0,,o10_shp
+10,FULLW,o10_26,Casuarina,0,,o10_shp
+10,FULLW,o10_27,Casuarina,0,,o10_shp
+10,FULLW,o10_28,Casuarina,0,,o10_shp
+10,FULLW,o10_29,Casuarina,0,,o10_shp
+10,FULLW,o10_30,Casuarina,0,,o10_shp
+10,FULLW,o10_31,Casuarina,0,,o10_shp
+10,FULLW,o10_32,Casuarina,0,,o10_shp
+10,FULLW,o10_33,Casuarina,0,,o10_shp
+10,FULLW,o10_34,Casuarina,0,,o10_shp
+10,FULLW,o10_35,Casuarina,0,,o10_shp
+10,FULLW,o10_36,Casuarina,0,,o10_shp
+10,FULLW,o10_37,Casuarina,0,,o10_shp
+10,FULLW,o10_38,Casuarina,0,,o10_shp
+10,FULLW,o10_39,Casuarina,0,,o10_shp
+10,FULLW,o10_40,Casuarina,0,,o10_shp
+10,FULLW,o10_41,Casuarina,0,,o10_shp
+10,FULLW,o10_42,Casuarina,0,,o10_shp
+10,FULLW,o10_43,Casuarina,0,,o10_shp
+10,FULLW,o10_44,Casuarina,0,,o10_shp
+10,FULLW,o10_45,Casuarina,0,,o10_shp
+10,FULLWF,o10_46,Casuarina,0,,o10_shp
+10,FULLWF,o10_47,Casuarina,0,,o10_shp
+10,FULLWF,o10_48,Casuarina,0,,o10_shp
+10,WESA,o10_49,Casuarina,0,,o10_shp
+10,WESA,o10_50,Casuarina,0,,o10_shp
+10,WESA,o10_51,Casuarina,0,,o10_shp
+10,WESA,o10_52,Casuarina,0,,o10_shp
+10,WESA,o10_53,Casuarina,0,,o10_shp
+10,WESA,o10_54,Casuarina,0,,o10_shp
+10,WESA,o10_55,Casuarina,0,,o10_shp
+10,WESA,o10_56,Casuarina,0,,o10_shp
+10,WESA,o10_57,Casuarina,0,,o10_shp
+10,WESA,o10_58,Casuarina,0,,o10_shp
+10,WESA,o10_59,Casuarina,0,,o10_shp
+10,WESA,o10_60,Casuarina,0,,o10_shp
+10,WESA,o10_61,Casuarina,0,,o10_shp
+10,WESA,o10_62,Casuarina,0,,o10_shp
+10,WESA,o10_63,Casuarina,0,,o10_shp
+10,WESA,o10_64,Casuarina,0,,o10_shp
+10,WESA,o10_65,Casuarina,0,,o10_shp
+10,WESA,o10_66,Casuarina,0,,o10_shp
+10,WESA,o10_67,Casuarina,0,,o10_shp
+10,WESA,o10_68,Casuarina,0,,o10_shp
+10,WESA,o10_69,Casuarina,0,,o10_shp
+10,WESA,o10_70,Casuarina,0,,o10_shp
+10,WESA,o10_71,Casuarina,0,,o10_shp
+10,WESA,o10_72,Casuarina,0,,o10_shp
+10,WESA,o10_73,Casuarina,0,,o10_shp
+10,WESA,o10_74,Casuarina,0,,o10_shp
+10,WESA,o10_75,Casuarina,0,,o10_shp
+10,WESA,o10_76,Casuarina,0,,o10_shp
+10,WESA,o10_77,Casuarina,0,,o10_shp
+10,WESU,o10_78,Casuarina,0,,o10_shp
+10,WESU,o10_79,Casuarina,0,,o10_shp
+10,WESU,o10_80,Casuarina,0,,o10_shp
+10,WESU,o10_81,Casuarina,0,,o10_shp
+10,WESU,o10_82,Casuarina,0,,o10_shp
+10,WESU,o10_83,Casuarina,0,,o10_shp
+10,WESU,o10_84,Casuarina,0,,o10_shp
+10,WESU,o10_85,Casuarina,0,,o10_shp
+10,WESU,o10_86,Casuarina,0,,o10_shp
+10,WESU,o10_87,Casuarina,0,,o10_shp
+10,WESU,o10_88,Casuarina,0,,o10_shp
+10,WESU,o10_89,Casuarina,0,,o10_shp
+10,WESU,o10_90,Casuarina,0,,o10_shp
+10,WESU,o10_91,Casuarina,0,,o10_shp
+10,WESU,o10_92,Casuarina,0,,o10_shp
+10,WESU,o10_93,Casuarina,0,,o10_shp
+10,WESU,o10_94,Casuarina,0,,o10_shp
+10,WESU,o10_95,Casuarina,0,,o10_shp
+10,WESU,o10_96,Casuarina,0,,o10_shp
+10,WESU,o10_97,Casuarina,0,,o10_shp
+10,WESU,o10_98,Casuarina,0,,o10_shp
+10,WESU,o10_99,Casuarina,0,,o10_shp
+10,WESU,o10_100,Casuarina,0,,o10_shp
+10,WESU,o10_101,Casuarina,0,,o10_shp
+10,FULLW,o10a_1,Casuarina,0,,o10a_shp
+11,FULLW,i11_1,Milner,1,,i11_shp
+11,FULLW,i11_2,Milner,1,,i11_shp
+11,FULLW,i11_3,Milner,1,,i11_shp
+11,FULLW,i11a_1,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_2,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_3,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_4,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_5,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_6,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_7,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_8,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_9,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_10,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_11,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_12,Millner Nightcliff,1,,i11a_shp
+11,FULLW,i11a_13,Millner Nightcliff,1,,i11a_shp
+12,FULLW,i12_1,Malak Karama,1,,i12_shp
+12,FULLW,i12_2,Malak Karama,1,,i12_shp
+12,FULLW,i12_3,Malak Karama,1,,i12_shp
+12,FULLW,i12_4,Malak Karama,1,,i12_shp
+12,FULLW,i12_5,Malak Karama,1,,i12_shp
+12,FULLW,i12_6,Malak Karama,1,,i12_shp
+12,FULLW,i12_7,Malak Karama,1,,i12_shp
+12,FULLW,i12_8,Malak Karama,1,,i12_shp
+12,FULLW,i12_9,Malak Karama,1,,i12_shp
+12,FULLW,i12_10,Malak Karama,1,,i12_shp
+12,FULLW,i12_11,Malak Karama,1,,i12_shp
+12,FULLW,i12_12,Malak Karama,1,,i12_shp
+12,FULLW,i12_13,Malak Karama,1,,i12_shp
+12,FULLW,i12_14,Malak Karama,1,,i12_shp
+12,FULLW,i12_15,Malak Karama,1,,i12_shp
+12,FULLW,i12_16,Malak Karama,1,,i12_shp
+12,FULLW,i12_17,Malak Karama,1,,i12_shp
+12,FULLW,i12_18,Malak Karama,1,,i12_shp
+12,FULLW,i12_19,Malak Karama,1,,i12_shp
+12,FULLW,i12_20,Malak Karama,1,,i12_shp
+12,FULLW,i12_21,Malak Karama,1,,i12_shp
+12,WESA,i12a_1,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_2,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_3,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_4,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_5,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_6,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_7,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_8,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_9,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_10,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_11,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_12,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_13,Malak Karama Wulagi,1,,i12a_shp
+12,WESA,i12a_14,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_15,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_16,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_17,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_18,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_19,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_20,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_21,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_22,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_23,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_24,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_25,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_26,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_27,Malak Karama Wulagi,1,,i12a_shp
+12,WESU,i12a_28,Malak Karama Wulagi,1,,i12a_shp
+14,FULLW,i14_1,Cullen Bay,1,,i14_shp
+14,FULLW,i14_2,Cullen Bay,1,,i14_shp
+14,FULLW,i14_3,Cullen Bay,1,,i14_shp
+14,FULLW,i14_4,Cullen Bay,1,,i14_shp
+14,FULLW,i14_5,Cullen Bay,1,,i14_shp
+14,WESA,i14_6,Cullen Bay,1,,i14_shp
+14,WESA,i14_7,Cullen Bay,1,,i14_shp
+14,WESA,i14_8,Cullen Bay,1,,i14_shp
+14,WESA,i14_9,Cullen Bay,1,,i14_shp
+14,WESU,i14_10,Cullen Bay,1,,i14_shp
+14,WESU,i14_11,Cullen Bay,1,,i14_shp
+14,WESU,i14_12,Cullen Bay,1,,i14_shp
+14,WESU,i14_13,Cullen Bay,1,,i14_shp
+14,FULLW,i14c_1,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_2,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_3,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_4,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_5,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_6,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_7,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_8,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_9,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_10,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_11,Cullen Bay Convention Centre,1,,i14c_shp
+14,FULLW,i14c_12,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESA,i14c_13,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESA,i14c_14,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESA,i14c_15,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESA,i14c_16,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESA,i14c_17,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESU,i14c_18,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESU,i14c_19,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESU,i14c_20,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESU,i14c_21,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESU,i14c_22,Cullen Bay Convention Centre,1,,i14c_shp
+14,WESA,i14b_1,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESA,i14b_2,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESA,i14b_3,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESA,i14b_4,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESA,i14b_5,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESA,i14b_6,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESU,i14b_7,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESU,i14b_8,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESU,i14b_9,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESU,i14b_10,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESU,i14b_11,Cullen Bay Convention Centre,1,,i14b_shp
+14,WESU,i14b_12,Cullen Bay Convention Centre,1,,i14b_shp
+15,FULLWTM,i15_1,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_2,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_3,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_4,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_5,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_6,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_7,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_8,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_9,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_10,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_11,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_12,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_13,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_14,Mindil Beach Markets,1,,i15_shp
+15,FULLWTM,i15_15,Mindil Beach Markets,1,,i15_shp
+16,FULLWTM,i16_1,Mindil Beach Markets,1,,i16_shp
+16,FULLWTM,i16_2,Mindil Beach Markets,1,,i16_shp
+16,FULLWTM,i16_3,Mindil Beach Markets,1,,i16_shp
+17,FULLWTM,o17_1,Palmerston,0,,o17_shp
+17,FULLWTM,o17_2,Palmerston,0,,o17_shp
+17,FULLWTM,o17_3,Palmerston,0,,o17_shp
+18,FULLWTM,i18_1,Mindil Beach Markets,1,,i18_shp
+19,FULLWTM,o19_1,Casuarina,0,,o19_shp
+19,FULLWTM,o19_2,Casuarina,0,,o19_shp
+19,FULLWTM,o19_3,Casuarina,0,,o19_shp
+19,FULLWTM,o19_4,Casuarina,0,,o19_shp
+19,FULLWTM,o19_5,Casuarina,0,,o19_shp
+21,FULLW,i21_1,Darwin Semi-Express,1,,i21_shp
+22,FULLW,i22_1,Darwin Semi-Express,1,,i22_shp
+25,FULLW,i25_1,Darwin-Semi-Express,1,,i25_shp
+28,FULLW,i28_1,Darwin Semi-Express,1,,i28_shp
+28,FULLW,i28_2,Darwin Semi-Express,1,,i28_shp
+28,FULLW,i28_3,Darwin Semi-Express,1,,i28_shp
+21,FULLW,o21_1,Tiwi Semi-Express,0,,o21_shp
+21,FULLW,o21_2,Tiwi Semi-Express,0,,o21_shp
+22,FULLW,o22_1,Leanyer Semi-Express,0,,o22_shp
+22,FULLW,o22_2,Leanyer Semi-Express,0,,o22_shp
+24,FULLW,i24_1,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_2,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_3,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_4,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_5,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_6,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_7,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_8,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_9,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_10,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_11,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_12,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_13,Wanguri Lyons Muirhead,1,,i24_shp
+24,FULLW,i24_14,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_15,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_16,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_17,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_18,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_19,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_20,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_21,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_22,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_23,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_24,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_25,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESA,i24_26,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_27,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_28,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_29,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_30,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_31,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_32,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_33,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_34,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_35,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_36,Wanguri Lyons Muirhead,1,,i24_shp
+24,WESU,i24_37,Wanguri Lyons Muirhead,1,,i24_shp
+25,FULLW,o25_1,Karama Semi-Express,0,,o25_shp
+25,FULLW,o25_2,Karama Semi-Express,0,,o25_shp
+28,FULLW,o28_1,Humpty Doo Express,0,,o28_shp
+28,FULLW,o28_2,Humpty Doo Express,0,,o28_shp
+28,FULLW,o28_3,Humpty Doo Express,0,,o28_shp
+70,FULLW,i70_1,Driver Moulden,1,,i70_shp
+70,FULLW,i70_2,Driver Moulden,1,,i70_shp
+70,FULLW,i70_3,Driver Moulden,1,,i70_shp
+70,FULLW,i70_4,Driver Moulden,1,,i70_shp
+70,FULLW,i70_5,Driver Moulden,1,,i70_shp
+70,FULLW,i70_6,Driver Moulden,1,,i70_shp
+70,FULLW,i70_7,Driver Moulden,1,,i70_shp
+70,FULLW,i70_8,Driver Moulden,1,,i70_shp
+70,FULLW,i70_9,Driver Moulden,1,,i70_shp
+70,FULLW,i70_10,Driver Moulden,1,,i70_shp
+70,FULLW,i70_11,Driver Moulden,1,,i70_shp
+70,FULLW,i70_12,Driver Moulden,1,,i70_shp
+70,FULLW,i70_13,Driver Moulden,1,,i70_shp
+70,FULLW,i70_14,Driver Moulden,1,,i70_shp
+70,FULLW,i70_15,Driver Moulden,1,,i70_shp
+70,FULLW,i70_16,Driver Moulden,1,,i70_shp
+70,FULLW,i70_17,Driver Moulden,1,,i70_shp
+70,FULLW,i70_18,Driver Moulden,1,,i70_shp
+70,FULLW,i70_19,Driver Moulden,1,,i70_shp
+70,FULLW,i70_20,Driver Moulden,1,,i70_shp
+70,FULLW,i70_21,Driver Moulden,1,,i70_shp
+70,FULLW,i70_22,Driver Moulden,1,,i70_shp
+70,FULLW,i70_23,Driver Moulden,1,,i70_shp
+70,FULLW,i70_24,Driver Moulden,1,,i70_shp
+70,FULLW,i70_25,Driver Moulden,1,,i70_shp
+70,FULLW,i70_26,Driver Moulden,1,,i70_shp
+70,WESA,i70_27,Driver Moulden,1,,i70_shp
+70,WESA,i70_28,Driver Moulden,1,,i70_shp
+70,WESA,i70_29,Driver Moulden,1,,i70_shp
+70,WESA,i70_30,Driver Moulden,1,,i70_shp
+70,WESA,i70_31,Driver Moulden,1,,i70_shp
+70,WESA,i70_32,Driver Moulden,1,,i70_shp
+70,WESA,i70_33,Driver Moulden,1,,i70_shp
+70,WESA,i70_34,Driver Moulden,1,,i70_shp
+70,WESA,i70_35,Driver Moulden,1,,i70_shp
+70,WESA,i70_36,Driver Moulden,1,,i70_shp
+70,WESA,i70_37,Driver Moulden,1,,i70_shp
+70,WESA,i70_38,Driver Moulden,1,,i70_shp
+70,WESA,i70_39,Driver Moulden,1,,i70_shp
+70,WESA,i70_40,Driver Moulden,1,,i70_shp
+70,WESA,i70_41,Driver Moulden,1,,i70_shp
+70,WESA,i70_42,Driver Moulden,1,,i70_shp
+70,WESA,i70_43,Driver Moulden,1,,i70_shp
+70,WESU,i70_44,Driver Moulden,1,,i70_shp
+70,WESU,i70_45,Driver Moulden,1,,i70_shp
+70,WESU,i70_46,Driver Moulden,1,,i70_shp
+70,WESU,i70_47,Driver Moulden,1,,i70_shp
+70,WESU,i70_48,Driver Moulden,1,,i70_shp
+70,WESU,i70_49,Driver Moulden,1,,i70_shp
+70,WESU,i70_50,Driver Moulden,1,,i70_shp
+70,WESU,i70_51,Driver Moulden,1,,i70_shp
+70,WESU,i70_52,Driver Moulden,1,,i70_shp
+70,WESU,i70_53,Driver Moulden,1,,i70_shp
+70,WESU,i70_54,Driver Moulden,1,,i70_shp
+70,WESU,i70_55,Driver Moulden,1,,i70_shp
+70,FULLW,i70a_1,Driver Moulden Whaler Rd,1,,i70a_shp
+70,FULLW,i70b_1,Driver Whaler Rd Moulden,1,,i70b_shp
+71,FULLW,i71_1,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_2,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_3,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_4,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_5,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_6,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_7,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_8,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_9,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_10,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_11,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_12,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_13,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_14,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_15,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_16,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_17,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_18,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_19,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_20,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_21,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_22,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_23,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_24,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_25,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_26,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_27,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_28,Woodroffe Gray,1,,i71_shp
+71,FULLW,i71_29,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_30,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_31,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_32,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_33,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_34,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_35,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_36,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_37,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_38,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_39,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_40,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_41,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_42,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_43,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_44,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_45,Woodroffe Gray,1,,i71_shp
+71,WESA,i71_46,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_47,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_48,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_49,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_50,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_51,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_52,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_53,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_54,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_55,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_56,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_57,Woodroffe Gray,1,,i71_shp
+71,WESU,i71_58,Woodroffe Gray,1,,i71_shp
+72,FULLW,i72_1,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_2,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_3,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_4,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_5,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_6,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_7,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_8,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_9,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_10,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_11,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_12,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_13,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_14,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_15,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_16,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_17,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_18,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_19,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_20,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_21,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_22,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_23,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_24,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_25,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_26,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72_27,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_28,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_29,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_30,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_31,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_32,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_33,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_34,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_35,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_36,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_37,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_38,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_39,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_40,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_41,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_42,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_43,Gunn Rosebery,1,,i72_shp
+72,WESA,i72_44,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_45,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_46,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_47,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_48,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_49,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_50,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_51,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_52,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_53,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_54,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_55,Gunn Rosebery,1,,i72_shp
+72,WESU,i72_56,Gunn Rosebery,1,,i72_shp
+72,FULLW,i72a_1,Gunn Rosebery,1,,i72a_shp
+73,FULLW,i73_1,Durack University,1,,i73_shp
+73,FULLW,i73_2,Durack University,1,,i73_shp
+73,FULLW,i73_3,Durack University,1,,i73_shp
+73,FULLW,i73_4,Durack University,1,,i73_shp
+73,FULLW,i73_5,Durack University,1,,i73_shp
+73,FULLW,i73_6,Durack University,1,,i73_shp
+73,FULLW,i73_7,Durack University,1,,i73_shp
+73,FULLW,i73_8,Durack University,1,,i73_shp
+73,FULLW,i73_9,Durack University,1,,i73_shp
+73,FULLW,i73_10,Durack University,1,,i73_shp
+73,FULLW,i73_11,Durack University,1,,i73_shp
+73,FULLW,i73_12,Durack University,1,,i73_shp
+73,FULLW,i73_13,Durack University,1,,i73_shp
+73,FULLW,i73_14,Durack University,1,,i73_shp
+73,FULLW,i73_15,Durack University,1,,i73_shp
+73,FULLW,i73_16,Durack University,1,,i73_shp
+73,FULLW,i73_17,Durack University,1,,i73_shp
+73,FULLW,i73_18,Durack University,1,,i73_shp
+73,FULLW,i73_19,Durack University,1,,i73_shp
+73,FULLW,i73_20,Durack University,1,,i73_shp
+73,FULLW,i73_21,Durack University,1,,i73_shp
+73,FULLW,i73_22,Durack University,1,,i73_shp
+73,FULLW,i73_23,Durack University,1,,i73_shp
+73,FULLW,i73_24,Durack University,1,,i73_shp
+73,FULLW,i73_25,Durack University,1,,i73_shp
+73,FULLW,i73_26,Durack University,1,,i73_shp
+73,FULLW,i73_27,Durack University,1,,i73_shp
+73,WESA,i73_28,Durack University,1,,i73_shp
+73,WESA,i73_29,Durack University,1,,i73_shp
+73,WESA,i73_30,Durack University,1,,i73_shp
+73,WESA,i73_31,Durack University,1,,i73_shp
+73,WESA,i73_32,Durack University,1,,i73_shp
+73,WESA,i73_33,Durack University,1,,i73_shp
+73,WESA,i73_34,Durack University,1,,i73_shp
+73,WESA,i73_35,Durack University,1,,i73_shp
+73,WESA,i73_36,Durack University,1,,i73_shp
+73,WESA,i73_37,Durack University,1,,i73_shp
+73,WESA,i73_38,Durack University,1,,i73_shp
+73,WESA,i73_39,Durack University,1,,i73_shp
+73,WESA,i73_40,Durack University,1,,i73_shp
+73,WESA,i73_41,Durack University,1,,i73_shp
+73,WESA,i73_42,Durack University,1,,i73_shp
+73,WESA,i73_43,Durack University,1,,i73_shp
+73,WESA,i73_44,Durack University,1,,i73_shp
+73,WESU,i73_45,Durack University,1,,i73_shp
+73,WESU,i73_46,Durack University,1,,i73_shp
+73,WESU,i73_47,Durack University,1,,i73_shp
+73,WESU,i73_48,Durack University,1,,i73_shp
+73,WESU,i73_49,Durack University,1,,i73_shp
+73,WESU,i73_50,Durack University,1,,i73_shp
+73,WESU,i73_51,Durack University,1,,i73_shp
+73,WESU,i73_52,Durack University,1,,i73_shp
+73,WESU,i73_53,Durack University,1,,i73_shp
+73,WESU,i73_54,Durack University,1,,i73_shp
+73,WESU,i73_55,Durack University,1,,i73_shp
+73,WESU,i73_56,Durack University,1,,i73_shp
+73,FULLW,i73a_1,Durack University,1,,i73a_shp
+73,FULLW,i73a_2,Durack University,1,,i73a_shp
+74,FULLW,i74a_1,Super Clinic Farrar Yarrawonga,1,,i74a_shp
+74,FULLW,i74a_2,Super Clinic Farrar Yarrawonga,1,,i74a_shp
+74,FULLW,i74a_3,Super Clinic Farrar Yarrawonga,1,,i74a_shp
+74,FULLW,i74a_4,Super Clinic Farrar Yarrawonga,1,,i74a_shp
+74,FULLW,i74a_5,Super Clinic Farrar Yarrawonga,1,,i74a_shp
+74,WESA,i74a_6,Super Clinic Farrar Yarrawonga,1,,i74a_shp
+74,WESA,i74a_7,Super Clinic Farrar Yarrawonga,1,,i74a_shp
+74,WESA,i74a_8,Super Clinic Farrar Yarrawonga,1,,i74a_shp
+74,FULLW,i74_1,Super Clinic PIV Farrar ,1,,i74_shp
+74,FULLW,i74_2,Super Clinic PIV Farrar ,1,,i74_shp
+74,FULLW,i74_3,Super Clinic PIV Farrar ,1,,i74_shp
+74,FULLW,i74_4,Super Clinic PIV Farrar ,1,,i74_shp
+74,FULLW,i74_5,Super Clinic PIV Farrar ,1,,i74_shp
+74,FULLW,i74_6,Super Clinic PIV Farrar ,1,,i74_shp
+74,FULLW,i74_7,Super Clinic PIV Farrar ,1,,i74_shp
+74,FULLW,i74_8,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESA,i74_9,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESA,i74_10,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESA,i74_11,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESA,i74_12,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESA,i74_13,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESA,i74_14,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESA,i74_15,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESA,i74_16,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESA,i74_17,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_18,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_19,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_20,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_21,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_22,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_23,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_24,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_25,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_26,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_27,Super Clinic PIV Farrar ,1,,i74_shp
+74,WESU,i74_28,Super Clinic PIV Farrar ,1,,i74_shp
+76,FULLW,i76_1,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_2,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_3,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_4,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_5,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_6,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_7,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_8,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_9,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_10,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_11,Bakewell Bellamack Moulden Driver,1,,i76_shp
+76,FULLW,i76_12,Bakewell Bellamack Moulden Driver,1,,i76_shp
+77,FULLW,i77_1,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_2,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_3,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_4,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_5,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_6,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_7,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_8,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_9,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_10,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_11,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_12,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_13,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_14,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_15,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_16,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_17,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_18,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_19,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_20,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_21,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,FULLW,i77_22,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_23,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_24,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_25,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_26,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_27,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_28,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_29,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_30,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_31,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_32,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_33,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_34,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_35,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_36,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESA,i77_37,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_38,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_39,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_40,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_41,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_42,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_43,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_44,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_45,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_46,Health Precinct Rosebery Bellamack,1,,i77_shp
+77,WESU,i77_47,Health Precinct Rosebery Bellamack,1,,i77_shp
+440,FULLW,i440_1,Palmerston Virginia Noonamah Humpty Doo,1,,i440_shp
+440,FULLW,i440_2,Palmerston Virginia Noonamah Humpty Doo,1,,i440_shp
+440,WESA,i440_3,Palmerston Virginia Noonamah Humpty Doo,1,,i440_shp
+440,WESA,i440_4,Palmerston Virginia Noonamah Humpty Doo,1,,i440_shp
+445,FULLW,i445_1,Palmerston,1,,i445_shp
+445,WESA,i445_2,Palmerston,1,,i445_shp
+445,WESA,i445_3,Palmerston,1,,i445_shp
+445,FULLW,i445a_1,Bees Creek Palmerston,1,,i445a_shp
+445,FULLW,o445_1,Noonamah,0,,o445_shp
+445,FULLW,o445_2,Noonamah,0,,o445_shp
+445,FULLW,o445_3,Noonamah,0,,o445_shp
+445,WESA,o445_4,Noonamah,0,,o445_shp
+445,WESA,o445_5,Noonamah,0,,o445_shp
+446,FULLW,i446_1,Palmerston,1,,i446_shp
+446,FULLW,i446_2,Palmerston,1,,i446_shp
+446,WESA,i446_3,Palmerston,1,,i446_shp
+446,FULLW,o446_1,Virginia Rd Gulnare Rd,0,,o446_shp
+446,FULLW,o446_2,Virginia Rd Gulnare Rd,0,,o446_shp
+446,FULLW,o446_3,Virginia Rd Gulnare Rd,0,,o446_shp
+446,WESA,o446_4,Virginia Rd Gulnare Rd,0,,o446_shp
+446,WESA,o446_5,Virginia Rd Gulnare Rd,0,,o446_shp
+447,FULLW,i447_1,Palmerston via Girraween Howard Springs,1,,i447_shp
+447,FULLW,i447_2,Palmerston via Girraween Howard Springs,1,,i447_shp
+447,WESA,i447_3,Palmerston via Girraween Howard Springs,1,,i447_shp
+447,WESA,i447_4,Palmerston via Girraween Howard Springs,1,,i447_shp
+447,FULLW,i447a_1,Palmerston via Stuart Highway,1,,i447a_shp
+447,FULLW,i447a_2,Palmerston via Stuart Highway,1,,i447a_shp
+447,FULLW,o447_1,Humpty Doo via Howard Springs Girraween,0,,o447_shp
+447,FULLW,o447_2,Humpty Doo via Howard Springs Girraween,0,,o447_shp
+447,FULLW,o447_3,Humpty Doo via Howard Springs Girraween,0,,o447_shp
+447,FULLW,o447_4,Humpty Doo via Howard Springs Girraween,0,,o447_shp
+447,WESA,o447_5,Humpty Doo via Howard Springs Girraween,0,,o447_shp
+447,WESA,o447_6,Humpty Doo via Howard Springs Girraween,0,,o447_shp
+450,FULLW,i450_1,Palmerston via Howard Springs,1,,i450_shp
+450,WESA,i450_2,Palmerston via Howard Springs,1,,i450_shp
+450,FULLW,o450_1,Humpty Doo via Howard Springs,0,,o450_shp
+450,WESA,o450_2,Humpty Doo via Howard Springs,0,,o450_shp
+OL1,FULLW,Link1c_1,OrbitalLink1,1,,Link1c_shp
+OL1,FULLW,Link1c_2,OrbitalLink1,1,,Link1c_shp
+OL1,FULLW,Link1c_3,OrbitalLink1,1,,Link1c_shp
+OL1,FULLW,Link1c_4,OrbitalLink1,1,,Link1c_shp
+OL1,FULLW,Link1d_1,OrbitalLink1,1,,Link1d_shp
+OL1,FULLW,Link1d_2,OrbitalLink1,1,,Link1d_shp
+OL1,FULLW,Link1d_3,OrbitalLink1,1,,Link1d_shp
+OL1,FULLW,Link1d_4,OrbitalLink1,1,,Link1d_shp
+OL1,FULLW,Link1p_1,OrbitalLink1,1,,Link1p_shp
+OL1,FULLW,Link1p_2,OrbitalLink1,1,,Link1p_shp
+OL1,FULLW,Link1p_3,OrbitalLink1,1,,Link1p_shp
+OL1,FULLW,Link1p_4,OrbitalLink1,1,,Link1p_shp
+OL2,FULLW,Link2c_1,OrbitalLink2,0,,Link2c_shp
+OL2,FULLW,Link2c_2,OrbitalLink2,0,,Link2c_shp
+OL2,FULLW,Link2c_3,OrbitalLink2,0,,Link2c_shp
+OL2,FULLW,Link2c_4,OrbitalLink2,0,,Link2c_shp
+OL2,FULLW,Link2d_1,OrbitalLink2,0,,Link2d_shp
+OL2,FULLW,Link2d_2,OrbitalLink2,0,,Link2d_shp
+OL2,FULLW,Link2d_3,OrbitalLink2,0,,Link2d_shp
+OL2,FULLW,Link2d_4,OrbitalLink2,0,,Link2d_shp
+OL2,FULLW,Link2p_1,OrbitalLink2,0,,Link2p_shp
+OL2,FULLW,Link2p_2,OrbitalLink2,0,,Link2p_shp
+OL2,FULLW,Link2p_3,OrbitalLink2,0,,Link2p_shp
+OL2,FULLW,Link2p_4,OrbitalLink2,0,,Link2p_shp
+Man,FULLW,oMan_1,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_2,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_3,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_4,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_5,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_6,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_7,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_8,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_9,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_10,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_11,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_12,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_13,Mandorah,0,,oMan_shp
+Man,FULLW,oMan_14,Mandorah,0,,oMan_shp
+Man,WESA,oMan_15,Mandorah,0,,oMan_shp
+Man,WESA,oMan_16,Mandorah,0,,oMan_shp
+Man,WESA,oMan_17,Mandorah,0,,oMan_shp
+Man,WESA,oMan_18,Mandorah,0,,oMan_shp
+Man,WESA,oMan_19,Mandorah,0,,oMan_shp
+Man,WESA,oMan_20,Mandorah,0,,oMan_shp
+Man,WESA,oMan_21,Mandorah,0,,oMan_shp
+Man,WESA,oMan_22,Mandorah,0,,oMan_shp
+Man,WESA,oMan_23,Mandorah,0,,oMan_shp
+Man,WESA,oMan_24,Mandorah,0,,oMan_shp
+Man,WESA,oMan_25,Mandorah,0,,oMan_shp
+Man,WESA,oMan_26,Mandorah,0,,oMan_shp
+Man,WESU,oMan_27,Mandorah,0,,oMan_shp
+Man,WESU,oMan_28,Mandorah,0,,oMan_shp
+Man,WESU,oMan_29,Mandorah,0,,oMan_shp
+Man,WESU,oMan_30,Mandorah,0,,oMan_shp
+Man,WESU,oMan_31,Mandorah,0,,oMan_shp
+Man,WESU,oMan_32,Mandorah,0,,oMan_shp
+Man,WESU,oMan_33,Mandorah,0,,oMan_shp
+Man,WESU,oMan_34,Mandorah,0,,oMan_shp
+Man,WESU,oMan_35,Mandorah,0,,oMan_shp
+Man,WESU,oMan_36,Mandorah,0,,oMan_shp
+Man,WESU,oMan_37,Mandorah,0,,oMan_shp
+Man,WESU,oMan_38,Mandorah,0,,oMan_shp
+Man,FULLW,iMan_1,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_2,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_3,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_4,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_5,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_6,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_7,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_8,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_9,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_10,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_11,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_12,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_13,Cullen Bay,1,,iMan_shp
+Man,FULLW,iMan_14,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_15,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_16,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_17,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_18,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_19,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_20,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_21,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_22,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_23,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_24,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_25,Cullen Bay,1,,iMan_shp
+Man,WESA,iMan_26,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_27,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_28,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_29,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_30,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_31,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_32,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_33,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_34,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_35,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_36,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_37,Cullen Bay,1,,iMan_shp
+Man,WESU,iMan_38,Cullen Bay,1,,iMan_shp

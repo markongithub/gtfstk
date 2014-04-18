@@ -1,0 +1,40 @@
+route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
+1,PT,1,Casuarina to Casuarina,via Hospital Precinct Tiwi Brinkin and Nakara ,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+1h,PT,1h,Casuarina to Casuarina,via Hospital Precinct and Diabetes Australia Clinic,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+2,PT,2,Casuarina to Casuarina,via Wanguri Leanyer Wulagi and Wagaman,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+3,PT,3,Casuarina to Casuarina,via Alawa Jingili Marrara Moil and Anula ,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+4,PT,4,Casuarina Darwin Casuarina,via Nightcliff CDU and Fannie Bay,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+5,PT,5,Casuarina Darwin Casuarina,via Winnellie,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+6,PT,6,Darwin to Darwin,via Larrakeyah Fannie Bay and Parap,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+7,PT,7,Darwin to Darwin,via Stuart Park Bayview and Tipperary Waters,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+8,PT,8,Darwin Palmerston Darwin,via Winnellie and Berrimah,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+9,PT,9,Palmerston Casuarina Palmerston,via Berrimah and Karama,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+10,PT,10,Casuarina Darwin Casuarina,via Alawa Rapid Creek Ludmilla Parap and Stuart Park,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+11,PT,11,Casuarina to Casuarina,via Millner Rapid Creek and Alawa,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+12,PT,12,Casuarina to Casuarina,via Malak and Karama,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+14,PT,14,Darwin to Darwin,via Cullen Bay and Darwin Waterfront including the Convention Centre this service connects to the Mandorah Ferry,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+15,PT,15,Darwin Mindil Beach Darwin,via Cavenagh St Daly St Gilruth Ave return via Gilruth Ave Lambell Tec Mitchell St Thursday during market season only,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+16,PT,16,Palmerston Bus Interchange to Mindil Beach,via Berrimah Thursday during market season only,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+17,PT,17,Mindil Beach to Palmerston Bus Interchange,via Berrimah Thursday during market season only,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+18,PT,18,Casuarina Bus Interchange to Mindil Beach,via Bradshaw Tce Dripstone Rd Lakeside Dr Nightcliff and Fannie Bay Thursday during market season only,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+19,PT,19,Mindil Beach Markets to Casuarina Bus Interchange,via Fannie Bay Nightcliff Rapid Creek Alawa Thursday during market season only,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+21,PT,21,Hospital Precinct Darwin Hospital Precinct ,semi express via Casuarina operating am and pm peak times,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,D60007,FFFFFF
+22,PT,22,Leanyer Darwin Leanyer,semi express via  operating am and pm peak times,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,D60007,FFFFFF
+24,PT,24,Casuarina to Casuarina,via Wanguri Lyons and Muirhead,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+25,PT,25,Karama Darwin Karama Casuarina,semi express via Moil Anula operating am and pm peak times,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,D60007,FFFFFF
+28,PT,28,Humpty Doo Darwin Humpty Doo,semi express via Coolalinga Palmerston operating am and pm peak times,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,D60007,FFFFFF
+70,PT,70,Palmerston to Palmerston,via Driver and Moulden,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+71,PT,71,Palmerston to Palmerston,via Woodroffe and Gray,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+72,PT,72,Palmerston to Palmerston ,via Gunn Bakewell and Rosebery,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+73,PT,73,Palmerston to Palmerston ,via Durack & Palmerston CDU University,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+74,PT,74,Palmerston to Palmerston,via Indigenous Village Zuccoli Farrar and Palmerston Health Precinct,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+76,PT,76,Palmerston to Palmerston,via Bakewell Rosebery Bellamack Moulden and Driver,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+77,PT,77,Palmerston to Palmerston,via Palmerston Health Precinct Rosebery and Bellamack,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+440,PT,440,Humpty Doo to Humpty Doo ,via Virginia Noonamah and Palmerston Loop service,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+445,PT,445,Noonamah Palmerston Noonamah,via Coolalinga and Humpty Doo,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+446,PT,446,Bees Creek Palmerston Bees Creek,via Gulnare Rd and Lowther Rd,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+447,PT,447,Humpty Doo Palmerston Humpty Doo,via McMinns Lagoon and Howard Springs,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+450,PT,450,Humpty Doo Palmerston Humpty Doo,via Girraween and Howard Springs,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,004C5B,FFFFFF
+OL1,PT,OL1,Casuarina Palmerston Darwin Orbital ,Express Service operating am and pm peak times,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,F77E22,FFFFFF
+OL2,PT,OL2,Darwin Palmerston Casuarina Orbital,Express Service operating am and pm peak times,3,http://www.transport.nt.gov.au/public-transport/public-bus-service/darwin,000000,FFFFFF
+Man,FF,,Mandorah Cullen Bay,,4,http://www.fastferries.com.au/RouteMap.aspx?a=21&s=21&c=252,,
