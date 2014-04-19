@@ -248,9 +248,9 @@ class Feed(object):
         trip_stats = self.get_trip_stats(big_units=big_units)
         trip_stats.to_csv(self.path + 'trip_stats.csv', index=False)
 
-    def get_network_stats(self, dates, big_units=False):  
+    def get_network_ts(self, date, big_units=False):  
         """
-        For each date in dates, use ``self.trip_stats`` to compute 
+        For the given date, use ``self.trip_stats`` to compute 
         the following network stats
 
         - service duration (seconds)
@@ -258,25 +258,14 @@ class Feed(object):
         - vehicles in service
         
         as a time series with frequency one minute.
-        Then sum each entry and divide by the number of days to give
-        an average set of network stats.
-        Return this averaged time series.
-
-        Actually, we get the average time series more efficiently by
-        iterating over the trips in ``self.trip_stats`` and 
-
-        1. Calculating each trip's activity fraction f over the given dates
-          (f == 0/7 means the trip runs on none of the dates, 
-          f == 1/7 means the trip runs on one of the dates, etc.) 
-        2. Weighting the trip's duration, distance, etc. by f 
-        3. Binning the weighed quantity in the time series in the 
-          approprate time periods
-
         If ``big_units == True``, then format duration in hours
         and distance in kilometers.
         """
         # Create a data frame whose index is a minutely time series
-        prng = pd.period_range('1-1-1 00:00', '1-1-1 23:59', freq='Min')
+        date_str = date_to_str(date)
+        day_start = date_str + ' 00:00:00'
+        day_end = date_str + ' 23:59:00'
+        prng = pd.period_range(day_start, day_end, freq='Min')
         df = pd.DataFrame(0, index=prng, 
           columns=['duration', 'distance', 'vehicles'])
         
@@ -285,29 +274,26 @@ class Feed(object):
         trip_stats = self.get_trip_stats()
         for row_index, row in trip_stats.iterrows():
             trip = row['trip_id']
+            if not self.is_active_trip(trip, date):
+                continue
             start_time = row['start_time']
             end_time = row['end_time']
-            trip_weight = 0
-            for date in dates:
-                if self.is_active_trip(trip, date):
-                    trip_weight += 1
-            trip_weight /= len(dates)
             # Bin 60 seconds per minute:
-            duration_value = 60*trip_weight
+            duration_value = 60
             # Bin meters per minute:
             distance_value =\
-              row['distance']/(row['duration']/60)*trip_weight
-            vehicle_value = 1*trip_weight
+              row['distance']/(row['duration']/60)
+            vehicle_value = 1
             # Bin the trip
-            start_p = pd.Period('1-1-1 ' + timestr_mod_24(start_time),
+            start_p = pd.Period(date_str + ' ' + timestr_mod_24(start_time),
               freq='Min')
-            end_p = pd.Period('1-1-1 ' + timestr_mod_24(end_time),
+            end_p = pd.Period(date_str + ' ' + timestr_mod_24(end_time),
               freq='Min')
             if start_p <= end_p:
                 criterion = (df.index >= start_p) & (df.index < end_p)
             else:
-                day_start_p = pd.Period('1-1-1 00:00')
-                day_end_p = pd.Period('1-1-1 23:59')
+                day_start_p = pd.Period(day_start, freq='Min')
+                day_end_p = pd.Period(day_end, freq='Min')
                 criterion = ((df.index >= start_p) &\
                   (df.index <= day_end_p)) |\
                   ((df.index >= day_start_p) &\
@@ -320,12 +306,84 @@ class Feed(object):
             df['distance'] = df['distance'].map(lambda x: x/1000)
         return df
 
+    # def get_network_stats(self, dates, big_units=False):  
+    #     """
+    #     For each date in dates, use ``self.trip_stats`` to compute 
+    #     the following network stats
+
+    #     - service duration (seconds)
+    #     - service distance (meters)
+    #     - vehicles in service
+        
+    #     as a time series with frequency one minute.
+    #     Then sum each entry and divide by the number of days to give
+    #     an average set of network stats.
+    #     Return this averaged time series.
+
+    #     Actually, we get the average time series more efficiently by
+    #     iterating over the trips in ``self.trip_stats`` and 
+
+    #     1. Calculating each trip's activity fraction f over the given dates
+    #       (f == 0/7 means the trip runs on none of the dates, 
+    #       f == 1/7 means the trip runs on one of the dates, etc.) 
+    #     2. Weighting the trip's duration, distance, etc. by f 
+    #     3. Binning the weighed quantity in the time series in the 
+    #       approprate time periods
+
+    #     If ``big_units == True``, then format duration in hours
+    #     and distance in kilometers.
+    #     """
+    #     # Create a data frame whose index is a minutely time series
+    #     prng = pd.period_range('1-1-1 00:00', '1-1-1 23:59', freq='Min')
+    #     df = pd.DataFrame(0, index=prng, 
+    #       columns=['duration', 'distance', 'vehicles'])
+        
+    #     # Bin trips and weight them by the number of days that
+    #     # they are active within the given dates
+    #     trip_stats = self.get_trip_stats()
+    #     for row_index, row in trip_stats.iterrows():
+    #         trip = row['trip_id']
+    #         start_time = row['start_time']
+    #         end_time = row['end_time']
+    #         trip_weight = 0
+    #         for date in dates:
+    #             if self.is_active_trip(trip, date):
+    #                 trip_weight += 1
+    #         trip_weight /= len(dates)
+    #         # Bin 60 seconds per minute:
+    #         duration_value = 60*trip_weight
+    #         # Bin meters per minute:
+    #         distance_value =\
+    #           row['distance']/(row['duration']/60)*trip_weight
+    #         vehicle_value = 1*trip_weight
+    #         # Bin the trip
+    #         start_p = pd.Period('1-1-1 ' + timestr_mod_24(start_time),
+    #           freq='Min')
+    #         end_p = pd.Period('1-1-1 ' + timestr_mod_24(end_time),
+    #           freq='Min')
+    #         if start_p <= end_p:
+    #             criterion = (df.index >= start_p) & (df.index < end_p)
+    #         else:
+    #             day_start_p = pd.Period('1-1-1 00:00')
+    #             day_end_p = pd.Period('1-1-1 23:59')
+    #             criterion = ((df.index >= start_p) &\
+    #               (df.index <= day_end_p)) |\
+    #               ((df.index >= day_start_p) &\
+    #               (df.index < end_p))
+    #         df.loc[criterion, 'duration'] += duration_value
+    #         df.loc[criterion, 'distance'] += distance_value
+    #         df.loc[criterion, 'vehicles'] += vehicle_value
+    #     if big_units:
+    #         df['duration'] = df['duration'].map(lambda x: x/3600)
+    #         df['distance'] = df['distance'].map(lambda x: x/1000)
+    #     return df
+
     @staticmethod
-    def resample_network_stats(network_stats, freq=None):
+    def resample_network_ts(network_ts, freq=None):
         if freq is None:
             return
         # Resample by freq
-        return network_stats.resample(freq, how={
+        return network_ts.resample(freq, how={
           'duration': np.sum, 
           'distance': np.sum, 
           'vehicles': np.mean})
