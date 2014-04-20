@@ -178,7 +178,7 @@ class Feed(object):
             xy_by_stop[stop] = utm.from_latlon(lat, lon)[:2] 
         return xy_by_stop
 
-    def get_trip_stats(self):
+    def get_trips_stats(self):
         """
         Return a data frame with the following stats for each trip:
 
@@ -201,14 +201,14 @@ class Feed(object):
         xy_by_stop = self.get_xy_by_stop()
 
         # Initialize data frame. Base it on trips.txt.
-        trip_stats = trips[['route_id', 'trip_id', 'direction_id']]
-        trip_stats.set_index('trip_id', inplace=True)
-        trip_stats['start_time'] = pd.Series()
-        trip_stats['end_time'] = pd.Series()
-        trip_stats['start_stop'] = pd.Series()
-        trip_stats['end_stop'] = pd.Series()
-        trip_stats['duration'] = pd.Series()
-        trip_stats['distance'] = pd.Series()
+        trips_stats = trips[['route_id', 'trip_id', 'direction_id']]
+        trips_stats.set_index('trip_id', inplace=True)
+        trips_stats['start_time'] = pd.Series()
+        trips_stats['end_time'] = pd.Series()
+        trips_stats['start_stop'] = pd.Series()
+        trips_stats['end_stop'] = pd.Series()
+        trips_stats['duration'] = pd.Series()
+        trips_stats['distance'] = pd.Series()
 
         # Compute data frame values
         dist_by_stop_pair_by_shape = {shape: {} for shape in linestring_by_shape}
@@ -246,27 +246,27 @@ class Feed(object):
                 dist_by_stop_pair_by_shape[shape][stop_pair] = d
                 
             # Store stats
-            trip_stats.ix[trip_id, 'start_time'] =\
+            trips_stats.ix[trip_id, 'start_time'] =\
               seconds_to_timestr(start_time)
-            trip_stats.ix[trip_id, 'end_time'] =\
+            trips_stats.ix[trip_id, 'end_time'] =\
               seconds_to_timestr(end_time)
-            trip_stats.ix[trip_id, 'duration'] =\
+            trips_stats.ix[trip_id, 'duration'] =\
               end_time - start_time
-            trip_stats.ix[trip_id, 'start_stop'] = start_stop
-            trip_stats.ix[trip_id, 'end_stop'] = end_stop
-            trip_stats.ix[trip_id, 'distance'] = d
-        trip_stats.sort('route_id')
+            trips_stats.ix[trip_id, 'start_stop'] = start_stop
+            trips_stats.ix[trip_id, 'end_stop'] = end_stop
+            trips_stats.ix[trip_id, 'distance'] = d
+        trips_stats.sort('route_id')
 
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
         print(t2, 'Finished in %.2f min' % minutes)    
     
-        return trip_stats.reset_index().apply(to_int)
+        return trips_stats.reset_index().apply(to_int)
 
-    def get_network_ts(self, trip_stats, dates, avg_over_dates=False):
+    def get_network_ts(self, trips_stats, dates, avg_over_dates=False):
         """
         For each of the given dates, use the given trip stats 
-        (that is the output of ``self.get_trip_stats()``) to compute
+        (that is the output of ``self.get_trips_stats()``) to compute
         a time series with minute (period index) frequency with the 
         following network stats:
 
@@ -283,14 +283,14 @@ class Feed(object):
         In this case, use '2000-1-1' as a placeholder date to index the series.
         """  
         t1 = dt.datetime.now()
-        print(t1, 'Creating network time series for %s trips...' % trip_stats['trip_id'].count())
+        print(t1, 'Creating network time series for %s trips...' % trips_stats['trip_id'].count())
 
         if not dates:
             return
         n = len(dates)
         if not avg_over_dates:
             # Call recursively on individual dates and sum
-            ts_iter = (self.get_network_ts(trip_stats, [date], 
+            ts_iter = (self.get_network_ts(trips_stats, [date], 
               avg_over_dates=True) for date in dates)
             return pd.concat(ts_iter).dropna()
         
@@ -309,7 +309,7 @@ class Feed(object):
         
         # Bin each trip and weight each by the fraction of days that
         # it is active within the given dates
-        for row_index, row in trip_stats.iterrows():
+        for row_index, row in trips_stats.iterrows():
             trip = row['trip_id']
             start_time = row['start_time']
             end_time = row['end_time']
