@@ -109,25 +109,26 @@ class Feed(object):
     """
     def __init__(self, path):
         self.path = path 
+        self.routes = pd.read_csv(path + 'routes.txt')
+        self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str})
         self.shapes = pd.read_csv(path + 'shapes.txt', dtype={'shape_id': str})
         self.trips = pd.read_csv(path + 'trips.txt', dtype={'shape_id': str})
-        self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str})
         self.calendar = pd.read_csv(path + 'calendar.txt', 
           dtype={'service_id': str}, 
           date_parser=lambda x: date_to_str(x, inverse=True), 
           parse_dates=['start_date', 'end_date'])
-        # Calendar with trip ids:
+        try:
+            self.calendar_dates = pd.read_csv(path + 'calendar_dates.txt', 
+              dtype={'service_id': str}, 
+              date_parser=lambda x: date_to_str(x, inverse=True), 
+              parse_dates=['date'])
+        except IOError:
+            # Doesn't exist, so create an empty data frame
+            self.calendar_dates = pd.DataFrame()
+        # Merge trips and calendar
         self.calendar_m = pd.merge(self.trips[['trip_id', 'service_id']],
-          self.calendar)
-        self.routes = pd.read_csv(path + 'routes.txt')
+          self.calendar).set_index('trip_id')
         
-    route_ts_resample_how = OrderedDict([
-      ('vehicles', np.mean),
-      ('trip_starts', np.sum),
-      ('duration', np.sum), 
-      ('distance', np.sum), 
-      ])
-
     def get_stop_times(self):
         """
         Return ``stop_times.txt`` as a Pandas data frame.
@@ -138,21 +139,32 @@ class Feed(object):
         return pd.read_csv(self.path + 'stop_times.txt', 
           dtype={'stop_id': str})     
 
-    # TODO: Improve by taking into consideration calendar_dates.txt
     def is_active_trip(self, trip, date):
         """
         If the given trip (trip_id) is active on the given date 
-        (``datetime.date`` object), then return ``True``.
+        (date object), then return ``True``.
         Otherwise, return ``False``.
         """
-        cal = self.calendar_m.set_index('trip_id')
+        cal = self.calendar_m
         row = cal.ix[trip]
+        # Check exceptional scenarios first
+        cald = self.calendar_dates
+        service = row['service_id']
+        try:
+            exception_type = cald[(cald['service_id'] == service) &\
+              (cald['date'] == date)].ix[0, 'exception_type']
+            if exception_type == 1:
+                return True
+            else:
+                # exception_type == 2
+                return False
+        except (KeyError, IndexError): 
+            pass
+        # Check regular scenario
         start_date = row['start_date']
         end_date = row['end_date']
-        weekdays_running = [i for i in range(7) 
-          if row[weekday_to_str(i)] == 1]
-        if start_date <= date <= end_date and\
-          date.weekday() in weekdays_running:
+        weekday_str = weekday_to_str(date.weekday())
+        if start_date <= date <= end_date and row[weekday_str] == 1:
             return True
         else:
             return False
@@ -188,7 +200,7 @@ class Feed(object):
 
     def get_trips_stats(self):
         """
-        Return a data frame with the following stats for each trip:
+        Return a Pandas data frame with the following stats for each trip:
 
         - route (route_id)
         - trip (trip_id)
@@ -271,89 +283,48 @@ class Feed(object):
     
         return trips_stats.reset_index().apply(to_int)
 
-    def get_route_ts(self, route, trips_stats, dates):
-        """
-        For the given route, use the given trip stats 
-        (the output of ``self.get_trips_stats()``) to compute and return
-        a 24-hour time series with minute (period index) frequency
-        with the following route stats:
 
-        - mean vehicles in service
-        - mean trip starts
-        - mean service duration (hours)
-        - mean service distance (kilometers)
+    def get_routes_timeseries(self, trips_stats, dates, routes=None):
+        """
+        Given ``trips_stats``, which is the output of 
+        ``self.get_trips_stats()``, a list of date objects, and a
+        possibly ``None`` list of route IDs,
+        compute and return the following four 24-hour time series as 
+        Pandas data frames with minute (period index) frequency:
+        
+        - mean number of vehicles in service by route ID
+        - mean number of trip starts by route ID
+        - mean service duration (hours) by route ID
+        - mean service distance (kilometers) by route ID
 
         Here the mean is taken over the dates given.
+
+        Return the time series as values of a dictionary with keys
+        'vehicles', 'trip_starts', 'duration', 'distance'.
+
+        If no routes are given, then use all the routes in this feed.
+
+        Regarding resampling methods for the output:
+
+        - for the vehicles series, use ``how=np.mean``
+        - the other series, use ``how=np.sum`` 
         """  
         if not dates:
-            return
-        n = len(dates)
-        if n > 1:
-            # Assign a uniform generic date for the index
-            date_str = '2000-1-1'
-        else:
-            # Use the given date for the index
-            date_str = date_to_str(dates[0]) 
-        
-        day_start_p = pd.Period(date_str + ' 00:00:00', freq='Min')
-        day_end_p = pd.Period(date_str + ' 23:59:00', freq='Min')
-        prng = pd.period_range(day_start_p, day_end_p, freq='Min')
-        columns=['vehicles', 'trip_starts', 'duration', 'distance']
-        columns = ['route %s ' % route + col  for col in columns]
-        f = pd.DataFrame(0.0, index=prng, columns=columns)
-        
-        # Bin each trip and weight each by the fraction of days that
-        # it is active within the given dates
-        trips_stats = trips_stats[trips_stats['route_id'] == route]
-        for row_index, row in trips_stats.iterrows():
-            trip = row['trip_id']
-            start_time = row['start_time']
-            end_time = row['end_time']
-            start_p = pd.Period(date_str + ' ' + timestr_mod_24(start_time),
-              freq='Min')
-            end_p = pd.Period(date_str + ' ' + timestr_mod_24(end_time),
-              freq='Min')
-            # Weight the trip
-            trip_weight = 0
-            for date in dates:
-                if self.is_active_trip(trip, date):
-                    trip_weight += 1
-            trip_weight /= n
-            if not trip_weight:
-                continue
-            # Bin the trip
-            if start_p <= end_p:
-                criterion = (f.index >= start_p) & (f.index < end_p)
-            else:
-                criterion = ((f.index >= start_p) &\
-                  (f.index <= day_end_p)) |\
-                  ((f.index >= day_start_p) &\
-                  (f.index < end_p))
-            f.loc[criterion, columns[0]] +=\
-              1*trip_weight
-            f.loc[f.index == start_p, columns[1]] +=\
-              1*trip_weight
-            f.loc[criterion, columns[2]] +=\
-              1/60*trip_weight
-            f.loc[criterion, columns[3]] +=\
-              (row['distance']/1000)/(row['duration']/60)*\
-              trip_weight
+            return 
 
-        return f
-
-    def get_routes_ts(self, trips_stats, dates):
-        """
-        Return the result of merging the time series output by
-        ``self.get_route_ts(dates)`` for each route in this feed.
-        Don't compute the result that way, though.
-        Instead, scan through ``trips_stats`` only once.
-        """  
+        # Time the function call
         t1 = dt.datetime.now()
         num_trips = trips_stats['trip_id'].count()
         print(t1, 'Creating routes time series for %s trips...' % num_trips)
 
-        if not dates:
-            return
+        # Initialize routes
+        if routes is not None:
+            routes_given = True
+        else:
+            routes_given = False
+            routes = sorted(self.routes['route_id'].values)
+
+        # Initialize the series
         n = len(dates)
         if n > 1:
             # Assign a uniform generic date for the index
@@ -361,16 +332,24 @@ class Feed(object):
         else:
             # Use the given date for the index
             date_str = date_to_str(dates[0]) 
-        day_start_p = pd.Period(date_str + ' 00:00:00', freq='Min')
-        day_end_p = pd.Period(date_str + ' 23:59:00', freq='Min')
-        prng = pd.period_range(day_start_p, day_end_p, freq='Min')
-        routes = self.routes['route_id'].values
-        columns = ['vehicles', 'trip_starts', 'duration', 'distance']
-        columns = ['route %s %s' % (route, column) for route in routes
-          for column in columns]
-        f = pd.DataFrame(0.0, index=prng, columns=columns)
+        day_start = pd.to_datetime(date_str + ' 00:00:00')
+        day_end = pd.to_datetime(date_str + ' 23:59:00')
+        rng = pd.period_range(day_start, day_end, freq='Min')
+        names = ['vehicles', 'trip_starts', 'duration', 'distance']
+        series_by_name = {}
+        for name in names:
+            series_by_name[name] = pd.DataFrame(0.0, index=rng, columns=routes)
         
-        # Bin each trip and weight each by the fraction of days that
+        # Get the section of trips_stats needed for the given routes
+        if routes_given:
+            criteria = [trips_stats['route_id'] == route for route in routes]
+            criterion = False
+            for c in criteria:
+                criterion |= c
+            trips_stats = trips_stats[criterion]
+
+        # Bin each trip according to its start and end time
+        # and weight each trip by the fraction of days that
         # it is active within the given dates
         i = 0
         for row_index, row in trips_stats.iterrows():
@@ -380,10 +359,10 @@ class Feed(object):
             route = row['route_id']
             start_time = row['start_time']
             end_time = row['end_time']
-            start_p = pd.Period(date_str + ' ' +\
-              timestr_mod_24(start_time), freq='Min')
-            end_p = pd.Period(date_str + ' ' + timestr_mod_24(end_time),
-              freq='Min')
+            start = pd.to_datetime(date_str + ' ' +\
+              timestr_mod_24(start_time))
+            end = pd.to_datetime(date_str + ' ' +\
+              timestr_mod_24(end_time))
             # Weight the trip
             trip_weight = 0
             for date in dates:
@@ -393,20 +372,29 @@ class Feed(object):
             if not trip_weight:
                 continue
             # Bin the trip
-            if start_p <= end_p:
-                criterion = (f.index >= start_p) & (f.index < end_p)
+            criterion_by_name = {}
+            if start <= end:
+                for name, f in series_by_name.iteritems():
+                    criterion_by_name[name] =\
+                      (f.index >= start) & (f.index < end)
             else:
-                criterion = ((f.index >= start_p) &\
-                  (f.index <= day_end_p)) |\
-                  ((f.index >= day_start_p) &\
-                  (f.index < end_p))
-            f.loc[criterion, 'route %s vehicles' % route] +=\
+                for name, f in series_by_name.iteritems():
+                    criterion_by_name[name] =\
+                      ((f.index >= start) &\
+                      (f.index <= day_end)) |\
+                      ((f.index >= day_start) &\
+                      (f.index < end))
+            series_by_name['vehicles'].loc[
+              criterion_by_name['vehicles'], route] +=\
               1*trip_weight
-            f.loc[f.index == start_p, 'route %s trip_starts' % route] +=\
+            series_by_name['trip_starts'].loc[
+              series_by_name['trip_starts'].index == start, route] +=\
               1*trip_weight
-            f.loc[criterion, 'route %s duration' % route] +=\
+            series_by_name['duration'].loc[
+              criterion_by_name['duration'], route] +=\
               1/60*trip_weight
-            f.loc[criterion, 'route %s distance' % route] +=\
+            series_by_name['distance'].loc[
+              criterion_by_name['distance'], route] +=\
               (row['distance']/1000)/(row['duration']/60)*\
               trip_weight
 
@@ -414,26 +402,25 @@ class Feed(object):
         minutes = (t2 - t1).seconds/60
         print(t2, 'Finished in %.2f min' % minutes)    
 
-        return f
+        return series_by_name
 
-    @staticmethod
-    def resample_route_ts(route_ts, freq=None):
+    def dump_routes_timeseries(self, routes_ts, freq='1H', directory=None):
         """
-        Resample the given route or network time series to the given
-        frequency.
-        Because the columns need to be resampled in different ways, 
-        this function is useful.
+        Given ``routes_ts``, which is the output of 
+        ``self.get_routes_timeseries()``, 
+        resample each series to the given frequency and dump each
+        to the given directory, which defaults to ``self.path``.
         """
-        if freq is None:
-            return
-        how = OrderedDict()
-        for column in routes_ts.columns:
-            if 'vehicles' in str(column):
-                how[column] = np.mean
+        if directory is None:
+            directory = self.path
+        for name, f in routes_ts.iteritems():
+            if 'vehicles' in name:
+                how = np.mean
             else:
-                how[column] = np.sum
-        # Resample by freq
-        return route_ts.resample(freq, how=how)
+                how = np.sum
+            fr = f.resample(freq, how=how)
+            fr.T.to_csv(directory + '%s_timeseries_by_route_%s.csv' %\
+              (name, freq), index_label='route_id')
 
     # Less useful functions. 
     # TODO: Test these.
