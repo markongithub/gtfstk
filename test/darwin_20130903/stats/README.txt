@@ -1,0 +1,3 @@
+- For the trips stats, duration is measured in seconds and distance is measured in meters
+- For the routes stats and time series, duration is measured in hours and distance is measured in kilometers
+- Routes stats and time series were calculated for an average day during 20121105 to 20121109

@@ -563,7 +563,6 @@ class Feed(object):
         Takes about 17 minutes on the SEQ feed.
         """
         import os
-        import matplotlib.pyplot as plt
 
         # Time function call
         t1 = dt.datetime.now()
@@ -611,14 +610,30 @@ class Feed(object):
             fr.T.to_csv(directory + 'routes_time_series_%s_%s.csv' %\
               (name, freq), index_label='route_id')
 
-        # Graph routes stats
+        # Plot sum of routes stats at 30-minute frequency
+        fig = self.plot_sum_of_routes_time_series(routes_time_series)
+        fig.savefig(directory + 'sum_of_routes_time_series.pdf', dpi=200)
+        
+        t2 = dt.datetime.now()
+        minutes = (t2 - t1).seconds/60
+        print(t2, 'Finished process in %.2f min' % minutes)    
+
+    def plot_sum_of_routes_time_series(self, routes_ts, freq='30Min'):
+        """
+        Given the output of ``self.get_routes_times_series()``,
+        sum each time series over all routes, plot each using
+        MatplotLib, and return the resulting figure of four subplots.
+        """
+        import matplotlib.pyplot as plt
+
+        # Plot sum of routes stats at 30-minute frequency
         F = None
-        for name, f in routes_time_series.iteritems():
+        for name, f in routes_ts.iteritems():
             if 'vehicles' in name:
                 how = np.mean
             else:
                 how = np.sum
-            g = f.resample(freq, how).T.sum().T
+            g = f.resample('30Min', how).T.sum().T
             if F is None:
                 F = pd.DataFrame(g, columns=[name])
             else:
@@ -641,37 +656,13 @@ class Feed(object):
         ylabels = ['','','hours','kilometers']
         fig, axes = plt.subplots(nrows=4, ncols=1)
         for (i, column) in enumerate(columns):
-            F[column].plot(ax=axes[i], color=colors[i], alpha=alpha, kind='bar', 
-              figsize=(8, 10))
+            F[column].plot(ax=axes[i], color=colors[i], alpha=alpha, 
+              kind='bar', figsize=(8, 10))
             axes[i].set_title(titles[i])
             axes[i].set_ylabel(ylabels[i])
 
         fig.tight_layout() # Or equivalently,  "plt.tight_layout()"
-        fig.savefig(directory + 'routes_stats.pdf', dpi=200)
-        
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished process in %.2f min' % minutes)    
-
-    def dump_routes_time_series(self, routes_ts, freq='1H', directory=None):
-        """
-        Given ``routes_ts``, which is the output of 
-        ``self.get_routes_time_series()``, 
-        resample each series to the given frequency and dump each
-        to the given directory, which defaults to ``self.path``.
-        """
-        if directory is None:
-            directory = self.path
-        for name, f in routes_ts.iteritems():
-            if 'vehicles' in name:
-                how = np.mean
-            else:
-                how = np.sum
-            fr = f.resample(freq, how=how)
-            # Remove date from timestamps
-            fr.index = [d.time() for d in fr.index.to_datetime()]
-            fr.T.to_csv(directory + 'routes_time_series_%s_%s.csv' %\
-              (name, freq), index_label='route_id')
+        return fig
 
     def get_shapes_with_shape_dist_traveled(self):
         """
