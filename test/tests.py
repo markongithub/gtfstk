@@ -20,6 +20,24 @@ class TestFeed(unittest.TestCase):
         self.assertIsInstance(darwin.calendar_m, pd.core.frame.DataFrame)
         self.assertIsInstance(darwin.calendar_dates, pd.core.frame.DataFrame)
 
+    def test_get_dates(self):
+        feed = Feed('test/darwin_20130903/')
+        dates = feed.get_dates()
+        d1 = dt.date(2012, 11, 5)
+        d2 = dt.date(2013, 12, 31)
+        self.assertEqual(dates[0], d1)
+        self.assertEqual(dates[-1], d2)
+        self.assertEqual(len(dates), (d2 - d1).days + 1)
+
+    def test_get_first_workweek(self):
+        feed = Feed('test/darwin_20130903/')
+        dates = feed.get_first_workweek()
+        d1 = dt.date(2012, 11, 5)
+        d2 = dt.date(2012, 11, 9)
+        self.assertEqual(dates[0], d1)
+        self.assertEqual(dates[-1], d2)
+        self.assertEqual(len(dates), 5)
+
     def test_is_active(self):
         # This feed has calendar_dates data
         darwin = Feed('test/darwin_20130903/')
