@@ -36,12 +36,14 @@ def seconds_to_timestr(seconds, inverse=False):
     If ``inverse == True``, then do the inverse operation.
     In keeping with GTFS standards, the hours entry may be greater than 23.
     """
-    if seconds is None:
-        return None
     if not inverse:
-        hours, remainder = divmod(seconds, 3600)
-        mins, secs = divmod(remainder, 60)
-        result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+        try:
+            seconds = int(seconds)
+            hours, remainder = divmod(seconds, 3600)
+            mins, secs = divmod(remainder, 60)
+            result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+        except:
+            result = None
     else:
         try:
             hours, mins, seconds = seconds.split(':')
@@ -356,6 +358,7 @@ class Feed(object):
         print(dt.datetime.now())
         return f[['trip_id'] + dates]
 
+    # TODO: Add max and mean headways
     def get_routes_stats(self, trips_stats, dates, routes=None):
         """
         Take ``trips_stats``, which is the output of 
@@ -558,22 +561,26 @@ class Feed(object):
 
         return series_by_name
 
-    # TODO: add first_time and last_time
     def get_stops_stats(self, dates):
         """
         Return a Pandas data frame with the following columns:
 
         - stop_id
+        - num_vehicles: mean daily number of vehicles visiting stop 
         - max_headway: maximum of the durations (in seconds) between 
           vehicle departures at the stop between 07:00 and 19:00 
           on the given dates
         - mean_headway: mean of the durations (in seconds) between 
           vehicle departures at the stop between 07:00 and 19:00 
           on the given dates
+        - start_time: earliest departure time of a vehicle from this stop
+          over the given date range
+        - end_time: latest departure time of a vehicle from this stop
+          over the given date range
 
         NOTES:
 
-        Takes about ? minutes for the SEQ feed.
+        Takes about 1.8 minutes for the SEQ feed.
         """
         t1 = dt.datetime.now()
         print(t1, 'Calculating stops stats...')
@@ -584,41 +591,47 @@ class Feed(object):
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
 
         # Get stop times and convert departure time to seconds past midnight
-        stop_times = feed.get_stop_times()
+        stop_times = self.get_stop_times()
         stop_times['departure_time'] = stop_times['departure_time'].map(
           lambda x: seconds_to_timestr(x, inverse=True))
 
         # Merge trips_activity and stop_times
         f = pd.merge(ta, stop_times)
 
-        # Compute headways for each stop
+        # Compute stats for each stop
         def get_stop_stats(group):
-            group.sort('departure_time', inplace=True)
             headways = []
             for date in dates:
-                dtimes = group[group[date] > 0]['departure_time'].values
+                dtimes = sorted(group[group[date] > 0]['departure_time'].\
+                  values)
                 dtimes = [dtime for dtime in dtimes 
                   if 7*3600 <= dtime <= 19*3600]
                 headways.extend([dtimes[i + 1] - dtimes[i] 
                   for i in range(len(dtimes) - 1)])
             if headways:
-                group['max_headway'] = max(headways)
-                group['mean_headway'] = int(round(np.mean(headways)))
+                max_headway = np.max(headways)
+                mean_headway = round(np.mean(headways))
             else:
-                group['max_headway'] = np.nan
-                group['mean_headway'] = np.nan
-            group['num_vehicles'] = group.shape[0]
-            return group
+                max_headway = np.nan
+                mean_headway = np.nan
+            num_vehicles = len(headways) + 1
+            mean_num_vehicles = round(num_vehicles/len(dates))
+            start_time = seconds_to_timestr(group['departure_time'].iat[0])
+            end_time = seconds_to_timestr(group['departure_time'].iat[-1])
+            df = pd.DataFrame([[start_time, end_time, mean_num_vehicles,
+              max_headway, mean_headway]], columns=['start_time', 'end_time', 
+              'mean_num_vehicles', 'max_headway', 'mean_headway'])
+            df.index.name = 'foo'
+            return df
 
-        f = f.groupby('stop_id').apply(get_stop_stats)
-        f = f.groupby('stop_id', group_keys=False).agg({'max_headway': np.min, 'mean_headway': np.min, 'num_vehicles': np.min})
-        f.sort(['max_headway', 'mean_headway'])          
+        result = f.groupby('stop_id').apply(get_stop_stats).reset_index()
+        del result['foo']
 
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
         print(t2, 'Finished stops stats in %.2f min' % minutes)    
 
-        return f
+        return result
 
     def dump_stats_report(self, dates=None, freq='30Min', directory=None):
         """
