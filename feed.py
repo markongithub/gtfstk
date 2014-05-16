@@ -434,17 +434,16 @@ class Feed(object):
             else:
                 max_headway = np.nan
                 mean_headway = np.nan
-            num_vehicles = len(headways) + 1
-            mean_num_vehicles = round(num_vehicles/len(dates))
+            mean_daily_num_trips = group['weight'].sum()
             min_start_time = group['start_time'].min()
             max_end_time = group['end_time'].max()
             mean_daily_duration = (group['duration']*group['weight']).sum()
             mean_daily_distance = (group['distance']*group['weight']).sum()
             df = pd.DataFrame([[min_start_time, max_end_time, 
-              mean_num_vehicles, max_headway, mean_headway, 
+              mean_daily_num_trips, max_headway, mean_headway, 
               mean_daily_duration, mean_daily_distance]], columns=[
               'min_start_time', 'max_end_time', 
-              'mean_num_vehicles', 'max_headway', 'mean_headway', 
+              'mean_daily_num_trips', 'max_headway', 'mean_headway', 
               'mean_daily_duration', 'mean_daily_distance'])
             df.index.name = 'foo'
             return df
@@ -464,6 +463,7 @@ class Feed(object):
         return result
 
     # TODO: Update the output key names to 'mean_daily_...'
+    # Change units to seconds and meters
     def get_routes_time_series(self, trips_stats, dates, routes=None):
         """
         Take ``trips_stats``, which is the output of 
@@ -488,7 +488,7 @@ class Feed(object):
         Regarding resampling methods for the output:
 
         - for the vehicles series, use ``how=np.mean``
-        - the other series, use ``how=np.sum`` 
+        - for the other series, use ``how=np.sum`` 
 
         NOTES:
 
@@ -588,21 +588,22 @@ class Feed(object):
 
         return series_by_name
 
+    # TODO: Add stops=None keyword as in get_routes_stats
     def get_stops_stats(self, dates):
         """
         Return a Pandas data frame with the following columns:
 
         - stop_id
-        - num_vehicles: mean daily number of vehicles visiting stop 
+        - mean_daily_num_vehicles: mean daily number of vehicles visiting stop 
         - max_headway: maximum of the durations (in seconds) between 
           vehicle departures at the stop between 07:00 and 19:00 
           on the given dates
         - mean_headway: mean of the durations (in seconds) between 
           vehicle departures at the stop between 07:00 and 19:00 
           on the given dates
-        - start_time: earliest departure time of a vehicle from this stop
+        - min_start_time: earliest departure time of a vehicle from this stop
           over the given date range
-        - end_time: latest departure time of a vehicle from this stop
+        - max_end_time: latest departure time of a vehicle from this stop
           over the given date range
 
         NOTES:
@@ -612,25 +613,25 @@ class Feed(object):
         t1 = dt.datetime.now()
         print(t1, 'Calculating stops stats...')
 
+        # Get active trips and merge with stop times
         trips_activity = self.get_trips_activity(dates)
-
-        # Remove trips that are inactive on all of the dates
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
-
-        # Get stop times and convert departure time to seconds past midnight
         stop_times = self.get_stop_times()
-        stop_times['departure_time'] = stop_times['departure_time'].map(
-          lambda x: seconds_to_timestr(x, inverse=True))
-
-        # Merge trips_activity and stop_times
         f = pd.merge(ta, stop_times)
+
+        # Convert departure times to seconds to ease headway calculations
+        f['departure_time'] = f['departure_time'].map(lambda x: 
+          seconds_to_timestr(x, inverse=True))
 
         # Compute stats for each stop
         def get_stop_stats(group):
+            # Operate on the group of all stop times for an individual stop
             headways = []
+            num_vehicles = 0
             for date in dates:
                 dtimes = sorted(group[group[date] > 0]['departure_time'].\
                   values)
+                num_vehicles += len(dtimes)
                 dtimes = [dtime for dtime in dtimes 
                   if 7*3600 <= dtime <= 19*3600]
                 headways.extend([dtimes[i + 1] - dtimes[i] 
@@ -641,24 +642,33 @@ class Feed(object):
             else:
                 max_headway = np.nan
                 mean_headway = np.nan
-            num_vehicles = len(headways) + 1
-            mean_num_vehicles = round(num_vehicles/len(dates))
-            start_time = seconds_to_timestr(group['departure_time'].iat[0])
-            end_time = seconds_to_timestr(group['departure_time'].iat[-1])
-            df = pd.DataFrame([[start_time, end_time, mean_num_vehicles,
-              max_headway, mean_headway]], columns=['start_time', 'end_time', 
-              'mean_num_vehicles', 'max_headway', 'mean_headway'])
+            mean_daily_num_vehicles = num_vehicles/len(dates)
+            min_start_time = group['departure_time'].min()
+            max_end_time = group['departure_time'].max()
+            df = pd.DataFrame([[min_start_time, max_end_time, 
+              mean_daily_num_vehicles, max_headway, mean_headway]], 
+              columns=['min_start_time', 'max_end_time', 
+              'mean_daily_num_vehicles', 'max_headway', 'mean_headway'])
             df.index.name = 'foo'
             return df
 
         result = f.groupby('stop_id').apply(get_stop_stats).reset_index()
         del result['foo']
 
+        # Convert start and end times to time strings
+        result[['min_start_time', 'max_end_time']] =\
+          result[['min_start_time', 'max_end_time']].applymap(
+          lambda x: seconds_to_timestr(x))
+
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
         print(t2, 'Finished stops stats in %.2f min' % minutes)    
 
         return result
+
+    # TODO: Finish this
+    def get_stops_time_series(self, dates, stops=None):
+        pass
 
     def dump_stats_report(self, dates=None, freq='30Min', directory=None):
         """
