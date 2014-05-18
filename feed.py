@@ -155,6 +155,18 @@ def resample_routes_time_series(routes_time_series, freq, big_units=True):
         result[name] = g
     return result
 
+def resample_stops_time_series(stops_time_series, freq):
+    """
+    Resample the given stops time series, which is the output of 
+    ``Feed.get_stops_time_series()``, to the given (Pandas style) frequency.
+    """
+    result = {name: None for name in stops_time_series}
+    for name in result:
+        if name == 'mean_daily_num_vehicles':
+            f = stops_time_series[name]
+            g = f.resample(freq, how=np.sum)
+        result[name] = g
+    return result
 
 class Feed(object):
     """
@@ -192,8 +204,19 @@ class Feed(object):
         So i'll only import it when i need it for now, instead of storing
         it as an attribute.
         """
-        return pd.read_csv(self.path + 'stop_times.txt', 
-          dtype={'stop_id': str})     
+        st = pd.read_csv(self.path + 'stop_times.txt', dtype={'stop_id': str})
+    
+        # Prefix a 0 to arrival and departure times if necessary.
+        # This makes sorting by time work as expected.
+        def reformat(timestr):
+            result = timestr
+            if len(result) == 7:
+                result = '0' + result
+            return result
+
+        st[['arrival_time', 'departure_time']] =\
+          st[['arrival_time', 'departure_time']].applymap(reformat)
+        return st
 
     def get_dates(self):
         """
@@ -287,110 +310,8 @@ class Feed(object):
             xy_by_stop[stop] = utm.from_latlon(lat, lon)[:2] 
         return xy_by_stop
 
-    def get_shapes_with_shape_dist_traveled(self):
-        """
-        Compute the optional ``shape_dist_traveled`` GTFS field for
-        ``self.shapes`` and return the resulting Pandas data frame.  
-        """
-        shapes = self.shapes
-
-        t1 = dt.datetime.now()
-        print(t1, 'Adding shape_dist_traveled field to %s shape points...' %\
-          shapes['shape_id'].count())
-
-        new_shapes = shapes.copy()
-        new_shapes['shape_dist_traveled'] = pd.Series()
-        for shape, group in shapes.groupby('shape_id'):
-            group.sort('shape_pt_sequence')
-            lons = group['shape_pt_lon'].values
-            lats = group['shape_pt_lat'].values
-            xys = [utm.from_latlon(lat, lon)[:2] 
-              for lat, lon in izip(lats, lons)]
-            xy_prev = xys[0]
-            d_prev = 0
-            index = group.index[0]
-            for (i, xy) in enumerate(xys):
-                p = Point(xy_prev)
-                q = Point(xy)
-                d = p.distance(q)
-                new_shapes.ix[index + i, 'shape_dist_traveled'] =\
-                  round(d_prev + d, 2)
-                xy_prev = xy
-                d_prev += d
-
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished in %.2f min' % minutes)
-
-        return new_shapes
-
-    # TODO: Finish
+    # TODO: Redo with groupby and apply
     def get_stop_times_with_shape_dist_traveled(self):
-        """
-        Compute the optional ``shape_dist_traveled`` GTFS field for
-        ``self.get_stop_times()`` and return the resulting Pandas data frame.  
-
-        NOTES:
-
-        This takes a *long* time, so probably needs improving.
-        On the SEQ feed, i stopped it after 2 hours.
-        """
-        trips = self.trips
-        stop_times = self.get_stop_times()
-
-        t1 = dt.datetime.now()
-        print(t1, 'Adding shape_dist_traveled field to %s stop times...' %\
-          stop_times['trip_id'].count())
-
-        linestring_by_shape = self.get_linestring_by_shape()
-        xy_by_stop = self.get_xy_by_stop()
-        dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
-        failures = []
-
-        # Initialize data frame
-        merged = pd.merge(trips[['trip_id', 'shape_id']], stop_times)
-        merged['shape_dist_traveled'] = pd.Series()
-
-        # Compute shape_dist_traveled column entries
-        f = merged.groupby(['shape_id', 'trip_id').apply(stuff)
-
-
-            linestring = linestring_by_shape[shape]
-            for trip, subgroup in group.groupby('trip_id'):
-                # Compute the distances of the stops along this trip
-                subgroup.sort('stop_sequence')
-                stops = subgroup['stop_id'].values
-                distances = []
-                for stop in stops:
-                    if stop in dist_by_stop_by_shape[shape]:
-                        d = dist_by_stop_by_shape[shape][stop]
-                    else:
-                        d = round(
-                          get_segment_length(linestring, xy_by_stop[stop]), 2)
-                        dist_by_stop_by_shape[shape][stop] = d
-                    distances.append(d)
-                if distances[0] > distances[1]:
-                    # This happens when the shape linestring direction is the
-                    # opposite of the trip direction. Reverse the distances.
-                    distances = distances[::-1]
-                if distances != sorted(distances):
-                    # Uh oh
-                    failures.append(trip)
-                # Insert stop distances
-                index = subgroup.index[0]
-                for (i, d) in enumerate(distances):
-                    merged.ix[index + i, 'shape_dist_traveled'] = d
-
-        del merged['shape_id']
-
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished in %.2f min' % minutes)
-        print('%s failures on these trips: %s' % (len(failures), failures))  
-
-        return merged
-
-    def get_stop_times_with_shape_dist_traveled_bak(self):
         """
         Compute the optional ``shape_dist_traveled`` GTFS field for
         ``self.get_stop_times()`` and return the resulting Pandas data frame.  
@@ -551,6 +472,7 @@ class Feed(object):
         Return a Pandas data frame with the columns
 
         - trip_id
+        - route_id
         - dates[0]: a series of ones and zeros indicating if a 
         trip is active (1) on the given date or inactive (0)
         ...
@@ -563,13 +485,11 @@ class Feed(object):
         if not dates:
             return
 
-        print(dt.datetime.now())
         f = self.trips
         for date in dates:
             f[date] = f['trip_id'].map(lambda trip: 
               int(self.is_active_trip(trip, date)))
-        print(dt.datetime.now())
-        return f[['trip_id'] + dates]
+        return f[['trip_id', 'route_id'] + dates]
 
     def get_routes_stats(self, trips_stats, dates):
         """
@@ -776,6 +696,31 @@ class Feed(object):
 
         return series_by_name
 
+    def get_route_timetable(self, route, date):
+        """
+        Given a route (route_id) and a date (datetime.date object),
+        return a Pandas data frame describing the time table for the
+        given stop on the given date with the columns
+
+        - arrival_time
+        - departure_time
+        - trip_id
+
+        and ordered by arrival time.
+        """
+        # Get active trips and merge with stop times
+        trips_activity = self.get_trips_activity([date])
+        ta = trips_activity[trips_activity[date] > 0]
+        stop_times = self.get_stop_times()
+        f = pd.merge(ta, stop_times)
+        
+        def get_first_trip(group):
+            g = group.sort('departure_time')
+            return g[['arrival_time', 'departure_time']].iloc[0]
+
+        return f[f['route_id'] == route].groupby('trip_id').apply(
+          get_first_trip).reset_index()
+
     def get_stops_stats(self, dates):
         """
         Return a Pandas data frame with the following columns:
@@ -855,8 +800,111 @@ class Feed(object):
 
     # TODO: Finish this
     def get_stops_time_series(self, dates):
-        pass
+        """
+        Return the following time series of routes stats:
+        
+        - mean daily number of vehicles by stop ID
 
+        The time series is a Pandas data frame over a 24-hour 
+        period with minute (period index) frequency (00:00 to 23:59).
+        
+        Return the time series as a value in a dictionary with key
+        'mean_daily_num_vehicles'. 
+        (Outputing a dictionary of a time series instead of simply a 
+        time series matches the structure of ``get_routes_time_series()``
+        and allows for the possibility of adding other stops time series
+        at a later stage of development.)
+
+        NOTES:
+
+        - To resample the resulting time series use the following methods:
+          for 'mean_daily_num_vehicles' series, use ``how=np.sum``
+        - To remove the placeholder date (2001-1-1) and seconds from any 
+          of the time series f, do ``f.index = [t.time().strftime('%H:%M') 
+          for t in f.index.to_datetime()]``
+        - Takes about 2 minutes on the SEQ feed.
+        """  
+        if not dates:
+            return 
+
+        t1 = dt.datetime.now()
+        stops = sorted(self.stops['stop_id'].values)
+        num_stops = len(stops)
+        print(t1, 'Creating stops time series for %s stops...' % num_stops)
+
+        # Get active trips and merge with stop times
+        trips_activity = self.get_trips_activity(dates)
+        ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
+        stop_times = self.get_stop_times()
+        stats = pd.merge(ta, stop_times)
+        n = len(dates)
+        stats['weight'] = stats[dates].sum(axis=1)/n
+
+        # Initialize time series
+        if n > 1:
+            # Assign a uniform generic date for the index
+            date_str = '2000-1-1'
+        else:
+            # Use the given date for the index
+            date_str = date_to_str(dates[0]) 
+        day_start = pd.to_datetime(date_str + ' 00:00:00')
+        day_end = pd.to_datetime(date_str + ' 23:59:00')
+        rng = pd.period_range(day_start, day_end, freq='Min')
+        names = ['mean_daily_num_vehicles']
+        series_by_name = {}
+        for name in names:
+            series_by_name[name] = pd.DataFrame(np.nan, index=rng, 
+              columns=stops)
+        
+        # Convert departure time string to datetime
+        stats['departure_time'] = stats['departure_time'].map(lambda x: 
+          pd.to_datetime(date_str + ' ' + timestr_mod_24(x)))
+
+        # Bin each trip according to its departure time at the stop
+        i = 0
+        f = series_by_name['mean_daily_num_vehicles']
+        for stop, group in stats.groupby('stop_id'):
+            i += 1
+            print("Progress {:2.1%}".format(i/num_stops), end="\r")
+            for index, row in group.iterrows():
+                weight = row['weight']
+                dtime = row['departure_time']
+                # Bin stop time
+                criterion = f.index == dtime
+                g = f.loc[criterion, stop] 
+                # Use fill_value=0 to overwrite NaNs with numbers.
+                # Need to use pd.Series() to get fill_value to work.
+                f.loc[criterion, stop] = g.add(pd.Series(
+                  weight, index=g.index), fill_value=0)
+      
+        t2 = dt.datetime.now()
+        minutes = (t2 - t1).seconds/60
+        print(t2, 'Finished routes time series in %.2f min' % minutes)    
+
+        return series_by_name
+
+    def get_stop_timetable(self, stop, date):
+        """
+        Given a stop (stop_id) and a date (datetime.date object),
+        return a Pandas data frame describing the time table for the
+        given stop on the given date with the columns
+
+        - arrival_time
+        - departure_time
+        - trip_id
+        - route_id
+
+        and ordered by arrival time.
+        """
+        # Get active trips and merge with stop times
+        trips_activity = self.get_trips_activity([date])
+        ta = trips_activity[trips_activity[date] > 0]
+        stop_times = self.get_stop_times()
+        f = pd.merge(ta, stop_times)
+        return f[f['stop_id'] == stop][['arrival_time', 'departure_time', 
+          'trip_id', 'route_id']].sort('arrival_time').reset_index(drop=True)
+
+    # TODO: test more and improve readme
     def dump_all_stats(self, dates=None, freq='30Min', directory=None):
         """
         Into the given directory, dump to separate CSV files the outputs of
@@ -914,17 +962,22 @@ class Feed(object):
         routes_stats.to_csv(directory + 'routes_stats.csv', index=False)
 
         # Routes time series
-        routes_time_series = self.get_routes_time_series(trips_stats, dates)
-        for name, f in routes_time_series.iteritems():
-            if 'vehicles' in name:
-                how = np.mean
-            else:
-                how = np.sum
-            fr = f.resample(freq, how=how)
+        rts = self.get_routes_time_series(trips_stats, dates)
+        rrts = resample_routes_time_series(rts, freq=freq, big_units=True)
+        for name, f in rrts.iteritems():
             # Remove date from timestamps
-            fr.index = [d.time() for d in fr.index.to_datetime()]
-            fr.T.to_csv(directory + 'routes_time_series_%s_%s.csv' %\
+            f.index = [d.time() for d in f.index.to_datetime()]
+            f.T.to_csv(directory + 'routes_time_series_%s_%s.csv' %\
               (name, freq), index_label='route_id')
+
+        # Stops time series
+        sts = self.get_stops_time_series(dates)
+        rsts = resample_routes_time_series(sts, freq=freq)
+        for name, f in rsts.iteritems():
+            # Remove date from timestamps
+            f.index = [d.time() for d in f.index.to_datetime()]
+            f.T.to_csv(directory + 'stops_time_series_%s_%s.csv' %\
+              (name, freq), index_label='stop_id')
 
         # Plot sum of routes stats at 30-minute frequency
         fig = self.plot_sum_of_routes_time_series(routes_time_series)
@@ -934,6 +987,7 @@ class Feed(object):
         minutes = (t2 - t1).seconds/60
         print(t2, 'Finished process in %.2f min' % minutes)    
 
+    # TODO: test more
     def plot_sum_of_routes_time_series(self, routes_ts, freq='30Min'):
         """
         Given the output of ``self.get_routes_times_series()``,
@@ -944,13 +998,11 @@ class Feed(object):
 
         # Plot sum of routes stats at 30-minute frequency
         F = None
-        for name, f in routes_ts.iteritems():
-            if 'vehicles' in name:
-                how = np.mean
-            else:
-                how = np.sum
+        rrts = resample_routes_time_series(route_ts, freq=freq, big_units=True)
+        for name, f in rrts.iteritems():
             g = f.resample('30Min', how).T.sum().T
             if F is None:
+                # Initialize F
                 F = pd.DataFrame(g, columns=[name])
             else:
                 F[name] = g
@@ -958,16 +1010,16 @@ class Feed(object):
         colors = ['red', 'blue', 'yellow', 'green'] 
         alpha = 0.7
         columns = [
-          'num_trip_starts', 
-          'num_vehicles', 
-          'duration', 
-          'distance',
+          'mean_daily_num_trip_starts', 
+          'mean_daily_num_vehicles', 
+          'mean_daily_duration', 
+          'mean_daily_distance',
           ]
         titles = [
-          'Number of trip starts',
-          'Number of in-service vehicles',
-          'In-service duration',
-          'In-service distance',
+          'Mean daily number of trip starts',
+          'Mean daily number of vehicles',
+          'Mean daily duration',
+          'Mean daily distance',
           ]
         ylabels = ['','','hours','kilometers']
         fig, axes = plt.subplots(nrows=4, ncols=1)
