@@ -2,8 +2,12 @@ GTFS Toolkit
 ============
 
 Python tools for processing General Transit Feed Specification data.
-A work in progress.
-Use at your own risk :-)
+Uses Pandas and Shapely for most of the heavy lifting.
+Experimental at this point, so use at your own risk :-)
+
+Requirements
+------------
+See ``requirements.txt``
 
 Todo
 ----
