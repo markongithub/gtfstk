@@ -102,17 +102,6 @@ def get_segment_length(linestring, p, q=None):
         d = d_p
     return d
 
-def to_int(x):
-    """
-    Given a NumPy number type, convert it to an integer if it represents
-    an integer, e.g. 1.0 -> 1. 
-    Otherwise, return the input.
-    """
-    try:
-        return x.astype(int)
-    except:
-        return x
-
 def downsample_routes_time_series(routes_time_series, freq):
     """
     Resample the given routes time series, which is the output of 
