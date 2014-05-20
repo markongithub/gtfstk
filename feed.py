@@ -113,13 +113,12 @@ def to_int(x):
     except:
         return x
 
-def resample_routes_time_series(routes_time_series, freq, big_units=True):
+def downsample_routes_time_series(routes_time_series, freq):
     """
     Resample the given routes time series, which is the output of 
     ``Feed.get_routes_time_series()``, to the given (Pandas style) frequency.
     Additionally, add a new 'mean_daily_speed' time series to the output 
     dictionary.
-    If ``big_units == True``, then convert the units to hours and kilometers.
     """
     result = {name: None for name in routes_time_series}
     result.update({'mean_daily_speed': None})
@@ -130,9 +129,6 @@ def resample_routes_time_series(routes_time_series, freq, big_units=True):
             denom = routes_time_series['mean_daily_duration'].resample(freq,
               how=np.sum)
             g = numer.divide(denom)
-            if big_units:
-                # Convert to kph
-                g *= 3600/1000
         elif name == 'mean_daily_num_trip_starts':
             f = routes_time_series[name]
             g = f.resample(freq, how=np.sum)
@@ -142,20 +138,14 @@ def resample_routes_time_series(routes_time_series, freq, big_units=True):
         elif name == 'mean_daily_duration':
             f = routes_time_series[name]
             g = f.resample(freq, how=np.sum)
-            if big_units:
-                # Convert to hours
-                g /= 3600
         else:
             # name == 'distance'
             f = routes_time_series[name]
             g = f.resample(freq, how=np.sum)
-            if big_units:
-                # Convert to kilometers
-                g /= 1000            
         result[name] = g
     return result
 
-def resample_stops_time_series(stops_time_series, freq):
+def downsample_stops_time_series(stops_time_series, freq):
     """
     Resample the given stops time series, which is the output of 
     ``Feed.get_stops_time_series()``, to the given (Pandas style) frequency.
@@ -167,6 +157,56 @@ def resample_stops_time_series(stops_time_series, freq):
             g = f.resample(freq, how=np.sum)
         result[name] = g
     return result
+
+# TODO: test more
+def plot_routes_time_series(routes_ts_dict, big_units=True):
+    """
+    Given a routes time series dictionary (possibly downsampled),
+    sum each time series over all routes, plot each series using
+    MatplotLib, and return the resulting figure of four subplots.
+    """
+    import matplotlib.pyplot as plt
+
+    # Plot sum of routes stats at 30-minute frequency
+    F = None
+    for name, f in routes_ts_dict.iteritems():
+        g = f.T.sum().T
+        if name == 'mean_daily_distance':
+            # Convert to km
+            g /= 1000
+        elif name == 'mean_daily_duration':
+            # Convert to h
+            g /= 3600
+        if F is None:
+            # Initialize F
+            F = pd.DataFrame(g, columns=[name])
+        else:
+            F[name] = g
+    # Fix speed
+    F['mean_daily_speed'] = F['mean_daily_distance'].divide(
+      F['mean_daily_duration'])
+    # Reformat periods
+    F.index = [t.time().strftime('%H:%M') for t in F.index.to_datetime()]
+    colors = ['red', 'blue', 'yellow', 'purple', 'green'] 
+    alpha = 0.7
+    names = [
+      'mean_daily_num_trip_starts', 
+      'mean_daily_num_vehicles', 
+      'mean_daily_distance',
+      'mean_daily_duration', 
+      'mean_daily_speed',
+      ]
+    titles = [name.capitalize().replace('_', ' ') for name in names]
+    units = ['','','km','h', 'kph']
+    fig, axes = plt.subplots(nrows=len(names), ncols=1)
+    for (i, name) in enumerate(names):
+        F[name].plot(ax=axes[i], color=colors[i], alpha=alpha, 
+          kind='bar', figsize=(8, 10))
+        axes[i].set_title(titles[i])
+        axes[i].set_ylabel(units[i])
+
+    #fig.tight_layout()
+    return fig
 
 class Feed(object):
     """
@@ -696,30 +736,30 @@ class Feed(object):
 
         return series_by_name
 
-    def get_route_timetable(self, route, date):
-        """
-        Given a route (route_id) and a date (datetime.date object),
-        return a Pandas data frame describing the time table for the
-        given stop on the given date with the columns
+    # def get_route_timetable(self, route, date):
+    #     """
+    #     Given a route (route_id) and a date (datetime.date object),
+    #     return a Pandas data frame describing the time table for the
+    #     given stop on the given date with the columns
 
-        - arrival_time
-        - departure_time
-        - trip_id
+    #     - arrival_time
+    #     - departure_time
+    #     - trip_id
 
-        and ordered by arrival time.
-        """
-        # Get active trips and merge with stop times
-        trips_activity = self.get_trips_activity([date])
-        ta = trips_activity[trips_activity[date] > 0]
-        stop_times = self.get_stop_times()
-        f = pd.merge(ta, stop_times)
+    #     and ordered by arrival time.
+    #     """
+    #     # Get active trips and merge with stop times
+    #     trips_activity = self.get_trips_activity([date])
+    #     ta = trips_activity[trips_activity[date] > 0]
+    #     stop_times = self.get_stop_times()
+    #     f = pd.merge(ta, stop_times)
         
-        def get_first_trip(group):
-            g = group.sort('departure_time')
-            return g[['arrival_time', 'departure_time']].iloc[0]
+    #     def get_first_trip(group):
+    #         g = group.sort('departure_time')
+    #         return g[['arrival_time', 'departure_time']].iloc[0]
 
-        return f[f['route_id'] == route].groupby('trip_id').apply(
-          get_first_trip).reset_index()
+    #     return f[f['route_id'] == route].groupby('trip_id').apply(
+    #       get_first_trip).reset_index()
 
     def get_stops_stats(self, dates):
         """
@@ -798,7 +838,6 @@ class Feed(object):
 
         return result
 
-    # TODO: Finish this
     def get_stops_time_series(self, dates):
         """
         Return the following time series of routes stats:
@@ -883,29 +922,29 @@ class Feed(object):
 
         return series_by_name
 
-    def get_stop_timetable(self, stop, date):
-        """
-        Given a stop (stop_id) and a date (datetime.date object),
-        return a Pandas data frame describing the time table for the
-        given stop on the given date with the columns
+    # def get_stop_timetable(self, stop, date):
+    #     """
+    #     Given a stop (stop_id) and a date (datetime.date object),
+    #     return a Pandas data frame describing the time table for the
+    #     given stop on the given date with the columns
 
-        - arrival_time
-        - departure_time
-        - trip_id
-        - route_id
+    #     - arrival_time
+    #     - departure_time
+    #     - trip_id
+    #     - route_id
 
-        and ordered by arrival time.
-        """
-        # Get active trips and merge with stop times
-        trips_activity = self.get_trips_activity([date])
-        ta = trips_activity[trips_activity[date] > 0]
-        stop_times = self.get_stop_times()
-        f = pd.merge(ta, stop_times)
-        return f[f['stop_id'] == stop][['arrival_time', 'departure_time', 
-          'trip_id', 'route_id']].sort('arrival_time').reset_index(drop=True)
+    #     and ordered by arrival time.
+    #     """
+    #     # Get active trips and merge with stop times
+    #     trips_activity = self.get_trips_activity([date])
+    #     ta = trips_activity[trips_activity[date] > 0]
+    #     stop_times = self.get_stop_times()
+    #     f = pd.merge(ta, stop_times)
+    #     return f[f['stop_id'] == stop][['arrival_time', 'departure_time', 
+    #       'trip_id', 'route_id']].sort('arrival_time').reset_index(drop=True)
 
     # TODO: test more and improve readme
-    def dump_all_stats(self, dates=None, freq='30Min', directory=None):
+    def dump_all_stats(self, dates=None, freq='1H', directory=None):
         """
         Into the given directory, dump to separate CSV files the outputs of
         
@@ -917,7 +956,7 @@ class Feed(object):
 
         where each time series is resampled to the given frequency.
         Also include a ``README.txt`` file that contains a few notes
-        on units.
+        on units and include some useful charts.
 
         If no dates are given, then use ``self.get_first_week()[:5]``.
         If no directory is given, then use ``self.path + 'stats/'``. 
@@ -927,13 +966,14 @@ class Feed(object):
         Takes about 17 minutes on the SEQ feed.
         """
         import os
+        import textwrap
 
         # Time function call
         t1 = dt.datetime.now()
         print(t1, 'Beginning process...')
 
         if dates is None:
-            dates = self.get_first_workweek()
+            dates = self.get_first_week()[:5]
         if directory is None:
             directory = self.path + 'stats/'
         if not os.path.exists(directory):
@@ -942,16 +982,17 @@ class Feed(object):
           [date_to_str(d) for d in [dates[0], dates[-1]]])
 
         # Write README.txt, which contains notes on units and date range
-        readme = "- For the trips stats, "\
-        "duration is measured in seconds and "\
-        "distance is measured in meters\n"\
-        "- For the routes stats and time series, "\
-        "duration is measured in hours and "\
-        "distance is measured in kilometers\n"\
-        "- Routes stats and time series were calculated for an average day "\
-        "during %s" % dates_str
-        with open(directory + 'README.txt', 'w') as f:
-            f.write(readme)
+        readme = """
+        Notes 
+        =====
+
+        - Distances are measured in meters and durations are measured in
+        seconds
+        - Stats were calculated for the period {!s}
+        """.format(dates_str)
+        
+        with open(directory + 'notes.rst', 'w') as f:
+            f.write(textwrap.dedent(readme))
 
         # Trips stats
         trips_stats = self.get_trips_stats()
@@ -963,71 +1004,30 @@ class Feed(object):
 
         # Routes time series
         rts = self.get_routes_time_series(trips_stats, dates)
-        rrts = resample_routes_time_series(rts, freq=freq, big_units=True)
-        for name, f in rrts.iteritems():
+        rts = downsample_routes_time_series(rts, freq=freq)
+        for name, f in rts.iteritems():
             # Remove date from timestamps
-            f.index = [d.time() for d in f.index.to_datetime()]
-            f.T.to_csv(directory + 'routes_time_series_%s_%s.csv' %\
+            g = f.copy()
+            g.index = [d.time() for d in g.index.to_datetime()]
+            g.T.to_csv(directory + 'routes_time_series_%s_%s.csv' %\
               (name, freq), index_label='route_id')
 
         # Stops time series
         sts = self.get_stops_time_series(dates)
-        rsts = resample_routes_time_series(sts, freq=freq)
-        for name, f in rsts.iteritems():
+        sts = downsample_stops_time_series(sts, freq=freq)
+        for name, f in sts.iteritems():
             # Remove date from timestamps
-            f.index = [d.time() for d in f.index.to_datetime()]
-            f.T.to_csv(directory + 'stops_time_series_%s_%s.csv' %\
+            g = f.copy()
+            g.index = [d.time() for d in g.index.to_datetime()]
+            g.T.to_csv(directory + 'stops_time_series_%s_%s.csv' %\
               (name, freq), index_label='stop_id')
 
-        # Plot sum of routes stats at 30-minute frequency
-        fig = self.plot_sum_of_routes_time_series(routes_time_series)
-        fig.savefig(directory + 'sum_of_routes_time_series.pdf', dpi=200)
+        # Plot sum of routes stats 
+        fig = plot_routes_time_series(rts)
+        fig.tight_layout()
+        fig.savefig(directory + 'routes_time_series_agg.pdf', dpi=200)
         
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
         print(t2, 'Finished process in %.2f min' % minutes)    
 
-    # TODO: test more
-    def plot_sum_of_routes_time_series(self, routes_ts, freq='30Min'):
-        """
-        Given the output of ``self.get_routes_times_series()``,
-        sum each time series over all routes, plot each using
-        MatplotLib, and return the resulting figure of four subplots.
-        """
-        import matplotlib.pyplot as plt
-
-        # Plot sum of routes stats at 30-minute frequency
-        F = None
-        rrts = resample_routes_time_series(route_ts, freq=freq, big_units=True)
-        for name, f in rrts.iteritems():
-            g = f.resample('30Min', how).T.sum().T
-            if F is None:
-                # Initialize F
-                F = pd.DataFrame(g, columns=[name])
-            else:
-                F[name] = g
-        F.index = [d.time() for d in F.index]
-        colors = ['red', 'blue', 'yellow', 'green'] 
-        alpha = 0.7
-        columns = [
-          'mean_daily_num_trip_starts', 
-          'mean_daily_num_vehicles', 
-          'mean_daily_duration', 
-          'mean_daily_distance',
-          ]
-        titles = [
-          'Mean daily number of trip starts',
-          'Mean daily number of vehicles',
-          'Mean daily duration',
-          'Mean daily distance',
-          ]
-        ylabels = ['','','hours','kilometers']
-        fig, axes = plt.subplots(nrows=4, ncols=1)
-        for (i, column) in enumerate(columns):
-            F[column].plot(ax=axes[i], color=colors[i], alpha=alpha, 
-              kind='bar', figsize=(8, 10))
-            axes[i].set_title(titles[i])
-            axes[i].set_ylabel(ylabels[i])
-
-        fig.tight_layout() # Or equivalently,  "plt.tight_layout()"
-        return fig
