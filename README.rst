@@ -9,6 +9,10 @@ Requirements
 ------------
 See ``requirements.txt``
 
+Examples
+--------
+Play with ``gtfs_toolkit_examples.ipynb`` in an iPython notebook
+
 Todo
 ----
 - Add some IO functionality, e.g. unzipping feeds
