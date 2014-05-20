@@ -56,4 +56,4 @@ docs/_build/
 .tresorit/
 .DS_Store
 .git_ignore
-#test/seq_20140128/*
+test/seq_20140128/*
