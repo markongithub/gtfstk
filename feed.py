@@ -147,7 +147,6 @@ def downsample_stops_time_series(stops_time_series, freq):
         result[name] = g
     return result
 
-# TODO: test more
 def plot_routes_time_series(routes_ts_dict, big_units=True):
     """
     Given a routes time series dictionary (possibly downsampled),
@@ -239,7 +238,7 @@ class Feed(object):
         # This makes sorting by time work as expected.
         def reformat(timestr):
             result = timestr
-            if len(result) == 7:
+            if isinstance(result, str) and len(result) == 7:
                 result = '0' + result
             return result
 
@@ -404,7 +403,7 @@ class Feed(object):
 
         return merged
 
-    def get_trips_stats(self):
+    def get_trips_stats(self, compute_distance=True):
         """
         Return a Pandas data frame with the following columns:
 
@@ -417,6 +416,9 @@ class Feed(object):
         - end_stop_id: stop ID of the last stop of the trip
         - duration: duration of the trip (seconds)
         - distance: distance of the trip (meters)
+
+        If ``compute_distance == False``, then don't compute or include
+        the distance column, which will speed up run time.
 
         NOTES:
 
@@ -465,27 +467,30 @@ class Feed(object):
         dist_by_stop_pair_by_shape = {shape: {} 
           for shape in linestring_by_shape}
 
-        for trip, row in g.iterrows():
-            start_stop = row.at['start_stop'] 
-            end_stop = row.at['end_stop'] 
-            shape = row.at['shape_id']
-            stop_pair = frozenset([start_stop, end_stop])
-            if stop_pair in dist_by_stop_pair_by_shape[shape]:
-                d = dist_by_stop_pair_by_shape[shape][stop_pair]
-            else:
-                # Compute distance afresh and store
-                linestring = linestring_by_shape[shape]
-                p = xy_by_stop[start_stop]
-                q = xy_by_stop[end_stop]
-                d = get_segment_length(linestring, p, q) 
-                if d == 0:
-                    # Trip is a circuit. 
-                    # This can even happen when start_stop != end_stop 
-                    # if the two stops are very close together
-                    d = linestring.length
-                d = int(round(d))        
-                dist_by_stop_pair_by_shape[shape][stop_pair] = d               
-            g.ix[trip, 'distance'] = d
+        if compute_distance:
+            for trip, row in g.iterrows():
+                start_stop = row.at['start_stop'] 
+                end_stop = row.at['end_stop'] 
+                shape = row.at['shape_id']
+                if pd.isnull(shape):
+                    continue
+                stop_pair = frozenset([start_stop, end_stop])
+                if stop_pair in dist_by_stop_pair_by_shape[shape]:
+                    d = dist_by_stop_pair_by_shape[shape][stop_pair]
+                else:
+                    # Compute distance afresh and store
+                    linestring = linestring_by_shape[shape]
+                    p = xy_by_stop[start_stop]
+                    q = xy_by_stop[end_stop]
+                    d = get_segment_length(linestring, p, q) 
+                    if d == 0:
+                        # Trip is a circuit. 
+                        # This can even happen when start_stop != end_stop 
+                        # if the two stops are very close together
+                        d = linestring.length
+                    d = int(round(d))        
+                    dist_by_stop_pair_by_shape[shape][stop_pair] = d       
+                g.ix[trip, 'distance'] = d
 
         stats = pd.merge(stats, g.reset_index())
         stats.sort('route_id')
@@ -515,9 +520,20 @@ class Feed(object):
             return
 
         f = self.trips
+
+        # Time the function call
+        t1 = dt.datetime.now()
+        print(t1, 'Getting activity for {!s} trips over {!s} dates...'.format(
+          f.shape[0], len(dates)))
+
         for date in dates:
             f[date] = f['trip_id'].map(lambda trip: 
               int(self.is_active_trip(trip, date)))
+
+        t2 = dt.datetime.now()
+        minutes = (t2 - t1).seconds/60
+        print(t2, 'Finished routes stats in %.2f min' % minutes)    
+
         return f[['trip_id', 'route_id'] + dates]
 
     def get_routes_stats(self, trips_stats, dates):
@@ -535,11 +551,11 @@ class Feed(object):
           the route
         - max_end_time: end time of latest active trip on the route
         - max_headway: maximum of the durations (in seconds) between 
-          trip starts on the route between 07:00 and 19:00 
-          on the given dates
+          trip starts in the same direction on the route between 
+          07:00 and 19:00 on the given dates
         - mean_headway: mean of the durations (in seconds) between 
-          vehicle departures at the stop between 07:00 and 19:00 
-          on the given dates
+          trip starts in the same direction on the route
+          between 07:00 and 19:00 on the given dates
         - mean_daily_duration: in seconds
         - mean_daily_distance: in meters
 
@@ -571,12 +587,15 @@ class Feed(object):
             # and compute route-level stats.
             headways = []
             for date in dates:
-                stimes = sorted(group[group[date] > 0]['start_time'].\
-                  values)
-                stimes = [stime for stime in stimes 
-                  if 7*3600 <= stime <= 19*3600]
-                headways.extend([stimes[i + 1] - stimes[i] 
-                  for i in range(len(stimes) - 1)])
+                # Separate directions to calculate headways.
+                for direction in ['0', '1']:
+                    stimes = group[(group[date] > 0) &\
+                       (group['direction_id'] == direction)]['start_time'].\
+                       values
+                    stimes = sorted([stime for stime in stimes 
+                      if 7*3600 <= stime <= 19*3600])
+                    headways.extend([stimes[i + 1] - stimes[i] 
+                      for i in range(len(stimes) - 1)])
             if headways:
                 max_headway = np.max(headways)
                 mean_headway = round(np.mean(headways))
