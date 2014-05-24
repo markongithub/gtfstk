@@ -1,3 +1,0 @@
-agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone
-PT,Public Transport,http://www.transport.nt.gov.au/public,Australia/Darwin,en,08-8924-7666
-FF,Fast Ferries,http://www.fastferries.com.au/RouteMap.aspx?a=21&s=21&c=252,Australia/Darwin,en,0499675266

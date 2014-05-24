@@ -36,54 +36,46 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(get_segment_length(s, p), 0)
 
     def test_init(self):
-        darwin_path = 'test/darwin_20130903/'
-        darwin = Feed(darwin_path)
-        self.assertIsInstance(darwin.routes, pd.core.frame.DataFrame)
-        self.assertIsInstance(darwin.stops, pd.core.frame.DataFrame)
-        self.assertIsInstance(darwin.shapes, pd.core.frame.DataFrame)
-        self.assertIsInstance(darwin.trips, pd.core.frame.DataFrame)
-        self.assertIsInstance(darwin.calendar, pd.core.frame.DataFrame)
-        self.assertIsInstance(darwin.calendar_m, pd.core.frame.DataFrame)
-        self.assertIsInstance(darwin.calendar_dates, pd.core.frame.DataFrame)
+        feed_path = 'test/cairns_20140223/'
+        feed = Feed(feed_path)
+        self.assertIsInstance(feed.routes, pd.core.frame.DataFrame)
+        self.assertIsInstance(feed.stops, pd.core.frame.DataFrame)
+        self.assertIsInstance(feed.shapes, pd.core.frame.DataFrame)
+        self.assertIsInstance(feed.trips, pd.core.frame.DataFrame)
+        self.assertIsInstance(feed.calendar, pd.core.frame.DataFrame)
+        self.assertIsInstance(feed.calendar_m, pd.core.frame.DataFrame)
+        self.assertIsInstance(feed.calendar_dates, pd.core.frame.DataFrame)
 
     def test_get_dates(self):
-        feed = Feed('test/darwin_20130903/')
+        feed = Feed('test/cairns_20140223/')
         dates = feed.get_dates()
-        d1 = dt.date(2012, 11, 5)
-        d2 = dt.date(2013, 12, 31)
+        d1 = dt.date(2013, 12, 2)
+        d2 = dt.date(2014, 6, 29)
         self.assertEqual(dates[0], d1)
         self.assertEqual(dates[-1], d2)
         self.assertEqual(len(dates), (d2 - d1).days + 1)
 
     def test_get_first_week(self):
-        feed = Feed('test/darwin_20130903/')
+        feed = Feed('test/cairns_20140223/')
         dates = feed.get_first_week()
-        d1 = dt.date(2012, 11, 5)
-        d2 = dt.date(2012, 11, 11)
+        d1 = dt.date(2013, 12, 2)
+        d2 = dt.date(2013, 12, 8)
         self.assertEqual(dates[0], d1)
         self.assertEqual(dates[-1], d2)
         self.assertEqual(len(dates), 7)
 
     def test_is_active(self):
         # This feed has calendar_dates data
-        darwin = Feed('test/darwin_20130903/')
-        trip = 'i1_2'
-        date1 = dt.date(2012, 12, 24)
-        date2 = dt.date(2012, 12, 25)
-        self.assertTrue(darwin.is_active_trip(trip, date1))
-        self.assertFalse(darwin.is_active_trip(trip, date2))
-
-        # This feed doesn't have calendar_dates data
-        seq = Feed('test/seq_20140128/')
-        trip = '3972078-BBL2014-399-Weekday-01'
-        date1 = dt.date(2014, 3, 3)
-        date2 = dt.date(2014, 3, 8)
-        self.assertTrue(seq.is_active_trip(trip, date1))
-        self.assertFalse(seq.is_active_trip(trip, date2))
+        feed = Feed('test/cairns_20140223/')
+        trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
+        date1 = dt.date(2014, 4, 17)
+        date2 = dt.date(2012, 4, 18)
+        self.assertTrue(feed.is_active_trip(trip, date1))
+        self.assertFalse(feed.is_active_trip(trip, date2))
 
     def test_get_linestring_by_shape(self):
         # This feed has calendar_dates data
-        feed = Feed('test/darwin_20130903/')
+        feed = Feed('test/cairns_20140223/')
         shape = 'i1_shp'
         linestring_by_shape = feed.get_linestring_by_shape()
         # Should be a dictionary

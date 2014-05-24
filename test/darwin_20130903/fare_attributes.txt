@@ -1,3 +1,0 @@
-fare_id,price,currency_type,payment_method,transfers,transfer_duration
-Adult Bus,3,AUD,0,,10800
-Adult Ferry,23,AUD,0,0,

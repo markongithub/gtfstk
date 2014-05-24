@@ -568,8 +568,8 @@ class Feed(object):
 
         # Time the function call
         t1 = dt.datetime.now()
-        print(t1, 'Creating routes stats for {!s} trips...'.format(
-          trips_stats.shape[0]))
+        print(t1, 'Creating routes stats for {!s} routes...'.format(
+          self.routes.shape[0]))
 
         # Merge trips stats with trips activity, 
         # assign a weight to each trip equal to the fraction of days in 
@@ -664,8 +664,8 @@ class Feed(object):
         t1 = dt.datetime.now()
         stats = trips_stats
         routes = sorted(self.routes['route_id'].values)
-        num_trips = stats.shape[0]
-        print(t1, 'Creating routes time series for %s trips...' % num_trips)
+        print(t1, 'Creating routes time series for {!s} routes...'.format(
+          len(routes)))
 
         # Merge trips_stas with trips activity, get trip weights,
         # and drop 0-weight trips
@@ -673,6 +673,7 @@ class Feed(object):
         stats = pd.merge(stats, self.get_trips_activity(dates))
         stats['weight'] = stats[dates].sum(axis=1)/n
         stats = stats[stats.weight > 0]
+        num_trips = stats.shape[0]
         
         # Initialize time series
         if n > 1:
@@ -993,7 +994,6 @@ class Feed(object):
         readme = """
         Notes 
         =====
-
         - Distances are measured in meters and durations are measured in
         seconds
         - Stats were calculated for the period {!s}
