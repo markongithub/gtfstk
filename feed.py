@@ -1,5 +1,6 @@
 """
-Some tools for computing stats from GTFS feeds.
+Some tools for computing stats from a GTFS feed, assuming the feed
+is valid.
 
 All time estimates below were produced on a 2013 MacBook Pro with a
 2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.2.
@@ -9,6 +10,8 @@ import datetime as dt
 from itertools import izip
 import dateutil.relativedelta as rd
 from collections import OrderedDict
+import os
+import zipfile
 
 import pandas as pd
 import numpy as np
@@ -202,27 +205,51 @@ class Feed(object):
     Pandas data frames.
     """
     def __init__(self, path):
+        """
+        Read in all the relevant GTFS text files within the directory or 
+        ZIP file given by ``path``.
+        """
+        zipped = False
+        if zipfile.is_zipfile(path):
+            zipped = True
+            # Extract to temporary location
+            archive = zipfile.ZipFile(path)
+            path = path.rstrip('.zip') + '/'
+            archive.extractall(path)
+
         self.path = path 
-        self.routes = pd.read_csv(path + 'routes.txt')
-        self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str})
+        self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str, 
+          'stop_code': str})
+        self.routes = pd.read_csv(path + 'routes.txt', dtype={'route_id': str,
+          'route_short_name': str})
+        self.trips = pd.read_csv(path + 'trips.txt', dtype={'route_id': str,
+          'trip_id': str, 'service_id': str, 'shape_id': str, 'stop_id': str})
+        self.trips_t = self.trips.set_index('trip_id')
         self.shapes = pd.read_csv(path + 'shapes.txt', dtype={'shape_id': str})
-        self.trips = pd.read_csv(path + 'trips.txt', dtype={'shape_id': str,
-          'stop_id': str, 'direction_id': str})
-        self.calendar = pd.read_csv(path + 'calendar.txt', 
-          dtype={'service_id': str}, 
-          date_parser=lambda x: date_to_str(x, inverse=True), 
-          parse_dates=['start_date', 'end_date'])
-        try:
+        
+        # Note that at least one of calendar.txt or calendar_dates.txt is
+        # required by the GTFS.
+        if os.path.isfile(path + 'calendar.txt'):
+            self.calendar = pd.read_csv(path + 'calendar.txt', 
+              dtype={'service_id': str}, 
+              date_parser=lambda x: date_to_str(x, inverse=True), 
+              parse_dates=['start_date', 'end_date'])
+            # Index by service ID to make self.is_active_trip() fast
+            self.calendar_s = self.calendar.set_index('service_id')
+        else:
+            self.calendar = None
+            self.calendar_s = None
+        if os.path.isfile(path + 'calendar_dates.txt'):
             self.calendar_dates = pd.read_csv(path + 'calendar_dates.txt', 
               dtype={'service_id': str}, 
               date_parser=lambda x: date_to_str(x, inverse=True), 
               parse_dates=['date'])
-        except IOError:
-            # Doesn't exist, so create an empty data frame
-            self.calendar_dates = pd.DataFrame()
-        # Merge trips and calendar
-        self.calendar_m = pd.merge(self.trips[['trip_id', 'service_id']],
-          self.calendar).set_index('trip_id')
+            # Group by service ID and date to make self.is_active_trip() fast
+            self.calendar_dates_g = self.calendar_dates.groupby(
+              ['service_id', 'date'])
+        else:
+            self.calendar_dates = None
+            self.calendar_dates_g = None
         
     def get_stop_times(self):
         """
@@ -232,7 +259,8 @@ class Feed(object):
         So i'll only import it when i need it for now, instead of storing
         it as an attribute.
         """
-        st = pd.read_csv(self.path + 'stop_times.txt', dtype={'stop_id': str})
+        st = pd.read_csv(self.path + 'stop_times.txt', dtype={'stop_id': str,
+          'trip_id': str})
     
         # Prefix a 0 to arrival and departure times if necessary.
         # This makes sorting by time work as expected.
@@ -251,8 +279,13 @@ class Feed(object):
         Return a chronologically ordered list of dates 
         (``datetime.date`` objects) for which this feed is valid. 
         """
-        start_date = self.calendar['start_date'].min()
-        end_date = self.calendar['end_date'].max()
+        if self.calendar is not None:
+            start_date = self.calendar['start_date'].min()
+            end_date = self.calendar['end_date'].max()
+        else:
+            # Use calendar_dates
+            start_date = self.calendar_dates['date'].min()
+            end_date = self.calendar_dates['date'].max()
         days =  (end_date - start_date).days
         return [start_date + rd.relativedelta(days=+d) 
           for d in range(days + 1)]
@@ -282,31 +315,36 @@ class Feed(object):
 
     def is_active_trip(self, trip, date):
         """
-        If the given trip (trip_id) is active on the given date 
+        If the given trip (trip ID) is active on the given date 
         (date object), then return ``True``.
         Otherwise, return ``False``.
+        To avoid error checking in the interest of speed, 
+        assume ``trip`` is a valid trip ID in the feed and 
+        ``date`` is a valid date object.
         """
-        cal = self.calendar_m
-        row = cal.ix[trip]
-        # Check exceptional cases given by calendar_dates
-        cald = self.calendar_dates
-        service = row['service_id']
-        if not cald.empty:
-            f = cald[(cald['service_id'] == service) &\
-              (cald['date'] == date)]
-            if not f.empty:
-                if 1 in f['exception_type'].values:
+        service = self.trips_t.at[trip, 'service_id']
+        # Check self.calendar_dates_g.
+        caldg = self.calendar_dates_g
+        if caldg is not None:
+            if (service, date) in caldg.groups:
+                et = caldg.get_group((service, date))['exception_type'].iat[0]
+                if et == 1:
                     return True
                 else:
                     # Exception type is 2
                     return False
-        # Check regular cases
-        weekday_str = weekday_to_str(date.weekday())
-        if row['start_date'] <= date <= row['end_date'] and\
-          row[weekday_str] == 1:
-            return True
-        else:
-            return False
+        # Check self.calendar_g
+        cals = self.calendar_s
+        if cals is not None:
+            if service in cals.index:
+                weekday_str = weekday_to_str(date.weekday())
+                if cals.at[service, 'start_date'] <= date <= cals.at[service,
+                  'end_date'] and cals.at[service, weekday_str] == 1:
+                    return True
+                else:
+                    return False
+        # If you made it here, then something went wrong
+        return False
 
     def get_linestring_by_shape(self):
         """
@@ -421,7 +459,7 @@ class Feed(object):
 
         NOTES:
 
-        Takes about 2.8 minutes on the SEQ feed.
+        Takes about 2.4 minutes on the SEQ feed.
         """
         trips = self.trips
         stop_times = self.get_stop_times()
@@ -513,7 +551,7 @@ class Feed(object):
 
         NOTES:
 
-        Takes about 1 minute on the SEQ feed.
+        Takes about 0.15 minutes on the SEQ feed for 7 dates.
         """
         if not dates:
             return
@@ -531,7 +569,7 @@ class Feed(object):
 
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished routes stats in %.2f min' % minutes)    
+        print(t2, 'Finished trips activity in %.2f min' % minutes)    
 
         return f[['trip_id', 'route_id'] + dates]
 
@@ -560,7 +598,7 @@ class Feed(object):
 
         NOTES:
 
-        Takes about 1 minute on the SEQ feed.
+        Takes about 0.2 minute on the SEQ feed for 5 dates.
         """
         if not dates:
             return 
@@ -587,7 +625,7 @@ class Feed(object):
             headways = []
             for date in dates:
                 # Separate directions to calculate headways.
-                for direction in ['0', '1']:
+                for direction in [0, 1]:
                     stimes = group[(group[date] > 0) &\
                        (group['direction_id'] == direction)]['start_time'].\
                        values
@@ -655,7 +693,7 @@ class Feed(object):
         - To remove the placeholder date (2001-1-1) and seconds from any 
           of the time series f, do ``f.index = [t.time().strftime('%H:%M') 
           for t in f.index.to_datetime()]``
-        - Takes about 2 minutes on the SEQ feed.
+        - Takes about 1.5 minutes on the SEQ feed.
         """  
         if not dates:
             return 
@@ -788,7 +826,7 @@ class Feed(object):
 
         NOTES:
 
-        Takes about 1.8 minutes for the SEQ feed.
+        Takes about 0.9 minutes for the SEQ feed.
         """
         t1 = dt.datetime.now()
         print(t1, 'Calculating stops stats...')
@@ -903,9 +941,14 @@ class Feed(object):
             series_by_name[name] = pd.DataFrame(np.nan, index=rng, 
               columns=stops)
         
+        def format(x):
+            try:
+                return pd.to_datetime(date_str + ' ' + timestr_mod_24(x))
+            except TypeError:
+                return pd.NaT
+
         # Convert departure time string to datetime
-        stats['departure_time'] = stats['departure_time'].map(lambda x: 
-          pd.to_datetime(date_str + ' ' + timestr_mod_24(x)))
+        stats['departure_time'] = stats['departure_time'].map(format)
 
         # Bin each trip according to its departure time at the stop
         i = 0
@@ -926,7 +969,7 @@ class Feed(object):
       
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished routes time series in %.2f min' % minutes)    
+        print(t2, 'Finished stops time series in %.2f min' % minutes)    
 
         return series_by_name
 
@@ -971,7 +1014,7 @@ class Feed(object):
 
         NOTES:
 
-        Takes about 17 minutes on the SEQ feed.
+        Takes about 15 minutes on the SEQ feed.
         """
         import os
         import textwrap

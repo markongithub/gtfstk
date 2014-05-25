@@ -36,15 +36,18 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(get_segment_length(s, p), 0)
 
     def test_init(self):
-        feed_path = 'test/cairns_20140223/'
-        feed = Feed(feed_path)
-        self.assertIsInstance(feed.routes, pd.core.frame.DataFrame)
-        self.assertIsInstance(feed.stops, pd.core.frame.DataFrame)
-        self.assertIsInstance(feed.shapes, pd.core.frame.DataFrame)
-        self.assertIsInstance(feed.trips, pd.core.frame.DataFrame)
-        self.assertIsInstance(feed.calendar, pd.core.frame.DataFrame)
-        self.assertIsInstance(feed.calendar_m, pd.core.frame.DataFrame)
-        self.assertIsInstance(feed.calendar_dates, pd.core.frame.DataFrame)
+        for feed_path in ['test/cairns_20140223/', 
+          'test/portland_20140518.zip']:
+            feed = Feed(feed_path)
+            self.assertIsInstance(feed.routes, pd.core.frame.DataFrame)
+            self.assertIsInstance(feed.stops, pd.core.frame.DataFrame)
+            self.assertIsInstance(feed.shapes, pd.core.frame.DataFrame)
+            self.assertIsInstance(feed.trips, pd.core.frame.DataFrame)
+            if feed.calendar is not None:
+                self.assertIsInstance(feed.calendar, pd.core.frame.DataFrame)
+            if feed.calendar_dates is not None:
+                self.assertIsInstance(feed.calendar_dates, 
+                  pd.core.frame.DataFrame)
 
     def test_get_dates(self):
         feed = Feed('test/cairns_20140223/')
@@ -66,22 +69,27 @@ class TestFeed(unittest.TestCase):
 
     def test_is_active(self):
         feed = Feed('test/cairns_20140223/')
-        trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
-        date1 = dt.date(2014, 4, 17)
-        date2 = dt.date(2012, 4, 18)
+        trip = 'CNS2014-CNS_MUL-Weekday-00-4166103'
+        date1 = dt.date(2014, 3, 21)
+        date2 = dt.date(2012, 3, 22)
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
-        
+
         trip = 'CNS2014-CNS_MUL-Sunday-00-4165971'
         date1 = dt.date(2014, 4, 18)
         date2 = dt.date(2012, 4, 17)
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
+        feed = Feed('test/portland_20140518.zip')
+        trip = '4526377'
+        date1 = dt.date(2014, 5, 18)
+        date2 = dt.date(2012, 5, 17)
+        self.assertTrue(feed.is_active_trip(trip, date1))
+        self.assertFalse(feed.is_active_trip(trip, date2))
+
     def test_get_linestring_by_shape(self):
-        # This feed has calendar_dates data
         feed = Feed('test/cairns_20140223/')
-        shape = 'i1_shp'
         linestring_by_shape = feed.get_linestring_by_shape()
         # Should be a dictionary
         self.assertIsInstance(linestring_by_shape, dict)
@@ -91,6 +99,12 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(len(linestring_by_shape), 
           feed.shapes.groupby('shape_id').first().shape[0])
 
+    def test_get_trips_stats(self):
+        feed = Feed('test/cairns_20140223/')
+        trips_stats = feed.get_trips_stats()
+        # Should be a data frame with the correct number of rows
+        self.assertIsInstance(trips_stats, pd.core.frame.DataFrame)
+        self.assertEqual(trips_stats.shape[0], feed.trips.shape[0])
 
 if __name__ == '__main__':
     unittest.main()
