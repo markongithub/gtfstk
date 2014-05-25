@@ -65,11 +65,16 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(len(dates), 7)
 
     def test_is_active(self):
-        # This feed has calendar_dates data
         feed = Feed('test/cairns_20140223/')
         trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
         date1 = dt.date(2014, 4, 17)
         date2 = dt.date(2012, 4, 18)
+        self.assertTrue(feed.is_active_trip(trip, date1))
+        self.assertFalse(feed.is_active_trip(trip, date2))
+        
+        trip = 'CNS2014-CNS_MUL-Sunday-00-4165971'
+        date1 = dt.date(2014, 4, 18)
+        date2 = dt.date(2012, 4, 17)
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 

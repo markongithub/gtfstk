@@ -288,23 +288,22 @@ class Feed(object):
         """
         cal = self.calendar_m
         row = cal.ix[trip]
-        # Check exceptional scenario given by calendar_dates
+        # Check exceptional cases given by calendar_dates
         cald = self.calendar_dates
         service = row['service_id']
         if not cald.empty:
-            if not cald[(cald['service_id'] == service) &\
-              (cald['date'] == date) &\
-              (cald['exception_type'] == 1)].empty:
-                return True
-            if not cald[(cald['service_id'] == service) &\
-              (cald['date'] == date) &\
-              (cald['exception_type'] == 2)].empty:
-                return False
-        # Check regular scenario
-        start_date = row['start_date']
-        end_date = row['end_date']
+            f = cald[(cald['service_id'] == service) &\
+              (cald['date'] == date)]
+            if not f.empty:
+                if 1 in f['exception_type'].values:
+                    return True
+                else:
+                    # Exception type is 2
+                    return False
+        # Check regular cases
         weekday_str = weekday_to_str(date.weekday())
-        if start_date <= date <= end_date and row[weekday_str] == 1:
+        if row['start_date'] <= date <= row['end_date'] and\
+          row[weekday_str] == 1:
             return True
         else:
             return False
