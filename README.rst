@@ -19,5 +19,5 @@ Play with ``examples/gtfs_toolkit_examples.ipynb`` in an iPython notebook
 
 Todo
 ----
-- Add error check and workaround for feeds missing``shapes.txt``
+- Add error check and workaround for feeds missing ``shapes.txt``
 - Add more tests
