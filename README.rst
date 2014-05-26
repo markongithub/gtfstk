@@ -6,7 +6,7 @@ Uses Pandas and Shapely to do the heavy lifting.
 
 Warning
 --------
-Currently, this package is experimental, and needs more testing.
+Currently, this package is experimental and needs more testing.
 Use it at your own risk.
 
 Installation
