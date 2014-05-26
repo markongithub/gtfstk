@@ -8,7 +8,10 @@ from shapely.geometry import Point, LineString, mapping
 
 from gtfs_toolkit.feed import *
 
-# Create your tests here.
+# Test feeds:
+cairns = Feed('gtfs_toolkit/tests/cairns_20140223.zip')
+portland = Feed('gtfs_toolkit/tests/portland_20140518.zip')
+
 class TestFeed(unittest.TestCase):
 
     def test_seconds_to_timestr(self):
@@ -36,9 +39,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(get_segment_length(s, p), 0)
 
     def test_init(self):
-        for feed_path in ['gtfs_toolkit/tests/cairns_20140223.zip', 
-          'gtfs_toolkit/tests/portland_20140518.zip']:
-            feed = Feed(feed_path)
+        for feed in [cairns, portland]:
             self.assertIsInstance(feed.routes, pd.core.frame.DataFrame)
             self.assertIsInstance(feed.stops, pd.core.frame.DataFrame)
             self.assertIsInstance(feed.shapes, pd.core.frame.DataFrame)
@@ -50,7 +51,7 @@ class TestFeed(unittest.TestCase):
                   pd.core.frame.DataFrame)
 
     def test_get_dates(self):
-        feed = Feed('gtfs_toolkit/tests/cairns_20140223.zip')
+        feed = cairns
         dates = feed.get_dates()
         d1 = dt.date(2013, 12, 2)
         d2 = dt.date(2014, 6, 29)
@@ -59,7 +60,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(len(dates), (d2 - d1).days + 1)
 
     def test_get_first_week(self):
-        feed = Feed('gtfs_toolkit/tests/cairns_20140223.zip')
+        feed = cairns
         dates = feed.get_first_week()
         d1 = dt.date(2013, 12, 2)
         d2 = dt.date(2013, 12, 8)
@@ -68,7 +69,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(len(dates), 7)
 
     def test_is_active(self):
-        feed = Feed('gtfs_toolkit/tests/cairns_20140223.zip')
+        feed = cairns
         trip = 'CNS2014-CNS_MUL-Weekday-00-4166103'
         date1 = dt.date(2014, 3, 21)
         date2 = dt.date(2012, 3, 22)
@@ -81,7 +82,7 @@ class TestFeed(unittest.TestCase):
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
-        feed = Feed('gtfs_toolkit/tests/portland_20140518.zip')
+        feed = portland
         trip = '4526377'
         date1 = dt.date(2014, 5, 18)
         date2 = dt.date(2012, 5, 17)
@@ -89,7 +90,7 @@ class TestFeed(unittest.TestCase):
         self.assertFalse(feed.is_active_trip(trip, date2))
 
     def test_get_linestring_by_shape(self):
-        feed = Feed('gtfs_toolkit/tests/cairns_20140223.zip')
+        feed = cairns
         linestring_by_shape = feed.get_linestring_by_shape()
         # Should be a dictionary
         self.assertIsInstance(linestring_by_shape, dict)
@@ -100,7 +101,7 @@ class TestFeed(unittest.TestCase):
           feed.shapes.groupby('shape_id').first().shape[0])
 
     def test_get_trips_stats(self):
-        feed = Feed('gtfs_toolkit/tests/cairns_20140223.zip')
+        feed = cairns
         trips_stats = feed.get_trips_stats()
         # Should be a data frame with the correct number of rows
         self.assertIsInstance(trips_stats, pd.core.frame.DataFrame)
