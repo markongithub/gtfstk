@@ -3,6 +3,17 @@ CHANGES.rst
 README.rst
 setup.py
 examples/gtfs_toolkit_examples.ipynb
+examples/stats/notes.rst
+examples/stats/routes_stats.csv
+examples/stats/routes_time_series_agg.pdf
+examples/stats/routes_time_series_mean_daily_distance_1H.csv
+examples/stats/routes_time_series_mean_daily_duration_1H.csv
+examples/stats/routes_time_series_mean_daily_num_trip_starts_1H.csv
+examples/stats/routes_time_series_mean_daily_num_vehicles_1H.csv
+examples/stats/routes_time_series_mean_daily_speed_1H.csv
+examples/stats/stops_stats.csv
+examples/stats/stops_time_series_mean_daily_num_vehicles_1H.csv
+examples/stats/trips_stats.csv
 gtfs_toolkit/__init__.py
 gtfs_toolkit/feed.py
 gtfs_toolkit/tests/__init__.py
