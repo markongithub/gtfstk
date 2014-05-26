@@ -12,6 +12,7 @@ import dateutil.relativedelta as rd
 from collections import OrderedDict
 import os
 import zipfile
+import shutil
 
 import pandas as pd
 import numpy as np
@@ -209,13 +210,14 @@ class Feed(object):
         Read in all the relevant GTFS text files within the directory or 
         ZIP file given by ``path``.
         """
+        zipped = False
         if zipfile.is_zipfile(path):
             # Extract to temporary location
+            zipped = True
             archive = zipfile.ZipFile(path)
             path = path.rstrip('.zip') + '/'
             archive.extractall(path)
 
-        self.path = path 
         self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str, 
           'stop_code': str})
         self.routes = pd.read_csv(path + 'routes.txt', dtype={'route_id': str,
@@ -223,6 +225,21 @@ class Feed(object):
         self.trips = pd.read_csv(path + 'trips.txt', dtype={'route_id': str,
           'trip_id': str, 'service_id': str, 'shape_id': str, 'stop_id': str})
         self.trips_t = self.trips.set_index('trip_id')
+        st = pd.read_csv(path + 'stop_times.txt', dtype={'stop_id': str,
+          'trip_id': str})
+    
+        # Prefix a 0 to arrival and departure times if necessary.
+        # This makes sorting by time work as expected.
+        def reformat(timestr):
+            result = timestr
+            if isinstance(result, str) and len(result) == 7:
+                result = '0' + result
+            return result
+
+        st[['arrival_time', 'departure_time']] =\
+          st[['arrival_time', 'departure_time']].applymap(reformat)
+        self.stop_times = st
+
         self.shapes = pd.read_csv(path + 'shapes.txt', dtype={'shape_id': str})
         
         # Note that at least one of calendar.txt or calendar_dates.txt is
@@ -249,28 +266,9 @@ class Feed(object):
             self.calendar_dates = None
             self.calendar_dates_g = None
         
-    def get_stop_times(self):
-        """
-        Return ``stop_times.txt`` as a Pandas data frame.
-        This frame can be big.
-        For example the one for the SEQ feed has roughly 2 million rows.
-        So i'll only import it when i need it for now, instead of storing
-        it as an attribute.
-        """
-        st = pd.read_csv(self.path + 'stop_times.txt', dtype={'stop_id': str,
-          'trip_id': str})
-    
-        # Prefix a 0 to arrival and departure times if necessary.
-        # This makes sorting by time work as expected.
-        def reformat(timestr):
-            result = timestr
-            if isinstance(result, str) and len(result) == 7:
-                result = '0' + result
-            return result
-
-        st[['arrival_time', 'departure_time']] =\
-          st[['arrival_time', 'departure_time']].applymap(reformat)
-        return st
+        if zipped:
+            # Remove extracted directory
+            shutil.rmtree(path)
 
     def get_dates(self):
         """
@@ -408,72 +406,72 @@ class Feed(object):
             xy_by_stop[stop] = utm.from_latlon(lat, lon)[:2] 
         return xy_by_stop
 
-    # TODO: Redo with groupby and apply
-    def get_stop_times_with_shape_dist_traveled(self):
-        """
-        Compute the optional ``shape_dist_traveled`` GTFS field for
-        ``self.get_stop_times()`` and return the resulting Pandas data frame.  
+    # # TODO: Redo with groupby and apply
+    # def get_stop_times_with_shape_dist_traveled(self):
+    #     """
+    #     Compute the optional ``shape_dist_traveled`` GTFS field for
+    #     ``self.stop_times`` and return the resulting Pandas data frame.  
 
-        NOTES:
+    #     NOTES:
 
-        This takes a *long* time, so probably needs improving.
-        On the SEQ feed, i stopped it after 2 hours.
-        """
-        trips = self.trips
-        stop_times = self.get_stop_times()
+    #     This takes a *long* time, so probably needs improving.
+    #     On the SEQ feed, i stopped it after 2 hours.
+    #     """
+    #     trips = self.trips
+    #     stop_times = self.stop_times
 
-        t1 = dt.datetime.now()
-        print(t1, 'Adding shape_dist_traveled field to %s stop times...' %\
-          stop_times['trip_id'].count())
+    #     t1 = dt.datetime.now()
+    #     print(t1, 'Adding shape_dist_traveled field to %s stop times...' %\
+    #       stop_times['trip_id'].count())
 
-        linestring_by_shape = self.get_linestring_by_shape()
-        xy_by_stop = self.get_xy_by_stop()
+    #     linestring_by_shape = self.get_linestring_by_shape()
+    #     xy_by_stop = self.get_xy_by_stop()
 
-        failures = []
+    #     failures = []
 
-        # Initialize data frame
-        merged = pd.merge(trips[['trip_id', 'shape_id']], stop_times)
-        merged['shape_dist_traveled'] = pd.Series()
+    #     # Initialize data frame
+    #     merged = pd.merge(trips[['trip_id', 'shape_id']], stop_times)
+    #     merged['shape_dist_traveled'] = pd.Series()
 
-        # Compute shape_dist_traveled column entries
-        dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
-        for shape, group in merged.groupby('shape_id'):
-            linestring = linestring_by_shape[shape]
-            for trip, subgroup in group.groupby('trip_id'):
-                # Compute the distances of the stops along this trip
-                subgroup.sort('stop_sequence')
-                stops = subgroup['stop_id'].values
-                distances = []
-                for stop in stops:
-                    if stop in dist_by_stop_by_shape[shape]:
-                        d = dist_by_stop_by_shape[shape][stop]
-                    else:
-                        d = round(
-                          get_segment_length(linestring, xy_by_stop[stop]), 2)
-                        dist_by_stop_by_shape[shape][stop] = d
-                    distances.append(d)
-                if distances[0] > distances[1]:
-                    # This happens when the shape linestring direction is the
-                    # opposite of the trip direction. Reverse the distances.
-                    distances = distances[::-1]
-                if distances != sorted(distances):
-                    # Uh oh
-                    failures.append(trip)
-                # Insert stop distances
-                index = subgroup.index[0]
-                for (i, d) in enumerate(distances):
-                    merged.ix[index + i, 'shape_dist_traveled'] = d
+    #     # Compute shape_dist_traveled column entries
+    #     dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
+    #     for shape, group in merged.groupby('shape_id'):
+    #         linestring = linestring_by_shape[shape]
+    #         for trip, subgroup in group.groupby('trip_id'):
+    #             # Compute the distances of the stops along this trip
+    #             subgroup.sort('stop_sequence')
+    #             stops = subgroup['stop_id'].values
+    #             distances = []
+    #             for stop in stops:
+    #                 if stop in dist_by_stop_by_shape[shape]:
+    #                     d = dist_by_stop_by_shape[shape][stop]
+    #                 else:
+    #                     d = round(
+    #                       get_segment_length(linestring, xy_by_stop[stop]), 2)
+    #                     dist_by_stop_by_shape[shape][stop] = d
+    #                 distances.append(d)
+    #             if distances[0] > distances[1]:
+    #                 # This happens when the shape linestring direction is the
+    #                 # opposite of the trip direction. Reverse the distances.
+    #                 distances = distances[::-1]
+    #             if distances != sorted(distances):
+    #                 # Uh oh
+    #                 failures.append(trip)
+    #             # Insert stop distances
+    #             index = subgroup.index[0]
+    #             for (i, d) in enumerate(distances):
+    #                 merged.ix[index + i, 'shape_dist_traveled'] = d
 
-        del merged['shape_id']
+    #     del merged['shape_id']
 
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished in %.2f min' % minutes)
-        print('%s failures on these trips: %s' % (len(failures), failures))  
+    #     t2 = dt.datetime.now()
+    #     minutes = (t2 - t1).seconds/60
+    #     print(t2, 'Finished in %.2f min' % minutes)
+    #     print('%s failures on these trips: %s' % (len(failures), failures))  
 
-        return merged
+    #     return merged
 
-    def get_stops_stats(self, dates, split_directions=False):
+    def get_stops_stats(self, dates, split_directions=True):
         """
         Return a Pandas data frame with the following columns:
 
@@ -507,7 +505,7 @@ class Feed(object):
         # Get active trips and merge with stop times
         trips_activity = self.get_trips_activity(dates)
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
-        stop_times = self.get_stop_times()
+        stop_times = self.stop_times
         f = pd.merge(ta, stop_times)
 
         # Convert departure times to seconds to ease headway calculations
@@ -658,7 +656,7 @@ class Feed(object):
         # Get active trips and merge with stop times
         trips_activity = self.get_trips_activity(dates)
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
-        stop_times = self.get_stop_times()
+        stop_times = self.stop_times
         stats = pd.merge(ta, stop_times)
         n = len(dates)
         stats['weight'] = stats[dates].sum(axis=1)/n
@@ -733,7 +731,7 @@ class Feed(object):
         print(t1, 'Calculating stops stats...')
 
         # Get stop times of active trips that visit stops in stations
-        stop_times = self.get_stop_times()
+        stop_times = self.stop_times
         trips_activity = self.get_trips_activity(dates)
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
         sis = self.get_stops_in_stations()
@@ -870,7 +868,7 @@ class Feed(object):
     #     # Get active trips and merge with stop times
     #     trips_activity = self.get_trips_activity([date])
     #     ta = trips_activity[trips_activity[date] > 0]
-    #     stop_times = self.get_stop_times()
+    #     stop_times = self.stop_times
     #     f = pd.merge(ta, stop_times)
     #     return f[f['stop_id'] == stop][['arrival_time', 'departure_time', 
     #       'trip_id', 'route_id']].sort('arrival_time').reset_index(drop=True)
@@ -897,7 +895,7 @@ class Feed(object):
         Takes about 2.4 minutes on the SEQ feed.
         """
         trips = self.trips
-        stop_times = self.get_stop_times()
+        stop_times = self.stop_times
 
         t1 = dt.datetime.now()
         num_trips = trips.shape[0]
@@ -906,13 +904,14 @@ class Feed(object):
         # Initialize data frame. Base it on trips.txt.
         stats = trips[['route_id', 'trip_id', 'direction_id']]
 
-        # Convert departure times to seconds past midnight, 
-        # to compute durations below
-        stop_times['departure_time'] = stop_times['departure_time'].map(
-          lambda x: seconds_to_timestr(x, inverse=True))
 
         # Compute start time, end time, duration
-        f = pd.merge(trips, stop_times).groupby('trip_id')
+        f = pd.merge(trips, stop_times)
+        # Convert departure times to seconds past midnight, 
+        # to compute durations below
+        f['departure_time'] = f['departure_time'].map(
+          lambda x: seconds_to_timestr(x, inverse=True))
+        f = f.groupby('trip_id')
         g = f['departure_time'].agg({'start_time': np.min, 'end_time': np.max})
         g['duration'] = g['end_time'] - g['start_time']
 
@@ -973,7 +972,7 @@ class Feed(object):
     
         return stats
 
-    def get_routes_stats(self, trips_stats, dates, split_directions=False):
+    def get_routes_stats(self, trips_stats, dates, split_directions=True):
         """
         Take ``trips_stats``, which is the output of 
         ``self.get_trips_stats()``, and use it to calculate stats for 
@@ -1273,7 +1272,7 @@ class Feed(object):
     #     # Get active trips and merge with stop times
     #     trips_activity = self.get_trips_activity([date])
     #     ta = trips_activity[trips_activity[date] > 0]
-    #     stop_times = self.get_stop_times()
+    #     stop_times = self.stop_times
     #     f = pd.merge(ta, stop_times)
         
     #     def get_first_trip(group):
@@ -1284,22 +1283,21 @@ class Feed(object):
     #       get_first_trip).reset_index()
 
     # TODO: test more and improve readme
-    def dump_all_stats(self, dates=None, freq='1H', directory=None):
+    def dump_all_stats(self, directory, dates=None, freq='1H'):
         """
         Into the given directory, dump to separate CSV files the outputs of
         
-        - ``self.get_trips_stats()``
-        - ``self.get_routes_stats(dates)``
-        - ``self.get_routes_time_series(dates)``
         - ``self.get_stops_stats(dates)``
         - ``self.get_stops_time_series(dates)``
+        - ``trips_stats = self.get_trips_stats()``
+        - ``self.get_routes_stats(trips_stats, dates)``
+        - ``self.get_routes_time_series(dates)``
 
         where each time series is resampled to the given frequency.
         Also include a ``README.txt`` file that contains a few notes
         on units and include some useful charts.
 
         If no dates are given, then use ``self.get_first_week()[:5]``.
-        If no directory is given, then use ``self.path + 'stats/'``. 
 
         NOTES:
 
@@ -1312,12 +1310,10 @@ class Feed(object):
         t1 = dt.datetime.now()
         print(t1, 'Beginning process...')
 
-        if dates is None:
-            dates = self.get_first_week()[:5]
-        if directory is None:
-            directory = self.path + 'stats/'
         if not os.path.exists(directory):
             os.makedirs(directory)
+        if dates is None:
+            dates = self.get_first_week()[:5]
         dates_str = ' to '.join(
           [date_to_str(d) for d in [dates[0], dates[-1]]])
 
@@ -1332,6 +1328,21 @@ class Feed(object):
         
         with open(directory + 'notes.rst', 'w') as f:
             f.write(textwrap.dedent(readme))
+
+        # Stops stats
+        stops_stats = self.get_stops_stats(dates)
+        stops_stats.to_csv(directory + 'stops_stats.csv', index=False)
+
+        # Stops time series
+        sts = self.get_stops_time_series(dates)
+        sts = downsample_stops_time_series(sts, freq=freq)
+        for name, f in sts.iteritems():
+            # Remove date from timestamps
+            g = f.copy()
+            g.index = [d.time() for d in g.index.to_datetime()]
+            g.T.to_csv(directory + 'stops_time_series_%s_%s.csv' %\
+              (name, freq), index_label='stop_id')
+
 
         # Trips stats
         trips_stats = self.get_trips_stats()
@@ -1351,16 +1362,6 @@ class Feed(object):
             g.T.to_csv(directory + 'routes_time_series_%s_%s.csv' %\
               (name, freq), index_label='route_id')
 
-        # Stops time series
-        sts = self.get_stops_time_series(dates)
-        sts = downsample_stops_time_series(sts, freq=freq)
-        for name, f in sts.iteritems():
-            # Remove date from timestamps
-            g = f.copy()
-            g.index = [d.time() for d in g.index.to_datetime()]
-            g.T.to_csv(directory + 'stops_time_series_%s_%s.csv' %\
-              (name, freq), index_label='stop_id')
-
         # Plot sum of routes stats 
         fig = plot_routes_time_series(rts)
         fig.tight_layout()
@@ -1369,4 +1370,3 @@ class Feed(object):
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
         print(t2, 'Finished process in %.2f min' % minutes)    
-

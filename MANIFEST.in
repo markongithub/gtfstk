@@ -1,2 +1,2 @@
-global-include *.rst *.txt *.ipynb *.pdf
+global-include *.rst *.txt *.ipynb *.pdf *.csv
 recursive-include docs *
