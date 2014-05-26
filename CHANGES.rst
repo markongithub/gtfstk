@@ -1,3 +1,3 @@
 - v0.1.0, 2014-05-26: Initial version
--v0.1.1, 2014-05-26: Minor tweaks to packaging
--v0.1.2, 2014-05-26: Minor refactoring and tweaks to packaging
+- v0.1.1, 2014-05-26: Minor tweaks to packaging
+- v0.1.2, 2014-05-26: Minor refactoring and tweaks to packaging

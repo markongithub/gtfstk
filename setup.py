@@ -8,7 +8,7 @@ setup(
     packages=['gtfs_toolkit', 'gtfs_toolkit.tests'],
     url='https://github.com/araichev/gtfs-toolkit',
     license='LICENSE',
-    description='Python tools for processing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data',
+    description='A set of Python 2.7 tools for processing General Transit Feed Specification (GTFS) data',
     long_description=open('README.rst').read(),
     install_requires=[
         'Shapely==1.3.2',
