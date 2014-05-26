@@ -214,9 +214,7 @@ class Feed(object):
             archive = zipfile.ZipFile(path)
             path = path.rstrip('.zip') + '/'
             archive.extractall(path)
-        print('zipped?', zipfile.is_zipfile(path))
 
-        print('hey', path)
         self.path = path 
         self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str, 
           'stop_code': str})
