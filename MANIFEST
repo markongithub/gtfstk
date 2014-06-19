@@ -16,5 +16,6 @@ examples/stats/stops_time_series_mean_daily_num_vehicles_1H.csv
 examples/stats/trips_stats.csv
 gtfs_toolkit/__init__.py
 gtfs_toolkit/feed.py
+gtfs_toolkit/utils.py
 gtfs_toolkit/tests/__init__.py
 gtfs_toolkit/tests/tests.py

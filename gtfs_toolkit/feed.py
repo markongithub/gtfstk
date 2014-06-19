@@ -5,9 +5,7 @@ is valid.
 All time estimates below were produced on a 2013 MacBook Pro with a
 2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.2.
 """
-from __future__ import print_function, division
 import datetime as dt
-from itertools import izip
 import dateutil.relativedelta as rd
 from collections import OrderedDict
 import os
@@ -16,199 +14,25 @@ import shutil
 
 import pandas as pd
 import numpy as np
-from shapely.geometry import Point, LineString, mapping
+from shapely.geometry import LineString
 import utm
 
-def date_to_str(date, format_str='%Y%m%d', inverse=False):
-    """
-    Given a datetime.date object, convert it to a string in the given format
-    and return the result.
-    If ``inverse == True``, then assume the given date is in the given
-    string format and return its corresponding date object.
-    """
-    if date is None:
-        return None
-    if not inverse:
-        result = date.strftime(format_str)
-    else:
-        result = dt.datetime.strptime(date, format_str).date()
-    return result
-
-def seconds_to_timestr(seconds, inverse=False):
-    """
-    Return the given number of integer seconds as the time string '%H:%M:%S'.
-    If ``inverse == True``, then do the inverse operation.
-    In keeping with GTFS standards, the hours entry may be greater than 23.
-    """
-    if not inverse:
-        try:
-            seconds = int(seconds)
-            hours, remainder = divmod(seconds, 3600)
-            mins, secs = divmod(remainder, 60)
-            result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
-        except:
-            result = None
-    else:
-        try:
-            hours, mins, seconds = seconds.split(':')
-            result = int(hours)*3600 + int(mins)*60 + int(seconds)
-        except:
-            result = None
-    return result
-
-def timestr_mod_24(timestr):
-    """
-    Given a GTFS time string in the format %H:%M:%S, return a timestring
-    in the same format but with the hours taken modulo 24.
-    """
-    try:
-        hours, mins, seconds = [int(x) for x in timestr.split(':')]
-        hours %= 24
-        result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, seconds)
-    except:
-        result = None
-    return result
-
-def weekday_to_str(weekday, inverse=False):
-    """
-    Given a weekday, that is, an integer in ``range(7)``, return
-    it's corresponding weekday name as a lowercase string.
-    Here 0 -> 'monday', 1 -> 'tuesday', and so on.
-    If ``inverse == True``, then perform the inverse operation.
-    """
-    s = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 
-      'saturday', 'sunday']
-    if not inverse:
-        try:
-            return s[weekday]
-        except:
-            return
-    else:
-        try:
-            return s.index(weekday)
-        except:
-            return
-
-def get_segment_length(linestring, p, q=None):
-    """
-    Given a Shapely linestring and two Shapely points or coordinate pairs,
-    project the points onto the linestring, and return the distance along
-    the linestring between the two points.
-    If ``q is None``, then return the distance from the start of the linestring
-    to the projection of ``p``.
-    """
-    # Get projected distances
-    d_p = linestring.project(Point(p))
-    if q is not None:
-        d_q = linestring.project(Point(q))
-        d = abs(d_p - d_q)
-    else:
-        d = d_p
-    return d
-
-def downsample_routes_time_series(routes_time_series, freq):
-    """
-    Resample the given routes time series, which is the output of 
-    ``Feed.get_routes_time_series()``, to the given (Pandas style) frequency.
-    Additionally, add a new 'mean_daily_speed' time series to the output 
-    dictionary.
-    """
-    result = {name: None for name in routes_time_series}
-    result.update({'mean_daily_speed': None})
-    for name in result:
-        if name == 'mean_daily_speed':
-            numer = routes_time_series['mean_daily_distance'].resample(freq,
-              how=np.sum)
-            denom = routes_time_series['mean_daily_duration'].resample(freq,
-              how=np.sum)
-            g = numer.divide(denom)
-        elif name == 'mean_daily_num_trip_starts':
-            f = routes_time_series[name]
-            g = f.resample(freq, how=np.sum)
-        elif name == 'mean_daily_num_vehicles':
-            f = routes_time_series[name]
-            g = f.resample(freq, how=np.mean)
-        elif name == 'mean_daily_duration':
-            f = routes_time_series[name]
-            g = f.resample(freq, how=np.sum)
-        else:
-            # name == 'distance'
-            f = routes_time_series[name]
-            g = f.resample(freq, how=np.sum)
-        result[name] = g
-    return result
-
-def downsample_stops_time_series(stops_time_series, freq):
-    """
-    Resample the given stops time series, which is the output of 
-    ``Feed.get_stops_time_series()``, to the given (Pandas style) frequency.
-    """
-    result = {name: None for name in stops_time_series}
-    for name in result:
-        if name == 'mean_daily_num_vehicles':
-            f = stops_time_series[name]
-            g = f.resample(freq, how=np.sum)
-        result[name] = g
-    return result
-
-def plot_routes_time_series(routes_ts_dict, big_units=True):
-    """
-    Given a routes time series dictionary (possibly downsampled),
-    sum each time series over all routes, plot each series using
-    MatplotLib, and return the resulting figure of four subplots.
-    """
-    import matplotlib.pyplot as plt
-
-    # Plot sum of routes stats at 30-minute frequency
-    F = None
-    for name, f in routes_ts_dict.iteritems():
-        g = f.T.sum().T
-        if name == 'mean_daily_distance':
-            # Convert to km
-            g /= 1000
-        elif name == 'mean_daily_duration':
-            # Convert to h
-            g /= 3600
-        if F is None:
-            # Initialize F
-            F = pd.DataFrame(g, columns=[name])
-        else:
-            F[name] = g
-    # Fix speed
-    F['mean_daily_speed'] = F['mean_daily_distance'].divide(
-      F['mean_daily_duration'])
-    # Reformat periods
-    F.index = [t.time().strftime('%H:%M') for t in F.index.to_datetime()]
-    colors = ['red', 'blue', 'yellow', 'purple', 'green'] 
-    alpha = 0.7
-    names = [
-      'mean_daily_num_trip_starts', 
-      'mean_daily_num_vehicles', 
-      'mean_daily_distance',
-      'mean_daily_duration', 
-      'mean_daily_speed',
-      ]
-    titles = [name.capitalize().replace('_', ' ') for name in names]
-    units = ['','','km','h', 'kph']
-    fig, axes = plt.subplots(nrows=len(names), ncols=1)
-    for (i, name) in enumerate(names):
-        F[name].plot(ax=axes[i], color=colors[i], alpha=alpha, 
-          kind='bar', figsize=(8, 10))
-        axes[i].set_title(titles[i])
-        axes[i].set_ylabel(units[i])
-
-    #fig.tight_layout()
-    return fig
+import gtfs_toolkit.utils as utils
 
 class Feed(object):
     """
-    A class to gather all the GTFS files for a feed and store them as 
-    Pandas data frames.
+    A class to gather all the GTFS files for a feed and store them in memory 
+    as Pandas data frames.  
+    Make sure you have enough memory!  
+    The stop times object can be big.
+    Assume the feed has a 
     """
     def __init__(self, path):
         """
         Read in all the relevant GTFS text files within the directory or 
         ZIP file given by ``path``.
+        Assume the zip file unzips as a collection of GTFS text files
+        rather than as a directory of GTFS text files.
         """
         zipped = False
         if zipfile.is_zipfile(path):
@@ -230,24 +54,22 @@ class Feed(object):
     
         # Prefix a 0 to arrival and departure times if necessary.
         # This makes sorting by time work as expected.
-        def reformat(timestr):
+        def reformat_times(timestr):
             result = timestr
             if isinstance(result, str) and len(result) == 7:
                 result = '0' + result
             return result
 
         st[['arrival_time', 'departure_time']] =\
-          st[['arrival_time', 'departure_time']].applymap(reformat)
+          st[['arrival_time', 'departure_time']].applymap(reformat_times)
         self.stop_times = st
-
-        self.shapes = pd.read_csv(path + 'shapes.txt', dtype={'shape_id': str})
         
         # Note that at least one of calendar.txt or calendar_dates.txt is
         # required by the GTFS.
         if os.path.isfile(path + 'calendar.txt'):
             self.calendar = pd.read_csv(path + 'calendar.txt', 
               dtype={'service_id': str}, 
-              date_parser=lambda x: date_to_str(x, inverse=True), 
+              date_parser=lambda x: utils.date_to_str(x, inverse=True), 
               parse_dates=['start_date', 'end_date'])
             # Index by service ID to make self.is_active_trip() fast
             self.calendar_s = self.calendar.set_index('service_id')
@@ -257,7 +79,7 @@ class Feed(object):
         if os.path.isfile(path + 'calendar_dates.txt'):
             self.calendar_dates = pd.read_csv(path + 'calendar_dates.txt', 
               dtype={'service_id': str}, 
-              date_parser=lambda x: date_to_str(x, inverse=True), 
+              date_parser=lambda x: utils.date_to_str(x, inverse=True), 
               parse_dates=['date'])
             # Group by service ID and date to make self.is_active_trip() fast
             self.calendar_dates_g = self.calendar_dates.groupby(
@@ -269,6 +91,8 @@ class Feed(object):
         if zipped:
             # Remove extracted directory
             shutil.rmtree(path)
+
+        self.shapes = pd.read_csv(path + 'shapes.txt', dtype={'shape_id': str})
 
     def get_dates(self):
         """
@@ -333,7 +157,7 @@ class Feed(object):
         cals = self.calendar_s
         if cals is not None:
             if service in cals.index:
-                weekday_str = weekday_to_str(date.weekday())
+                weekday_str = utils.weekday_to_str(date.weekday())
                 if cals.at[service, 'start_date'] <= date <= cals.at[service,
                   'end_date'] and cals.at[service, weekday_str] == 1:
                     return True
@@ -391,7 +215,7 @@ class Feed(object):
             lons = group['shape_pt_lon'].values
             lats = group['shape_pt_lat'].values
             xys = [utm.from_latlon(lat, lon)[:2] 
-              for lat, lon in izip(lats, lons)]
+              for lat, lon in zip(lats, lons)]
             linestring_by_shape[shape] = LineString(xys)
         return linestring_by_shape
 
@@ -447,7 +271,7 @@ class Feed(object):
     #                     d = dist_by_stop_by_shape[shape][stop]
     #                 else:
     #                     d = round(
-    #                       get_segment_length(linestring, xy_by_stop[stop]), 2)
+    #                       utils.get_segment_length(linestring, xy_by_stop[stop]), 2)
     #                     dist_by_stop_by_shape[shape][stop] = d
     #                 distances.append(d)
     #             if distances[0] > distances[1]:
@@ -510,7 +334,7 @@ class Feed(object):
 
         # Convert departure times to seconds to ease headway calculations
         f['departure_time'] = f['departure_time'].map(lambda x: 
-          seconds_to_timestr(x, inverse=True))
+          utils.seconds_to_timestr(x, inverse=True))
 
         # Compute stats for each stop
         def get_stop_stats(group):
@@ -611,7 +435,7 @@ class Feed(object):
         # Convert start and end times to time strings
         result[['min_start_time', 'max_end_time']] =\
           result[['min_start_time', 'max_end_time']].applymap(
-          lambda x: seconds_to_timestr(x))
+          lambda x: utils.seconds_to_timestr(x))
         del result['foo']
 
         t2 = dt.datetime.now()
@@ -667,7 +491,7 @@ class Feed(object):
             date_str = '2000-1-1'
         else:
             # Use the given date for the index
-            date_str = date_to_str(dates[0]) 
+            date_str = utils.date_to_str(dates[0]) 
         day_start = pd.to_datetime(date_str + ' 00:00:00')
         day_end = pd.to_datetime(date_str + ' 23:59:00')
         rng = pd.period_range(day_start, day_end, freq='Min')
@@ -679,7 +503,7 @@ class Feed(object):
         
         def format(x):
             try:
-                return pd.to_datetime(date_str + ' ' + timestr_mod_24(x))
+                return pd.to_datetime(date_str + ' ' + utils.timestr_mod_24(x))
             except TypeError:
                 return pd.NaT
 
@@ -740,7 +564,7 @@ class Feed(object):
 
         # Convert departure times to seconds to ease headway calculations
         f['departure_time'] = f['departure_time'].map(lambda x: 
-          seconds_to_timestr(x, inverse=True))
+          utils.seconds_to_timestr(x, inverse=True))
 
         # Compute stats for each station
         def get_station_stats(group):
@@ -843,7 +667,7 @@ class Feed(object):
         # Convert start and end times to time strings
         result[['min_start_time', 'max_end_time']] =\
           result[['min_start_time', 'max_end_time']].applymap(
-          lambda x: seconds_to_timestr(x))
+          lambda x: utils.seconds_to_timestr(x))
         del result['foo']
 
         t2 = dt.datetime.now()
@@ -910,7 +734,7 @@ class Feed(object):
         # Convert departure times to seconds past midnight, 
         # to compute durations below
         f['departure_time'] = f['departure_time'].map(
-          lambda x: seconds_to_timestr(x, inverse=True))
+          lambda x: utils.seconds_to_timestr(x, inverse=True))
         f = f.groupby('trip_id')
         g = f['departure_time'].agg({'start_time': np.min, 'end_time': np.max})
         g['duration'] = g['end_time'] - g['start_time']
@@ -929,7 +753,7 @@ class Feed(object):
 
         # Convert times back to time strings
         g[['start_time', 'end_time']] = g[['start_time', 'end_time']].\
-          applymap(lambda x: seconds_to_timestr(int(x)))
+          applymap(lambda x: utils.seconds_to_timestr(int(x)))
 
         # Compute trip distance, which is more involved
         g['shape_id'] = f['shape_id'].first()
@@ -953,7 +777,7 @@ class Feed(object):
                     linestring = linestring_by_shape[shape]
                     p = xy_by_stop[start_stop]
                     q = xy_by_stop[end_stop]
-                    d = get_segment_length(linestring, p, q) 
+                    d = utils.get_segment_length(linestring, p, q) 
                     if d == 0:
                         # Trip is a circuit. 
                         # This can even happen when start_stop != end_stop 
@@ -1021,7 +845,7 @@ class Feed(object):
         
         # Convert trip start times to seconds to ease headway calculations
         trips_stats['start_time'] = trips_stats['start_time'].map(lambda x: 
-          seconds_to_timestr(x, inverse=True))
+          utils.seconds_to_timestr(x, inverse=True))
 
         def get_route_stats(group):
             # Take this group of all trips stats for a single route
@@ -1134,7 +958,7 @@ class Feed(object):
 
         # Convert route start times to time strings
         result['min_start_time'] = result['min_start_time'].map(lambda x: 
-          seconds_to_timestr(x))
+          utils.seconds_to_timestr(x))
 
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
@@ -1193,7 +1017,7 @@ class Feed(object):
             date_str = '2000-1-1'
         else:
             # Use the given date for the index
-            date_str = date_to_str(dates[0]) 
+            date_str = utils.date_to_str(dates[0]) 
         day_start = pd.to_datetime(date_str + ' 00:00:00')
         day_end = pd.to_datetime(date_str + ' 23:59:00')
         rng = pd.period_range(day_start, day_end, freq='Min')
@@ -1216,9 +1040,9 @@ class Feed(object):
             start_time = row['start_time']
             end_time = row['end_time']
             start = pd.to_datetime(date_str + ' ' +\
-              timestr_mod_24(start_time))
+              utils.timestr_mod_24(start_time))
             end = pd.to_datetime(date_str + ' ' +\
-              timestr_mod_24(end_time))
+              utils.timestr_mod_24(end_time))
 
             for name, f in series_by_name.iteritems():
                 if start == end:
@@ -1315,7 +1139,7 @@ class Feed(object):
         if dates is None:
             dates = self.get_first_week()[:5]
         dates_str = ' to '.join(
-          [date_to_str(d) for d in [dates[0], dates[-1]]])
+          [utils.date_to_str(d) for d in [dates[0], dates[-1]]])
 
         # Write README.txt, which contains notes on units and date range
         readme = """
@@ -1335,7 +1159,7 @@ class Feed(object):
 
         # Stops time series
         sts = self.get_stops_time_series(dates)
-        sts = downsample_stops_time_series(sts, freq=freq)
+        sts = utils.downsample_stops_time_series(sts, freq=freq)
         for name, f in sts.iteritems():
             # Remove date from timestamps
             g = f.copy()
@@ -1354,7 +1178,7 @@ class Feed(object):
 
         # Routes time series
         rts = self.get_routes_time_series(trips_stats, dates)
-        rts = downsample_routes_time_series(rts, freq=freq)
+        rts = utils.downsample_routes_time_series(rts, freq=freq)
         for name, f in rts.iteritems():
             # Remove date from timestamps
             g = f.copy()
@@ -1363,7 +1187,7 @@ class Feed(object):
               (name, freq), index_label='route_id')
 
         # Plot sum of routes stats 
-        fig = plot_routes_time_series(rts)
+        fig = utils.plot_routes_time_series(rts)
         fig.tight_layout()
         fig.savefig(directory + 'routes_time_series_agg.pdf', dpi=200)
         

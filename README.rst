@@ -21,3 +21,4 @@ Todo
 ----
 - Add error check and workaround for feeds missing ``shapes.txt``
 - Add more tests
+- Make documentation (Sphinx)

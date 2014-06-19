@@ -1,4 +1,3 @@
-from __future__ import division
 import unittest
 
 import pandas as pd 
@@ -7,6 +6,7 @@ from pandas.util.testing import assert_frame_equal
 from shapely.geometry import Point, LineString, mapping
 
 from gtfs_toolkit.feed import *
+from gtfs_toolkit.utils import *
 
 # Test feeds:
 cairns = Feed('gtfs_toolkit/tests/cairns_20140223.zip')
@@ -95,7 +95,8 @@ class TestFeed(unittest.TestCase):
         # Should be a dictionary
         self.assertIsInstance(linestring_by_shape, dict)
         # The first element should be a Shapely linestring
-        self.assertIsInstance(linestring_by_shape.values()[0], LineString)
+        self.assertIsInstance(list(linestring_by_shape.values())[0], 
+          LineString)
         # Should contain the correct number of shapes
         self.assertEqual(len(linestring_by_shape), 
           feed.shapes.groupby('shape_id').first().shape[0])
