@@ -146,7 +146,7 @@ def plot_routes_time_series(routes_ts_dict, big_units=True):
 
     # Plot sum of routes stats at 30-minute frequency
     F = None
-    for name, f in routes_ts_dict.iteritems():
+    for name, f in routes_ts_dict.items():
         g = f.T.sum().T
         if name == 'mean_daily_distance':
             # Convert to km

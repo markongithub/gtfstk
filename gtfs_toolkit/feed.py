@@ -88,11 +88,11 @@ class Feed(object):
             self.calendar_dates = None
             self.calendar_dates_g = None
         
+        self.shapes = pd.read_csv(path + 'shapes.txt', dtype={'shape_id': str})
+
         if zipped:
             # Remove extracted directory
             shutil.rmtree(path)
-
-        self.shapes = pd.read_csv(path + 'shapes.txt', dtype={'shape_id': str})
 
     def get_dates(self):
         """
@@ -1044,7 +1044,7 @@ class Feed(object):
             end = pd.to_datetime(date_str + ' ' +\
               utils.timestr_mod_24(end_time))
 
-            for name, f in series_by_name.iteritems():
+            for name, f in series_by_name.items():
                 if start == end:
                     criterion = f.index == start
                     num_bins = 1
@@ -1160,7 +1160,7 @@ class Feed(object):
         # Stops time series
         sts = self.get_stops_time_series(dates)
         sts = utils.downsample_stops_time_series(sts, freq=freq)
-        for name, f in sts.iteritems():
+        for name, f in sts.items():
             # Remove date from timestamps
             g = f.copy()
             g.index = [d.time() for d in g.index.to_datetime()]
@@ -1179,7 +1179,7 @@ class Feed(object):
         # Routes time series
         rts = self.get_routes_time_series(trips_stats, dates)
         rts = utils.downsample_routes_time_series(rts, freq=freq)
-        for name, f in rts.iteritems():
+        for name, f in rts.items():
             # Remove date from timestamps
             g = f.copy()
             g.index = [d.time() for d in g.index.to_datetime()]
