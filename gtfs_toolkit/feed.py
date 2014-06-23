@@ -25,7 +25,6 @@ class Feed(object):
     as Pandas data frames.  
     Make sure you have enough memory!  
     The stop times object can be big.
-    Assume the feed has a 
     """
     def __init__(self, path):
         """
@@ -87,9 +86,13 @@ class Feed(object):
         else:
             self.calendar_dates = None
             self.calendar_dates_g = None
-        
-        self.shapes = pd.read_csv(path + 'shapes.txt', dtype={'shape_id': str})
 
+        if os.path.isfile(path + 'shapes.txt'):
+            self.shapes = pd.read_csv(path + 'shapes.txt', 
+              dtype={'shape_id': str})
+        else:
+            self.shapes = None
+        
         if zipped:
             # Remove extracted directory
             shutil.rmtree(path)
@@ -172,10 +175,13 @@ class Feed(object):
 
         - trip_id
         - route_id
+        - direction_id
         - dates[0]: a series of ones and zeros indicating if a 
         trip is active (1) on the given date or inactive (0)
         ...
         - dates[-1]: ditto
+
+        If ``dates is None``, then return ``None``.
 
         NOTES:
 
@@ -201,11 +207,115 @@ class Feed(object):
 
         return f[['trip_id', 'direction_id', 'route_id'] + dates]
 
+    def get_trips_stats(self):
+        """
+        Return a Pandas data frame with the following columns:
+
+        - trip_id
+        - direction_id
+        - route_id
+        - start_time: first departure time of the trip
+        - end_time: last departure time of the trip
+        - start_stop_id: stop ID of the first stop of the trip 
+        - end_stop_id: stop ID of the last stop of the trip
+        - duration: duration of the trip (seconds)
+        - distance: distance of the trip (meters); contains all ``np.nan``
+          entries if ``self.shapes is None``
+
+        NOTES:
+
+        Takes about 2.4 minutes on the SEQ feed.
+        """
+        trips = self.trips
+        stop_times = self.stop_times
+
+        t1 = dt.datetime.now()
+        num_trips = trips.shape[0]
+        print(t1, 'Creating trip stats for %s trips...' % num_trips)
+
+        # Initialize data frame. Base it on trips.txt.
+        stats = trips[['route_id', 'trip_id', 'direction_id']]
+
+
+        # Compute start time, end time, duration
+        f = pd.merge(trips, stop_times)
+        # Convert departure times to seconds past midnight, 
+        # to compute durations below
+        f['departure_time'] = f['departure_time'].map(
+          lambda x: utils.seconds_to_timestr(x, inverse=True))
+        f = f.groupby('trip_id')
+        g = f['departure_time'].agg({'start_time': np.min, 'end_time': np.max})
+        g['duration'] = g['end_time'] - g['start_time']
+
+        # Compute start stop and end stop
+        def start_stop(group):
+            i = group['departure_time'].argmin()
+            return group['stop_id'].at[i]
+
+        def end_stop(group):
+            i = group['departure_time'].argmax()
+            return group['stop_id'].at[i]
+
+        g['start_stop'] = f.apply(start_stop)
+        g['end_stop'] = f.apply(end_stop)
+
+        # Convert times back to time strings
+        g[['start_time', 'end_time']] = g[['start_time', 'end_time']].\
+          applymap(lambda x: utils.seconds_to_timestr(int(x)))
+
+        # Compute trip distance, which is more involved and requires
+        # shapes
+        if self.shapes is not None:
+            g['shape_id'] = f['shape_id'].first()
+            linestring_by_shape = self.get_linestring_by_shape()
+            xy_by_stop = self.get_xy_by_stop()
+            dist_by_stop_pair_by_shape = {shape: {} 
+              for shape in linestring_by_shape}
+
+            for trip, row in g.iterrows():
+                start_stop = row.at['start_stop'] 
+                end_stop = row.at['end_stop'] 
+                shape = row.at['shape_id']
+                if pd.isnull(shape):
+                    continue
+                stop_pair = frozenset([start_stop, end_stop])
+                if stop_pair in dist_by_stop_pair_by_shape[shape]:
+                    d = dist_by_stop_pair_by_shape[shape][stop_pair]
+                else:
+                    # Compute distance afresh and store
+                    linestring = linestring_by_shape[shape]
+                    p = xy_by_stop[start_stop]
+                    q = xy_by_stop[end_stop]
+                    d = utils.get_segment_length(linestring, p, q) 
+                    if d == 0:
+                        # Trip is a circuit. 
+                        # This can even happen when start_stop != end_stop 
+                        # if the two stops are very close together
+                        d = linestring.length
+                    d = int(round(d))        
+                    dist_by_stop_pair_by_shape[shape][stop_pair] = d       
+                g.ix[trip, 'distance'] = d
+        else:
+            g['distance'] = np.nan
+
+        stats = pd.merge(stats, g.reset_index())
+        stats.sort('route_id')
+
+        t2 = dt.datetime.now()
+        minutes = (t2 - t1).seconds/60
+        print(t2, 'Finished trips stats in %.2f min' % minutes)    
+    
+        return stats
+
     def get_linestring_by_shape(self):
         """
         Return a dictionary with structure
         shape_id -> Shapely linestring of shape in UTM coordinates.
+        If ``self.shapes is None``, then return ``None``.
         """
+        if self.shapes is None:
+            return
+
         # Note the output for conversion to UTM with the utm package:
         # >>> u = utm.from_latlon(47.9941214, 7.8509671)
         # >>> print u
@@ -295,6 +405,33 @@ class Feed(object):
 
     #     return merged
 
+    def get_stops_activity(self, dates):
+        """
+        Return a Pandas data frame with the columns
+
+        - stop_id
+        - dates[0]: a series of ones and zeros indicating if a 
+        stop has stop times on this date (1) or not (0)
+        ...
+        - dates[-1]: ditto
+
+        If ``dates is None``, then return ``None``.
+        """
+        if not dates:
+            return
+
+        trips_activity = self.get_trips_activity(dates)
+        g = pd.merge(trips_activity, self.stop_times).groupby('stop_id')
+        # Pandas won't allow me to simply return g[dates].max().reset_index().
+        # I get ``TypeError: unorderable types: datetime.date() < str()``.
+        # So here's a workaround.
+        for (i, date) in enumerate(dates):
+            if i == 0:
+                f = g[date].max().reset_index()
+            else:
+                f = pd.merge(f, g[date].max().reset_index())
+        return f
+
     def get_stops_stats(self, dates, split_directions=True):
         """
         Return a Pandas data frame with the following columns:
@@ -318,6 +455,7 @@ class Feed(object):
 
         and separate the stats above by the direction ID of the trips
         visiting each stop.
+        So each stop_id will have two rows.
 
         NOTES:
 
@@ -329,8 +467,7 @@ class Feed(object):
         # Get active trips and merge with stop times
         trips_activity = self.get_trips_activity(dates)
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
-        stop_times = self.stop_times
-        f = pd.merge(ta, stop_times)
+        f = pd.merge(ta, self.stop_times)
 
         # Convert departure times to seconds to ease headway calculations
         f['departure_time'] = f['departure_time'].map(lambda x: 
@@ -480,8 +617,7 @@ class Feed(object):
         # Get active trips and merge with stop times
         trips_activity = self.get_trips_activity(dates)
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
-        stop_times = self.stop_times
-        stats = pd.merge(ta, stop_times)
+        stats = pd.merge(ta, self.stop_times)
         n = len(dates)
         stats['weight'] = stats[dates].sum(axis=1)/n
 
@@ -697,105 +833,6 @@ class Feed(object):
     #     return f[f['stop_id'] == stop][['arrival_time', 'departure_time', 
     #       'trip_id', 'route_id']].sort('arrival_time').reset_index(drop=True)
 
-    def get_trips_stats(self, compute_distance=True):
-        """
-        Return a Pandas data frame with the following columns:
-
-        - trip_id
-        - direction_id
-        - route_id
-        - start_time: first departure time of the trip
-        - end_time: last departure time of the trip
-        - start_stop_id: stop ID of the first stop of the trip 
-        - end_stop_id: stop ID of the last stop of the trip
-        - duration: duration of the trip (seconds)
-        - distance: distance of the trip (meters)
-
-        If ``compute_distance == False``, then don't compute or include
-        the distance column, which will speed up run time.
-
-        NOTES:
-
-        Takes about 2.4 minutes on the SEQ feed.
-        """
-        trips = self.trips
-        stop_times = self.stop_times
-
-        t1 = dt.datetime.now()
-        num_trips = trips.shape[0]
-        print(t1, 'Creating trip stats for %s trips...' % num_trips)
-
-        # Initialize data frame. Base it on trips.txt.
-        stats = trips[['route_id', 'trip_id', 'direction_id']]
-
-
-        # Compute start time, end time, duration
-        f = pd.merge(trips, stop_times)
-        # Convert departure times to seconds past midnight, 
-        # to compute durations below
-        f['departure_time'] = f['departure_time'].map(
-          lambda x: utils.seconds_to_timestr(x, inverse=True))
-        f = f.groupby('trip_id')
-        g = f['departure_time'].agg({'start_time': np.min, 'end_time': np.max})
-        g['duration'] = g['end_time'] - g['start_time']
-
-        # Compute start stop and end stop
-        def start_stop(group):
-            i = group['departure_time'].argmin()
-            return group['stop_id'].at[i]
-
-        def end_stop(group):
-            i = group['departure_time'].argmax()
-            return group['stop_id'].at[i]
-
-        g['start_stop'] = f.apply(start_stop)
-        g['end_stop'] = f.apply(end_stop)
-
-        # Convert times back to time strings
-        g[['start_time', 'end_time']] = g[['start_time', 'end_time']].\
-          applymap(lambda x: utils.seconds_to_timestr(int(x)))
-
-        # Compute trip distance, which is more involved
-        g['shape_id'] = f['shape_id'].first()
-        linestring_by_shape = self.get_linestring_by_shape()
-        xy_by_stop = self.get_xy_by_stop()
-        dist_by_stop_pair_by_shape = {shape: {} 
-          for shape in linestring_by_shape}
-
-        if compute_distance:
-            for trip, row in g.iterrows():
-                start_stop = row.at['start_stop'] 
-                end_stop = row.at['end_stop'] 
-                shape = row.at['shape_id']
-                if pd.isnull(shape):
-                    continue
-                stop_pair = frozenset([start_stop, end_stop])
-                if stop_pair in dist_by_stop_pair_by_shape[shape]:
-                    d = dist_by_stop_pair_by_shape[shape][stop_pair]
-                else:
-                    # Compute distance afresh and store
-                    linestring = linestring_by_shape[shape]
-                    p = xy_by_stop[start_stop]
-                    q = xy_by_stop[end_stop]
-                    d = utils.get_segment_length(linestring, p, q) 
-                    if d == 0:
-                        # Trip is a circuit. 
-                        # This can even happen when start_stop != end_stop 
-                        # if the two stops are very close together
-                        d = linestring.length
-                    d = int(round(d))        
-                    dist_by_stop_pair_by_shape[shape][stop_pair] = d       
-                g.ix[trip, 'distance'] = d
-
-        stats = pd.merge(stats, g.reset_index())
-        stats.sort('route_id')
-
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished trips stats in %.2f min' % minutes)    
-    
-        return stats
-
     def get_routes_stats(self, trips_stats, dates, split_directions=True):
         """
         Take ``trips_stats``, which is the output of 
@@ -815,7 +852,8 @@ class Feed(object):
         - mean_headway: mean of the durations (in seconds) between 
           trip starts on the route between 07:00 and 19:00 on the given dates
         - mean_daily_duration: in seconds
-        - mean_daily_distance: in meters
+        - mean_daily_distance: in meters; contains all ``np.nan`` entries if 
+          ``self.shapes is None``  
 
         If ``split_directions == True``, then add an extra column
 
