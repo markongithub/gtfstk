@@ -19,10 +19,8 @@ Play with ``examples/gtfs_toolkit_examples.ipynb`` in an iPython notebook
 
 Documentation
 --------------
-Under ``docs/`` and also online at `http://gtfs-toolkit.readthedocs.org <http://gtfs-toolkit.readthedocs.org>`_.
+Under ``docs/`` and also online via RawGit `here <https://rawgit.com/araichev/gtfs-toolkit/master/docs/_build/html/index.html>`_.
 
 Todo
 ----
-- Add error check and workaround for feeds missing ``shapes.txt``
 - Add more tests
-- Make documentation (Sphinx)
