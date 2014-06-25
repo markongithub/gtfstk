@@ -8,11 +8,11 @@ from shapely.geometry import Point, LineString, mapping
 from gtfs_toolkit.feed import *
 from gtfs_toolkit.utils import *
 
-# Test feeds:
-cairns = Feed('gtfs_toolkit/tests/cairns_20140223.zip')
-cairns_shapeless = Feed('gtfs_toolkit/tests/cairns_20140223.zip')
+# Load test feeds
+cairns = Feed('gtfs_toolkit/tests/cairns_gtfs.zip')
+cairns_shapeless = Feed('gtfs_toolkit/tests/cairns_gtfs.zip')
 cairns_shapeless.shapes = None
-portland = Feed('gtfs_toolkit/tests/portland_20140518.zip')
+portland = Feed('gtfs_toolkit/tests/portland_gtfs.zip')
 
 class TestFeed(unittest.TestCase):
 

@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The utils Module &mdash; GTFS Toolkit 0.1.5 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GTFS Toolkit 0.1.5 documentation" href="index.html" />
+    <link rel="next" title="The feed Module" href="feed.html" />
+    <link rel="prev" title="GTFS Toolkit" href="introduction.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="feed.html" title="The feed Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="GTFS Toolkit"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">GTFS Toolkit 0.1.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-gtfs_toolkit.utils">
+<span id="the-utils-module"></span><h1>The utils Module<a class="headerlink" href="#module-gtfs_toolkit.utils" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gtfs_toolkit.utils.date_to_str">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">date_to_str</tt><big>(</big><em>date</em>, <em>format_str='%Y%m%d'</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.date_to_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a datetime.date object, convert it to a string in the given format
+and return the result.
+If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then assume the given date is in the given
+string format and return its corresponding date object.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.downsample_routes_time_series">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">downsample_routes_time_series</tt><big>(</big><em>routes_time_series</em>, <em>freq</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.downsample_routes_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resample the given routes time series, which is the output of 
+<tt class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></tt>, to the given (Pandas style) frequency.
+Additionally, add a new &#8216;mean_daily_speed&#8217; time series to the output 
+dictionary.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.downsample_stops_time_series">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">downsample_stops_time_series</tt><big>(</big><em>stops_time_series</em>, <em>freq</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.downsample_stops_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resample the given stops time series, which is the output of 
+<tt class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></tt>, to the given (Pandas style) frequency.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.get_segment_length">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">get_segment_length</tt><big>(</big><em>linestring</em>, <em>p</em>, <em>q=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.get_segment_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a Shapely linestring and two Shapely points or coordinate pairs,
+project the points onto the linestring, and return the distance along
+the linestring between the two points.
+If <tt class="docutils literal"><span class="pre">q</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return the distance from the start of the linestring
+to the projection of <tt class="docutils literal"><span class="pre">p</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.plot_routes_time_series">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">plot_routes_time_series</tt><big>(</big><em>routes_ts_dict</em>, <em>big_units=True</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.plot_routes_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a routes time series dictionary (possibly downsampled),
+sum each time series over all routes, plot each series using
+MatplotLib, and return the resulting figure of four subplots.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.seconds_to_timestr">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">seconds_to_timestr</tt><big>(</big><em>seconds</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.seconds_to_timestr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the given number of integer seconds as the time string &#8216;%H:%M:%S&#8217;.
+If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then do the inverse operation.
+In keeping with GTFS standards, the hours entry may be greater than 23.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.timestr_mod_24">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">timestr_mod_24</tt><big>(</big><em>timestr</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.timestr_mod_24" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a GTFS time string in the format %H:%M:%S, return a timestring
+in the same format but with the hours taken modulo 24.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.weekday_to_str">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">weekday_to_str</tt><big>(</big><em>weekday</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.weekday_to_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a weekday, that is, an integer in <tt class="docutils literal"><span class="pre">range(7)</span></tt>, return
+it&#8217;s corresponding weekday name as a lowercase string.
+Here 0 -&gt; &#8216;monday&#8217;, 1 -&gt; &#8216;tuesday&#8217;, and so on.
+If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then perform the inverse operation.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="previous chapter">GTFS Toolkit</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="feed.html"
+                        title="next chapter">The feed Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/utils.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="feed.html" title="The feed Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="GTFS Toolkit"
+             >previous</a> |</li>
+        <li><a href="index.html">GTFS Toolkit 0.1.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Alexander Raichev.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

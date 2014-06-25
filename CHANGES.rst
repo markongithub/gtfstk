@@ -3,3 +3,4 @@
 - v0.1.2, 2014-05-26: Minor refactoring and tweaks to packaging
 - v0.1.3, 2014-06-01: Created ``utils.py`` and updated Pandas to 0.14.0
 - v0.1.4, 2014-06-20: Upgraded to Python 3.4
+- v0.1.5, 2014-06-23: Added documentation
