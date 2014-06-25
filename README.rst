@@ -23,4 +23,6 @@ Under ``docs/`` and also online via RawGit `here <https://rawgit.com/araichev/gt
 
 Todo
 ----
+- Add option to split route time series by direction
 - Add more tests
+- Add a decorator or use logging for timing function calls
