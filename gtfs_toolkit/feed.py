@@ -218,8 +218,8 @@ class Feed(object):
         - end_time: last departure time of the trip
         - start_stop_id: stop ID of the first stop of the trip 
         - end_stop_id: stop ID of the last stop of the trip
-        - duration: duration of the trip (seconds)
-        - distance: distance of the trip (meters); contains all ``np.nan``
+        - duration: duration of the trip in hours
+        - distance: distance of the trip in kilometers; contains all ``np.nan``
           entries if ``self.shapes is None``
 
         NOTES:
@@ -236,7 +236,6 @@ class Feed(object):
         # Initialize data frame. Base it on trips.txt.
         stats = trips[['route_id', 'trip_id', 'direction_id']]
 
-
         # Compute start time, end time, duration
         f = pd.merge(trips, stop_times)
         # Convert departure times to seconds past midnight, 
@@ -245,7 +244,7 @@ class Feed(object):
           lambda x: utils.seconds_to_timestr(x, inverse=True))
         f = f.groupby('trip_id')
         g = f['departure_time'].agg({'start_time': np.min, 'end_time': np.max})
-        g['duration'] = g['end_time'] - g['start_time']
+        g['duration'] = (g['end_time'] - g['start_time'])/3600
 
         # Compute start stop and end stop
         def start_stop(group):
@@ -263,8 +262,8 @@ class Feed(object):
         g[['start_time', 'end_time']] = g[['start_time', 'end_time']].\
           applymap(lambda x: utils.seconds_to_timestr(int(x)))
 
-        # Compute trip distance, which is more involved and requires
-        # shapes
+        # Compute trip distance (in meters), 
+        # which is more involved and requires self.shapes
         if self.shapes is not None:
             g['shape_id'] = f['shape_id'].first()
             linestring_by_shape = self.get_linestring_by_shape()
@@ -297,6 +296,9 @@ class Feed(object):
                 g.ix[trip, 'distance'] = d
         else:
             g['distance'] = np.nan
+
+        # Convert distance from meters to kilometers
+        g['distance'] /= 1000
 
         stats = pd.merge(stats, g.reset_index())
         stats.sort('route_id')
@@ -437,6 +439,7 @@ class Feed(object):
         Return a Pandas data frame with the following columns:
 
         - stop_id
+        - direction_id
         - mean_daily_num_vehicles: mean daily number of vehicles visiting stop 
         - max_headway: maximum of the durations (in seconds) between 
           vehicle departures at the stop between 07:00 and 19:00 
@@ -449,13 +452,8 @@ class Feed(object):
         - max_end_time: latest departure time of a vehicle from this stop
           over the given date range
 
-        If ``split_directions == True``, then add an extra column
-
-        - direction_id: 0 or 1,
-
-        and separate the stats above by the direction ID of the trips
-        visiting each stop.
-        So each stop_id will have two rows.
+        If ``split_directions == False``, then compute each stop's stats
+        using vehicles visiting it from both directions.
 
         NOTES:
 
@@ -512,63 +510,13 @@ class Feed(object):
             df.index.name = 'foo'
             return df
 
-        # Compute stats for each stop by direction
-        def get_stop_stats_by_direction(group):
-            # Operate on the group of all stop times for an individual stop
-            directions = [0, 1]
-            headways_by_dir = {d: [] for d in directions}
-            num_vehicles_by_dir = {d: 0 for d in directions}
-            max_headway_by_dir = {d: np.nan for d in directions}
-            mean_headway_by_dir = {d: np.nan for d in directions}
-            mean_daily_num_vehicles_by_dir = {d: 0 for d in directions}
-            min_start_time_by_dir = {d: np.nan for d in directions}
-            max_end_time_by_dir = {d: np.nan for d in directions}  
-            group_by_dir = {d: None for d in directions}          
-            for d in directions:
-                group_by_dir[d] = group[group['direction_id'] == d]
-                g = group_by_dir[d]
-                for date in dates:
-                    dtimes = sorted(g[g[date] > 0]['departure_time'].\
-                      values)
-                    num_vehicles_by_dir[d] += len(dtimes)
-                    dtimes = [dtime for dtime in dtimes 
-                      if 7*3600 <= dtime <= 19*3600]
-                    headways_by_dir[d].extend(
-                      [dtimes[i + 1] - dtimes[i] 
-                      for i in range(len(dtimes) - 1)])
-                if headways_by_dir[d]:
-                    max_headway_by_dir[d] = np.max(
-                      headways_by_dir[d])
-                    mean_headway_by_dir[d] = round(np.mean(
-                      headways_by_dir[d]))
-                mean_daily_num_vehicles_by_dir[d] =\
-                  num_vehicles_by_dir[d]/len(dates)
-                min_start_time_by_dir[d] = g['departure_time'].min()
-                max_end_time_by_dir[d] = g['departure_time'].max()
-            df = pd.DataFrame([[
-              d,
-              min_start_time_by_dir[d], 
-              max_end_time_by_dir[d], 
-              mean_daily_num_vehicles_by_dir[d], 
-              max_headway_by_dir[d], 
-              mean_headway_by_dir[d],
-              ] for d in directions], 
-              columns=[
-              'direction_id',
-              'min_start_time', 
-              'max_end_time', 
-              'mean_daily_num_vehicles', 
-              'max_headway', 
-              'mean_headway',
-              ])
-            df.index.name = 'foo'
-            return df
-
         if split_directions:
-            result = f.groupby('stop_id').apply(get_stop_stats_by_direction).\
-            reset_index()
+            g = f.groupby(['stop_id', 'direction_id'])
         else:
-            result = f.groupby('stop_id').apply(get_stop_stats).reset_index()
+            g = f.groupby('stop_id')
+
+        result = g.apply(get_stop_stats).reset_index()
+
         # Convert start and end times to time strings
         result[['min_start_time', 'max_end_time']] =\
           result[['min_start_time', 'max_end_time']].applymap(
@@ -581,7 +529,8 @@ class Feed(object):
 
         return result
 
-    def get_stops_time_series(self, dates):
+    def get_stops_time_series(self, dates, split_directions=True,
+      freq='5Min'):
         """
         Return the following time series of stops stats:
         
@@ -610,8 +559,7 @@ class Feed(object):
             return 
 
         t1 = dt.datetime.now()
-        stops = sorted(self.stops['stop_id'].values)
-        num_stops = len(stops)
+        num_stops = len(self.stops['stop_id'].values)
         print(t1, 'Creating stops time series for %s stops...' % num_stops)
 
         # Get active trips and merge with stop times
@@ -633,6 +581,11 @@ class Feed(object):
         rng = pd.period_range(day_start, day_end, freq='Min')
         names = ['mean_daily_num_vehicles']
         series_by_name = {}
+        if split_directions:
+            stops = [str(s) + '-' + d for s in stats['stop_id'].unique()
+              for d in ['0', '1']]
+        else:
+            stops = stats['stop_id'].unique()
         for name in names:
             series_by_name[name] = pd.DataFrame(np.nan, index=rng, 
               columns=stops)
@@ -649,43 +602,66 @@ class Feed(object):
         # Bin each trip according to its departure time at the stop
         i = 0
         f = series_by_name['mean_daily_num_vehicles']
-        for stop, group in stats.groupby('stop_id'):
-            i += 1
-            print("Progress {:2.1%}".format(i/num_stops), end="\r")
-            for index, row in group.iterrows():
-                weight = row['weight']
-                dtime = row['departure_time']
-                # Bin stop time
-                criterion = f.index == dtime
-                g = f.loc[criterion, stop] 
-                # Use fill_value=0 to overwrite NaNs with numbers.
-                # Need to use pd.Series() to get fill_value to work.
-                f.loc[criterion, stop] = g.add(pd.Series(
-                  weight, index=g.index), fill_value=0)
+        if split_directions:
+            for (stop, direction), group in stats.groupby(
+              ['stop_id', 'direction_id']):
+                i += 1
+                print("Progress {:2.1%}".format(i/(2*num_stops)), end="\r")
+                stop = str(stop) + '-' + str(direction)
+                for index, row in group.iterrows():
+                    weight = row['weight']
+                    dtime = row['departure_time']
+                    # Bin stop time
+                    criterion = f.index == dtime
+                    g = f.loc[criterion, stop] 
+                    # Use fill_value=0 to overwrite NaNs with numbers.
+                    # Need to use pd.Series() to get fill_value to work.
+                    f.loc[criterion, stop] = g.add(pd.Series(
+                      weight, index=g.index), fill_value=0)
+        else:
+            for stop, group in stats.groupby('stop_id'):
+                i += 1
+                print("Progress {:2.1%}".format(i/num_stops), end="\r")
+                for index, row in group.iterrows():
+                    weight = row['weight']
+                    dtime = row['departure_time']
+                    # Bin stop time
+                    criterion = f.index == dtime
+                    g = f.loc[criterion, stop] 
+                    # Use fill_value=0 to overwrite NaNs with numbers.
+                    # Need to use pd.Series() to get fill_value to work.
+                    f.loc[criterion, stop] = g.add(pd.Series(
+                      weight, index=g.index), fill_value=0)
       
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
         print(t2, 'Finished stops time series in %.2f min' % minutes)    
 
-        return series_by_name
+        f = utils.combine_time_series(series_by_name, kind='stop')
+        return utils.resample(f, kind='stop', freq=freq)
 
     def get_stops_in_stations(self):
         """
-        Assuming this feed has station data, that is, 'location_type' and
+        If this feed has station data, that is, 'location_type' and
         'parent_station' columns in ``self.stops``, then return a Pandas
         data frame that has the same columns as ``self.stops``
         but only includes stops with parent stations, that is, stops with
         location type 0 or blank and nonblank parent station.
+        Otherwise, return ``None``.
         """
         f = self.stops
-        return f[(f['location_type'] != 1) & (f['parent_station'].notnull())]
+        result = f[(f['location_type'] != 1) & (f['parent_station'].notnull())]
+        if result.empty:
+            return
+        return result
 
-    def get_stations_stats(self, dates, split_directions=False):
+    def get_stations_stats(self, dates, split_directions=True):
         """
-        Assuming this feed has station data, that is, 'location_type' and
+        If this feed has station data, that is, 'location_type' and
         'parent_station' columns in ``self.stops``, then compute
-        the same stats that ``self.get_stops_stats()`` does, but format_str
+        the same stats that ``self.get_stops_stats()`` does, but for
         stations.
+        Otherwise, return ``None``.
         """
         t1 = dt.datetime.now()
         print(t1, 'Calculating stops stats...')
@@ -695,6 +671,9 @@ class Feed(object):
         trips_activity = self.get_trips_activity(dates)
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
         sis = self.get_stops_in_stations()
+        if sis is None:
+            return
+
         f = pd.merge(stop_times, ta)
         f = pd.merge(f, sis)
 
@@ -741,64 +720,12 @@ class Feed(object):
             df.index.name = 'foo'
             return df
 
-        # Compute stats for each station by direction
-        def get_station_stats_by_direction(group):
-            # Operate on the group of all stop times for an individual stop
-            directions = [0, 1]
-            headways_by_dir = {d: [] for d in directions}
-            num_vehicles_by_dir = {d: 0 for d in directions}
-            max_headway_by_dir = {d: np.nan for d in directions}
-            mean_headway_by_dir = {d: np.nan for d in directions}
-            mean_daily_num_vehicles_by_dir = {d: 0 for d in directions}
-            min_start_time_by_dir = {d: np.nan for d in directions}
-            max_end_time_by_dir = {d: np.nan for d in directions}  
-            group_by_dir = {d: None for d in directions}          
-            for d in directions:
-                group_by_dir[d] = group[group['direction_id'] == d]
-                g = group_by_dir[d]
-                for date in dates:
-                    dtimes = sorted(g[g[date] > 0]['departure_time'].\
-                      values)
-                    num_vehicles_by_dir[d] += len(dtimes)
-                    dtimes = [dtime for dtime in dtimes 
-                      if 7*3600 <= dtime <= 19*3600]
-                    headways_by_dir[d].extend(
-                      [dtimes[i + 1] - dtimes[i] 
-                      for i in range(len(dtimes) - 1)])
-                if headways_by_dir[d]:
-                    max_headway_by_dir[d] = np.max(
-                      headways_by_dir[d])
-                    mean_headway_by_dir[d] = round(np.mean(
-                      headways_by_dir[d]))
-                mean_daily_num_vehicles_by_dir[d] =\
-                  num_vehicles_by_dir[d]/len(dates)
-                min_start_time_by_dir[d] = g['departure_time'].min()
-                max_end_time_by_dir[d] = g['departure_time'].max()
-            df = pd.DataFrame([[
-              d,
-              min_start_time_by_dir[d], 
-              max_end_time_by_dir[d], 
-              mean_daily_num_vehicles_by_dir[d], 
-              max_headway_by_dir[d], 
-              mean_headway_by_dir[d],
-              ] for d in directions], 
-              columns=[
-              'direction_id',
-              'min_start_time', 
-              'max_end_time', 
-              'mean_daily_num_vehicles', 
-              'max_headway', 
-              'mean_headway',
-              ])
-            df.index.name = 'foo'
-            return df
-
         if split_directions:
-            result = f.groupby('parent_station').apply(
-              get_station_stats_by_direction).reset_index()
+            g = f.groupby(['parent_station', 'direction_id'])
         else:
-            result = f.groupby('parent_station').apply(
-              get_station_stats).reset_index()
+            g = f.groupby('parent_station')
+
+        result = g.apply(get_station_stats).reset_index()
 
         # Convert start and end times to time strings
         result[['min_start_time', 'max_end_time']] =\
@@ -812,27 +739,6 @@ class Feed(object):
 
         return result
 
-    # def get_stop_timetable(self, stop, date):
-    #     """
-    #     Given a stop (stop_id) and a date (datetime.date object),
-    #     return a Pandas data frame describing the time table for the
-    #     given stop on the given date with the columns
-
-    #     - arrival_time
-    #     - departure_time
-    #     - trip_id
-    #     - route_id
-
-    #     and ordered by arrival time.
-    #     """
-    #     # Get active trips and merge with stop times
-    #     trips_activity = self.get_trips_activity([date])
-    #     ta = trips_activity[trips_activity[date] > 0]
-    #     stop_times = self.stop_times
-    #     f = pd.merge(ta, stop_times)
-    #     return f[f['stop_id'] == stop][['arrival_time', 'departure_time', 
-    #       'trip_id', 'route_id']].sort('arrival_time').reset_index(drop=True)
-
     def get_routes_stats(self, trips_stats, dates, split_directions=True):
         """
         Take ``trips_stats``, which is the output of 
@@ -842,7 +748,8 @@ class Feed(object):
         
         Return a Pandas data frame with the following columns
 
-        - route_id: route ID
+        - route_id
+        - direction_id
         - mean_daily_num_trips
         - min_start_time: start time of the earliest active trip on 
           the route
@@ -851,18 +758,16 @@ class Feed(object):
           trip starts on the route between 07:00 and 19:00 on the given dates
         - mean_headway: mean of the durations (in seconds) between 
           trip starts on the route between 07:00 and 19:00 on the given dates
-        - mean_daily_duration: in seconds
-        - mean_daily_distance: in meters; contains all ``np.nan`` entries if 
-          ``self.shapes is None``  
+        - mean_daily_duration: in hours
+        - mean_daily_distance: in kilometers; contains all ``np.nan`` entries
+          if ``self.shapes is None``  
+        - mean_daily_speed: in kilometers per hour
 
-        If ``split_directions == True``, then split each route into its two 
-        directed subroutes: its direction 0 subroute, denoted <route ID>-0, 
-        that only considers trips in direction 0 and its direction 1 subroute,
-        denoted <route ID>-1, that only considers trips in direction 1. 
-        Then calculate stats for each directed route.
-        This unidirectional approach to calculating stats is especially
-        appropriate for headways.
-        Most people don't care about bidirectional headways.
+        If ``split_directions == False``, then remove the direction_id column
+        and compute each route's stats based using its trips running in both 
+        directions. 
+        Note that this will give bidirectional headway stats, which most folks
+        don't find useful.
 
         NOTES:
 
@@ -886,11 +791,6 @@ class Feed(object):
         # Convert trip start times to seconds to ease headway calculations
         trips_stats['start_time'] = trips_stats['start_time'].map(lambda x: 
           utils.seconds_to_timestr(x, inverse=True))
-
-        if split_directions:
-            # Separate route IDs by direction: <route ID>-0 and <route ID>-1
-            trips_stats['route_id'] = trips_stats['route_id'] + '-' +\
-              trips_stats['direction_id'].map(str)
 
         def get_route_stats(group):
             # Take this group of all trips stats for a single route
@@ -934,9 +834,17 @@ class Feed(object):
             df.index.name = 'foo'
             return df
 
-        result = trips_stats.groupby('route_id').apply(
-          get_route_stats).reset_index()
+        if split_directions:
+            g = trips_stats.groupby(['route_id', 'direction_id'])
+        else:
+            g = trips_stats.groupby(['route_id'])
+
+        result = g.apply(get_route_stats).reset_index()
         del result['foo']
+
+        # Add speed column
+        result['mean_daily_speed'] = result['mean_daily_distance'].\
+          divide(result['mean_daily_duration'])
 
         # Convert route start times to time strings
         result['min_start_time'] = result['min_start_time'].map(lambda x: 
@@ -948,179 +856,8 @@ class Feed(object):
 
         return result
 
-    # def get_routes_stats(self, trips_stats, dates, split_directions=True):
-    #     """
-    #     Take ``trips_stats``, which is the output of 
-    #     ``self.get_trips_stats()``, and use it to calculate stats for 
-    #     all the routs in this feed averaged over the given dates 
-    #     (list of ``datetime.date`` objects). 
-        
-    #     Return a Pandas data frame with the following columns
-
-    #     - route_id: route ID
-    #     - mean_daily_num_trips
-    #     - min_start_time: start time of the earliest active trip on 
-    #       the route
-    #     - max_end_time: end time of latest active trip on the route
-    #     - max_headway: maximum of the durations (in seconds) between 
-    #       trip starts on the route between 07:00 and 19:00 on the given dates
-    #     - mean_headway: mean of the durations (in seconds) between 
-    #       trip starts on the route between 07:00 and 19:00 on the given dates
-    #     - mean_daily_duration: in seconds
-    #     - mean_daily_distance: in meters; contains all ``np.nan`` entries if 
-    #       ``self.shapes is None``  
-
-    #     If ``split_directions == True``, then add an extra column
-
-    #     - direction_id: 0 or 1,
-
-    #     and separate the stats above by the direction ID of the trips
-    #     on each route.
-
-    #     NOTES:
-
-    #     Takes about 0.2 minute on the SEQ feed for 5 dates.
-    #     """
-    #     if not dates:
-    #         return 
-
-    #     # Time the function call
-    #     t1 = dt.datetime.now()
-    #     print(t1, 'Creating routes stats for {!s} routes...'.format(
-    #       self.routes.shape[0]))
-
-    #     # Merge trips stats with trips activity, 
-    #     # assign a weight to each trip equal to the fraction of days in 
-    #     # dates for which it is active, and and drop 0-weight trips
-    #     trips_stats = pd.merge(trips_stats, self.get_trips_activity(dates))
-    #     trips_stats['weight'] = trips_stats[dates].sum(axis=1)/len(dates)
-    #     trips_stats = trips_stats[trips_stats['weight'] > 0]
-        
-    #     # Convert trip start times to seconds to ease headway calculations
-    #     trips_stats['start_time'] = trips_stats['start_time'].map(lambda x: 
-    #       utils.seconds_to_timestr(x, inverse=True))
-
-    #     def get_route_stats(group):
-    #         # Take this group of all trips stats for a single route
-    #         # and compute route-level stats.
-    #         headways = []
-    #         for date in dates:
-    #             stimes = group[(group[date] > 0)]['start_time'].\
-    #               values
-    #             stimes = sorted([stime for stime in stimes 
-    #               if 7*3600 <= stime <= 19*3600])
-    #             headways.extend([stimes[i + 1] - stimes[i] 
-    #               for i in range(len(stimes) - 1)])
-    #         if headways:
-    #             max_headway = np.max(headways)
-    #             mean_headway = round(np.mean(headways))
-    #         else:
-    #             max_headway = np.nan
-    #             mean_headway = np.nan
-    #         mean_daily_num_trips = group['weight'].sum()
-    #         min_start_time = group['start_time'].min()
-    #         max_end_time = group['end_time'].max()
-    #         mean_daily_duration = (group['duration']*group['weight']).sum()
-    #         mean_daily_distance = (group['distance']*group['weight']).sum()
-    #         df = pd.DataFrame([[
-    #           min_start_time, 
-    #           max_end_time, 
-    #           mean_daily_num_trips, 
-    #           max_headway, 
-    #           mean_headway, 
-    #           mean_daily_duration, 
-    #           mean_daily_distance,
-    #           ]], columns=[
-    #           'min_start_time', 
-    #           'max_end_time', 
-    #           'mean_daily_num_trips', 
-    #           'max_headway', 
-    #           'mean_headway', 
-    #           'mean_daily_duration', 
-    #           'mean_daily_distance',
-    #           ])
-    #         df.index.name = 'foo'
-    #         return df
-
-    #     def get_route_stats_by_direction(group):
-    #         # Take this group of all trips stats for a single route
-    #         # and compute route-level stats.
-    #         directions = [0, 1]
-    #         headways_by_dir = {d: [] for d in directions}
-    #         num_vehicles_by_dir = {d: 0 for d in directions}
-    #         max_headway_by_dir = {d: np.nan for d in directions}
-    #         mean_headway_by_dir = {d: np.nan for d in directions}
-    #         mean_daily_num_trips_by_dir = {d: 0 for d in directions}
-    #         min_start_time_by_dir = {d: np.nan for d in directions}
-    #         max_end_time_by_dir = {d: np.nan for d in directions}  
-    #         mean_daily_duration_by_dir = {d: 0 for d in directions}
-    #         mean_daily_distance_by_dir = {d: 0 for d in directions}
-    #         group_by_dir = {d: None for d in directions}          
-    #         for d in directions:
-    #             group_by_dir[d] = group[group['direction_id'] == d]
-    #             g = group_by_dir[d]
-    #             for date in dates:
-    #                 stimes = g[g[date] > 0]['start_time'].values
-    #                 stimes = sorted([stime for stime in stimes 
-    #                   if 7*3600 <= stime <= 19*3600])
-    #                 headways_by_dir[d].extend(
-    #                   [stimes[i + 1] - stimes[i] 
-    #                   for i in range(len(stimes) - 1)])
-    #             if headways_by_dir[d]:
-    #                 max_headway_by_dir[d] = np.max(
-    #                   headways_by_dir[d])
-    #                 mean_headway_by_dir[d] = round(np.mean(
-    #                   headways_by_dir[d]))
-    #             mean_daily_num_trips_by_dir[d] = g['weight'].sum()
-    #             min_start_time_by_dir[d] = g['start_time'].min()
-    #             max_end_time_by_dir[d] = g['end_time'].max()
-    #             mean_daily_duration_by_dir[d] =\
-    #               (g['duration']*g['weight']).sum()
-    #             mean_daily_distance_by_dir[d] =\
-    #               (g['distance']*g['weight']).sum()
-    #         df = pd.DataFrame([[
-    #           d,
-    #           min_start_time_by_dir[d], 
-    #           max_end_time_by_dir[d], 
-    #           mean_daily_num_trips_by_dir[d], 
-    #           max_headway_by_dir[d], 
-    #           mean_headway_by_dir[d], 
-    #           mean_daily_duration_by_dir[d], 
-    #           mean_daily_distance_by_dir[d],
-    #           ] for d in directions], 
-    #           columns=[
-    #           'direction_id',
-    #           'min_start_time', 
-    #           'max_end_time', 
-    #           'mean_daily_num_trips', 
-    #           'max_headway', 
-    #           'mean_headway', 
-    #           'mean_daily_duration', 
-    #           'mean_daily_distance',
-    #           ])
-    #         df.index.name = 'foo'
-    #         return df
-
-    #     if split_directions:
-    #         result = trips_stats.groupby('route_id').apply(
-    #           get_route_stats_by_direction).reset_index()
-    #     else:
-    #         result = trips_stats.groupby('route_id').apply(
-    #           get_route_stats).reset_index()
-    #     del result['foo']
-
-    #     # Convert route start times to time strings
-    #     result['min_start_time'] = result['min_start_time'].map(lambda x: 
-    #       utils.seconds_to_timestr(x))
-
-    #     t2 = dt.datetime.now()
-    #     minutes = (t2 - t1).seconds/60
-    #     print(t2, 'Finished routes stats in %.2f min' % minutes)    
-
-    #     return result
-
-    def get_routes_time_series(self, trips_stats, dates,
-      split_directions=True):
+    def get_routes_time_series(self, trips_stats, dates, split_directions=True,
+      freq='5Min'):
         """
         Given ``trips_stats``, which is the output of 
         ``self.get_trips_stats()``, use it to calculate the following 
@@ -1188,9 +925,11 @@ class Feed(object):
         day_start = pd.to_datetime(date_str + ' 00:00:00')
         day_end = pd.to_datetime(date_str + ' 23:59:00')
         rng = pd.period_range(day_start, day_end, freq='Min')
-        names = ['mean_daily_num_vehicles', 
-          'mean_daily_num_trip_starts', 'mean_daily_duration', 
-          'mean_daily_distance']
+        names = [
+          'mean_daily_num_vehicles', 
+          'mean_daily_num_trip_starts', 
+          'mean_daily_duration', 
+          'mean_daily_distance',]
         series_by_name = {}
         for name in names:
             series_by_name[name] = pd.DataFrame(np.nan, index=rng, 
@@ -1246,7 +985,8 @@ class Feed(object):
         minutes = (t2 - t1).seconds/60
         print(t2, 'Finished routes time series in %.2f min' % minutes)    
 
-        return series_by_name
+        g = utils.combine_time_series(series_by_name, kind='route')
+        return utils.resample(g, kind='route', freq=freq)
 
     # def get_route_timetable(self, route, date):
     #     """

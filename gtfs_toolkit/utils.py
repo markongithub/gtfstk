@@ -1,4 +1,5 @@
 import datetime as dt
+from collections import OrderedDict
 
 import pandas as pd
 import numpy as np
@@ -81,6 +82,7 @@ def get_segment_length(linestring, p, q=None):
     the linestring between the two points.
     If ``q is None``, then return the distance from the start of the linestring
     to the projection of ``p``.
+    The distance is measured in the native coordinates of the linestring.
     """
     # Get projected distances
     d_p = linestring.project(Point(p))
@@ -91,51 +93,101 @@ def get_segment_length(linestring, p, q=None):
         d = d_p
     return d
 
-def downsample_routes_time_series(routes_time_series, freq):
+# def downsample_routes_time_series(routes_time_series, freq):
+#     """
+#     Resample the given routes time series, which is the output of 
+#     ``Feed.get_routes_time_series()``, to the given (Pandas style) frequency.
+#     Additionally, add a new 'mean_daily_speed' time series to the output 
+#     dictionary.
+#     """
+#     result = {name: None for name in routes_time_series}
+#     result.update({'mean_daily_speed': None})
+#     for name in result:
+#         if name == 'mean_daily_speed':
+#             numer = routes_time_series['mean_daily_distance'].resample(freq,
+#               how=np.sum)
+#             denom = routes_time_series['mean_daily_duration'].resample(freq,
+#               how=np.sum)
+#             g = numer.divide(denom)
+#         elif name == 'mean_daily_num_trip_starts':
+#             f = routes_time_series[name]
+#             g = f.resample(freq, how=np.sum)
+#         elif name == 'mean_daily_num_vehicles':
+#             f = routes_time_series[name]
+#             g = f.resample(freq, how=np.mean)
+#         elif name == 'mean_daily_duration':
+#             f = routes_time_series[name]
+#             g = f.resample(freq, how=np.sum)
+#         else:
+#             # name == 'distance'
+#             f = routes_time_series[name]
+#             g = f.resample(freq, how=np.sum)
+#         result[name] = g
+#     return result
+
+def combine_time_series(time_series_dict, kind, split_directions=True):
     """
-    Resample the given routes time series, which is the output of 
-    ``Feed.get_routes_time_series()``, to the given (Pandas style) frequency.
-    Additionally, add a new 'mean_daily_speed' time series to the output 
-    dictionary.
+    Given a dictionary of time series data frames, combine the time series
+    into one time series data frame with multi-index (hierarchical columns)
+    and return the result.
+    The top level columns are the keys of the dictionary and
+    the second and third level columns are 'route_id' and 'direction_id',
+    if ``kind == 'route'``, or 'stop_id' and 'direction_id', 
+    if ``kind == 'stop'``.
+    If ``split_directions == False``, then there is no third column level,
+    no 'direction_id' column.
     """
-    result = {name: None for name in routes_time_series}
-    result.update({'mean_daily_speed': None})
-    for name in result:
-        if name == 'mean_daily_speed':
-            numer = routes_time_series['mean_daily_distance'].resample(freq,
-              how=np.sum)
-            denom = routes_time_series['mean_daily_duration'].resample(freq,
-              how=np.sum)
-            g = numer.divide(denom)
-        elif name == 'mean_daily_num_trip_starts':
-            f = routes_time_series[name]
-            g = f.resample(freq, how=np.sum)
-        elif name == 'mean_daily_num_vehicles':
-            f = routes_time_series[name]
-            g = f.resample(freq, how=np.mean)
-        elif name == 'mean_daily_duration':
-            f = routes_time_series[name]
-            g = f.resample(freq, how=np.sum)
-        else:
-            # name == 'distance'
-            f = routes_time_series[name]
-            g = f.resample(freq, how=np.sum)
-        result[name] = g
+    if kind == 'route':
+        subcolumns = ['route_id']
+    else:
+        # Assume kind == 'stop':
+        subcolumns = ['stop_id']
+    if split_directions:
+        subcolumns.append('direction_id')
+
+    def process_index(k):
+        return tuple(k.rsplit('-', 1))
+
+    frames = list(time_series_dict.values())
+    new_frames = []
+    if split_directions:
+        for f in frames:
+            ft = f.T
+            ft.index = pd.MultiIndex.from_tuples([process_index(k) 
+              for k,v in ft.iterrows()], names=subcolumns)
+            new_frames.append(ft.T)
+    else:
+        new_frames = frames
+    return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()))
+
+def resample(time_series, kind, freq='1H'):
+    """
+    Resample the given route or stop time series, which is the output of 
+    ``Feed.get_routes_time_series()`` or ``Feed.get_stops_time_series()``, 
+    to the given Pandas-style frequency.
+    Can't resample to frequencies less one minute ('1Min'), because the
+    time series are generated with one-minute frequency.
+    """
+    result = None
+    if kind == 'route':
+        # Sums
+        how = OrderedDict((col, 'sum') for col in time_series.columns
+          if col[0] in ['mean_daily_num_trip_starts', 'mean_daily_distance', 
+          'mean_daily_duration'])
+        # Means
+        how.update(OrderedDict((col, 'mean') for col in time_series.columns
+          if col[0] in ['mean_daily_num_vehicles']))
+        f = time_series.resample(freq, how=how)
+        # Calculate speed and add it to f. Can't resample it.
+        speed = f['mean_daily_distance'].divide(f['mean_daily_duration'])
+        speed = pd.concat({'mean_daily_speed': speed}, axis=1)
+        result = pd.concat([f, speed], axis=1)
+    elif kind == 'stop':
+        how = OrderedDict((col, 'sum') for col in time_series.columns)
+        result = time_series.resample(freq, how=how)
     return result
 
-def downsample_stops_time_series(stops_time_series, freq):
-    """
-    Resample the given stops time series, which is the output of 
-    ``Feed.get_stops_time_series()``, to the given (Pandas style) frequency.
-    """
-    result = {name: None for name in stops_time_series}
-    for name in result:
-        if name == 'mean_daily_num_vehicles':
-            f = stops_time_series[name]
-            g = f.resample(freq, how=np.sum)
-        result[name] = g
-    return result
-
+# TODO: Fix this to work with new time series format
 def plot_routes_time_series(routes_ts_dict, big_units=True):
     """
     Given a routes time series dictionary (possibly downsampled),
