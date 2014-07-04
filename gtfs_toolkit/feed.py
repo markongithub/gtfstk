@@ -182,10 +182,6 @@ class Feed(object):
         - dates[-1]: ditto
 
         If ``dates is None``, then return ``None``.
-
-        NOTES:
-
-        Takes about 0.15 minutes on the SEQ feed for 7 dates.
         """
         if not dates:
             return
@@ -221,10 +217,6 @@ class Feed(object):
         - duration: duration of the trip in hours
         - distance: distance of the trip in kilometers; contains all ``np.nan``
           entries if ``self.shapes is None``
-
-        NOTES:
-
-        Takes about 2.4 minutes on the SEQ feed.
         """
         trips = self.trips
         stop_times = self.stop_times
@@ -454,10 +446,6 @@ class Feed(object):
 
         If ``split_directions == False``, then compute each stop's stats
         using vehicles visiting it from both directions.
-
-        NOTES:
-
-        Takes about 0.9 minutes for the SEQ feed.
         """
         t1 = dt.datetime.now()
         print(t1, 'Calculating stops stats...')
@@ -532,28 +520,32 @@ class Feed(object):
     def get_stops_time_series(self, dates, split_directions=True,
       freq='5Min'):
         """
-        Return the following time series of stops stats:
+        Return a time series version of the following stops stats
+        for the given dates:
         
         - mean daily number of vehicles by stop ID
 
-        The time series is a Pandas data frame over a 24-hour 
-        period with minute (period index) frequency (00:00 to 23:59).
-        
-        Return the time series as a value in a dictionary with key
-        'mean_daily_num_vehicles'. 
-        (Outputing a dictionary of a time series instead of simply a 
-        time series matches the structure of ``get_routes_time_series()``
-        and allows for the possibility of adding other stops time series
-        at a later stage of development.)
+        The time series is a Pandas data frame with a period index 
+        for a 24-hour period sampled at the given frequency.
+        The maximum allowable frequency is 1 minute.
+        If multiples dates are given, a generic placeholder date of
+        2001-01-01 is used as the date for the period index.
+        Otherwise, the given date is used.
 
+        The columns of the data frame are hierarchical (multi-index) with
+
+        - top level: name = 'statistic', values = ['mean_daily_num_vehicles']
+        - middle level: name = 'stop_id', values = the active stop IDs
+        - bottom level: name = 'direction_id', values = 0s and 1s
+
+        If ``split_directions == False``, then don't include the bottom level.
+        
         NOTES:
 
-        - To resample the resulting time series use the following methods:
-          for 'mean_daily_num_vehicles' series, use ``how=np.sum``
-        - To remove the placeholder date (2001-1-1) and seconds from any 
-          of the time series f, do ``f.index = [t.time().strftime('%H:%M') 
+        - 'mean_daily_num_vehicles' should be resampled with ``how=np.sum``
+        - To remove the placeholder date (2001-1-1) and seconds from 
+          the time series f, do ``f.index = [t.time().strftime('%H:%M') 
           for t in f.index.to_datetime()]``
-        - Takes about 2 minutes on the SEQ feed.
         """  
         if not dates:
             return 
@@ -638,7 +630,7 @@ class Feed(object):
         print(t2, 'Finished stops time series in %.2f min' % minutes)    
 
         f = utils.combine_time_series(series_by_name, kind='stop')
-        return utils.resample(f, kind='stop', freq=freq)
+        return utils.downsample(f, freq=freq)
 
     def get_stops_in_stations(self):
         """
@@ -768,10 +760,6 @@ class Feed(object):
         directions. 
         Note that this will give bidirectional headway stats, which most folks
         don't find useful.
-
-        NOTES:
-
-        Takes about 0.2 minute on the SEQ feed for 5 dates.
         """
         if not dates:
             return 
@@ -860,38 +848,42 @@ class Feed(object):
       freq='5Min'):
         """
         Given ``trips_stats``, which is the output of 
-        ``self.get_trips_stats()``, use it to calculate the following 
-        four time series for routes that are active on at least one day
-        of the given dates:
+        ``self.get_trips_stats()``, return a time series version of the 
+        following route stats for the given dates:
         
         - mean daily number of vehicles in service by route ID
         - mean daily number of trip starts by route ID
-        - mean daily service duration (seconds) by route ID
-        - mean daily service distance (meters) by route ID
+        - mean daily service duration in hours by route ID
+        - mean daily service distance in kilometers by route ID
+        - mean daily speed in kilometers per hour
 
-        Each time series is a Pandas data frame over a 24-hour 
-        period with minute (period index) frequency (00:00 to 23:59).
-        For each time series each route ID of routes active in the given date
-        range appears as a column.
-        In case ``split_directions == True``, then route are split into their 
-        direction 0 and direction 1 soubroutes and subroute IDs are used
-        as columns (as in ``get_routes_stats(split_directions=True)``):
-        <route ID>-0 for the direction 0 subroute and <route ID>-1 for
-        the direction 1 subroute.
+        The time series is a Pandas data frame with a period index 
+        for a 24-hour period sampled at the given frequency.
+        The maximum allowable frequency is 1 minute.
+        If multiples dates are given, a generic placeholder date of
+        2001-01-01 is used as the date for the period index.
+        Otherwise, the given date is used.
+
+        The columns of the data frame are hierarchical (multi-index) with
+
+        - top level: name = 'statistic', values = ['mean_daily_distance',
+          'mean_daily_duration', 'mean_daily_num_trip_starts', 
+          'mean_daily_num_vehicles', 'mean_daily_speed']
+        - middle level: name = 'stop_id', values = the active stop IDs
+        - bottom level: name = 'direction_id', values = 0s and 1s
+
+        If ``split_directions == False``, then don't include the bottom level.
         
-        Return the time series as values of a dictionary with keys
-        'mean_daily_num_vehicles', 'mean_daily_num_trip_starts', 
-        'mean_daily_duration', 'mean_daily_distance'.
-
         NOTES:
 
         - To resample the resulting time series use the following methods:
             - for 'mean_daily_num_vehicles' series, use ``how=np.mean``
             - for the other series, use ``how=np.sum`` 
-        - To remove the placeholder date (2001-1-1) and seconds from any 
-          of the time series f, do ``f.index = [t.time().strftime('%H:%M') 
+            - 'mean_daily_speed' can't be resampled and must be recalculated
+              from 'mean_daily_distance' and 'mean_daily_duration' 
+        - To remove the placeholder date (2001-1-1) and seconds from the 
+          time series f, do ``f.index = [t.time().strftime('%H:%M') 
           for t in f.index.to_datetime()]``
-        - Takes about 1.5 minutes on the SEQ feed.
         """  
         if not dates:
             return 
@@ -929,7 +921,8 @@ class Feed(object):
           'mean_daily_num_vehicles', 
           'mean_daily_num_trip_starts', 
           'mean_daily_duration', 
-          'mean_daily_distance',]
+          'mean_daily_distance',
+          ]
         series_by_name = {}
         for name in names:
             series_by_name[name] = pd.DataFrame(np.nan, index=rng, 
@@ -974,7 +967,7 @@ class Feed(object):
                       weight, index=g.index), fill_value=0)
                 elif name == 'mean_daily_duration':
                     f.loc[criterion, route] = g.add(pd.Series(
-                      weight*60, index=g.index), fill_value=0)
+                      weight/60, index=g.index), fill_value=0)
                 else:
                     # name == 'distance'
                     f.loc[criterion, route] = g.add(pd.Series(
@@ -986,32 +979,7 @@ class Feed(object):
         print(t2, 'Finished routes time series in %.2f min' % minutes)    
 
         g = utils.combine_time_series(series_by_name, kind='route')
-        return utils.resample(g, kind='route', freq=freq)
-
-    # def get_route_timetable(self, route, date):
-    #     """
-    #     Given a route (route_id) and a date (datetime.date object),
-    #     return a Pandas data frame describing the time table for the
-    #     given stop on the given date with the columns
-
-    #     - arrival_time
-    #     - departure_time
-    #     - trip_id
-
-    #     and ordered by arrival time.
-    #     """
-    #     # Get active trips and merge with stop times
-    #     trips_activity = self.get_trips_activity([date])
-    #     ta = trips_activity[trips_activity[date] > 0]
-    #     stop_times = self.stop_times
-    #     f = pd.merge(ta, stop_times)
-        
-    #     def get_first_trip(group):
-    #         g = group.sort('departure_time')
-    #         return g[['arrival_time', 'departure_time']].iloc[0]
-
-    #     return f[f['route_id'] == route].groupby('trip_id').apply(
-    #       get_first_trip).reset_index()
+        return utils.downsample(g, freq=freq)
 
     # TODO: test more and improve readme
     def dump_all_stats(self, directory, dates=None, freq='1H'):
@@ -1052,8 +1020,8 @@ class Feed(object):
         readme = """
         Notes 
         =====
-        - Distances are measured in meters and durations are measured in
-        seconds
+        - Distances are measured in kilommeters and durations are measured in
+        hours
         - Stats were calculated for the period {!s}
         """.format(dates_str)
         

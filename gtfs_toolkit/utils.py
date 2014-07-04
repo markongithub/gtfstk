@@ -158,18 +158,20 @@ def combine_time_series(time_series_dict, kind, split_directions=True):
             new_frames.append(ft.T)
     else:
         new_frames = frames
-    return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()))
+    return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
+      names=['statistic'])
 
-def resample(time_series, kind, freq='1H'):
+def downsample(time_series, freq):
     """
-    Resample the given route or stop time series, which is the output of 
+    Downsample the given route or stop time series, which is the output of 
     ``Feed.get_routes_time_series()`` or ``Feed.get_stops_time_series()``, 
     to the given Pandas-style frequency.
-    Can't resample to frequencies less one minute ('1Min'), because the
+    Can't downsample to frequencies less one minute ('1Min'), because the
     time series are generated with one-minute frequency.
     """
     result = None
-    if kind == 'route':
+    if 'route_id' in time_series.columns.names:
+        # It's a routes time series
         # Sums
         how = OrderedDict((col, 'sum') for col in time_series.columns
           if col[0] in ['mean_daily_num_trip_starts', 'mean_daily_distance', 
@@ -182,42 +184,46 @@ def resample(time_series, kind, freq='1H'):
         speed = f['mean_daily_distance'].divide(f['mean_daily_duration'])
         speed = pd.concat({'mean_daily_speed': speed}, axis=1)
         result = pd.concat([f, speed], axis=1)
-    elif kind == 'stop':
+    elif 'stop_id' in time_series.columns.names:
+        # It's a stops time series
         how = OrderedDict((col, 'sum') for col in time_series.columns)
         result = time_series.resample(freq, how=how)
+    # Reset column names in result, because they disappear after resampling.
+    # Pandas 0.14.0 bug?
+    result.columns.names = time_series.columns.names
     return result
 
-# TODO: Fix this to work with new time series format
-def plot_routes_time_series(routes_ts_dict, big_units=True):
+def plot_routes_headways(routes_stats):
+    pass
+    
+def plot_routes_time_series(time_series):
     """
-    Given a routes time series dictionary (possibly downsampled),
-    sum each time series over all routes, plot each series using
-    MatplotLib, and return the resulting figure of four subplots.
+    Given a stops or routes time series,
+    sum each time series statistic over all stops/routes, 
+    plot each series statistic using MatplotLib, 
+    and return the resulting figure of subplots.
     """
     import matplotlib.pyplot as plt
 
-    # Plot sum of routes stats at 30-minute frequency
-    F = None
-    for name, f in routes_ts_dict.items():
-        g = f.T.sum().T
-        if name == 'mean_daily_distance':
-            # Convert to km
-            g /= 1000
-        elif name == 'mean_daily_duration':
-            # Convert to h
-            g /= 3600
-        if F is None:
-            # Initialize F
-            F = pd.DataFrame(g, columns=[name])
-        else:
-            F[name] = g
+    # Reformat time periods
+    time_series.index = [t.time().strftime('%H:%M') 
+      for t in time_series.index.to_datetime()]
+    split_directions = 'direction_id' in time_series.columns.names
+    # Split time series into its component time series
+    ts_dict = {stat: time_series[stat] 
+      for stat in time_series.columns.levels[0]}
+    # For each time series sum it across its routes/stops but keep
+    # the directions separate if they already are
+    if split_directions:
+        ts_dict = {stat: f.groupby(level='direction_id', axis=1).sum()
+          for (stat, f) in ts_dict.items()}
+    else:
+        ts_dict = {stat: f.sum(axis=1)
+          for (stat, f) in ts_dict.items()}
     # Fix speed
-    F['mean_daily_speed'] = F['mean_daily_distance'].divide(
-      F['mean_daily_duration'])
-    # Reformat periods
-    F.index = [t.time().strftime('%H:%M') for t in F.index.to_datetime()]
-    colors = ['red', 'blue', 'yellow', 'purple', 'green'] 
-    alpha = 0.7
+    ts_dict['mean_daily_speed'] = ts_dict['mean_daily_distance'].divide(
+      ts_dict['mean_daily_duration'])
+    # Create plots  
     names = [
       'mean_daily_num_trip_starts', 
       'mean_daily_num_vehicles', 
@@ -227,12 +233,17 @@ def plot_routes_time_series(routes_ts_dict, big_units=True):
       ]
     titles = [name.capitalize().replace('_', ' ') for name in names]
     units = ['','','km','h', 'kph']
+    alpha = 1
     fig, axes = plt.subplots(nrows=len(names), ncols=1)
     for (i, name) in enumerate(names):
-        F[name].plot(ax=axes[i], color=colors[i], alpha=alpha, 
-          kind='bar', figsize=(8, 10))
+        if name == 'mean_daily_speed':
+            stacked = False
+        else:
+            stacked = True
+        ts_dict[name].plot(ax=axes[i], alpha=alpha, 
+          kind='bar', figsize=(8, 10), stacked=stacked)
         axes[i].set_title(titles[i])
         axes[i].set_ylabel(units[i])
 
-    #fig.tight_layout()
-    return fig
+    return fig.tight_layout()
+    # return fig
