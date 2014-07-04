@@ -187,20 +187,9 @@ class Feed(object):
             return
 
         f = self.trips
-
-        # Time the function call
-        t1 = dt.datetime.now()
-        print(t1, 'Getting activity for {!s} trips over {!s} dates...'.format(
-          f.shape[0], len(dates)))
-
         for date in dates:
             f[date] = f['trip_id'].map(lambda trip: 
               int(self.is_active_trip(trip, date)))
-
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished trips activity in %.2f min' % minutes)    
-
         return f[['trip_id', 'direction_id', 'route_id'] + dates]
 
     def get_trips_stats(self):
@@ -217,14 +206,15 @@ class Feed(object):
         - duration: duration of the trip in hours
         - distance: distance of the trip in kilometers; contains all ``np.nan``
           entries if ``self.shapes is None``
+
+        NOTES:
+
+        Takes about 1 minute on the Portland feed.
         """
         trips = self.trips
         stop_times = self.stop_times
-
-        t1 = dt.datetime.now()
         num_trips = trips.shape[0]
-        print(t1, 'Creating trip stats for %s trips...' % num_trips)
-
+        
         # Initialize data frame. Base it on trips.txt.
         stats = trips[['route_id', 'trip_id', 'direction_id']]
 
@@ -295,10 +285,6 @@ class Feed(object):
         stats = pd.merge(stats, g.reset_index())
         stats.sort('route_id')
 
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished trips stats in %.2f min' % minutes)    
-    
         return stats
 
     def get_linestring_by_shape(self):
@@ -446,10 +432,12 @@ class Feed(object):
 
         If ``split_directions == False``, then compute each stop's stats
         using vehicles visiting it from both directions.
-        """
-        t1 = dt.datetime.now()
-        print(t1, 'Calculating stops stats...')
 
+        NOTES:
+
+        Takes about 0.73 minutes on the Portland feed given the first
+        five weekdays of the feed.
+        """
         # Get active trips and merge with stop times
         trips_activity = self.get_trips_activity(dates)
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
@@ -511,10 +499,6 @@ class Feed(object):
           lambda x: utils.seconds_to_timestr(x))
         del result['foo']
 
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished stops stats in %.2f min' % minutes)    
-
         return result
 
     def get_stops_time_series(self, dates, split_directions=True,
@@ -546,14 +530,13 @@ class Feed(object):
         - To remove the placeholder date (2001-1-1) and seconds from 
           the time series f, do ``f.index = [t.time().strftime('%H:%M') 
           for t in f.index.to_datetime()]``
+        - Takes about 6.15 minutes on the Portland feed given the first
+          five weekdays of the feed.
         """  
         if not dates:
             return 
 
-        t1 = dt.datetime.now()
         num_stops = len(self.stops['stop_id'].values)
-        print(t1, 'Creating stops time series for %s stops...' % num_stops)
-
         # Get active trips and merge with stop times
         trips_activity = self.get_trips_activity(dates)
         ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
@@ -625,10 +608,6 @@ class Feed(object):
                     f.loc[criterion, stop] = g.add(pd.Series(
                       weight, index=g.index), fill_value=0)
       
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished stops time series in %.2f min' % minutes)    
-
         f = utils.combine_time_series(series_by_name, kind='stop')
         return utils.downsample(f, freq=freq)
 
@@ -654,10 +633,12 @@ class Feed(object):
         the same stats that ``self.get_stops_stats()`` does, but for
         stations.
         Otherwise, return ``None``.
-        """
-        t1 = dt.datetime.now()
-        print(t1, 'Calculating stops stats...')
 
+        NOTES:
+
+        Takes about 0.2 minutes on the Portland feed given the first
+        five weekdays of the feed.
+        """
         # Get stop times of active trips that visit stops in stations
         stop_times = self.stop_times
         trips_activity = self.get_trips_activity(dates)
@@ -725,10 +706,6 @@ class Feed(object):
           lambda x: utils.seconds_to_timestr(x))
         del result['foo']
 
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished stops stats in %.2f min' % minutes)    
-
         return result
 
     def get_routes_stats(self, trips_stats, dates, split_directions=True):
@@ -760,14 +737,14 @@ class Feed(object):
         directions. 
         Note that this will give bidirectional headway stats, which most folks
         don't find useful.
+
+        NOTES:
+
+        Takes about 0.2 minutes on the Portland feed given the first
+        five weekdays of the feed.
         """
         if not dates:
             return 
-
-        # Time the function call
-        t1 = dt.datetime.now()
-        print(t1, 'Creating routes stats for {!s} routes...'.format(
-          self.routes.shape[0]))
 
         # Merge trips stats with trips activity, 
         # assign a weight to each trip equal to the fraction of days in 
@@ -838,10 +815,6 @@ class Feed(object):
         result['min_start_time'] = result['min_start_time'].map(lambda x: 
           utils.seconds_to_timestr(x))
 
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished routes stats in %.2f min' % minutes)    
-
         return result
 
     def get_routes_time_series(self, trips_stats, dates, split_directions=True,
@@ -884,19 +857,15 @@ class Feed(object):
         - To remove the placeholder date (2001-1-1) and seconds from the 
           time series f, do ``f.index = [t.time().strftime('%H:%M') 
           for t in f.index.to_datetime()]``
+        - Takes about 0.6 minutes on the Portland feed given the first
+          five weekdays of the feed.
         """  
         if not dates:
             return 
-
-        t1 = dt.datetime.now()
-        stats = trips_stats
-        print(t1, 'Creating routes time series for {!s} routes...'.format(
-          len(self.routes['route_id'].values)))
-
         # Merge trips_stats with trips activity, get trip weights,
         # and drop 0-weight trips
         n = len(dates)
-        stats = pd.merge(stats, self.get_trips_activity(dates))
+        stats = pd.merge(trips_stats, self.get_trips_activity(dates))
         stats['weight'] = stats[dates].sum(axis=1)/n
         stats = stats[stats.weight > 0]
         num_trips = stats.shape[0]
@@ -974,14 +943,9 @@ class Feed(object):
                       weight*row['distance']/num_bins, index=g.index),
                       fill_value=0)
 
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished routes time series in %.2f min' % minutes)    
-
         g = utils.combine_time_series(series_by_name, kind='route')
         return utils.downsample(g, freq=freq)
 
-    # TODO: test more and improve readme
     def dump_all_stats(self, directory, dates=None, freq='1H'):
         """
         Into the given directory, dump to separate CSV files the outputs of
@@ -997,17 +961,9 @@ class Feed(object):
         on units and include some useful charts.
 
         If no dates are given, then use ``self.get_first_week()[:5]``.
-
-        NOTES:
-
-        Takes about 15 minutes on the SEQ feed.
         """
         import os
         import textwrap
-
-        # Time function call
-        t1 = dt.datetime.now()
-        print(t1, 'Beginning process...')
 
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -1034,14 +990,8 @@ class Feed(object):
 
         # Stops time series
         sts = self.get_stops_time_series(dates)
-        sts = utils.downsample_stops_time_series(sts, freq=freq)
-        for name, f in sts.items():
-            # Remove date from timestamps
-            g = f.copy()
-            g.index = [d.time() for d in g.index.to_datetime()]
-            g.T.to_csv(directory + 'stops_time_series_%s_%s.csv' %\
-              (name, freq), index_label='stop_id')
-
+        sts = utils.downsample(sts, freq=freq)
+        sts.to_csv(directory + 'stops_time_series_{!s}.csv'.format(freq))
 
         # Trips stats
         trips_stats = self.get_trips_stats()
@@ -1053,19 +1003,10 @@ class Feed(object):
 
         # Routes time series
         rts = self.get_routes_time_series(trips_stats, dates)
-        rts = utils.downsample_routes_time_series(rts, freq=freq)
-        for name, f in rts.items():
-            # Remove date from timestamps
-            g = f.copy()
-            g.index = [d.time() for d in g.index.to_datetime()]
-            g.T.to_csv(directory + 'routes_time_series_%s_%s.csv' %\
-              (name, freq), index_label='route_id')
+        rts = utils.downsample(rts, freq=freq)
+        rts.to_csv(directory + 'routes_time_series_{!s}.csv'.format(freq))
 
         # Plot sum of routes stats 
         fig = utils.plot_routes_time_series(rts)
         fig.tight_layout()
         fig.savefig(directory + 'routes_time_series_agg.pdf', dpi=200)
-        
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished process in %.2f min' % minutes)    
