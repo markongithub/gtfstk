@@ -4,3 +4,4 @@
 - v0.1.3, 2014-06-01: Created ``utils.py`` and updated Pandas to 0.14.0
 - v0.1.4, 2014-06-20: Upgraded to Python 3.4
 - v0.1.5, 2014-06-23: Added documentation
+- v0.1.6, 2014-07-04: Changed time series format

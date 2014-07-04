@@ -56,6 +56,20 @@
   <div class="section" id="module-gtfs_toolkit.utils">
 <span id="the-utils-module"></span><h1>The utils Module<a class="headerlink" href="#module-gtfs_toolkit.utils" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
+<dt id="gtfs_toolkit.utils.combine_time_series">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">combine_time_series</tt><big>(</big><em>time_series_dict</em>, <em>kind</em>, <em>split_directions=True</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.combine_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a dictionary of time series data frames, combine the time series
+into one time series data frame with multi-index (hierarchical columns)
+and return the result.
+The top level columns are the keys of the dictionary and
+the second and third level columns are &#8216;route_id&#8217; and &#8216;direction_id&#8217;,
+if <tt class="docutils literal"><span class="pre">kind</span> <span class="pre">==</span> <span class="pre">'route'</span></tt>, or &#8216;stop_id&#8217; and &#8216;direction_id&#8217;, 
+if <tt class="docutils literal"><span class="pre">kind</span> <span class="pre">==</span> <span class="pre">'stop'</span></tt>.
+If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then there is no third column level,
+no &#8216;direction_id&#8217; column.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfs_toolkit.utils.date_to_str">
 <tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">date_to_str</tt><big>(</big><em>date</em>, <em>format_str='%Y%m%d'</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.date_to_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a datetime.date object, convert it to a string in the given format
@@ -65,19 +79,13 @@ string format and return its corresponding date object.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.utils.downsample_routes_time_series">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">downsample_routes_time_series</tt><big>(</big><em>routes_time_series</em>, <em>freq</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.downsample_routes_time_series" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resample the given routes time series, which is the output of 
-<tt class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></tt>, to the given (Pandas style) frequency.
-Additionally, add a new &#8216;mean_daily_speed&#8217; time series to the output 
-dictionary.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfs_toolkit.utils.downsample_stops_time_series">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">downsample_stops_time_series</tt><big>(</big><em>stops_time_series</em>, <em>freq</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.downsample_stops_time_series" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resample the given stops time series, which is the output of 
-<tt class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></tt>, to the given (Pandas style) frequency.</p>
+<dt id="gtfs_toolkit.utils.downsample">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">downsample</tt><big>(</big><em>time_series</em>, <em>freq</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.downsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downsample the given route or stop time series, which is the output of 
+<tt class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></tt> or <tt class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></tt>, 
+to the given Pandas-style frequency.
+Can&#8217;t downsample to frequencies less one minute (&#8216;1Min&#8217;), because the
+time series are generated with one-minute frequency.</p>
 </dd></dl>
 
 <dl class="function">
@@ -87,15 +95,35 @@ dictionary.</p>
 project the points onto the linestring, and return the distance along
 the linestring between the two points.
 If <tt class="docutils literal"><span class="pre">q</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return the distance from the start of the linestring
-to the projection of <tt class="docutils literal"><span class="pre">p</span></tt>.</p>
+to the projection of <tt class="docutils literal"><span class="pre">p</span></tt>.
+The distance is measured in the native coordinates of the linestring.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.plot_headways">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">plot_headways</tt><big>(</big><em>stats</em>, <em>max_headway_limit=60</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.plot_headways" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a stops or routes stats data frame, 
+return bar charts of the max and mean headways as a MatplotLib figure.
+Only include the stops/routes with max headways at most 
+<tt class="docutils literal"><span class="pre">max_headway_limit</span></tt> minutes.
+If <tt class="docutils literal"><span class="pre">max_headway_limit</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then include them all in a giant plot. 
+If there are no stops/routes within the max headway limit, then return 
+<tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+<p>NOTES:</p>
+<p>Take the resulting figure <tt class="docutils literal"><span class="pre">f</span></tt> and do <tt class="docutils literal"><span class="pre">f.tight_layout()</span></tt>
+for a nice-looking plot.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfs_toolkit.utils.plot_routes_time_series">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">plot_routes_time_series</tt><big>(</big><em>routes_ts_dict</em>, <em>big_units=True</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.plot_routes_time_series" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a routes time series dictionary (possibly downsampled),
-sum each time series over all routes, plot each series using
-MatplotLib, and return the resulting figure of four subplots.</p>
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">plot_routes_time_series</tt><big>(</big><em>time_series</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.plot_routes_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a stops or routes time series data frame,
+sum each time series statistic over all stops/routes, 
+plot each series statistic using MatplotLib, 
+and return the resulting figure of subplots.</p>
+<p>NOTES:</p>
+<p>Take the resulting figure <tt class="docutils literal"><span class="pre">f</span></tt> and do <tt class="docutils literal"><span class="pre">f.tight_layout()</span></tt>
+for a nice-looking plot.</p>
 </dd></dl>
 
 <dl class="function">
@@ -105,6 +133,11 @@ MatplotLib, and return the resulting figure of four subplots.</p>
 If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then do the inverse operation.
 In keeping with GTFS standards, the hours entry may be greater than 23.</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.time_it">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">time_it</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.time_it" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="gtfs_toolkit.utils.timestr_mod_24">

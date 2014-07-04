@@ -26,3 +26,5 @@ Todo
 - Add option to split route time series by direction
 - Add more tests
 - Add a decorator or use logging for timing function calls
+- Update timing comments to reference a test feed, such as Portland
+- Implement upsampling of time series (up to at most 1 minute frequency)
