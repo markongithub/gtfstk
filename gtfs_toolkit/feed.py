@@ -220,6 +220,103 @@ class Feed(object):
 
         # Compute start time, end time, duration
         f = pd.merge(trips, stop_times)
+        
+        # Convert departure times to seconds past midnight, 
+        # to compute durations below
+        f['departure_time'] = f['departure_time'].map(
+          lambda x: utils.seconds_to_timestr(x, inverse=True))
+        g = f.groupby('trip_id')
+        h = g['departure_time'].agg({'start_time': np.min, 'end_time': np.max})
+        h['duration'] = (h['end_time'] - h['start_time'])/3600
+
+        # Compute start stop and end stop
+        def start_stop(group):
+            i = group['departure_time'].argmin()
+            return group['stop_id'].at[i]
+
+        def end_stop(group):
+            i = group['departure_time'].argmax()
+            return group['stop_id'].at[i]
+
+        h['start_stop'] = g.apply(start_stop)
+        h['end_stop'] = g.apply(end_stop)
+
+        # Convert times back to time strings
+        h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
+          applymap(lambda x: utils.seconds_to_timestr(int(x)))
+
+        # Compute trip distance (in meters), 
+        # which is more involved and requires self.shapes
+        def get_dist(group):
+            group = group.sort('stop_sequence')
+            start_stop = group['stop_id'].iat[0] 
+            end_stop = group['stop_id'].iat[-1] 
+            shape = group['shape_id'].iat[0]
+            if pd.isnull(shape):
+                return np.nan
+            stop_pair = frozenset([start_stop, end_stop])
+            if stop_pair in dist_by_stop_pair_by_shape[shape]:
+                d = dist_by_stop_pair_by_shape[shape][stop_pair]
+            else:
+                # Compute distance afresh and store
+                linestring = linestring_by_shape[shape]
+                p = xy_by_stop[start_stop]
+                q = xy_by_stop[end_stop]
+                d = utils.get_segment_length(linestring, p, q) 
+                if d == 0:
+                    # Trip is a circuit. 
+                    # This can even happen when start_stop != end_stop 
+                    # if the two stops are very close together
+                    d = linestring.length
+                d = int(round(d))        
+                dist_by_stop_pair_by_shape[shape][stop_pair] = d       
+            return d
+
+        if self.shapes is not None:
+            linestring_by_shape = self.get_linestring_by_shape()
+            xy_by_stop = self.get_xy_by_stop()
+            dist_by_stop_pair_by_shape = {shape: {} 
+              for shape in linestring_by_shape}
+            h['distance'] = g.apply(get_dist)
+        else:
+            h['distance'] = np.nan
+
+        # Convert distance from meters to kilometers
+        h['distance'] /= 1000
+
+        stats = pd.merge(stats, h.reset_index())
+        stats.sort('route_id')
+
+        return stats
+
+    def get_trips_stats_bak(self):
+        """
+        Return a Pandas data frame with the following columns:
+
+        - trip_id
+        - direction_id
+        - route_id
+        - start_time: first departure time of the trip
+        - end_time: last departure time of the trip
+        - start_stop_id: stop ID of the first stop of the trip 
+        - end_stop_id: stop ID of the last stop of the trip
+        - duration: duration of the trip in hours
+        - distance: distance of the trip in kilometers; contains all ``np.nan``
+          entries if ``self.shapes is None``
+
+        NOTES:
+
+        Takes about 1 minute on the Portland feed.
+        """
+        trips = self.trips
+        stop_times = self.stop_times
+        num_trips = trips.shape[0]
+        
+        # Initialize data frame. Base it on trips.txt.
+        stats = trips[['route_id', 'trip_id', 'direction_id']]
+
+        # Compute start time, end time, duration
+        f = pd.merge(trips, stop_times)
         # Convert departure times to seconds past midnight, 
         # to compute durations below
         f['departure_time'] = f['departure_time'].map(
