@@ -207,6 +207,7 @@ class Feed(object):
         - duration: duration of the trip in hours
         - distance: distance of the trip in kilometers; contains all ``np.nan``
           entries if ``self.shapes is None``
+        - num_stops: number of stops on trip
 
         NOTES:
 
@@ -241,6 +242,7 @@ class Feed(object):
 
         h['start_stop'] = g.apply(start_stop)
         h['end_stop'] = g.apply(end_stop)
+        h['num_stops'] = g.count()['route_id']
 
         # Convert times back to time strings
         h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
