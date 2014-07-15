@@ -209,7 +209,7 @@ class Feed(object):
 
         NOTES:
 
-        Takes about 1 minute on the Portland feed.
+        Takes about 0.9 minutes on the Portland feed.
         """
         trips = self.trips
         stop_times = self.stop_times
@@ -220,7 +220,7 @@ class Feed(object):
 
         # Compute start time, end time, duration
         f = pd.merge(trips, stop_times)
-        
+
         # Convert departure times to seconds past midnight, 
         # to compute durations below
         f['departure_time'] = f['departure_time'].map(
@@ -289,6 +289,7 @@ class Feed(object):
 
         return stats
 
+    # Slightly slower version of 
     def get_trips_stats_bak(self):
         """
         Return a Pandas data frame with the following columns:
@@ -306,7 +307,7 @@ class Feed(object):
 
         NOTES:
 
-        Takes about 1 minute on the Portland feed.
+        Takes about 1.1 minutes on the Portland feed.
         """
         trips = self.trips
         stop_times = self.stop_times
