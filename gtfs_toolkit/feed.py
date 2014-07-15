@@ -242,7 +242,7 @@ class Feed(object):
 
         h['start_stop'] = g.apply(start_stop)
         h['end_stop'] = g.apply(end_stop)
-        h['num_stops'] = g.count()['route_id']
+        h['num_stops'] = g.size()
 
         # Convert times back to time strings
         h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
@@ -423,11 +423,21 @@ class Feed(object):
     def get_shape_dist_traveled(self):
         """
         Compute the optional ``shape_dist_traveled`` GTFS field for
-        ``self.stop_times`` and return the resulting Pandas data frame.          
-        """
-        t1 = dt.datetime.now()
-        print(t1, 'Beginning process')
+        ``self.stop_times`` and return the resulting Pandas data frame.  
+        As a second output, return a data frame with the columns
 
+        - route_id
+        - trip_id
+        - shape_id
+
+        of the trips for which this calculation definitely failed.
+
+        NOTE: 
+
+        Takes about 0.2 minutes on the Portland feed.
+        Fails on shapes with self-intersecting linestrings,
+        such as loops.
+        """
         linestring_by_shape = self.get_linestring_by_shape()
         xy_by_stop = self.get_xy_by_stop()
 
@@ -474,79 +484,9 @@ class Feed(object):
             return group
 
 
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished in %.2f min' % minutes)
         result = f.groupby('trip_id', group_keys=False).apply(get_dist)
         failures = result[result['good_distances'] == False].groupby('trip_id').first().reset_index()
-        print('Failures on these trips:', failures[['route_id', 'trip_id', 'shape_id']])  
-        return result
-
-
-    # TODO: Redo with groupby and apply
-    def get_stop_times_with_shape_dist_traveled(self):
-        """
-        Compute the optional ``shape_dist_traveled`` GTFS field for
-        ``self.stop_times`` and return the resulting Pandas data frame.  
-
-        NOTES:
-
-        This takes a *long* time, so probably needs improving.
-        On the SEQ feed, i stopped it after 2 hours.
-        """
-        trips = self.trips
-        stop_times = self.stop_times
-
-        t1 = dt.datetime.now()
-        print(t1, 'Adding shape_dist_traveled field to %s stop times...' %\
-          stop_times['trip_id'].count())
-
-        linestring_by_shape = self.get_linestring_by_shape()
-        xy_by_stop = self.get_xy_by_stop()
-
-        failures = []
-
-        # Initialize data frame
-        merged = pd.merge(trips[['trip_id', 'shape_id']], stop_times)
-        merged['shape_dist_traveled'] = pd.Series()
-
-        # Compute shape_dist_traveled column entries
-        dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
-        for shape, group in merged.groupby('shape_id'):
-            linestring = linestring_by_shape[shape]
-            for trip, subgroup in group.groupby('trip_id'):
-                # Compute the distances of the stops along this trip
-                subgroup.sort('stop_sequence')
-                stops = subgroup['stop_id'].values
-                distances = []
-                for stop in stops:
-                    if stop in dist_by_stop_by_shape[shape]:
-                        d = dist_by_stop_by_shape[shape][stop]
-                    else:
-                        d = round(
-                          utils.get_segment_length(linestring, xy_by_stop[stop]), 2)
-                        dist_by_stop_by_shape[shape][stop] = d
-                    distances.append(d)
-                if distances[0] > distances[1]:
-                    # This happens when the shape linestring direction is the
-                    # opposite of the trip direction. Reverse the distances.
-                    distances = distances[::-1]
-                if distances != sorted(distances):
-                    # Uh oh
-                    failures.append(trip)
-                # Insert stop distances
-                index = subgroup.index[0]
-                for (i, d) in enumerate(distances):
-                    merged.ix[index + i, 'shape_dist_traveled'] = d
-
-        del merged['shape_id']
-
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished in %.2f min' % minutes)
-        print('%s failures on these trips: %s' % (len(failures), failures))  
-
-        return merged
+        return result, failures
 
     def get_stops_activity(self, dates):
         """
