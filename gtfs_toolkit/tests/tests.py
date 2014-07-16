@@ -14,7 +14,6 @@ cairns_shapeless = Feed('gtfs_toolkit/tests/cairns_gtfs.zip')
 cairns_shapeless.shapes = None
 
 class TestFeed(unittest.TestCase):
-    #"""
     def test_seconds_to_timestr(self):
         seconds = 3600 + 60 + 1
         timestr = '01:01:01'
@@ -40,7 +39,13 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(get_segment_length(s, p), 0)
 
     def test_init(self):
-        portland = Feed('gtfs_toolkit/tests/portland_gtfs.zip')
+        # Test distance units check
+        self.assertRaises(AssertionError, Feed, 
+          path='gtfs_toolkit/tests/cairns_gtfs.zip', 
+          distance_units='bingo')
+        # Test other stuff
+        portland = Feed('gtfs_toolkit/tests/portland_gtfs.zip', 
+          distance_units='ft')
         for feed in [cairns, portland]:
             self.assertIsInstance(feed.routes, pd.core.frame.DataFrame)
             self.assertIsInstance(feed.stops, pd.core.frame.DataFrame)
@@ -51,6 +56,14 @@ class TestFeed(unittest.TestCase):
             if feed.calendar_dates is not None:
                 self.assertIsInstance(feed.calendar_dates, 
                   pd.core.frame.DataFrame)
+
+    def test_to_km(self):
+        feed = cairns
+        feed.distance_units = 'mi'
+        f = feed.to_km
+        self.assertEqual(f(1), 1.6093)
+        # Reset
+        feed.distance_units = 'km'
 
     def test_get_dates(self):
         feed = cairns
@@ -220,7 +233,7 @@ class TestFeed(unittest.TestCase):
             expect_num_routes = 5*f.shape[0]
             self.assertEqual(rts.shape[0], 24)
             self.assertEqual(rts.shape[1], expect_num_routes)
-    #"""
+
 
 if __name__ == '__main__':
     unittest.main()
