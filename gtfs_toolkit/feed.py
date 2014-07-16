@@ -19,6 +19,9 @@ import utm
 
 import gtfs_toolkit.utils as utils
 
+VALID_DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
+
+
 class Feed(object):
     """
     A class to gather all the GTFS files for a feed and store them in memory 
@@ -26,12 +29,16 @@ class Feed(object):
     Make sure you have enough memory!  
     The stop times object can be big.
     """
-    def __init__(self, path):
+    def __init__(self, path, distance_units='km'):
         """
         Read in all the relevant GTFS text files within the directory or 
-        ZIP file given by ``path``.
+        ZIP file given by ``path`` and assign them to instance attributes.
         Assume the zip file unzips as a collection of GTFS text files
         rather than as a directory of GTFS text files.
+        Set the native distance units of this feed to the given distance
+        units.
+        Valid options are listed in ``VALID_DISTANCE_UNITS``.
+        All distance units will then be converted to kilometers.
         """
         zipped = False
         if zipfile.is_zipfile(path):
@@ -40,6 +47,11 @@ class Feed(object):
             archive = zipfile.ZipFile(path)
             path = path.rstrip('.zip') + '/'
             archive.extractall(path)
+
+        # Get distance units
+        assert distance_units in VALID_DISTANCE_UNITS,\
+            'Units must be one of {!s}'.format(VALID_DISTANCE_UNITS)
+        self.distance_units = distance_units
 
         self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str, 
           'stop_code': str})
@@ -96,6 +108,20 @@ class Feed(object):
         if zipped:
             # Remove extracted directory
             shutil.rmtree(path)
+
+    def to_km(self, x):
+        """
+        Given a distance ``x`` in this feed's native units,
+        convert it to kilometers and return the result.
+        """
+        if self.distance_units == 'km':
+            return x
+        if self.distance_units == 'm':
+            return x/1000
+        if self.distance_units == 'mi':
+            return x*1.6093
+        if self.distance_units == 'ft':
+            return x*0.00030480
 
     def get_dates(self):
         """
@@ -192,6 +218,7 @@ class Feed(object):
               int(self.is_active_trip(trip, date)))
         return f[['trip_id', 'direction_id', 'route_id'] + dates]
 
+    # TODO: Speed up by using Pandas apply()
     def get_trips_stats(self):
         """
         Return a Pandas data frame with the following columns:
@@ -206,10 +233,22 @@ class Feed(object):
         - duration: duration of the trip in hours
         - distance: distance of the trip in kilometers; contains all ``np.nan``
           entries if ``self.shapes is None``
+        - num_stops: number of stops on trip
 
         NOTES:
 
-        Takes about 1 minute on the Portland feed.
+        If ``self.stop_times`` has a ``shape_dist_traveled`` column,
+        then use that to compute the distance column (in km).
+        If ``self.stop_times`` does not and ``self.shapes`` exists,
+        then compute the distance column using the shapes and Shapely, 
+        If ``self.shapes is None``, then set distances to ``np.nan``.
+        Warning: In the second case, the distance will probably be wrong
+        when the shape has segments that are parallel and very close, e.g.
+        a looping trip with in and out segments that are incorrectly coded 
+        and lie on the same side of the road.
+
+        Takes about 0.3 minutes on the Portland feed, which has the
+        ``shape_dist_traveled`` column.
         """
         trips = self.trips
         stop_times = self.stop_times
@@ -220,13 +259,15 @@ class Feed(object):
 
         # Compute start time, end time, duration
         f = pd.merge(trips, stop_times)
+
         # Convert departure times to seconds past midnight, 
         # to compute durations below
         f['departure_time'] = f['departure_time'].map(
           lambda x: utils.seconds_to_timestr(x, inverse=True))
-        f = f.groupby('trip_id')
-        g = f['departure_time'].agg({'start_time': np.min, 'end_time': np.max})
-        g['duration'] = (g['end_time'] - g['start_time'])/3600
+        g = f.groupby('trip_id')
+        h = g['departure_time'].agg(OrderedDict([('start_time', np.min), 
+          ('end_time', np.max)]))
+        h['duration'] = (h['end_time'] - h['start_time'])/3600
 
         # Compute start stop and end stop
         def start_stop(group):
@@ -237,61 +278,70 @@ class Feed(object):
             i = group['departure_time'].argmax()
             return group['stop_id'].at[i]
 
-        g['start_stop'] = f.apply(start_stop)
-        g['end_stop'] = f.apply(end_stop)
+        h['start_stop'] = g.apply(start_stop)
+        h['end_stop'] = g.apply(end_stop)
+        h['num_stops'] = g.size()
 
         # Convert times back to time strings
-        g[['start_time', 'end_time']] = g[['start_time', 'end_time']].\
+        h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
           applymap(lambda x: utils.seconds_to_timestr(int(x)))
 
-        # Compute trip distance (in meters), 
-        # which is more involved and requires self.shapes
-        if self.shapes is not None:
-            g['shape_id'] = f['shape_id'].first()
+        # Compute trip distance (in kilometers)
+        def get_dist(group):
+            return self.to_km(group['shape_dist_traveled'].max())
+
+        def get_dist_from_shapes(group):
+            group = group.sort('stop_sequence')
+            start_stop = group['stop_id'].iat[0] 
+            end_stop = group['stop_id'].iat[-1] 
+            shape = group['shape_id'].iat[0]
+            if pd.isnull(shape):
+                return np.nan
+            stop_pair = frozenset([start_stop, end_stop])
+            if stop_pair in dist_by_stop_pair_by_shape[shape]:
+                d = dist_by_stop_pair_by_shape[shape][stop_pair]
+            else:
+                # Compute distance afresh and store
+                linestring = linestring_by_shape[shape]
+                p = xy_by_stop[start_stop]
+                q = xy_by_stop[end_stop]
+                d = utils.get_segment_length(linestring, p, q) 
+                if d == 0:
+                    # Trip is a circuit. 
+                    # This can even happen when start_stop != end_stop 
+                    # if the two stops are very close together
+                    d = linestring.length
+                d = int(round(d))        
+                dist_by_stop_pair_by_shape[shape][stop_pair] = d   
+            # Convert d from meters to kilometers    
+            return d/1000
+
+        if 'shape_dist_traveled' in f.columns:
+            # Compute distances using shape_dist_traveled column
+            h['distance'] = g.apply(get_dist)
+        elif self.shapes is not None:
+            # Compute distances using the shapes and Shapely
             linestring_by_shape = self.get_linestring_by_shape()
             xy_by_stop = self.get_xy_by_stop()
             dist_by_stop_pair_by_shape = {shape: {} 
               for shape in linestring_by_shape}
-
-            for trip, row in g.iterrows():
-                start_stop = row.at['start_stop'] 
-                end_stop = row.at['end_stop'] 
-                shape = row.at['shape_id']
-                if pd.isnull(shape):
-                    continue
-                stop_pair = frozenset([start_stop, end_stop])
-                if stop_pair in dist_by_stop_pair_by_shape[shape]:
-                    d = dist_by_stop_pair_by_shape[shape][stop_pair]
-                else:
-                    # Compute distance afresh and store
-                    linestring = linestring_by_shape[shape]
-                    p = xy_by_stop[start_stop]
-                    q = xy_by_stop[end_stop]
-                    d = utils.get_segment_length(linestring, p, q) 
-                    if d == 0:
-                        # Trip is a circuit. 
-                        # This can even happen when start_stop != end_stop 
-                        # if the two stops are very close together
-                        d = linestring.length
-                    d = int(round(d))        
-                    dist_by_stop_pair_by_shape[shape][stop_pair] = d       
-                g.ix[trip, 'distance'] = d
+            h['distance'] = g.apply(get_dist_from_shapes)
         else:
-            g['distance'] = np.nan
+            h['distance'] = np.nan
 
-        # Convert distance from meters to kilometers
-        g['distance'] /= 1000
-
-        stats = pd.merge(stats, g.reset_index())
-        stats.sort('route_id')
-
+        stats = pd.merge(stats, h.reset_index()).sort(['route_id', 
+          'direction_id', 'start_time'])
         return stats
 
-    def get_linestring_by_shape(self):
+    def get_linestring_by_shape(self, use_utm=True):
         """
         Return a dictionary with structure
-        shape_id -> Shapely linestring of shape in UTM coordinates.
+        shape_id -> Shapely linestring of shape.
         If ``self.shapes is None``, then return ``None``.
+        If ``use_utm == True``, then return each linestring in
+        in UTM coordinates.
+        Otherwise, return each linestring in WGS84 longitude-latitude
+        coordinates.
         """
         if self.shapes is None:
             return
@@ -301,12 +351,19 @@ class Feed(object):
         # >>> print u
         # (414278, 5316285, 32, 'T')
         linestring_by_shape = {}
-        for shape, group in self.shapes.groupby('shape_id'):
-            lons = group['shape_pt_lon'].values
-            lats = group['shape_pt_lat'].values
-            xys = [utm.from_latlon(lat, lon)[:2] 
-              for lat, lon in zip(lats, lons)]
-            linestring_by_shape[shape] = LineString(xys)
+        if use_utm:
+            for shape, group in self.shapes.groupby('shape_id'):
+                lons = group['shape_pt_lon'].values
+                lats = group['shape_pt_lat'].values
+                xys = [utm.from_latlon(lat, lon)[:2] 
+                  for lat, lon in zip(lats, lons)]
+                linestring_by_shape[shape] = LineString(xys)
+        else:
+            for shape, group in self.shapes.groupby('shape_id'):
+                lons = group['shape_pt_lon'].values
+                lats = group['shape_pt_lat'].values
+                lonlats = zip(lons, lats)
+                linestring_by_shape[shape] = LineString(lonlats)
         return linestring_by_shape
 
     def get_xy_by_stop(self):
@@ -320,70 +377,73 @@ class Feed(object):
             xy_by_stop[stop] = utm.from_latlon(lat, lon)[:2] 
         return xy_by_stop
 
-    # # TODO: Redo with groupby and apply
-    # def get_stop_times_with_shape_dist_traveled(self):
-    #     """
-    #     Compute the optional ``shape_dist_traveled`` GTFS field for
-    #     ``self.stop_times`` and return the resulting Pandas data frame.  
+    def get_shape_dist_traveled(self):
+        """
+        Compute the optional ``shape_dist_traveled`` GTFS field for
+        ``self.stop_times`` and return the resulting Pandas data frame.  
+        As a second output, return a data frame with the columns
 
-    #     NOTES:
+        - route_id
+        - trip_id
+        - shape_id
 
-    #     This takes a *long* time, so probably needs improving.
-    #     On the SEQ feed, i stopped it after 2 hours.
-    #     """
-    #     trips = self.trips
-    #     stop_times = self.stop_times
+        of the trips for which this calculation definitely failed.
 
-    #     t1 = dt.datetime.now()
-    #     print(t1, 'Adding shape_dist_traveled field to %s stop times...' %\
-    #       stop_times['trip_id'].count())
+        NOTE: 
 
-    #     linestring_by_shape = self.get_linestring_by_shape()
-    #     xy_by_stop = self.get_xy_by_stop()
+        Takes about 0.2 minutes on the Portland feed.
+        Fails on shapes with self-intersecting linestrings,
+        such as loops.
+        """
+        linestring_by_shape = self.get_linestring_by_shape()
+        xy_by_stop = self.get_xy_by_stop()
 
-    #     failures = []
+        # Initialize data frame
+        f = pd.merge(self.trips[['route_id', 'trip_id', 'shape_id']], self.stop_times)
+        #f['shape_dist_traveled'] = pd.Series()
+        #f['good_distances'] = pd.Series()
+        # Temporary tweak
+        f = f[f['shape_id'].notnull()]
+        dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
 
-    #     # Initialize data frame
-    #     merged = pd.merge(trips[['trip_id', 'shape_id']], stop_times)
-    #     merged['shape_dist_traveled'] = pd.Series()
+        def get_dist(group):
+            # Compute the distances of the stops along this trip
+            group = group.sort('stop_sequence')
+            trip = group['trip_id'].iat[0]
+            shape = group['shape_id'].iat[0]
+            if not isinstance(shape, str):
+                print(trip, 'no shape_id:', shape)
+                group['shape_dist_traveled'] = np.nan 
+                group['good_distances'] = np.nan 
+                return group
+            linestring = linestring_by_shape[shape]
+            distances = []
+            for stop in group['stop_id'].values:
+                if stop in dist_by_stop_by_shape[shape]:
+                    d = dist_by_stop_by_shape[shape][stop]
+                else:
+                    d = round(
+                      utils.get_segment_length(linestring, xy_by_stop[stop]))
+                    dist_by_stop_by_shape[shape][stop] = d
+                # Convert from meters to kilometers
+                d /= 1000
+                distances.append(d)
+            # if distances[0] > distances[1]:
+            #     # This happens when the shape linestring direction is the
+            #     # opposite of the trip direction. Reverse the distances.
+            #     distances = distances[::-1]
+            if distances == sorted(distances):
+                group['good_distances'] = True
+            else:
+                group['good_distances'] = False
+            # Insert stop distances
+            group['shape_dist_traveled'] = distances
+            return group
 
-    #     # Compute shape_dist_traveled column entries
-    #     dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
-    #     for shape, group in merged.groupby('shape_id'):
-    #         linestring = linestring_by_shape[shape]
-    #         for trip, subgroup in group.groupby('trip_id'):
-    #             # Compute the distances of the stops along this trip
-    #             subgroup.sort('stop_sequence')
-    #             stops = subgroup['stop_id'].values
-    #             distances = []
-    #             for stop in stops:
-    #                 if stop in dist_by_stop_by_shape[shape]:
-    #                     d = dist_by_stop_by_shape[shape][stop]
-    #                 else:
-    #                     d = round(
-    #                       utils.get_segment_length(linestring, xy_by_stop[stop]), 2)
-    #                     dist_by_stop_by_shape[shape][stop] = d
-    #                 distances.append(d)
-    #             if distances[0] > distances[1]:
-    #                 # This happens when the shape linestring direction is the
-    #                 # opposite of the trip direction. Reverse the distances.
-    #                 distances = distances[::-1]
-    #             if distances != sorted(distances):
-    #                 # Uh oh
-    #                 failures.append(trip)
-    #             # Insert stop distances
-    #             index = subgroup.index[0]
-    #             for (i, d) in enumerate(distances):
-    #                 merged.ix[index + i, 'shape_dist_traveled'] = d
 
-    #     del merged['shape_id']
-
-    #     t2 = dt.datetime.now()
-    #     minutes = (t2 - t1).seconds/60
-    #     print(t2, 'Finished in %.2f min' % minutes)
-    #     print('%s failures on these trips: %s' % (len(failures), failures))  
-
-    #     return merged
+        result = f.groupby('trip_id', group_keys=False).apply(get_dist)
+        failures = result[result['good_distances'] == False].groupby('trip_id').first().reset_index()
+        return result, failures
 
     def get_stops_activity(self, dates):
         """
