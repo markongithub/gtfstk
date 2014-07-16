@@ -172,7 +172,9 @@ def downsample(time_series, freq):
     # Reset column names in result, because they disappear after resampling.
     # Pandas 0.14.0 bug?
     result.columns.names = time_series.columns.names
-    return result
+    # Sort the multiindex column to make slicing possible;
+    # see http://pandas.pydata.org/pandas-docs/stable/indexing.html#multiindexing-using-slicers
+    return result.sortlevel(axis=1)
 
 def plot_headways(stats, max_headway_limit=60):
     """
