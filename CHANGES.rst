@@ -6,3 +6,4 @@
 - v0.1.5, 2014-06-23: Added documentation
 - v0.1.6, 2014-07-04: Changed time series format
 - v0.1.7, 2014-07-15: Improved ``get_trips_stats()`` and cleaned up code
+- v0.1.8, 2014-07-15: Minor tweak to ``downsample()``
