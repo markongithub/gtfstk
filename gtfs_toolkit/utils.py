@@ -106,38 +106,6 @@ def get_segment_length(linestring, p, q=None):
         d = d_p
     return d
 
-# def downsample_routes_time_series(routes_time_series, freq):
-#     """
-#     Resample the given routes time series, which is the output of 
-#     ``Feed.get_routes_time_series()``, to the given (Pandas style) frequency.
-#     Additionally, add a new 'mean_daily_speed' time series to the output 
-#     dictionary.
-#     """
-#     result = {name: None for name in routes_time_series}
-#     result.update({'mean_daily_speed': None})
-#     for name in result:
-#         if name == 'mean_daily_speed':
-#             numer = routes_time_series['mean_daily_distance'].resample(freq,
-#               how=np.sum)
-#             denom = routes_time_series['mean_daily_duration'].resample(freq,
-#               how=np.sum)
-#             g = numer.divide(denom)
-#         elif name == 'mean_daily_num_trip_starts':
-#             f = routes_time_series[name]
-#             g = f.resample(freq, how=np.sum)
-#         elif name == 'mean_daily_num_vehicles':
-#             f = routes_time_series[name]
-#             g = f.resample(freq, how=np.mean)
-#         elif name == 'mean_daily_duration':
-#             f = routes_time_series[name]
-#             g = f.resample(freq, how=np.sum)
-#         else:
-#             # name == 'distance'
-#             f = routes_time_series[name]
-#             g = f.resample(freq, how=np.sum)
-#         result[name] = g
-#     return result
-
 def combine_time_series(time_series_dict, kind, split_directions=True):
     """
     Given a dictionary of time series data frames, combine the time series
