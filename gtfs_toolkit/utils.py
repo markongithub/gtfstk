@@ -106,10 +106,10 @@ def get_segment_length(linestring, p, q=None):
         d = d_p
     return d
 
-def combine_time_series(time_series_dict, kind, split_directions=True):
+def combine_time_series(time_series_dict, kind, split_directions=False):
     """
     Given a dictionary of time series data frames, combine the time series
-    into one time series data frame with multi-index (hierarchical columns)
+    into one time series data frame with multi-index (hierarchical) columns
     and return the result.
     The top level columns are the keys of the dictionary and
     the second and third level columns are 'route_id' and 'direction_id',
@@ -118,11 +118,15 @@ def combine_time_series(time_series_dict, kind, split_directions=True):
     If ``split_directions == False``, then there is no third column level,
     no 'direction_id' column.
     """
-    if kind == 'route':
-        subcolumns = ['route_id']
+    assert kind in ['stop', 'route'],\
+      "kind must be 'stop' or 'route'"
+
+    subcolumns = ['statistic']
+    if kind == 'stop':
+        subcolumns.append('stop_id')
     else:
-        # Assume kind == 'stop':
-        subcolumns = ['stop_id']
+        subcolumns.append('route_id')
+
     if split_directions:
         subcolumns.append('direction_id')
 
@@ -135,12 +139,12 @@ def combine_time_series(time_series_dict, kind, split_directions=True):
         for f in frames:
             ft = f.T
             ft.index = pd.MultiIndex.from_tuples([process_index(k) 
-              for k,v in ft.iterrows()], names=subcolumns)
+              for (k, v) in ft.iterrows()])
             new_frames.append(ft.T)
     else:
         new_frames = frames
     return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
-      names=['statistic'])
+      names=subcolumns)
 
 def downsample(time_series, freq):
     """

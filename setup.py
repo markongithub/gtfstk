@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='gtfs-toolkit',
-    version='0.1.8',
+    version='0.1.9',
     author='Alexander Raichev',
     author_email='alex@raichev.net',
     packages=['gtfs_toolkit', 'gtfs_toolkit.tests'],
