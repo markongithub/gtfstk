@@ -495,7 +495,7 @@ class Feed(object):
 
         NOTES:
 
-        Takes about 0.73 minutes on the Portland feed given the first
+        Takes about 0.7 minutes on the Portland feed given the first
         five weekdays of the feed.
         """
         # Get active trips and merge with stop times
