@@ -643,7 +643,8 @@ class Feed(object):
         num_rows = stats.shape[0]
         for index, row in stats.iterrows():
             i += 1
-            print("Progress {:2.1%}".format(i/num_rows), end="\r")
+            print("Stops time series progress {:2.1%}".format(i/num_rows), 
+              end="\r")
             stop = row['stop_id']
             weight = row['weight']
             dtime = row['departure_time']
@@ -1000,7 +1001,8 @@ class Feed(object):
         num_rows = stats.shape[0]
         for index, row in stats.iterrows():
             i += 1
-            print("Progress {:2.1%}".format(i/num_rows), end="\r")
+            print("Routes time series progress {:2.1%}".format(i/num_rows), 
+              end="\r")
             trip = row['trip_id']
             route = row['route_id']
             weight = row['weight']
@@ -1047,7 +1049,8 @@ class Feed(object):
           split_directions=split_directions)
         return utils.downsample(g, freq=freq)
 
-    def dump_all_stats(self, directory, dates=None, freq='1H'):
+    def dump_all_stats(self, directory, dates=None, freq='1H', 
+      split_directions=False):
         """
         Into the given directory, dump to separate CSV files the outputs of
         
@@ -1077,7 +1080,7 @@ class Feed(object):
         readme = """
         Notes 
         =====
-        - Distances are measured in kilommeters and durations are measured in
+        - Distances are measured in kilometers and durations are measured in
         hours
         - Stats were calculated for the period {!s}
         """.format(dates_str)
@@ -1090,7 +1093,8 @@ class Feed(object):
         stops_stats.to_csv(directory + 'stops_stats.csv', index=False)
 
         # Stops time series
-        sts = self.get_stops_time_series(dates)
+        sts = self.get_stops_time_series(dates, 
+          split_directions=split_directions)
         sts = utils.downsample(sts, freq=freq)
         sts.to_csv(directory + 'stops_time_series_{!s}.csv'.format(freq))
 
@@ -1099,11 +1103,13 @@ class Feed(object):
         trips_stats.to_csv(directory + 'trips_stats.csv', index=False)
 
         # Routes stats
-        routes_stats = self.get_routes_stats(trips_stats, dates)
+        routes_stats = self.get_routes_stats(trips_stats, dates,
+          split_directions=split_directions)
         routes_stats.to_csv(directory + 'routes_stats.csv', index=False)
 
         # Routes time series
-        rts = self.get_routes_time_series(trips_stats, dates)
+        rts = self.get_routes_time_series(trips_stats, dates,
+          split_directions=split_directions)
         rts = utils.downsample(rts, freq=freq)
         rts.to_csv(directory + 'routes_time_series_{!s}.csv'.format(freq))
 

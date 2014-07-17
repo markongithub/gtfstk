@@ -8,3 +8,4 @@
 - v0.1.7, 2014-07-16: Improved ``get_trips_stats()`` and cleaned up code
 - v0.1.8, 2014-07-16: Minor tweak to ``downsample()``
 - v0.1.9, 2014-07-17: Changed ``get_routes_stats()`` headway calculation. Fixed inconsistent outputs in time series functions.
+- v0.1.10, 2014-07-17: Fixed some typos and cleaned up the directory
