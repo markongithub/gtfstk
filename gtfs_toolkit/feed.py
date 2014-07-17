@@ -3,7 +3,7 @@ Some tools for computing stats from a GTFS feed, assuming the feed
 is valid.
 
 All time estimates below were produced on a 2013 MacBook Pro with a
-2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.2.
+2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -219,7 +219,7 @@ class Feed(object):
         return f[['trip_id', 'direction_id', 'route_id'] + dates]
 
     # TODO: Speed up by using Pandas apply()
-    def get_trips_stats(self):
+    def get_trips_stats(self, get_dist_from_shapes=True):
         """
         Return a Pandas data frame with the following columns:
 
@@ -239,13 +239,14 @@ class Feed(object):
 
         If ``self.stop_times`` has a ``shape_dist_traveled`` column,
         then use that to compute the distance column (in km).
-        If ``self.stop_times`` does not and ``self.shapes`` exists,
+        Else if ``self.shapes is not None`` and 
+        ``get_dist_from_shapes == True``,
         then compute the distance column using the shapes and Shapely, 
-        If ``self.shapes is None``, then set distances to ``np.nan``.
-        Warning: In the second case, the distance will probably be wrong
+        Warning: In this case, the distance will probably be wrong
         when the shape has segments that are parallel and very close, e.g.
-        a looping trip with in and out segments that are incorrectly coded 
-        and lie on the same side of the road.
+        a looping trip with in and out segments that lie on the same side of
+        the road (because of bad GIS data).
+        Else, set the distances to ``np.nan``.
 
         Takes about 0.3 minutes on the Portland feed, which has the
         ``shape_dist_traveled`` column.
@@ -286,11 +287,8 @@ class Feed(object):
         h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
           applymap(lambda x: utils.seconds_to_timestr(int(x)))
 
-        # Compute trip distance (in kilometers)
+        # Compute trip distance (in kilometers) from shapes
         def get_dist(group):
-            return self.to_km(group['shape_dist_traveled'].max())
-
-        def get_dist_from_shapes(group):
             group = group.sort('stop_sequence')
             start_stop = group['stop_id'].iat[0] 
             end_stop = group['stop_id'].iat[-1] 
@@ -318,14 +316,15 @@ class Feed(object):
 
         if 'shape_dist_traveled' in f.columns:
             # Compute distances using shape_dist_traveled column
-            h['distance'] = g.apply(get_dist)
-        elif self.shapes is not None:
+            h['distance'] = g.apply(lambda group: 
+              self.to_km(group['shape_dist_traveled'].max()))
+        elif self.shapes is not None and get_dist_from_shapes:
             # Compute distances using the shapes and Shapely
             linestring_by_shape = self.get_linestring_by_shape()
             xy_by_stop = self.get_xy_by_stop()
             dist_by_stop_pair_by_shape = {shape: {} 
               for shape in linestring_by_shape}
-            h['distance'] = g.apply(get_dist_from_shapes)
+            h['distance'] = g.apply(get_dist)
         else:
             h['distance'] = np.nan
 

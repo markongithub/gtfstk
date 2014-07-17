@@ -51,6 +51,7 @@ docs/_build/html/_static/up-pressed.png
 docs/_build/html/_static/up.png
 docs/_build/html/_static/websupport.js
 examples/gtfs_toolkit_examples.ipynb
+examples/tmp.csv
 examples/.ipynb_checkpoints/gtfs_toolkit_examples-checkpoint.ipynb
 examples/stats/notes.rst
 examples/stats/routes_stats.csv
@@ -65,3 +66,4 @@ gtfs_toolkit/utils.py
 gtfs_toolkit/tests/__init__.py
 gtfs_toolkit/tests/gtfs_toolkit_tests.ipynb
 gtfs_toolkit/tests/tests.py
+gtfs_toolkit/tests/.ipynb_checkpoints/gtfs_toolkit_tests-checkpoint.ipynb

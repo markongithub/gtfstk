@@ -54,7 +54,7 @@
 <p>Some tools for computing stats from a GTFS feed, assuming the feed
 is valid.</p>
 <p>All time estimates below were produced on a 2013 MacBook Pro with a
-2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.2.</p>
+2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.</p>
 <dl class="class">
 <dt id="gtfs_toolkit.feed.Feed">
 <em class="property">class </em><tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">Feed</tt><big>(</big><em>path</em>, <em>distance_units='km'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed" title="Permalink to this definition">¶</a></dt>
@@ -328,7 +328,7 @@ trip is active (1) on the given date or inactive (0)</li>
 
 <dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.get_trips_stats">
-<tt class="descname">get_trips_stats</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_trips_stats" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_trips_stats</tt><big>(</big><em>get_dist_from_shapes=True</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_trips_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Pandas data frame with the following columns:</p>
 <ul class="simple">
 <li>trip_id</li>
@@ -346,13 +346,14 @@ entries if <tt class="docutils literal"><span class="pre">self.shapes</span> <sp
 <p>NOTES:</p>
 <p>If <tt class="docutils literal"><span class="pre">self.stop_times</span></tt> has a <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> column,
 then use that to compute the distance column (in km).
-If <tt class="docutils literal"><span class="pre">self.stop_times</span></tt> does not and <tt class="docutils literal"><span class="pre">self.shapes</span></tt> exists,
+Else if <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></tt> and 
+<tt class="docutils literal"><span class="pre">get_dist_from_shapes</span> <span class="pre">==</span> <span class="pre">True</span></tt>,
 then compute the distance column using the shapes and Shapely, 
-If <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then set distances to <tt class="docutils literal"><span class="pre">np.nan</span></tt>.
-Warning: In the second case, the distance will probably be wrong
+Warning: In this case, the distance will probably be wrong
 when the shape has segments that are parallel and very close, e.g.
-a looping trip with in and out segments that are incorrectly coded 
-and lie on the same side of the road.</p>
+a looping trip with in and out segments that lie on the same side of
+the road (because of bad GIS data).
+Else, set the distances to <tt class="docutils literal"><span class="pre">np.nan</span></tt>.</p>
 <p>Takes about 0.3 minutes on the Portland feed, which has the
 <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> column.</p>
 </dd></dl>
