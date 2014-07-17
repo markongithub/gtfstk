@@ -203,8 +203,8 @@ class Feed(object):
         - route_id
         - direction_id
         - dates[0]: a series of ones and zeros indicating if a 
-        trip is active (1) on the given date or inactive (0)
-        ...
+          trip is active (1) on the given date or inactive (0)
+        - etc.
         - dates[-1]: ditto
 
         If ``dates is None``, then return ``None``.
@@ -451,8 +451,8 @@ class Feed(object):
 
         - stop_id
         - dates[0]: a series of ones and zeros indicating if a 
-        stop has stop times on this date (1) or not (0)
-        ...
+          stop has stop times on this date (1) or not (0)
+        - etc.
         - dates[-1]: ditto
 
         If ``dates is None``, then return ``None``.

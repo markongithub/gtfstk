@@ -57,9 +57,9 @@
 <span id="the-utils-module"></span><h1>The utils Module<a class="headerlink" href="#module-gtfs_toolkit.utils" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="gtfs_toolkit.utils.combine_time_series">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">combine_time_series</tt><big>(</big><em>time_series_dict</em>, <em>kind</em>, <em>split_directions=True</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.combine_time_series" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">combine_time_series</tt><big>(</big><em>time_series_dict</em>, <em>kind</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.combine_time_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a dictionary of time series data frames, combine the time series
-into one time series data frame with multi-index (hierarchical columns)
+into one time series data frame with multi-index (hierarchical) columns
 and return the result.
 The top level columns are the keys of the dictionary and
 the second and third level columns are &#8216;route_id&#8217; and &#8216;direction_id&#8217;,
