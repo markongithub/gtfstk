@@ -282,6 +282,9 @@ def agg_routes_stats(routes_stats):
     g['mean_daily_speed'] = g['mean_daily_distance'].divide(g['mean_daily_duration'])
     return g
 
+def agg_routes_time_series(routes_time_series):
+    pass
+    
 def plot_routes_time_series(time_series):
     """
     Given a stops or routes time series data frame,

@@ -764,7 +764,7 @@ class Feed(object):
         all the routes active on at least one day of the given dates
         (list of ``datetime.date`` objects). 
         
-        Return a Pandas data frame with the following columns
+        Return a Pandas data frame with the following columns:
 
         - route_id
         - direction_id
