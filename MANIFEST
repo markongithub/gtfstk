@@ -66,5 +66,4 @@ gtfs_toolkit/utils.py
 gtfs_toolkit/tests/__init__.py
 gtfs_toolkit/tests/gtfs_toolkit_tests.ipynb
 gtfs_toolkit/tests/tests.py
-gtfs_toolkit/tests/.ipynb_checkpoints/auckland-checkpoint.ipynb
 gtfs_toolkit/tests/.ipynb_checkpoints/gtfs_toolkit_tests-checkpoint.ipynb
