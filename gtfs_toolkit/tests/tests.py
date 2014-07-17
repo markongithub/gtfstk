@@ -188,17 +188,21 @@ class TestFeed(unittest.TestCase):
         sa = feed.get_stops_activity(dates)
         sa = sa[sa[dates].sum(axis=1) > 0]
         for split_directions in [True, False]:
+            f = feed.get_stops_stats(dates, 
+              split_directions=split_directions)
             stops_ts = feed.get_stops_time_series(dates, freq='1H',
               split_directions=split_directions) 
             # Should be a data frame
             self.assertIsInstance(stops_ts, pd.core.frame.DataFrame)
             # Should have the correct shape
             self.assertEqual(stops_ts.shape[0], 24)
+            self.assertEqual(stops_ts.shape[1], f.shape[0])
+            # Should have correct column names
             if split_directions:
-                expect_num_cols = 2*sa.shape[0]
+                expect = ['statistic', 'stop_id', 'direction_id']
             else:
-                expect_num_cols = sa.shape[0]
-            self.assertEqual(stops_ts.shape[1], expect_num_cols)
+                expect = ['statistic', 'stop_id']
+            self.assertEqual(stops_ts.columns.names, expect)
 
     def test_get_routes_stats(self):
         feed = cairns
@@ -218,7 +222,7 @@ class TestFeed(unittest.TestCase):
                 f['tmp'] = f['route_id'].copy()
             expect_num_routes = len(f['tmp'].unique())
             self.assertEqual(rs.shape[0], expect_num_routes)
-    
+
     def test_get_routes_time_series(self):
         feed = cairns 
         dates = feed.get_first_week()
@@ -230,9 +234,14 @@ class TestFeed(unittest.TestCase):
               split_directions=split_directions, freq='1H')
             # Should be a data frame of the correct shape
             self.assertIsInstance(rts, pd.core.frame.DataFrame)
-            expect_num_routes = 5*f.shape[0]
             self.assertEqual(rts.shape[0], 24)
-            self.assertEqual(rts.shape[1], expect_num_routes)
+            self.assertEqual(rts.shape[1], 5*f.shape[0])
+            # Should have correct column names
+            if split_directions:
+                expect = ['statistic', 'route_id', 'direction_id']
+            else:
+                expect = ['statistic', 'route_id']
+            self.assertEqual(rts.columns.names, expect)   
 
 
 if __name__ == '__main__':
