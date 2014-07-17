@@ -238,6 +238,50 @@ def plot_headways(stats, max_headway_limit=60):
         axes[i].set_ylabel(ylabels[i])
     return fig
 
+def agg_routes_stats(routes_stats):
+    """
+    Given ``route_stats`` which is the output of ``get_routes_stats()``,
+    return a Pandas data frame with the following columns:
+
+    - direction_id
+    - mean_daily_num_trips: the sum of the corresponding column in the
+      input across all routes
+    - min_start_time: the minimum of the corresponding column of the input
+      across all routes
+    - max_end_time: the maximum of the corresponding column of the input
+      across all routes
+    - mean_daily_duration: the sum of the corresponding column in the
+      input across all routes
+    - mean_daily_distance: the sum of the corresponding column in the
+      input across all routes  
+    - mean_daily_speed: mean_daily_distance/mean_daily_distance
+
+    If the input has no direction id, then the output won't.
+    """
+    f = routes_stats
+    if 'direction_id' in routes_stats.columns:
+        g = f.groupby('direction_id').agg({
+          'min_start_time': min, 
+          'max_end_time': max, 
+          'mean_daily_num_trips': sum,
+          'mean_daily_duration': sum,
+          'mean_daily_distance': sum,
+          }).reset_index()
+    else:
+        g = pd.DataFrame([[
+          f['min_start_time'].min(), 
+          f['max_end_time'].max(), 
+          f['mean_daily_num_trips'].sum(),
+          f['mean_daily_duration'].sum(),
+          f['mean_daily_distance'].sum(),
+          ]], 
+          columns=['min_start_time', 'max_end_time', 'mean_daily_num_trips', 
+            'mean_daily_duration', 'mean_daily_distance']
+          )
+
+    g['mean_daily_speed'] = g['mean_daily_distance'].divide(g['mean_daily_duration'])
+    return g
+
 def plot_routes_time_series(time_series):
     """
     Given a stops or routes time series data frame,
