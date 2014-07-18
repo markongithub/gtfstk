@@ -282,8 +282,20 @@ def agg_routes_stats(routes_stats):
     g['mean_daily_speed'] = g['mean_daily_distance'].divide(g['mean_daily_duration'])
     return g
 
+# TODO: Finish this function
 def agg_routes_time_series(routes_time_series):
-    pass
+    rts = routes_time_series
+    if 'direction_id' in routes_stats.columns:
+        # Finish
+        rts.xs(('mean_daily_distance', '0'), level=('statistic', 'direction_id'), axis=1)
+
+        result = None
+    else:
+        keys = rts.columns.levels[0].tolist()
+        f = pd.concat([rts[key].sum(axis=1) for key in keys], axis=1, keys=keys)
+        f['mean_daily_speed'] = f['mean_daily_distance'].divide(f['mean_daily_duration'])
+        result = f
+    return result
     
 def plot_routes_time_series(time_series):
     """
