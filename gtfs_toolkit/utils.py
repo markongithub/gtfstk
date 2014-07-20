@@ -282,25 +282,93 @@ def agg_routes_stats(routes_stats):
     g['mean_daily_speed'] = g['mean_daily_distance'].divide(g['mean_daily_duration'])
     return g
 
-# TODO: Finish this function
 def agg_routes_time_series(routes_time_series):
     rts = routes_time_series
-    if 'direction_id' in routes_stats.columns:
-        # Finish
-        rts.xs(('mean_daily_distance', '0'), level=('statistic', 'direction_id'), axis=1)
-
-        result = None
+    stats = rts.columns.levels[0].tolist()
+    split_directions = 'direction_id' in rts.columns.names
+    if split_directions:
+        # For each stat and each direction, sum across routes.
+        frames = []
+        for stat in stats:
+            f0 = rts.xs((stat, '0'), level=('statistic', 'direction_id'), 
+              axis=1).sum(axis=1)
+            f1 = rts.xs((stat, '1'), level=('statistic', 'direction_id'), 
+              axis=1).sum(axis=1)
+            f = pd.concat([f0, f1], axis=1, keys=['0', '1'])
+            frames.append(f)
+        F = pd.concat(frames, axis=1, keys=stats, names=['statistic', 
+          'direction_id'])
+        # Fix speed
+        F['mean_daily_speed'] = F['mean_daily_distance'].divide(
+          F['mean_daily_duration'])
+        result = F
     else:
-        keys = rts.columns.levels[0].tolist()
-        f = pd.concat([rts[key].sum(axis=1) for key in keys], axis=1, keys=keys)
+        f = pd.concat([rts[stat].sum(axis=1) for stat in stats], axis=1, 
+          keys=stats)
         f['mean_daily_speed'] = f['mean_daily_distance'].divide(f['mean_daily_duration'])
         result = f
     return result
-    
-def plot_routes_time_series(time_series):
+
+def plot_routes_time_series(routes_time_series):
     """
-    Given a stops or routes time series data frame,
-    sum each time series statistic over all stops/routes, 
+    Given a routes time series data frame,
+    sum each time series statistic over all routes, 
+    plot each series statistic using MatplotLib, 
+    and return the resulting figure of subplots.
+
+    NOTES:
+
+    Take the resulting figure ``f`` and do ``f.tight_layout()``
+    for a nice-looking plot.
+    """
+    import matplotlib.pyplot as plt
+
+    rts = routes_time_series
+    if 'route_id' not in rts.columns.names:
+        return
+
+    # Aggregate time series
+    f = agg_routes_time_series(rts)
+
+    # Reformat time periods
+    f.index = [t.time().strftime('%H:%M') 
+      for t in rts.index.to_datetime()]
+    
+    #split_directions = 'direction_id' in rts.columns.names
+
+    # Split time series by into its component time series by statistic type
+    # stats = rts.columns.levels[0].tolist()
+    stats = [
+      'mean_daily_num_trip_starts',
+      'mean_daily_num_vehicles',
+      'mean_daily_distance',
+      'mean_daily_duration',
+      'mean_daily_speed',
+      ]
+    ts_dict = {stat: f[stat] for stat in stats}
+
+    # Create plots  
+    pd.options.display.mpl_style = 'default'
+    titles = [stat.capitalize().replace('_', ' ') for stat in stats]
+    units = ['','','km','h', 'kph']
+    alpha = 1
+    fig, axes = plt.subplots(nrows=len(stats), ncols=1)
+    for (i, stat) in enumerate(stats):
+        if stat == 'mean_daily_speed':
+            stacked = False
+        else:
+            stacked = True
+        ts_dict[stat].plot(ax=axes[i], alpha=alpha, 
+          kind='bar', figsize=(8, 10), stacked=stacked, width=1)
+        axes[i].set_title(titles[i])
+        axes[i].set_ylabel(units[i])
+
+    return fig
+
+def plot_routes_time_series_bak(time_series):
+    """
+    Given a routes time series data frame,
+    sum each time series statistic over all routes, 
     plot each series statistic using MatplotLib, 
     and return the resulting figure of subplots.
 
