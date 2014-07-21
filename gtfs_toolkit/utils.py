@@ -106,42 +106,10 @@ def get_segment_length(linestring, p, q=None):
         d = d_p
     return d
 
-# def downsample_routes_time_series(routes_time_series, freq):
-#     """
-#     Resample the given routes time series, which is the output of 
-#     ``Feed.get_routes_time_series()``, to the given (Pandas style) frequency.
-#     Additionally, add a new 'mean_daily_speed' time series to the output 
-#     dictionary.
-#     """
-#     result = {name: None for name in routes_time_series}
-#     result.update({'mean_daily_speed': None})
-#     for name in result:
-#         if name == 'mean_daily_speed':
-#             numer = routes_time_series['mean_daily_distance'].resample(freq,
-#               how=np.sum)
-#             denom = routes_time_series['mean_daily_duration'].resample(freq,
-#               how=np.sum)
-#             g = numer.divide(denom)
-#         elif name == 'mean_daily_num_trip_starts':
-#             f = routes_time_series[name]
-#             g = f.resample(freq, how=np.sum)
-#         elif name == 'mean_daily_num_vehicles':
-#             f = routes_time_series[name]
-#             g = f.resample(freq, how=np.mean)
-#         elif name == 'mean_daily_duration':
-#             f = routes_time_series[name]
-#             g = f.resample(freq, how=np.sum)
-#         else:
-#             # name == 'distance'
-#             f = routes_time_series[name]
-#             g = f.resample(freq, how=np.sum)
-#         result[name] = g
-#     return result
-
-def combine_time_series(time_series_dict, kind, split_directions=True):
+def combine_time_series(time_series_dict, kind, split_directions=False):
     """
     Given a dictionary of time series data frames, combine the time series
-    into one time series data frame with multi-index (hierarchical columns)
+    into one time series data frame with multi-index (hierarchical) columns
     and return the result.
     The top level columns are the keys of the dictionary and
     the second and third level columns are 'route_id' and 'direction_id',
@@ -150,11 +118,15 @@ def combine_time_series(time_series_dict, kind, split_directions=True):
     If ``split_directions == False``, then there is no third column level,
     no 'direction_id' column.
     """
-    if kind == 'route':
-        subcolumns = ['route_id']
+    assert kind in ['stop', 'route'],\
+      "kind must be 'stop' or 'route'"
+
+    subcolumns = ['statistic']
+    if kind == 'stop':
+        subcolumns.append('stop_id')
     else:
-        # Assume kind == 'stop':
-        subcolumns = ['stop_id']
+        subcolumns.append('route_id')
+
     if split_directions:
         subcolumns.append('direction_id')
 
@@ -167,12 +139,12 @@ def combine_time_series(time_series_dict, kind, split_directions=True):
         for f in frames:
             ft = f.T
             ft.index = pd.MultiIndex.from_tuples([process_index(k) 
-              for k,v in ft.iterrows()], names=subcolumns)
+              for (k, v) in ft.iterrows()])
             new_frames.append(ft.T)
     else:
         new_frames = frames
     return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
-      names=['statistic'])
+      names=subcolumns)
 
 def downsample(time_series, freq):
     """
@@ -204,7 +176,9 @@ def downsample(time_series, freq):
     # Reset column names in result, because they disappear after resampling.
     # Pandas 0.14.0 bug?
     result.columns.names = time_series.columns.names
-    return result
+    # Sort the multiindex column to make slicing possible;
+    # see http://pandas.pydata.org/pandas-docs/stable/indexing.html#multiindexing-using-slicers
+    return result.sortlevel(axis=1)
 
 def plot_headways(stats, max_headway_limit=60):
     """
@@ -264,10 +238,81 @@ def plot_headways(stats, max_headway_limit=60):
         axes[i].set_ylabel(ylabels[i])
     return fig
 
-def plot_routes_time_series(time_series):
+def agg_routes_stats(routes_stats):
     """
-    Given a stops or routes time series data frame,
-    sum each time series statistic over all stops/routes, 
+    Given ``route_stats`` which is the output of ``get_routes_stats()``,
+    return a Pandas data frame with the following columns:
+
+    - direction_id
+    - mean_daily_num_trips: the sum of the corresponding column in the
+      input across all routes
+    - min_start_time: the minimum of the corresponding column of the input
+      across all routes
+    - max_end_time: the maximum of the corresponding column of the input
+      across all routes
+    - mean_daily_duration: the sum of the corresponding column in the
+      input across all routes
+    - mean_daily_distance: the sum of the corresponding column in the
+      input across all routes  
+    - mean_daily_speed: mean_daily_distance/mean_daily_distance
+
+    If the input has no direction id, then the output won't.
+    """
+    f = routes_stats
+    if 'direction_id' in routes_stats.columns:
+        g = f.groupby('direction_id').agg({
+          'min_start_time': min, 
+          'max_end_time': max, 
+          'mean_daily_num_trips': sum,
+          'mean_daily_duration': sum,
+          'mean_daily_distance': sum,
+          }).reset_index()
+    else:
+        g = pd.DataFrame([[
+          f['min_start_time'].min(), 
+          f['max_end_time'].max(), 
+          f['mean_daily_num_trips'].sum(),
+          f['mean_daily_duration'].sum(),
+          f['mean_daily_distance'].sum(),
+          ]], 
+          columns=['min_start_time', 'max_end_time', 'mean_daily_num_trips', 
+            'mean_daily_duration', 'mean_daily_distance']
+          )
+
+    g['mean_daily_speed'] = g['mean_daily_distance'].divide(g['mean_daily_duration'])
+    return g
+
+def agg_routes_time_series(routes_time_series):
+    rts = routes_time_series
+    stats = rts.columns.levels[0].tolist()
+    split_directions = 'direction_id' in rts.columns.names
+    if split_directions:
+        # For each stat and each direction, sum across routes.
+        frames = []
+        for stat in stats:
+            f0 = rts.xs((stat, '0'), level=('statistic', 'direction_id'), 
+              axis=1).sum(axis=1)
+            f1 = rts.xs((stat, '1'), level=('statistic', 'direction_id'), 
+              axis=1).sum(axis=1)
+            f = pd.concat([f0, f1], axis=1, keys=['0', '1'])
+            frames.append(f)
+        F = pd.concat(frames, axis=1, keys=stats, names=['statistic', 
+          'direction_id'])
+        # Fix speed
+        F['mean_daily_speed'] = F['mean_daily_distance'].divide(
+          F['mean_daily_duration'])
+        result = F
+    else:
+        f = pd.concat([rts[stat].sum(axis=1) for stat in stats], axis=1, 
+          keys=stats)
+        f['mean_daily_speed'] = f['mean_daily_distance'].divide(f['mean_daily_duration'])
+        result = f
+    return result
+
+def plot_routes_time_series(routes_time_series):
+    """
+    Given a routes time series data frame,
+    sum each time series statistic over all routes, 
     plot each series statistic using MatplotLib, 
     and return the resulting figure of subplots.
 
@@ -278,47 +323,42 @@ def plot_routes_time_series(time_series):
     """
     import matplotlib.pyplot as plt
 
-    if 'route_id' not in time_series.columns.names:
+    rts = routes_time_series
+    if 'route_id' not in rts.columns.names:
         return
 
-    # Set Pandas plot style
-    pd.options.display.mpl_style = 'default'
+    # Aggregate time series
+    f = agg_routes_time_series(rts)
+
     # Reformat time periods
-    time_series.index = [t.time().strftime('%H:%M') 
-      for t in time_series.index.to_datetime()]
-    split_directions = 'direction_id' in time_series.columns.names
-    # Split time series into its component time series
-    ts_dict = {stat: time_series[stat] 
-      for stat in time_series.columns.levels[0]}
-    # For each time series sum it across its routes/stops but keep
-    # the directions separate if they already are
-    if split_directions:
-        ts_dict = {stat: f.groupby(level='direction_id', axis=1).sum()
-          for (stat, f) in ts_dict.items()}
-    else:
-        ts_dict = {stat: f.sum(axis=1)
-          for (stat, f) in ts_dict.items()}
-    # Fix speed
-    ts_dict['mean_daily_speed'] = ts_dict['mean_daily_distance'].divide(
-      ts_dict['mean_daily_duration'])
-    # Create plots  
-    names = [
-      'mean_daily_num_trip_starts', 
-      'mean_daily_num_vehicles', 
+    f.index = [t.time().strftime('%H:%M') 
+      for t in rts.index.to_datetime()]
+    
+    #split_directions = 'direction_id' in rts.columns.names
+
+    # Split time series by into its component time series by statistic type
+    # stats = rts.columns.levels[0].tolist()
+    stats = [
+      'mean_daily_num_trip_starts',
+      'mean_daily_num_vehicles',
       'mean_daily_distance',
-      'mean_daily_duration', 
+      'mean_daily_duration',
       'mean_daily_speed',
       ]
-    titles = [name.capitalize().replace('_', ' ') for name in names]
+    ts_dict = {stat: f[stat] for stat in stats}
+
+    # Create plots  
+    pd.options.display.mpl_style = 'default'
+    titles = [stat.capitalize().replace('_', ' ') for stat in stats]
     units = ['','','km','h', 'kph']
     alpha = 1
-    fig, axes = plt.subplots(nrows=len(names), ncols=1)
-    for (i, name) in enumerate(names):
-        if name == 'mean_daily_speed':
+    fig, axes = plt.subplots(nrows=len(stats), ncols=1)
+    for (i, stat) in enumerate(stats):
+        if stat == 'mean_daily_speed':
             stacked = False
         else:
             stacked = True
-        ts_dict[name].plot(ax=axes[i], alpha=alpha, 
+        ts_dict[stat].plot(ax=axes[i], alpha=alpha, 
           kind='bar', figsize=(8, 10), stacked=stacked, width=1)
         axes[i].set_title(titles[i])
         axes[i].set_ylabel(units[i])

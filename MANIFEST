@@ -10,7 +10,6 @@ docs/feed.rst
 docs/index.rst
 docs/introduction.rst
 docs/utils.rst
-docs/_build/.DS_Store
 docs/_build/doctrees/environment.pickle
 docs/_build/doctrees/feed.doctree
 docs/_build/doctrees/index.doctree
@@ -51,11 +50,12 @@ docs/_build/html/_static/up-pressed.png
 docs/_build/html/_static/up.png
 docs/_build/html/_static/websupport.js
 examples/gtfs_toolkit_examples.ipynb
-examples/gtfs_toolkit_tests.ipynb
-examples/.ipynb_checkpoints/gtfs_toolkit_examples-checkpoint.ipynb
-examples/.ipynb_checkpoints/gtfs_toolkit_tests-checkpoint.ipynb
+examples/tmp.csv
 gtfs_toolkit/__init__.py
 gtfs_toolkit/feed.py
 gtfs_toolkit/utils.py
 gtfs_toolkit/tests/__init__.py
+gtfs_toolkit/tests/gtfs_toolkit_tests.ipynb
 gtfs_toolkit/tests/tests.py
+gtfs_toolkit/tests/.ipynb_checkpoints/Untitled0-checkpoint.ipynb
+gtfs_toolkit/tests/.ipynb_checkpoints/gtfs_toolkit_tests-checkpoint.ipynb

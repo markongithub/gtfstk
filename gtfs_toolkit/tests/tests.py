@@ -14,7 +14,6 @@ cairns_shapeless = Feed('gtfs_toolkit/tests/cairns_gtfs.zip')
 cairns_shapeless.shapes = None
 
 class TestFeed(unittest.TestCase):
-    #"""
     def test_seconds_to_timestr(self):
         seconds = 3600 + 60 + 1
         timestr = '01:01:01'
@@ -40,7 +39,13 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(get_segment_length(s, p), 0)
 
     def test_init(self):
-        portland = Feed('gtfs_toolkit/tests/portland_gtfs.zip')
+        # Test distance units check
+        self.assertRaises(AssertionError, Feed, 
+          path='gtfs_toolkit/tests/cairns_gtfs.zip', 
+          distance_units='bingo')
+        # Test other stuff
+        portland = Feed('gtfs_toolkit/tests/portland_gtfs.zip', 
+          distance_units='ft')
         for feed in [cairns, portland]:
             self.assertIsInstance(feed.routes, pd.core.frame.DataFrame)
             self.assertIsInstance(feed.stops, pd.core.frame.DataFrame)
@@ -51,6 +56,14 @@ class TestFeed(unittest.TestCase):
             if feed.calendar_dates is not None:
                 self.assertIsInstance(feed.calendar_dates, 
                   pd.core.frame.DataFrame)
+
+    def test_to_km(self):
+        feed = cairns
+        feed.distance_units = 'mi'
+        f = feed.to_km
+        self.assertEqual(f(1), 1.6093)
+        # Reset
+        feed.distance_units = 'km'
 
     def test_get_dates(self):
         feed = cairns
@@ -175,17 +188,21 @@ class TestFeed(unittest.TestCase):
         sa = feed.get_stops_activity(dates)
         sa = sa[sa[dates].sum(axis=1) > 0]
         for split_directions in [True, False]:
+            f = feed.get_stops_stats(dates, 
+              split_directions=split_directions)
             stops_ts = feed.get_stops_time_series(dates, freq='1H',
               split_directions=split_directions) 
             # Should be a data frame
             self.assertIsInstance(stops_ts, pd.core.frame.DataFrame)
             # Should have the correct shape
             self.assertEqual(stops_ts.shape[0], 24)
+            self.assertEqual(stops_ts.shape[1], f.shape[0])
+            # Should have correct column names
             if split_directions:
-                expect_num_cols = 2*sa.shape[0]
+                expect = ['statistic', 'stop_id', 'direction_id']
             else:
-                expect_num_cols = sa.shape[0]
-            self.assertEqual(stops_ts.shape[1], expect_num_cols)
+                expect = ['statistic', 'stop_id']
+            self.assertEqual(stops_ts.columns.names, expect)
 
     def test_get_routes_stats(self):
         feed = cairns
@@ -205,7 +222,7 @@ class TestFeed(unittest.TestCase):
                 f['tmp'] = f['route_id'].copy()
             expect_num_routes = len(f['tmp'].unique())
             self.assertEqual(rs.shape[0], expect_num_routes)
-    
+
     def test_get_routes_time_series(self):
         feed = cairns 
         dates = feed.get_first_week()
@@ -217,10 +234,35 @@ class TestFeed(unittest.TestCase):
               split_directions=split_directions, freq='1H')
             # Should be a data frame of the correct shape
             self.assertIsInstance(rts, pd.core.frame.DataFrame)
-            expect_num_routes = 5*f.shape[0]
             self.assertEqual(rts.shape[0], 24)
-            self.assertEqual(rts.shape[1], expect_num_routes)
-    #"""
+            self.assertEqual(rts.shape[1], 5*f.shape[0])
+            # Should have correct column names
+            if split_directions:
+                expect = ['statistic', 'route_id', 'direction_id']
+            else:
+                expect = ['statistic', 'route_id']
+            self.assertEqual(rts.columns.names, expect)   
+    
+    def test_agg_routes_time_series(self):
+        feed = cairns 
+        dates = feed.get_first_week()
+        trips_stats = feed.get_trips_stats()
+        for split_directions in [True, False]:
+            rts = feed.get_routes_time_series(trips_stats, dates, 
+              split_directions=split_directions, freq='1H')
+            arts = agg_routes_time_series(rts)
+            if split_directions:
+                num_cols = 2*len(rts.columns.levels[0])
+                col_names = ['statistic', 'direction_id']
+            else:
+                num_cols = len(rts.columns.levels[0])
+                col_names = [None]
+            # Should be a data frame of the correct shape
+            self.assertIsInstance(arts, pd.core.frame.DataFrame)
+            self.assertEqual(arts.shape[0], 24)
+            self.assertEqual(arts.shape[1], num_cols)
+            # Should have correct column names
+            self.assertEqual(arts.columns.names, col_names)   
 
 if __name__ == '__main__':
     unittest.main()
