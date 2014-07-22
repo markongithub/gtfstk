@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.2.0 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.0',
+        VERSION:     '0.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.2.0 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.2.1 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.2.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -158,12 +158,15 @@ following route stats for the given dates:</p>
 <li>mean daily service distance in kilometers by route ID</li>
 <li>mean daily speed in kilometers per hour</li>
 </ul>
-<p>The time series is a Pandas data frame with a period index 
+<p>The time series is a Pandas data frame with a timestamp index 
 for a 24-hour period sampled at the given frequency.
 The maximum allowable frequency is 1 minute.
 If multiples dates are given, a generic placeholder date of
-2001-01-01 is used as the date for the period index.
+2001-01-01 is used as the date for the timestamp index.
 Otherwise, the given date is used.</p>
+<p>Using a period index instead of a timestamp index would be more
+apppropriate, but 
+<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period">Pandas 0.14.1 doesn&#8217;t support period index frequencies at multiples of DateOffsets (e.g. &#8216;5Min&#8217;)</a>.</p>
 <p>The columns of the data frame are hierarchical (multi-index) with</p>
 <ul class="simple">
 <li>top level: name = &#8216;statistic&#8217;, values = [&#8216;mean_daily_distance&#8217;,
@@ -286,12 +289,15 @@ for the given dates:</p>
 <ul class="simple">
 <li>mean daily number of vehicles by stop ID</li>
 </ul>
-<p>The time series is a Pandas data frame with a period index 
+<p>The time series is a Pandas data frame with a timestamp index 
 for a 24-hour period sampled at the given frequency.
 The maximum allowable frequency is 1 minute.
 If multiples dates are given, a generic placeholder date of
-2001-01-01 is used as the date for the period index.
+2001-01-01 is used as the date for the timestamp index.
 Otherwise, the given date is used.</p>
+<p>Using a period index instead of a timestamp index would be more
+apppropriate, but 
+<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period">Pandas 0.14.1 doesn&#8217;t support period index frequencies at multiples of DateOffsets (e.g. &#8216;5Min&#8217;)</a>.</p>
 <p>The columns of the data frame are hierarchical (multi-index) with</p>
 <ul class="simple">
 <li>top level: name = &#8216;statistic&#8217;, values = [&#8216;mean_daily_num_vehicles&#8217;]</li>
@@ -494,7 +500,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.2.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

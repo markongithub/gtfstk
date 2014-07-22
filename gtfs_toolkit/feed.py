@@ -788,12 +788,16 @@ class Feed(object):
         
         - mean daily number of vehicles by stop ID
 
-        The time series is a Pandas data frame with a period index 
+        The time series is a Pandas data frame with a timestamp index 
         for a 24-hour period sampled at the given frequency.
         The maximum allowable frequency is 1 minute.
         If multiples dates are given, a generic placeholder date of
-        2001-01-01 is used as the date for the period index.
+        2001-01-01 is used as the date for the timestamp index.
         Otherwise, the given date is used.
+
+        Using a period index instead of a timestamp index would be more
+        apppropriate, but 
+        `Pandas 0.14.1 doesn't support period index frequencies at multiples of DateOffsets (e.g. '5Min') <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period>`_.
 
         The columns of the data frame are hierarchical (multi-index) with
 
@@ -878,6 +882,9 @@ class Feed(object):
         # Combine dictionary of time series into one time series
         f = _combine_time_series(series_by_name, kind='stop',
           split_directions=split_directions)
+        # Convert to timestamp index, because Pandas 0.14.1 can't handle
+        # period index frequencies at multiples of DateOffsets (e.g. '5Min') 
+        f = f.to_timestamp()
         return downsample(f, freq=freq)
 
     def get_stops_in_stations(self):
@@ -1146,12 +1153,17 @@ class Feed(object):
         - mean daily service distance in kilometers by route ID
         - mean daily speed in kilometers per hour
 
-        The time series is a Pandas data frame with a period index 
+        The time series is a Pandas data frame with a timestamp index 
         for a 24-hour period sampled at the given frequency.
         The maximum allowable frequency is 1 minute.
         If multiples dates are given, a generic placeholder date of
-        2001-01-01 is used as the date for the period index.
+        2001-01-01 is used as the date for the timestamp index.
         Otherwise, the given date is used.
+
+        Using a period index instead of a timestamp index would be more
+        apppropriate, but 
+        `Pandas 0.14.1 doesn't support period index frequencies at multiples of DateOffsets (e.g. '5Min') <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period>`_.
+
 
         The columns of the data frame are hierarchical (multi-index) with
 
@@ -1266,6 +1278,9 @@ class Feed(object):
         # Combine dictionary of time series into one time series
         g = _combine_time_series(series_by_name, kind='route',
           split_directions=split_directions)
+        # Convert to timestamp index, because Pandas 0.14.1 can't handle
+        # period index frequencies at multiples of DateOffsets (e.g. '5Min') 
+        g = g.to_timestamp()
         return downsample(g, freq=freq)
 
     def dump_all_stats(self, directory, dates=None, freq='1H', 
