@@ -445,6 +445,7 @@ class Feed(object):
         - trip_id
         - direction_id
         - route_id
+        - shape_id
         - start_time: first departure time of the trip
         - end_time: last departure time of the trip
         - duration: duration of the trip in hours
@@ -476,7 +477,7 @@ class Feed(object):
         num_trips = trips.shape[0]
         
         # Initialize data frame. Base it on trips.txt.
-        stats = trips[['route_id', 'trip_id', 'direction_id']]
+        stats = trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
 
         # Compute start time, end time, duration
         f = pd.merge(trips, stop_times)
@@ -580,10 +581,84 @@ class Feed(object):
                 point_by_stop[stop] = Point([lon, lat]) 
         return point_by_stop
 
-    # TODO: Improve the calculation for bad/self-intersecting trips
-    # by using the average speed of the trip from the last good stop
-    # to the end and linearly interpolating the rest of the stop times.
-    def get_shape_dist_traveled(self):
+    # TODO: Check on Portland feed
+    def get_shape_dist_traveled(self, trips_stats):
+        """
+        Compute the optional ``shape_dist_traveled`` GTFS field for
+        ``self.stop_times`` and return the resulting Pandas data frame.  
+
+        NOTE: 
+
+        Takes about 0.2 minutes on the Portland feed.
+        Fails on shapes with self-intersecting linestrings,
+        such as loops.
+        """
+        linestring_by_shape = self.get_linestring_by_shape()
+        point_by_stop = self.get_point_by_stop()
+
+        # Initialize data frame
+        f = pd.merge(trips_stats[['trip_id', 'distance', 'shape_id']],
+          self.stop_times)
+        # Convert departure times to seconds past midnight to ease calculations
+        f['departure_time'] = f['departure_time'].map(lambda x: 
+          utils.seconds_to_timestr(x, inverse=True))
+        dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
+
+        def get_dist(group):
+            # Compute the distances of the stops along this trip
+            group = group.sort('stop_sequence')
+            trip = group['trip_id'].iat[0]
+            shape = group['shape_id'].iat[0]
+            if not isinstance(shape, str):
+                print(trip, 'no shape_id:', shape)
+                group['shape_dist_traveled'] = np.nan 
+                return group
+            linestring = linestring_by_shape[shape]
+            distances = []
+            prev_dist = 0
+            error = False
+            for stop in group['stop_id'].values:
+                if stop in dist_by_stop_by_shape[shape]:
+                    d = dist_by_stop_by_shape[shape][stop]
+                else:
+                    d = round(utils.get_segment_length(linestring, 
+                      point_by_stop[stop]))
+                    dist_by_stop_by_shape[shape][stop] = d
+                # Convert from meters to kilometers
+                d /= 1000
+                if d < prev_dist:
+                    # Bad distance. Bail!
+                    error = True
+                    break
+                else:
+                    prev_dist = d
+                    distances.append(d)
+            if error:
+                # Estimate distances by linear interpolation
+                distances = [0]
+                dtimes = group['departure_time'].values
+                speed = group['distance'].iat[0]/\
+                  (group['distance'].iat[0]*3600) # km/s
+                d = 0
+                t_prev = dtimes[0]
+                # Finish calculating distances
+                for t in dtimes[1:]:
+                    d += speed*(t - t_prev)
+                    distances.append(d)
+                    t_prev = t
+            group['shape_dist_traveled'] = distances
+            return group
+
+        result = f.groupby('trip_id', group_keys=False).apply(get_dist)
+        # Unconvert departure times from seconds past midnight
+        result['departure_time'] = f['departure_time'].map(lambda x: 
+          utils.seconds_to_timestr(x))
+        return result
+
+    # TODO: Improve the calculation for each bad/self-intersecting trip
+    # by using the trip's average speed and its stop times to 
+    # linearly interpolate distances
+    def get_shape_dist_traveled_bak(self):
         """
         Compute the optional ``shape_dist_traveled`` GTFS field for
         ``self.stop_times`` and return the resulting Pandas data frame.  
