@@ -22,6 +22,226 @@ import gtfs_toolkit.utils as utils
 VALID_DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
 
 
+def downsample(time_series, freq):
+    """
+    Downsample the given route or stop time series, which is the output of 
+    ``Feed.get_routes_time_series()`` or ``Feed.get_stops_time_series()``, 
+    to the given Pandas-style frequency.
+    Can't downsample to frequencies less one minute ('1Min'), because the
+    time series are generated with one-minute frequency.
+    """
+    result = None
+    if 'route_id' in time_series.columns.names:
+        # It's a routes time series
+        # Sums
+        how = OrderedDict((col, 'sum') for col in time_series.columns
+          if col[0] in ['mean_daily_num_trip_starts', 'mean_daily_distance', 
+          'mean_daily_duration'])
+        # Means
+        how.update(OrderedDict((col, 'mean') for col in time_series.columns
+          if col[0] in ['mean_daily_num_vehicles']))
+        f = time_series.resample(freq, how=how)
+        # Calculate speed and add it to f. Can't resample it.
+        speed = f['mean_daily_distance'].divide(f['mean_daily_duration'])
+        speed = pd.concat({'mean_daily_speed': speed}, axis=1)
+        result = pd.concat([f, speed], axis=1)
+    elif 'stop_id' in time_series.columns.names:
+        # It's a stops time series
+        how = OrderedDict((col, 'sum') for col in time_series.columns)
+        result = time_series.resample(freq, how=how)
+    # Reset column names in result, because they disappear after resampling.
+    # Pandas 0.14.0 bug?
+    result.columns.names = time_series.columns.names
+    # Sort the multiindex column to make slicing possible;
+    # see http://pandas.pydata.org/pandas-docs/stable/indexing.html#multiindexing-using-slicers
+    return result.sortlevel(axis=1)
+
+def plot_headways(stats, max_headway_limit=60):
+    """
+    Given a stops or routes stats data frame, 
+    return bar charts of the max and mean headways as a MatplotLib figure.
+    Only include the stops/routes with max headways at most 
+    ``max_headway_limit`` minutes.
+    If ``max_headway_limit is None``, then include them all in a giant plot. 
+    If there are no stops/routes within the max headway limit, then return 
+    ``None``.
+
+    NOTES:
+
+    Take the resulting figure ``f`` and do ``f.tight_layout()``
+    for a nice-looking plot.
+    """
+    import matplotlib.pyplot as plt
+
+    # Set Pandas plot style
+    pd.options.display.mpl_style = 'default'
+
+    if 'stop_id' in stats.columns:
+        index = 'stop_id'
+    elif 'route_id' in stats.columns:
+        index = 'route_id'
+    split_directions = 'direction_id' in stats.columns
+    if split_directions:
+        # Move the direction_id column to a hierarchical column,
+        # select the headway columns, and convert from seconds to minutes
+        f = stats.pivot(index=index, columns='direction_id')[['max_headway', 
+          'mean_headway']]/60
+        # Only take the stops/routes within the max headway limit
+        if max_headway_limit is not None:
+            f = f[(f[('max_headway', 0)] <= max_headway_limit) |
+              (f[('max_headway', 1)] <= max_headway_limit)]
+        # Sort by max headway
+        f = f.sort(columns=[('max_headway', 0)], ascending=False)
+    else:
+        f = stats.set_index(index)[['max_headway', 'mean_headway']]/60
+        if max_headway_limit is not None:
+            f = f[f['max_headway'] <= max_headway_limit]
+        f = f.sort(columns=['max_headway'], ascending=False)
+    if f.empty:
+        return
+
+    # Plot max and mean headway separately
+    n = f.shape[0]
+    data_frames = [f['max_headway'], f['mean_headway']]
+    titles = ['Max Headway','Mean Headway']
+    ylabels = [index, index]
+    xlabels = ['minutes', 'minutes']
+    fig, axes = plt.subplots(nrows=1, ncols=2)
+    for (i, f) in enumerate(data_frames):
+        f.plot(kind='barh', ax=axes[i], figsize=(10, max(n/9, 10)))
+        axes[i].set_title(titles[i])
+        axes[i].set_xlabel(xlabels[i])
+        axes[i].set_ylabel(ylabels[i])
+    return fig
+
+def agg_routes_stats(routes_stats):
+    """
+    Given ``route_stats`` which is the output of ``get_routes_stats()``,
+    return a Pandas data frame with the following columns:
+
+    - direction_id
+    - mean_daily_num_trips: the sum of the corresponding column in the
+      input across all routes
+    - min_start_time: the minimum of the corresponding column of the input
+      across all routes
+    - max_end_time: the maximum of the corresponding column of the input
+      across all routes
+    - mean_daily_duration: the sum of the corresponding column in the
+      input across all routes
+    - mean_daily_distance: the sum of the corresponding column in the
+      input across all routes  
+    - mean_daily_speed: mean_daily_distance/mean_daily_distance
+
+    If the input has no direction id, then the output won't.
+    """
+    f = routes_stats
+    if 'direction_id' in routes_stats.columns:
+        g = f.groupby('direction_id').agg({
+          'min_start_time': min, 
+          'max_end_time': max, 
+          'mean_daily_num_trips': sum,
+          'mean_daily_duration': sum,
+          'mean_daily_distance': sum,
+          }).reset_index()
+    else:
+        g = pd.DataFrame([[
+          f['min_start_time'].min(), 
+          f['max_end_time'].max(), 
+          f['mean_daily_num_trips'].sum(),
+          f['mean_daily_duration'].sum(),
+          f['mean_daily_distance'].sum(),
+          ]], 
+          columns=['min_start_time', 'max_end_time', 'mean_daily_num_trips', 
+            'mean_daily_duration', 'mean_daily_distance']
+          )
+
+    g['mean_daily_speed'] = g['mean_daily_distance'].divide(g['mean_daily_duration'])
+    return g
+
+def agg_routes_time_series(routes_time_series):
+    rts = routes_time_series
+    stats = rts.columns.levels[0].tolist()
+    split_directions = 'direction_id' in rts.columns.names
+    if split_directions:
+        # For each stat and each direction, sum across routes.
+        frames = []
+        for stat in stats:
+            f0 = rts.xs((stat, '0'), level=('statistic', 'direction_id'), 
+              axis=1).sum(axis=1)
+            f1 = rts.xs((stat, '1'), level=('statistic', 'direction_id'), 
+              axis=1).sum(axis=1)
+            f = pd.concat([f0, f1], axis=1, keys=['0', '1'])
+            frames.append(f)
+        F = pd.concat(frames, axis=1, keys=stats, names=['statistic', 
+          'direction_id'])
+        # Fix speed
+        F['mean_daily_speed'] = F['mean_daily_distance'].divide(
+          F['mean_daily_duration'])
+        result = F
+    else:
+        f = pd.concat([rts[stat].sum(axis=1) for stat in stats], axis=1, 
+          keys=stats)
+        f['mean_daily_speed'] = f['mean_daily_distance'].divide(f['mean_daily_duration'])
+        result = f
+    return result
+
+def plot_routes_time_series(routes_time_series):
+    """
+    Given a routes time series data frame,
+    sum each time series statistic over all routes, 
+    plot each series statistic using MatplotLib, 
+    and return the resulting figure of subplots.
+
+    NOTES:
+
+    Take the resulting figure ``f`` and do ``f.tight_layout()``
+    for a nice-looking plot.
+    """
+    import matplotlib.pyplot as plt
+
+    rts = routes_time_series
+    if 'route_id' not in rts.columns.names:
+        return
+
+    # Aggregate time series
+    f = agg_routes_time_series(rts)
+
+    # Reformat time periods
+    f.index = [t.time().strftime('%H:%M') 
+      for t in rts.index.to_datetime()]
+    
+    #split_directions = 'direction_id' in rts.columns.names
+
+    # Split time series by into its component time series by statistic type
+    # stats = rts.columns.levels[0].tolist()
+    stats = [
+      'mean_daily_num_trip_starts',
+      'mean_daily_num_vehicles',
+      'mean_daily_distance',
+      'mean_daily_duration',
+      'mean_daily_speed',
+      ]
+    ts_dict = {stat: f[stat] for stat in stats}
+
+    # Create plots  
+    pd.options.display.mpl_style = 'default'
+    titles = [stat.capitalize().replace('_', ' ') for stat in stats]
+    units = ['','','km','h', 'kph']
+    alpha = 1
+    fig, axes = plt.subplots(nrows=len(stats), ncols=1)
+    for (i, stat) in enumerate(stats):
+        if stat == 'mean_daily_speed':
+            stacked = False
+        else:
+            stacked = True
+        ts_dict[stat].plot(ax=axes[i], alpha=alpha, 
+          kind='bar', figsize=(8, 10), stacked=stacked, width=1)
+        axes[i].set_title(titles[i])
+        axes[i].set_ylabel(units[i])
+
+    return fig
+
+
 class Feed(object):
     """
     A class to gather all the GTFS files for a feed and store them in memory 
@@ -218,8 +438,7 @@ class Feed(object):
               int(self.is_active_trip(trip, date)))
         return f[['trip_id', 'direction_id', 'route_id'] + dates]
 
-    # TODO: Speed up by using Pandas apply()
-    def get_trips_stats(self, get_dist_from_shapes=True):
+    def get_trips_stats(self, get_dist_from_shapes=False):
         """
         Return a Pandas data frame with the following columns:
 
@@ -228,28 +447,29 @@ class Feed(object):
         - route_id
         - start_time: first departure time of the trip
         - end_time: last departure time of the trip
+        - duration: duration of the trip in hours
         - start_stop_id: stop ID of the first stop of the trip 
         - end_stop_id: stop ID of the last stop of the trip
-        - duration: duration of the trip in hours
+        - num_stops: number of stops on trip
         - distance: distance of the trip in kilometers; contains all ``np.nan``
           entries if ``self.shapes is None``
-        - num_stops: number of stops on trip
 
         NOTES:
 
         If ``self.stop_times`` has a ``shape_dist_traveled`` column,
         then use that to compute the distance column (in km).
-        Else if ``self.shapes is not None`` and 
-        ``get_dist_from_shapes == True``,
-        then compute the distance column using the shapes and Shapely, 
-        Warning: In this case, the distance will probably be wrong
-        when the shape has segments that are parallel and very close, e.g.
-        a looping trip with in and out segments that lie on the same side of
-        the road (because of bad GIS data).
-        Else, set the distances to ``np.nan``.
+        Else if ``get_dist_from_shapes == True`` and 
+        ``self.shapes is not None``,
+        then compute the distance column using the shapes and Shapely. 
+        Otherwise, set the distances to ``np.nan``.
 
         Takes about 0.3 minutes on the Portland feed, which has the
         ``shape_dist_traveled`` column.
+        Comparing the trip distances on the Portland feed with and without
+        ``get_dist_from_shapes=True``, 98% of estimated trip lengths are 
+        at least 99% accurate (assuming the feed's ``shape_dist_traveled``
+        field is correct), and the maximum error is 0.75 km.
+        Not bad!
         """
         trips = self.trips
         stop_times = self.stop_times
@@ -289,42 +509,17 @@ class Feed(object):
 
         # Compute trip distance (in kilometers) from shapes
         def get_dist(group):
-            group = group.sort('stop_sequence')
-            start_stop = group['stop_id'].iat[0] 
-            end_stop = group['stop_id'].iat[-1] 
             shape = group['shape_id'].iat[0]
-            if pd.isnull(shape):
-                return np.nan
-            stop_pair = frozenset([start_stop, end_stop])
-            if stop_pair in dist_by_stop_pair_by_shape[shape]:
-                d = dist_by_stop_pair_by_shape[shape][stop_pair]
-            else:
-                # Compute distance afresh and store
-                linestring = linestring_by_shape[shape]
-                p = point_by_stop[start_stop]
-                q = point_by_stop[end_stop]
-                d = utils.get_segment_length(linestring, p, q) 
-                if d == 0:
-                    # Trip is a circuit. 
-                    # This can even happen when start_stop != end_stop 
-                    # if the two stops are very close together
-                    d = linestring.length
-                d = int(round(d))        
-                dist_by_stop_pair_by_shape[shape][stop_pair] = d   
-            # Convert d from meters to kilometers    
-            return d/1000
+            return linestring_by_shape[shape].length/1000
 
-        if 'shape_dist_traveled' in f.columns:
+        if get_dist_from_shapes and self.shapes is not None:
+            # Compute distances using the shapes and Shapely
+            linestring_by_shape = self.get_linestring_by_shape()
+            h['distance'] = g.apply(get_dist)
+        elif not get_dist_from_shapes and 'shape_dist_traveled' in f.columns:
             # Compute distances using shape_dist_traveled column
             h['distance'] = g.apply(lambda group: 
               self.to_km(group['shape_dist_traveled'].max()))
-        elif self.shapes is not None and get_dist_from_shapes:
-            # Compute distances using the shapes and Shapely
-            linestring_by_shape = self.get_linestring_by_shape()
-            point_by_stop = self.get_point_by_stop()
-            dist_by_stop_pair_by_shape = {shape: {} 
-              for shape in linestring_by_shape}
-            h['distance'] = g.apply(get_dist)
         else:
             h['distance'] = np.nan
 
@@ -385,6 +580,9 @@ class Feed(object):
                 point_by_stop[stop] = Point([lon, lat]) 
         return point_by_stop
 
+    # TODO: Improve the calculation for bad/self-intersecting trips
+    # by using the average speed of the trip from the last good stop
+    # to the end and linearly interpolating the rest of the stop times.
     def get_shape_dist_traveled(self):
         """
         Compute the optional ``shape_dist_traveled`` GTFS field for
@@ -430,8 +628,8 @@ class Feed(object):
                 if stop in dist_by_stop_by_shape[shape]:
                     d = dist_by_stop_by_shape[shape][stop]
                 else:
-                    d = round(
-                      utils.get_segment_length(linestring, point_by_stop[stop]))
+                    d = round(utils.get_segment_length(linestring, 
+                      point_by_stop[stop]))
                     dist_by_stop_by_shape[shape][stop] = d
                 # Convert from meters to kilometers
                 d /= 1000
@@ -443,11 +641,11 @@ class Feed(object):
             if distances == sorted(distances):
                 group['good_distances'] = True
             else:
+                # Problem. Fix as described as described in TODO.
                 group['good_distances'] = False
             # Insert stop distances
             group['shape_dist_traveled'] = distances
             return group
-
 
         result = f.groupby('trip_id', group_keys=False).apply(get_dist)
         failures = result[result['good_distances'] == False].groupby('trip_id').first().reset_index()
@@ -577,12 +775,16 @@ class Feed(object):
         
         - mean daily number of vehicles by stop ID
 
-        The time series is a Pandas data frame with a period index 
+        The time series is a Pandas data frame with a timestamp index 
         for a 24-hour period sampled at the given frequency.
         The maximum allowable frequency is 1 minute.
         If multiples dates are given, a generic placeholder date of
-        2001-01-01 is used as the date for the period index.
+        2001-01-01 is used as the date for the timestamp index.
         Otherwise, the given date is used.
+
+        Using a period index instead of a timestamp index would be more
+        apppropriate, but 
+        `Pandas 0.14.1 doesn't support period index frequencies at multiples of DateOffsets (e.g. '5Min') <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period>`_.
 
         The columns of the data frame are hierarchical (multi-index) with
 
@@ -665,9 +867,12 @@ class Feed(object):
               weight, index=g.index), fill_value=0)
       
         # Combine dictionary of time series into one time series
-        f = utils.combine_time_series(series_by_name, kind='stop',
+        f = _combine_time_series(series_by_name, kind='stop',
           split_directions=split_directions)
-        return utils.downsample(f, freq=freq)
+        # Convert to timestamp index, because Pandas 0.14.1 can't handle
+        # period index frequencies at multiples of DateOffsets (e.g. '5Min') 
+        f = f.to_timestamp()
+        return downsample(f, freq=freq)
 
     def get_stops_in_stations(self):
         """
@@ -935,12 +1140,17 @@ class Feed(object):
         - mean daily service distance in kilometers by route ID
         - mean daily speed in kilometers per hour
 
-        The time series is a Pandas data frame with a period index 
+        The time series is a Pandas data frame with a timestamp index 
         for a 24-hour period sampled at the given frequency.
         The maximum allowable frequency is 1 minute.
         If multiples dates are given, a generic placeholder date of
-        2001-01-01 is used as the date for the period index.
+        2001-01-01 is used as the date for the timestamp index.
         Otherwise, the given date is used.
+
+        Using a period index instead of a timestamp index would be more
+        apppropriate, but 
+        `Pandas 0.14.1 doesn't support period index frequencies at multiples of DateOffsets (e.g. '5Min') <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period>`_.
+
 
         The columns of the data frame are hierarchical (multi-index) with
 
@@ -1053,9 +1263,12 @@ class Feed(object):
                       fill_value=0)
                     
         # Combine dictionary of time series into one time series
-        g = utils.combine_time_series(series_by_name, kind='route',
+        g = _combine_time_series(series_by_name, kind='route',
           split_directions=split_directions)
-        return utils.downsample(g, freq=freq)
+        # Convert to timestamp index, because Pandas 0.14.1 can't handle
+        # period index frequencies at multiples of DateOffsets (e.g. '5Min') 
+        g = g.to_timestamp()
+        return downsample(g, freq=freq)
 
     def dump_all_stats(self, directory, dates=None, freq='1H', 
       split_directions=False):
@@ -1103,7 +1316,7 @@ class Feed(object):
         # Stops time series
         sts = self.get_stops_time_series(dates, 
           split_directions=split_directions)
-        sts = utils.downsample(sts, freq=freq)
+        sts = downsample(sts, freq=freq)
         sts.to_csv(directory + 'stops_time_series_{!s}.csv'.format(freq))
 
         # Trips stats
@@ -1118,10 +1331,50 @@ class Feed(object):
         # Routes time series
         rts = self.get_routes_time_series(trips_stats, dates,
           split_directions=split_directions)
-        rts = utils.downsample(rts, freq=freq)
+        rts = downsample(rts, freq=freq)
         rts.to_csv(directory + 'routes_time_series_{!s}.csv'.format(freq))
 
         # Plot sum of routes stats 
-        fig = utils.plot_routes_time_series(rts)
+        fig = plot_routes_time_series(rts)
         fig.tight_layout()
         fig.savefig(directory + 'routes_time_series_agg.pdf', dpi=200)
+
+def _combine_time_series(time_series_dict, kind, split_directions=False):
+    """
+    Given a dictionary of time series data frames, combine the time series
+    into one time series data frame with multi-index (hierarchical) columns
+    and return the result.
+    The top level columns are the keys of the dictionary and
+    the second and third level columns are 'route_id' and 'direction_id',
+    if ``kind == 'route'``, or 'stop_id' and 'direction_id', 
+    if ``kind == 'stop'``.
+    If ``split_directions == False``, then there is no third column level,
+    no 'direction_id' column.
+    """
+    assert kind in ['stop', 'route'],\
+      "kind must be 'stop' or 'route'"
+
+    subcolumns = ['statistic']
+    if kind == 'stop':
+        subcolumns.append('stop_id')
+    else:
+        subcolumns.append('route_id')
+
+    if split_directions:
+        subcolumns.append('direction_id')
+
+    def process_index(k):
+        return tuple(k.rsplit('-', 1))
+
+    frames = list(time_series_dict.values())
+    new_frames = []
+    if split_directions:
+        for f in frames:
+            ft = f.T
+            ft.index = pd.MultiIndex.from_tuples([process_index(k) 
+              for (k, v) in ft.iterrows()])
+            new_frames.append(ft.T)
+    else:
+        new_frames = frames
+    return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
+      names=subcolumns)

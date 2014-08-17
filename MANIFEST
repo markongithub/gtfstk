@@ -51,7 +51,6 @@ docs/_build/html/_static/up-pressed.png
 docs/_build/html/_static/up.png
 docs/_build/html/_static/websupport.js
 examples/gtfs_toolkit_examples.ipynb
-examples/tmp.csv
 examples/.ipynb_checkpoints/gtfs_toolkit_examples-checkpoint.ipynb
 gtfs_toolkit/__init__.py
 gtfs_toolkit/feed.py
@@ -59,12 +58,5 @@ gtfs_toolkit/utils.py
 gtfs_toolkit/tests/__init__.py
 gtfs_toolkit/tests/gtfs_toolkit_tests.ipynb
 gtfs_toolkit/tests/tests.py
+gtfs_toolkit/tests/.ipynb_checkpoints/Untitled0-checkpoint.ipynb
 gtfs_toolkit/tests/.ipynb_checkpoints/gtfs_toolkit_tests-checkpoint.ipynb
-gtfs_toolkit/tests/cairns_gtfs/agency.txt
-gtfs_toolkit/tests/cairns_gtfs/calendar.txt
-gtfs_toolkit/tests/cairns_gtfs/calendar_dates.txt
-gtfs_toolkit/tests/cairns_gtfs/routes.txt
-gtfs_toolkit/tests/cairns_gtfs/shapes.txt
-gtfs_toolkit/tests/cairns_gtfs/stop_times.txt
-gtfs_toolkit/tests/cairns_gtfs/stops.txt
-gtfs_toolkit/tests/cairns_gtfs/trips.txt
