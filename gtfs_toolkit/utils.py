@@ -90,7 +90,7 @@ def weekday_to_str(weekday, inverse=False):
 
 def get_segment_length(linestring, p, q=None):
     """
-    Given a Shapely linestring and two Shapely points or coordinate pairs,
+    Given a Shapely linestring and two Shapely points,
     project the points onto the linestring, and return the distance along
     the linestring between the two points.
     If ``q is None``, then return the distance from the start of the linestring
@@ -98,9 +98,9 @@ def get_segment_length(linestring, p, q=None):
     The distance is measured in the native coordinates of the linestring.
     """
     # Get projected distances
-    d_p = linestring.project(Point(p))
+    d_p = linestring.project(p)
     if q is not None:
-        d_q = linestring.project(Point(q))
+        d_q = linestring.project(q)
         d = abs(d_p - d_q)
     else:
         d = d_p

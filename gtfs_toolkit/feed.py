@@ -14,7 +14,7 @@ import shutil
 
 import pandas as pd
 import numpy as np
-from shapely.geometry import LineString
+from shapely.geometry import Point, LineString
 import utm
 
 import gtfs_toolkit.utils as utils
@@ -301,8 +301,8 @@ class Feed(object):
             else:
                 # Compute distance afresh and store
                 linestring = linestring_by_shape[shape]
-                p = xy_by_stop[start_stop]
-                q = xy_by_stop[end_stop]
+                p = point_by_stop[start_stop]
+                q = point_by_stop[end_stop]
                 d = utils.get_segment_length(linestring, p, q) 
                 if d == 0:
                     # Trip is a circuit. 
@@ -321,7 +321,7 @@ class Feed(object):
         elif self.shapes is not None and get_dist_from_shapes:
             # Compute distances using the shapes and Shapely
             linestring_by_shape = self.get_linestring_by_shape()
-            xy_by_stop = self.get_xy_by_stop()
+            point_by_stop = self.get_point_by_stop()
             dist_by_stop_pair_by_shape = {shape: {} 
               for shape in linestring_by_shape}
             h['distance'] = g.apply(get_dist)
@@ -365,16 +365,25 @@ class Feed(object):
                 linestring_by_shape[shape] = LineString(lonlats)
         return linestring_by_shape
 
-    def get_xy_by_stop(self):
+    def get_point_by_stop(self, use_utm=True):
         """
         Return a dictionary with structure
-        stop_id -> stop location as a UTM coordinate pair
+        stop_id -> Shapely point object.
+        If ``use_utm == True``, then return each point in
+        in UTM coordinates.
+        Otherwise, return each point in WGS84 longitude-latitude
+        coordinates.
         """
-        xy_by_stop = {}
-        for stop, group in self.stops.groupby('stop_id'):
-            lat, lon = group[['stop_lat', 'stop_lon']].values[0]
-            xy_by_stop[stop] = utm.from_latlon(lat, lon)[:2] 
-        return xy_by_stop
+        point_by_stop = {}
+        if use_utm:
+            for stop, group in self.stops.groupby('stop_id'):
+                lat, lon = group[['stop_lat', 'stop_lon']].values[0]
+                point_by_stop[stop] = Point(utm.from_latlon(lat, lon)[:2]) 
+        else:
+            for stop, group in self.stops.groupby('stop_id'):
+                lat, lon = group[['stop_lat', 'stop_lon']].values[0]
+                point_by_stop[stop] = Point([lon, lat]) 
+        return point_by_stop
 
     def get_shape_dist_traveled(self):
         """
@@ -395,7 +404,7 @@ class Feed(object):
         such as loops.
         """
         linestring_by_shape = self.get_linestring_by_shape()
-        xy_by_stop = self.get_xy_by_stop()
+        point_by_stop = self.get_point_by_stop()
 
         # Initialize data frame
         f = pd.merge(self.trips[['route_id', 'trip_id', 'shape_id']], self.stop_times)
@@ -422,7 +431,7 @@ class Feed(object):
                     d = dist_by_stop_by_shape[shape][stop]
                 else:
                     d = round(
-                      utils.get_segment_length(linestring, xy_by_stop[stop]))
+                      utils.get_segment_length(linestring, point_by_stop[stop]))
                     dist_by_stop_by_shape[shape][stop] = d
                 # Convert from meters to kilometers
                 d /= 1000
