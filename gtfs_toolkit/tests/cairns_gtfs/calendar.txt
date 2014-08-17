@@ -1,5 +1,0 @@
-service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
-CNS2014-CNS_MUL-Weekday-00,1,1,1,1,1,0,0,20140526,20141226
-CNS2014-CNS_MUL-Weekday-00-0000100,0,0,0,0,1,0,0,20140530,20141226
-CNS2014-CNS_MUL-Saturday-00,0,0,0,0,0,1,0,20140531,20141227
-CNS2014-CNS_MUL-Sunday-00,0,0,0,0,0,0,1,20140601,20141228
