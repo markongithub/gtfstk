@@ -68,8 +68,8 @@ class TestFeed(unittest.TestCase):
     def test_get_dates(self):
         feed = cairns
         dates = feed.get_dates()
-        d1 = dt.date(2013, 12, 2)
-        d2 = dt.date(2014, 6, 29)
+        d1 = dt.date(2014, 5, 26)
+        d2 = dt.date(2014, 12, 28)
         self.assertEqual(dates[0], d1)
         self.assertEqual(dates[-1], d2)
         self.assertEqual(len(dates), (d2 - d1).days + 1)
@@ -77,23 +77,23 @@ class TestFeed(unittest.TestCase):
     def test_get_first_week(self):
         feed = cairns
         dates = feed.get_first_week()
-        d1 = dt.date(2013, 12, 2)
-        d2 = dt.date(2013, 12, 8)
+        d1 = dt.date(2014, 5, 26)
+        d2 = dt.date(2014, 6, 1)
         self.assertEqual(dates[0], d1)
         self.assertEqual(dates[-1], d2)
         self.assertEqual(len(dates), 7)
 
     def test_is_active(self):
         feed = cairns
-        trip = 'CNS2014-CNS_MUL-Weekday-00-4166103'
-        date1 = dt.date(2014, 3, 21)
+        trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
+        date1 = dt.date(2014, 5, 26)
         date2 = dt.date(2012, 3, 22)
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
         trip = 'CNS2014-CNS_MUL-Sunday-00-4165971'
-        date1 = dt.date(2014, 4, 18)
-        date2 = dt.date(2012, 4, 17)
+        date1 = dt.date(2014, 6, 1)
+        date2 = dt.date(2012, 6, 2)
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
@@ -147,15 +147,15 @@ class TestFeed(unittest.TestCase):
         feed2 = cairns_shapeless
         self.assertIsNone(feed2.get_linestring_by_shape())
 
-    def test_get_xy_by_stop(self):
+    def test_get_point_by_stop(self):
         feed = cairns
-        xy_by_stop = feed.get_xy_by_stop()
+        point_by_stop = feed.get_point_by_stop()
         # Should be a dictionary
-        self.assertIsInstance(xy_by_stop, dict)
-        # The first element should be a pair of numbers
-        self.assertEqual(len(list(xy_by_stop.values())[0]), 2)
-        # Should all stops
-        self.assertEqual(len(xy_by_stop), feed.stops.shape[0])
+        self.assertIsInstance(point_by_stop, dict)
+        # The first element should be a Shapely point
+        self.assertIsInstance(list(point_by_stop.values())[0], Point)
+        # Should include all stops
+        self.assertEqual(len(point_by_stop), feed.stops.shape[0])
 
     def test_get_stops_activity(self):
         feed = cairns

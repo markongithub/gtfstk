@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.1.10 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.1.12 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1.10',
+        VERSION:     '0.1.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.1.10 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.1.12 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.1.10 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.1.12 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -110,13 +110,24 @@ coordinates.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.get_point_by_stop">
+<tt class="descname">get_point_by_stop</tt><big>(</big><em>use_utm=True</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_point_by_stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary with structure
+stop_id -&gt; Shapely point object.
+If <tt class="docutils literal"><span class="pre">use_utm</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then return each point in
+in UTM coordinates.
+Otherwise, return each point in WGS84 longitude-latitude
+coordinates.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.get_routes_stats">
 <tt class="descname">get_routes_stats</tt><big>(</big><em>trips_stats</em>, <em>dates</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Take <tt class="docutils literal"><span class="pre">trips_stats</span></tt>, which is the output of 
 <tt class="docutils literal"><span class="pre">self.get_trips_stats()</span></tt>, and use it to calculate stats for 
 all the routes active on at least one day of the given dates
 (list of <tt class="docutils literal"><span class="pre">datetime.date</span></tt> objects).</p>
-<p>Return a Pandas data frame with the following columns</p>
+<p>Return a Pandas data frame with the following columns:</p>
 <ul class="simple">
 <li>route_id</li>
 <li>direction_id</li>
@@ -359,13 +370,6 @@ Else, set the distances to <tt class="docutils literal"><span class="pre">np.nan
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_xy_by_stop">
-<tt class="descname">get_xy_by_stop</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_xy_by_stop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a dictionary with structure
-stop_id -&gt; stop location as a UTM coordinate pair</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.is_active_trip">
 <tt class="descname">is_active_trip</tt><big>(</big><em>trip</em>, <em>date</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.is_active_trip" title="Permalink to this definition">¶</a></dt>
 <dd><p>If the given trip (trip ID) is active on the given date 
@@ -430,7 +434,7 @@ convert it to kilometers and return the result.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.1.10 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.1.12 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

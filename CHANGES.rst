@@ -10,3 +10,4 @@
 - v0.1.9, 2014-07-17: Changed ``get_routes_stats()`` headway calculation. Fixed inconsistent outputs in time series functions.
 - v0.1.10, 2014-07-17: Fixed some typos and cleaned up the directory
 - v0.1.11, 2014-07-17: Added ``get_dist_from_shapes`` keyword to ``get_trips_stats()`` 
+- v0.1.12, 2014-08-17: Changed ``get_xy_by_stop()`` name and output type
