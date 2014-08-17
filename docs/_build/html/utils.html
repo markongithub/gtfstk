@@ -6,7 +6,11 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
+<<<<<<< HEAD
     <title>The utils Module &mdash; GTFS Toolkit 0.1.12 documentation</title>
+=======
+    <title>The utils Module &mdash; GTFS Toolkit 0.2.1 documentation</title>
+>>>>>>> 57d7fbb8d668f0644d7e5e77120b07f57375968f
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +18,11 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
+<<<<<<< HEAD
         VERSION:     '0.1.12',
+=======
+        VERSION:     '0.2.1',
+>>>>>>> 57d7fbb8d668f0644d7e5e77120b07f57375968f
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +32,11 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<<<<<<< HEAD
     <link rel="top" title="GTFS Toolkit 0.1.12 documentation" href="index.html" />
+=======
+    <link rel="top" title="GTFS Toolkit 0.2.1 documentation" href="index.html" />
+>>>>>>> 57d7fbb8d668f0644d7e5e77120b07f57375968f
     <link rel="next" title="The feed Module" href="feed.html" />
     <link rel="prev" title="GTFS Toolkit" href="introduction.html" /> 
   </head>
@@ -44,7 +56,11 @@
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              accesskey="P">previous</a> |</li>
+<<<<<<< HEAD
         <li><a href="index.html">GTFS Toolkit 0.1.12 documentation</a> &raquo;</li> 
+=======
+        <li><a href="index.html">GTFS Toolkit 0.2.1 documentation</a> &raquo;</li> 
+>>>>>>> 57d7fbb8d668f0644d7e5e77120b07f57375968f
       </ul>
     </div>  
 
@@ -56,6 +72,7 @@
   <div class="section" id="module-gtfs_toolkit.utils">
 <span id="the-utils-module"></span><h1>The utils Module<a class="headerlink" href="#module-gtfs_toolkit.utils" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
+<<<<<<< HEAD
 <dt id="gtfs_toolkit.utils.agg_routes_stats">
 <tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">agg_routes_stats</tt><big>(</big><em>routes_stats</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.agg_routes_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given <tt class="docutils literal"><span class="pre">route_stats</span></tt> which is the output of <tt class="docutils literal"><span class="pre">get_routes_stats()</span></tt>,
@@ -97,22 +114,14 @@ no &#8216;direction_id&#8217; column.</p>
 </dd></dl>
 
 <dl class="function">
+=======
+>>>>>>> 57d7fbb8d668f0644d7e5e77120b07f57375968f
 <dt id="gtfs_toolkit.utils.date_to_str">
 <tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">date_to_str</tt><big>(</big><em>date</em>, <em>format_str='%Y%m%d'</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.date_to_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a datetime.date object, convert it to a string in the given format
 and return the result.
 If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then assume the given date is in the given
 string format and return its corresponding date object.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfs_toolkit.utils.downsample">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">downsample</tt><big>(</big><em>time_series</em>, <em>freq</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.downsample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Downsample the given route or stop time series, which is the output of 
-<tt class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></tt> or <tt class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></tt>, 
-to the given Pandas-style frequency.
-Can&#8217;t downsample to frequencies less one minute (&#8216;1Min&#8217;), because the
-time series are generated with one-minute frequency.</p>
 </dd></dl>
 
 <dl class="function">
@@ -124,33 +133,6 @@ the linestring between the two points.
 If <tt class="docutils literal"><span class="pre">q</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return the distance from the start of the linestring
 to the projection of <tt class="docutils literal"><span class="pre">p</span></tt>.
 The distance is measured in the native coordinates of the linestring.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfs_toolkit.utils.plot_headways">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">plot_headways</tt><big>(</big><em>stats</em>, <em>max_headway_limit=60</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.plot_headways" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a stops or routes stats data frame, 
-return bar charts of the max and mean headways as a MatplotLib figure.
-Only include the stops/routes with max headways at most 
-<tt class="docutils literal"><span class="pre">max_headway_limit</span></tt> minutes.
-If <tt class="docutils literal"><span class="pre">max_headway_limit</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then include them all in a giant plot. 
-If there are no stops/routes within the max headway limit, then return 
-<tt class="docutils literal"><span class="pre">None</span></tt>.</p>
-<p>NOTES:</p>
-<p>Take the resulting figure <tt class="docutils literal"><span class="pre">f</span></tt> and do <tt class="docutils literal"><span class="pre">f.tight_layout()</span></tt>
-for a nice-looking plot.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfs_toolkit.utils.plot_routes_time_series">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">plot_routes_time_series</tt><big>(</big><em>time_series</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.plot_routes_time_series" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a stops or routes time series data frame,
-sum each time series statistic over all stops/routes, 
-plot each series statistic using MatplotLib, 
-and return the resulting figure of subplots.</p>
-<p>NOTES:</p>
-<p>Take the resulting figure <tt class="docutils literal"><span class="pre">f</span></tt> and do <tt class="docutils literal"><span class="pre">f.tight_layout()</span></tt>
-for a nice-looking plot.</p>
 </dd></dl>
 
 <dl class="function">
@@ -233,7 +215,11 @@ If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pr
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              >previous</a> |</li>
+<<<<<<< HEAD
         <li><a href="index.html">GTFS Toolkit 0.1.12 documentation</a> &raquo;</li> 
+=======
+        <li><a href="index.html">GTFS Toolkit 0.2.1 documentation</a> &raquo;</li> 
+>>>>>>> 57d7fbb8d668f0644d7e5e77120b07f57375968f
       </ul>
     </div>
     <div class="footer">

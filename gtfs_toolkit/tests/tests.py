@@ -242,7 +242,27 @@ class TestFeed(unittest.TestCase):
             else:
                 expect = ['statistic', 'route_id']
             self.assertEqual(rts.columns.names, expect)   
-
+    
+    def test_agg_routes_time_series(self):
+        feed = cairns 
+        dates = feed.get_first_week()
+        trips_stats = feed.get_trips_stats()
+        for split_directions in [True, False]:
+            rts = feed.get_routes_time_series(trips_stats, dates, 
+              split_directions=split_directions, freq='1H')
+            arts = agg_routes_time_series(rts)
+            if split_directions:
+                num_cols = 2*len(rts.columns.levels[0])
+                col_names = ['statistic', 'direction_id']
+            else:
+                num_cols = len(rts.columns.levels[0])
+                col_names = [None]
+            # Should be a data frame of the correct shape
+            self.assertIsInstance(arts, pd.core.frame.DataFrame)
+            self.assertEqual(arts.shape[0], 24)
+            self.assertEqual(arts.shape[1], num_cols)
+            # Should have correct column names
+            self.assertEqual(arts.columns.names, col_names)   
 
 if __name__ == '__main__':
     unittest.main()
