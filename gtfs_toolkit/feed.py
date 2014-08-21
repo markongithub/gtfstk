@@ -21,20 +21,6 @@ import gtfs_toolkit.utils as utils
 
 VALID_DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
 
-def to_km(x, units='km'):
-    """
-    Given a distance ``x`` in units ``units``,
-    convert it to kilometers and return the result.
-    """
-    if units == 'km':
-        return x
-    if units == 'm':
-        return x/1000
-    if units == 'mi':
-        return x*1.6093
-    if units == 'ft':
-        return x*0.00030480
-
 def downsample(time_series, freq):
     """
     Downsample the given route or stop time series, which is the output of 
@@ -309,7 +295,7 @@ class Feed(object):
         # Convert distances to kilometers
         if 'shape_dist_traveled' in st.columns:
             st['shape_dist_traveled'] = st['shape_dist_traveled'].map(
-              lambda x: to_km(x, original_units))
+              lambda x: utils.to_km(x, original_units))
         self.stop_times = st
 
         # Note that at least one of calendar.txt or calendar_dates.txt is
@@ -343,7 +329,7 @@ class Feed(object):
             if 'shape_dist_traveled' in shapes.columns:
                 shapes['shape_dist_traveled'] =\
                   shapes['shape_dist_traveled'].map(
-                  lambda x: to_km(x, original_units))
+                  lambda x: utils.to_km(x, original_units))
             self.shapes = shapes
         else:
             self.shapes = None
@@ -590,7 +576,7 @@ class Feed(object):
                 point_by_stop[stop] = Point([lon, lat]) 
         return point_by_stop
 
-    def add_shape_dist_traveled(self, trips_stats):
+    def add_dist_to_stop_times(self, trips_stats):
         """
         Add/overwrite the optional ``shape_dist_traveled`` GTFS field for
         ``self.stop_times`` and return the resulting Pandas data frame.  
@@ -607,7 +593,7 @@ class Feed(object):
 
         NOTE: 
 
-        Takes about 0.2 minutes on the Portland feed.
+        Takes about 1 minute on the Portland feed.
         Comparing the calculated ``shape_dist_traveled`` values 
         for the Portland feed with the original values,
         shows that 97% of calculated values are at most
@@ -619,6 +605,7 @@ class Feed(object):
         # Initialize data frame
         f = pd.merge(trips_stats[['trip_id', 'shape_id', 'distance', 
           'duration' ]], self.stop_times)
+
         # Convert departure times to seconds past midnight to ease calculations
         f['departure_time'] = f['departure_time'].map(lambda x: 
           utils.seconds_to_timestr(x, inverse=True))
@@ -635,8 +622,6 @@ class Feed(object):
                 return group
             linestring = linestring_by_shape[shape]
             distances = []
-            prev_dist = 0
-            error = False
             for stop in group['stop_id'].values:
                 if stop in dist_by_stop_by_shape[shape]:
                     d = dist_by_stop_by_shape[shape][stop]
@@ -646,15 +631,17 @@ class Feed(object):
                     dist_by_stop_by_shape[shape][stop] = d
                 # Convert from meters to kilometers
                 d /= 1000
-                if d < prev_dist:
-                    # Bad distance. Bail!
-                    error = True
-                    break
-                else:
-                    prev_dist = d
-                    distances.append(d)
-            if error:
-                # Start again and estimate distances 
+                distances.append(d)
+            s = sorted(distances)
+            if s == distances:
+                # Good
+                pass
+            elif s == distances[::-1]:
+                # Reverse. This happens when the direction of a linestring
+                # opposes the direction of the bus trip.
+                distances = distances[::-1]
+            else:
+                # Redo, and this time estimate distances 
                 # using trip's average speed and linear interpolation
                 distances = [0]
                 dtimes = group['departure_time'].values
@@ -672,8 +659,55 @@ class Feed(object):
 
         result = f.groupby('trip_id', group_keys=False).apply(get_dist)
         # Unconvert departure times from seconds past midnight
-        result['departure_time'] = f['departure_time'].map(lambda x: 
+        result['departure_time'] = result['departure_time'].map(lambda x: 
           utils.seconds_to_timestr(x))
+        del result['shape_id']
+        del result['distance']
+        del result['duration']
+        return result
+
+    def add_dist_to_shapes(self):
+        """
+        Add/overwrite the optional ``shape_dist_traveled`` GTFS field for
+        ``self.shapes`` and return the resulting Pandas data frame.  
+
+        NOTE: 
+
+        Takes about ? minutes on the Portland feed.
+        Comparing the calculated ``shape_dist_traveled`` values 
+        for the Portland feed with the original values,
+        shows that 97% of calculated values are at most
+        1 km off in absolute value, and the maximum error is 6.3 km.
+        """
+        assert self.shapes is not None,\
+          "This method requires the feed to have a shapes.txt file"
+
+        linestring_by_shape = self.get_linestring_by_shape()
+        f = self.shapes
+
+        def get_dist(group):
+            # Compute the distances of the stops along this trip
+            group = group.sort('shape_pt_sequence')
+            shape = group['shape_id'].iat[0]
+            if not isinstance(shape, str):
+                print(trip, 'no shape_id:', shape)
+                group['shape_dist_traveled'] = np.nan 
+                return group
+            linestring = linestring_by_shape[shape]
+            distances = []
+            for lon, lat in group[['shape_pt_lon', 'shape_pt_lat']].values:
+                p = Point(utm.from_latlon(lat, lon)[:2])
+                d = round(utils.get_segment_length(linestring, p))
+                # Convert from meters to kilometers
+                d /= 1000
+                distances.append(d)
+            s = sorted(distances)
+            if s != distances:
+                print('Fail')
+            group['shape_dist_traveled'] = distances
+            return group
+
+        result = f.groupby('shape_id', group_keys=False).apply(get_dist)
         return result
 
     def get_stops_activity(self, dates):
