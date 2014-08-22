@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.2.2 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.2.3 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.2',
+        VERSION:     '0.2.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.2.2 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.2.3 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.2.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.2.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -55,14 +55,51 @@
 is valid.</p>
 <p>All time estimates below were produced on a 2013 MacBook Pro with a
 2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.</p>
+<p>TODO:</p>
+<ul class="simple">
+<li>Speed up time series calculations</li>
+</ul>
 <dl class="class">
 <dt id="gtfs_toolkit.feed.Feed">
-<em class="property">class </em><tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">Feed</tt><big>(</big><em>path</em>, <em>distance_units='km'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">Feed</tt><big>(</big><em>path</em>, <em>original_units='km'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
 <p>A class to gather all the GTFS files for a feed and store them in memory 
 as Pandas data frames.  
 Make sure you have enough memory!  
 The stop times object can be big.</p>
+<dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.add_dist_to_shapes">
+<tt class="descname">add_dist_to_shapes</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.add_dist_to_shapes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add/overwrite the optional <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> GTFS field for
+<tt class="docutils literal"><span class="pre">self.shapes</span></tt> and return the resulting Pandas data frame.</p>
+<p>NOTE:</p>
+<p>Takes about 0.33 minutes on the Portland feed.
+All of the calculated <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> values 
+for the Portland feed differ by at most 0.016 km in absolute values
+from of the original values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.add_dist_to_stop_times">
+<tt class="descname">add_dist_to_stop_times</tt><big>(</big><em>trips_stats</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.add_dist_to_stop_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add/overwrite the optional <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> GTFS field for
+<tt class="docutils literal"><span class="pre">self.stop_times</span></tt> and return the resulting Pandas data frame.</p>
+<p>Compute the <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> by using Shapely to measure 
+the distance of a stop along its trip linestring.
+If for a given trip, this process produces a non-monotonically 
+increasing, hence incorrect, list of (cumulative) distances, then
+fall back to estimating the distances as follows.
+Get the average speed of the trip via <tt class="docutils literal"><span class="pre">trips_stats</span></tt> and
+use is to linearly interpolate distances from stop times.
+This fallback method usually kicks in on trips with self-intersecting
+linestrings.</p>
+<p>NOTE:</p>
+<p>Takes about 0.75 minutes on the Portland feed.
+98% of calculated &#8216;shape_dist_traveled&#8217; values differ by at most
+0.56 km in absolute value from the original values, 
+and the maximum absolute difference is 6.3 km.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.dump_all_stats">
 <tt class="descname">dump_all_stats</tt><big>(</big><em>directory</em>, <em>dates=None</em>, <em>freq='1H'</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.dump_all_stats" title="Permalink to this definition">¶</a></dt>
@@ -211,24 +248,6 @@ five weekdays of the feed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_shape_dist_traveled">
-<tt class="descname">get_shape_dist_traveled</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_shape_dist_traveled" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the optional <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> GTFS field for
-<tt class="docutils literal"><span class="pre">self.stop_times</span></tt> and return the resulting Pandas data frame.  
-As a second output, return a data frame with the columns</p>
-<ul class="simple">
-<li>route_id</li>
-<li>trip_id</li>
-<li>shape_id</li>
-</ul>
-<p>of the trips for which this calculation definitely failed.</p>
-<p>NOTE:</p>
-<p>Takes about 0.2 minutes on the Portland feed.
-Fails on shapes with self-intersecting linestrings,
-such as loops.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.get_stations_stats">
 <tt class="descname">get_stations_stats</tt><big>(</big><em>dates</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stations_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this feed has station data, that is, &#8216;location_type&#8217; and
@@ -345,34 +364,34 @@ trip is active (1) on the given date or inactive (0)</li>
 
 <dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.get_trips_stats">
-<tt class="descname">get_trips_stats</tt><big>(</big><em>get_dist_from_shapes=True</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_trips_stats" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_trips_stats</tt><big>(</big><em>get_dist_from_shapes=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_trips_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Pandas data frame with the following columns:</p>
 <ul class="simple">
 <li>trip_id</li>
 <li>direction_id</li>
 <li>route_id</li>
+<li>shape_id</li>
 <li>start_time: first departure time of the trip</li>
 <li>end_time: last departure time of the trip</li>
+<li>duration: duration of the trip in hours</li>
 <li>start_stop_id: stop ID of the first stop of the trip</li>
 <li>end_stop_id: stop ID of the last stop of the trip</li>
-<li>duration: duration of the trip in hours</li>
+<li>num_stops: number of stops on trip</li>
 <li>distance: distance of the trip in kilometers; contains all <tt class="docutils literal"><span class="pre">np.nan</span></tt>
 entries if <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></tt></li>
-<li>num_stops: number of stops on trip</li>
 </ul>
 <p>NOTES:</p>
-<p>If <tt class="docutils literal"><span class="pre">self.stop_times</span></tt> has a <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> column,
-then use that to compute the distance column (in km).
-Else if <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></tt> and 
-<tt class="docutils literal"><span class="pre">get_dist_from_shapes</span> <span class="pre">==</span> <span class="pre">True</span></tt>,
-then compute the distance column using the shapes and Shapely, 
-Warning: In this case, the distance will probably be wrong
-when the shape has segments that are parallel and very close, e.g.
-a looping trip with in and out segments that lie on the same side of
-the road (because of bad GIS data).
-Else, set the distances to <tt class="docutils literal"><span class="pre">np.nan</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">self.stop_times</span></tt> has a <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> column
+and <tt class="docutils literal"><span class="pre">get_dist_from_shapes</span> <span class="pre">==</span> <span class="pre">False</span></tt>,
+then use that column to compute the distance column (in km).
+Elif <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></tt>, then compute the distance 
+column using the shapes and Shapely. 
+Otherwise, set the distances to <tt class="docutils literal"><span class="pre">np.nan</span></tt>.</p>
 <p>Takes about 0.3 minutes on the Portland feed, which has the
-<tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> column.</p>
+<tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> column.
+Using <tt class="docutils literal"><span class="pre">get_dist_from_shapes=True</span></tt> on the Portland feed, yields 
+a maximum absolute difference of 0.75 km from using 
+<tt class="docutils literal"><span class="pre">get_dist_from_shapes=True</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -384,13 +403,6 @@ Otherwise, return <tt class="docutils literal"><span class="pre">False</span></t
 To avoid error checking in the interest of speed, 
 assume <tt class="docutils literal"><span class="pre">trip</span></tt> is a valid trip ID in the feed and 
 <tt class="docutils literal"><span class="pre">date</span></tt> is a valid date object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.to_km">
-<tt class="descname">to_km</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.to_km" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a distance <tt class="docutils literal"><span class="pre">x</span></tt> in this feed&#8217;s native units,
-convert it to kilometers and return the result.</p>
 </dd></dl>
 
 </dd></dl>
@@ -504,7 +516,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.2.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.2.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

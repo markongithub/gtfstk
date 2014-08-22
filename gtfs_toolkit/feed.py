@@ -4,6 +4,10 @@ is valid.
 
 All time estimates below were produced on a 2013 MacBook Pro with a
 2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.
+
+TODO:
+
+- Speed up time series calculations
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -338,7 +342,6 @@ class Feed(object):
             # Remove extracted directory
             shutil.rmtree(path)
 
-
     def get_dates(self):
         """
         Return a chronologically ordered list of dates 
@@ -453,19 +456,18 @@ class Feed(object):
 
         NOTES:
 
-        If ``self.stop_times`` has a ``shape_dist_traveled`` column,
-        then use that to compute the distance column (in km).
-        Else if ``get_dist_from_shapes == True`` and 
-        ``self.shapes is not None``,
-        then compute the distance column using the shapes and Shapely. 
+        If ``self.stop_times`` has a ``shape_dist_traveled`` column
+        and ``get_dist_from_shapes == False``,
+        then use that column to compute the distance column (in km).
+        Elif ``self.shapes is not None``, then compute the distance 
+        column using the shapes and Shapely. 
         Otherwise, set the distances to ``np.nan``.
 
         Takes about 0.3 minutes on the Portland feed, which has the
         ``shape_dist_traveled`` column.
-        Comparing the trip distances on the Portland feed with and without
-        ``get_dist_from_shapes=True``, 98% of estimated trip lengths are 
-        at least 99% accurate (assuming the feed's ``shape_dist_traveled``
-        field is correct), and the maximum error is 0.75 km.
+        Using ``get_dist_from_shapes=True`` on the Portland feed, yields 
+        a maximum absolute difference of 0.75 km from using 
+        ``get_dist_from_shapes=True``.
         """
         trips = self.trips
         stop_times = self.stop_times
@@ -508,14 +510,14 @@ class Feed(object):
             shape = group['shape_id'].iat[0]
             return linestring_by_shape[shape].length/1000
 
-        if get_dist_from_shapes and self.shapes is not None:
+        if 'shape_dist_traveled' in f.columns and not get_dist_from_shapes:
+            # Compute distances using shape_dist_traveled column
+            h['distance'] = g.apply(lambda group: 
+            group['shape_dist_traveled'].max())
+        elif self.shapes is not None:
             # Compute distances using the shapes and Shapely
             linestring_by_shape = self.get_linestring_by_shape()
             h['distance'] = g.apply(get_dist)
-        elif not get_dist_from_shapes and 'shape_dist_traveled' in f.columns:
-            # Compute distances using shape_dist_traveled column
-            h['distance'] = g.apply(lambda group: 
-              group['shape_dist_traveled'].max())
         else:
             h['distance'] = np.nan
 
@@ -593,11 +595,10 @@ class Feed(object):
 
         NOTE: 
 
-        Takes about 1 minute on the Portland feed.
-        Comparing the calculated ``shape_dist_traveled`` values 
-        for the Portland feed with the original values,
-        shows that 97% of calculated values are at most
-        1 km off in absolute value, and the maximum error is 6.3 km.
+        Takes about 0.75 minutes on the Portland feed.
+        98% of calculated 'shape_dist_traveled' values differ by at most
+        0.56 km in absolute value from the original values, 
+        and the maximum absolute difference is 6.3 km.
         """
         linestring_by_shape = self.get_linestring_by_shape()
         point_by_stop = self.get_point_by_stop()
@@ -626,8 +627,8 @@ class Feed(object):
                 if stop in dist_by_stop_by_shape[shape]:
                     d = dist_by_stop_by_shape[shape][stop]
                 else:
-                    d = round(utils.get_segment_length(linestring, 
-                      point_by_stop[stop]))
+                    d = utils.get_segment_length(linestring, 
+                      point_by_stop[stop])
                     dist_by_stop_by_shape[shape][stop] = d
                 # Convert from meters to kilometers
                 d /= 1000
@@ -673,16 +674,14 @@ class Feed(object):
 
         NOTE: 
 
-        Takes about ? minutes on the Portland feed.
-        Comparing the calculated ``shape_dist_traveled`` values 
-        for the Portland feed with the original values,
-        shows that 97% of calculated values are at most
-        1 km off in absolute value, and the maximum error is 6.3 km.
+        Takes about 0.33 minutes on the Portland feed.
+        All of the calculated ``shape_dist_traveled`` values 
+        for the Portland feed differ by at most 0.016 km in absolute values
+        from of the original values. 
         """
         assert self.shapes is not None,\
           "This method requires the feed to have a shapes.txt file"
 
-        linestring_by_shape = self.get_linestring_by_shape()
         f = self.shapes
 
         def get_dist(group):
@@ -693,17 +692,15 @@ class Feed(object):
                 print(trip, 'no shape_id:', shape)
                 group['shape_dist_traveled'] = np.nan 
                 return group
-            linestring = linestring_by_shape[shape]
-            distances = []
-            for lon, lat in group[['shape_pt_lon', 'shape_pt_lat']].values:
-                p = Point(utm.from_latlon(lat, lon)[:2])
-                d = round(utils.get_segment_length(linestring, p))
-                # Convert from meters to kilometers
-                d /= 1000
+            points = [Point(utm.from_latlon(lat, lon)[:2]) 
+              for lon, lat in group[['shape_pt_lon', 'shape_pt_lat']].values]
+            p_prev = points[0]
+            d = 0
+            distances = [0]
+            for  p in points[1:]:
+                d += p.distance(p_prev)/1000
                 distances.append(d)
-            s = sorted(distances)
-            if s != distances:
-                print('Fail')
+                p_prev = p
             group['shape_dist_traveled'] = distances
             return group
 

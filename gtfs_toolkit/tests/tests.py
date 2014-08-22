@@ -42,15 +42,14 @@ class TestFeed(unittest.TestCase):
         p = Point((0, 1/2))
         self.assertEqual(get_segment_length(s, p), 0)
 
-    """
     def test_init(self):
         # Test distance units check
         self.assertRaises(AssertionError, Feed, 
           path='gtfs_toolkit/tests/cairns_gtfs.zip', 
-          distance_units='bingo')
+          original_units='bingo')
         # Test other stuff
         portland = Feed('gtfs_toolkit/tests/portland_gtfs.zip', 
-          distance_units='ft')
+          original_units='ft')
         for feed in [cairns, portland]:
             self.assertIsInstance(feed.routes, pd.core.frame.DataFrame)
             self.assertIsInstance(feed.stops, pd.core.frame.DataFrame)
@@ -165,12 +164,12 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(stops_activity.shape[1], len(dates) + 1)
         # Date columns should contain only zeros and ones
         self.assertEqual(set(stops_activity[dates].values.flatten()), {0, 1})
-    """
-    def test_add_shape_dist_traveled(self):
+
+    def test_add_dist_to_stop_times(self):
         feed = cairns
         st1 = feed.stop_times
         trips_stats = feed.get_trips_stats()
-        st2 = feed.add_shape_dist_traveled(trips_stats)
+        st2 = feed.add_dist_to_stop_times(trips_stats)
 
         # Check that colums of st2 equal the columns of st1 plus
         # a shape_dist_traveled column
@@ -183,7 +182,25 @@ class TestFeed(unittest.TestCase):
         for name, group in st2.groupby('trip_id'):
             sdt = list(group['shape_dist_traveled'].values)
             self.assertEqual(sdt, sorted(sdt))
-    """
+
+    def test_add_dist_to_shapes(self):
+        feed = cairns
+        s1 = feed.shapes
+        trips_stats = feed.get_trips_stats()
+        s2 = feed.add_dist_to_shapes()
+
+        # Check that colums of st2 equal the columns of st1 plus
+        # a shape_dist_traveled column
+        cols1 = list(s1.columns.values) + ['shape_dist_traveled']
+        cols2 = list(s2.columns.values)
+        self.assertEqual(set(cols1), set(cols2))
+
+        # Check that within each trip the shape_dist_traveled column 
+        # is monotonically increasing
+        for name, group in s2.groupby('shape_id'):
+            sdt = list(group['shape_dist_traveled'].values)
+            self.assertEqual(sdt, sorted(sdt))
+
     def test_get_stops_stats(self):
         feed = cairns
         dates = feed.get_first_week()
@@ -278,7 +295,7 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(arts.shape[1], num_cols)
             # Should have correct column names
             self.assertEqual(arts.columns.names, col_names)   
-    """
+
 
 if __name__ == '__main__':
     unittest.main()
