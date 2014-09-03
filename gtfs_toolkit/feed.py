@@ -431,7 +431,7 @@ class Feed(object):
         if not dates:
             return
 
-        f = self.trips
+        f = self.trips.copy()
         for date in dates:
             f[date] = f['trip_id'].map(lambda trip: 
               int(self.is_active_trip(trip, date)))
