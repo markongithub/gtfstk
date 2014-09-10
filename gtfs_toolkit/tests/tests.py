@@ -14,6 +14,7 @@ cairns_shapeless = Feed('gtfs_toolkit/tests/cairns_gtfs.zip')
 cairns_shapeless.shapes = None
 
 class TestFeed(unittest.TestCase):
+    """
     def test_seconds_to_timestr(self):
         seconds = 3600 + 60 + 1
         timestr = '01:01:01'
@@ -99,7 +100,28 @@ class TestFeed(unittest.TestCase):
         date2 = dt.date(2012, 5, 17)
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
+    """
+    def test_get_active_trips(self):
+        feed = cairns
+        date = feed.get_first_week()[0]
+        f = feed.get_active_trips(date)
+        # Should be a data frame
+        self.assertIsInstance(f, pd.core.frame.DataFrame)
+        # Should have the correct shape
+        self.assertTrue(f.shape[0] <= feed.trips.shape[0])
+        self.assertEqual(f.shape[1], feed.trips.shape[1])
+        # Should have correct columns
+        self.assertEqual(set(f.columns), set(feed.trips.columns))
 
+        g = feed.get_active_trips(date, "07:30:00")
+        # Should be a data frame
+        self.assertIsInstance(g, pd.core.frame.DataFrame)
+        # Should have the correct shape
+        self.assertTrue(g.shape[0] <= f.shape[0])
+        self.assertEqual(g.shape[1], f.shape[1])
+        # Should have correct columns
+        self.assertEqual(set(g.columns), set(feed.trips.columns))
+    """
     def test_get_trips_activity(self):
         feed = cairns
         dates = feed.get_first_week()
@@ -295,7 +317,7 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(arts.shape[1], num_cols)
             # Should have correct column names
             self.assertEqual(arts.columns.names, col_names)   
-
+    """
 
 if __name__ == '__main__':
     unittest.main()

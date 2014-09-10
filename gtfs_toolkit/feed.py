@@ -7,6 +7,9 @@ All time estimates below were produced on a 2013 MacBook Pro with a
 
 TODO:
 
+- Add get_active_stops()
+- Add get_trips_locations(date, timestr)
+- Remove get_trips_activity()? 
 - Speed up time series calculations
 """
 import datetime as dt
@@ -413,6 +416,41 @@ class Feed(object):
                     return False
         # If you made it here, then something went wrong
         return False
+
+    def get_active_trips(self, date, timestr=None):
+        """
+        Return the section of ``self.trips`` that contains
+        only trips active on the given date (``datetime.date`` object).
+        If a time is given in the form of a GTFS time string %H:%M:%S,
+        then return only those trips active at that date and time.
+        Do not take times modulo 24.
+        """
+        f = self.trips.copy()
+        if not date:
+            return f
+
+        f['is_active'] = f['trip_id'].map(lambda trip: 
+          int(self.is_active_trip(trip, date)))
+        g = f[f['is_active'] == 1]
+        del g['is_active']
+
+        if timestr is not None:
+            # Get trips active during given time
+            h = pd.merge(g, self.stop_times[['trip_id', 'departure_time']])
+          
+            def F(group):
+                start = group['departure_time'].min()
+                end = group['departure_time'].max()
+                try:
+                    return start <= timestr <= end
+                except TypeError:
+                    return False
+
+            gg = h.groupby('trip_id').apply(F).reset_index()
+            g = pd.merge(g, gg[gg[0]])
+            del g[0]
+
+        return g
 
     def get_trips_activity(self, dates):
         """
