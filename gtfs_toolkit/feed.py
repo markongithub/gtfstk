@@ -10,6 +10,7 @@ TODO:
 - Add get_active_stops()
 - Add get_trips_locations(date, timestr)
 - Remove get_trips_activity()? 
+- Allow dates to be entered as YYYYMMDD strings?
 - Speed up time series calculations
 """
 import datetime as dt
@@ -595,6 +596,63 @@ class Feed(object):
                 lonlats = zip(lons, lats)
                 linestring_by_shape[shape] = LineString(lonlats)
         return linestring_by_shape
+
+    def get_trips_locations(self, linestring_by_shape, date, timestr):
+        """
+        Return a Pandas data frame of the positions of all trips 
+        active on the given date and time.
+        Include the columns:
+
+        - trip_id
+        - direction_id
+        - route_id
+        - lon: longitude at given time
+        - lat: latitude at given time
+
+        Requires input ``self.get_linestring_from_shape(use_utm=False)``.
+        Assume ``self.stop_times`` has a ``shape_dist_traveled``
+        column, possibly created by ``add_dist_to_stop_times()``.
+        """
+        assert 'shape_dist_traveled' in self.stop_times.columns,\
+          "The shape_dist_traveled column is required in self.stop_times."\
+          "You can add it via self.stop_times = self.add_dist_to_stop_times()."
+        
+        # Get active trips
+        at = self.get_active_trips(date, timestr)
+
+        # Merge active trips with stop times and convert
+        # times to seconds past midnight
+        f = pd.merge(at, self.stop_times)
+        f['departure_time'] = f['departure_time'].map(
+          lambda x: utils.seconds_to_timestr(x, inverse=True))
+
+        # Interpolate relative distance of trip along its path
+        # at the given time
+        t = utils.seconds_to_timestr(timestr, inverse=True)
+        def F(group):
+            dists = sorted(group['shape_dist_traveled'].values)
+            times = sorted(group['departure_time'].values)
+            d = np.interp(t, times, dists)
+            return d/dists[-1]
+        g = f.groupby('trip_id').apply(F).reset_index()
+        h = pd.merge(at, g)
+
+        def G(group):
+            shape = group['shape_id'].iat[0]
+            linestring = linestring_by_shape[shape]
+            lonlats = [linestring.interpolate(d, normalized=True).xy
+              for d in group[0].values]
+            group['lon'] = [x[0] for x in lonlats]
+            group['lat'] = [x[1] for x in lonlats]
+            return group
+        h['lon'] = 0
+        h['lat'] = 0
+        hh = h.groupby('shape_id').apply(G)
+        return hh
+        # # Get lon-lat point of trip at relative distance
+        # def G(x):
+        #     x
+        # h = g.apply(x)
 
     def get_point_by_stop(self, use_utm=True):
         """
