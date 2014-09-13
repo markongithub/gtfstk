@@ -8,7 +8,6 @@ All time estimates below were produced on a 2013 MacBook Pro with a
 TODO:
 
 - Add get_active_stops()
-- Add get_trips_locations(date, timestr)
 - Remove get_trips_activity()? 
 - Allow dates to be entered as YYYYMMDD strings?
 - Speed up time series calculations
@@ -597,7 +596,7 @@ class Feed(object):
                 linestring_by_shape[shape] = LineString(lonlats)
         return linestring_by_shape
 
-    def get_trips_locations(self, linestring_by_shape, date, timestr):
+    def get_vehicles_locations(self, linestring_by_shape, date, timestr):
         """
         Return a Pandas data frame of the positions of all trips 
         active on the given date and time.
@@ -606,8 +605,10 @@ class Feed(object):
         - trip_id
         - direction_id
         - route_id
-        - lon: longitude at given time
-        - lat: latitude at given time
+        - rel_dist: number between 0 (start) and 1 (end) indicating 
+          the relative distance of the vehicle along its path
+        - lon: longitude of vehicle at given time
+        - lat: latitude of vehicle at given time
 
         Requires input ``self.get_linestring_from_shape(use_utm=False)``.
         Assume ``self.stop_times`` has a ``shape_dist_traveled``
@@ -626,8 +627,10 @@ class Feed(object):
         f['departure_time'] = f['departure_time'].map(
           lambda x: utils.seconds_to_timestr(x, inverse=True))
 
-        # Interpolate relative distance of trip along its path
-        # at the given time
+        # Compute relative distance of each vehicle along its path
+        # at the given time.
+        # Use linear interpolation based on stop departure times and
+        # shape distance traveled.
         t = utils.seconds_to_timestr(timestr, inverse=True)
         def F(group):
             dists = sorted(group['shape_dist_traveled'].values)
@@ -635,24 +638,18 @@ class Feed(object):
             d = np.interp(t, times, dists)
             return d/dists[-1]
         g = f.groupby('trip_id').apply(F).reset_index()
+        g.columns = ['trip_id', 'rel_dist']
         h = pd.merge(at, g)
 
+        # Compute longitude and latitude of vehicle from relative distance
         def G(group):
             shape = group['shape_id'].iat[0]
             linestring = linestring_by_shape[shape]
-            lonlats = [linestring.interpolate(d, normalized=True).xy
-              for d in group[0].values]
-            group['lon'] = [x[0] for x in lonlats]
-            group['lat'] = [x[1] for x in lonlats]
+            lonlats = [linestring.interpolate(d, normalized=True).coords[0]
+              for d in group['rel_dist'].values]
+            group['lon'], group['lat'] = zip(*lonlats)
             return group
-        h['lon'] = 0
-        h['lat'] = 0
-        hh = h.groupby('shape_id').apply(G)
-        return hh
-        # # Get lon-lat point of trip at relative distance
-        # def G(x):
-        #     x
-        # h = g.apply(x)
+        return h.groupby('shape_id').apply(G)
 
     def get_point_by_stop(self, use_utm=True):
         """
@@ -676,8 +673,8 @@ class Feed(object):
 
     def add_dist_to_stop_times(self, trips_stats):
         """
-        Add/overwrite the optional ``shape_dist_traveled`` GTFS field for
-        ``self.stop_times`` and return the resulting Pandas data frame.  
+        Add/overwrite the optional ``shape_dist_traveled`` GTFS field in
+        ``self.stop_times``.
 
         Compute the ``shape_dist_traveled`` by using Shapely to measure 
         the distance of a stop along its trip linestring.
@@ -761,12 +758,12 @@ class Feed(object):
         del result['shape_id']
         del result['distance']
         del result['duration']
-        return result
+        self.stop_times = result
 
     def add_dist_to_shapes(self):
         """
         Add/overwrite the optional ``shape_dist_traveled`` GTFS field for
-        ``self.shapes`` and return the resulting Pandas data frame.  
+        ``self.shapes``.
 
         NOTE: 
 
@@ -801,7 +798,7 @@ class Feed(object):
             return group
 
         result = f.groupby('shape_id', group_keys=False).apply(get_dist)
-        return result
+        self.shapes = result
 
     def get_stops_activity(self, dates):
         """

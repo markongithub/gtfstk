@@ -121,6 +121,24 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(g.shape[1], f.shape[1])
         # Should have correct columns
         self.assertEqual(set(g.columns), set(feed.trips.columns))
+
+    def test_get_vehicles_locations(self):
+        feed = cairns
+        trips_stats = feed.get_trips_stats()
+        feed.add_dist_to_stop_times(trips_stats)
+        linestring_by_shape = feed.get_linestring_by_shape(use_utm=False)
+        date = feed.get_first_week()[0]
+        timestr = '07:35:00'
+        f = feed.get_vehicles_locations(linestring_by_shape, date, timestr)
+        g = feed.get_active_trips(date, timestr)
+        # Should be a data frame
+        self.assertIsInstance(f, pd.core.frame.DataFrame)
+        # Should have the correct number of rows
+        self.assertEqual(f.shape[0], g.shape[0])
+        # Should have the correct columns
+        get_cols = set(f.columns)
+        expect_cols = set(list(g.columns) + ['rel_dist', 'lon', 'lat'])
+        self.assertEqual(get_cols, expect_cols)
     """
     def test_get_trips_activity(self):
         feed = cairns
@@ -189,9 +207,10 @@ class TestFeed(unittest.TestCase):
 
     def test_add_dist_to_stop_times(self):
         feed = cairns
-        st1 = feed.stop_times
+        st1 = feed.stop_times.copy()
         trips_stats = feed.get_trips_stats()
-        st2 = feed.add_dist_to_stop_times(trips_stats)
+        feed.add_dist_to_stop_times(trips_stats)
+        st2 = feed.stop_times
 
         # Check that colums of st2 equal the columns of st1 plus
         # a shape_dist_traveled column
@@ -207,10 +226,9 @@ class TestFeed(unittest.TestCase):
 
     def test_add_dist_to_shapes(self):
         feed = cairns
-        s1 = feed.shapes
-        trips_stats = feed.get_trips_stats()
-        s2 = feed.add_dist_to_shapes()
-
+        s1 = feed.shapes.copy()
+        feed.add_dist_to_shapes()
+        s2 = feed.shapes
         # Check that colums of st2 equal the columns of st1 plus
         # a shape_dist_traveled column
         cols1 = list(s1.columns.values) + ['shape_dist_traveled']
