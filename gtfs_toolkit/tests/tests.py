@@ -100,7 +100,7 @@ class TestFeed(unittest.TestCase):
         date2 = dt.date(2012, 5, 17)
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
-    """
+
     def test_get_active_trips(self):
         feed = cairns
         date = feed.get_first_week()[0]
@@ -139,7 +139,7 @@ class TestFeed(unittest.TestCase):
         get_cols = set(f.columns)
         expect_cols = set(list(g.columns) + ['rel_dist', 'lon', 'lat'])
         self.assertEqual(get_cols, expect_cols)
-    """
+
     def test_get_trips_activity(self):
         feed = cairns
         dates = feed.get_first_week()
@@ -275,7 +275,7 @@ class TestFeed(unittest.TestCase):
             else:
                 expect = ['statistic', 'stop_id']
             self.assertEqual(stops_ts.columns.names, expect)
-
+    """
     def test_get_routes_stats(self):
         feed = cairns
         dates = feed.get_first_week()
@@ -335,7 +335,6 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(arts.shape[1], num_cols)
             # Should have correct column names
             self.assertEqual(arts.columns.names, col_names)   
-    """
-
+    
 if __name__ == '__main__':
     unittest.main()

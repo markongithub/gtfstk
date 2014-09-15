@@ -11,6 +11,7 @@ TODO:
 - Remove get_trips_activity()? 
 - Allow dates to be entered as YYYYMMDD strings?
 - Speed up time series calculations
+- Add start and end time options for headway calculations
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -1120,7 +1121,8 @@ class Feed(object):
 
         return result
 
-    def get_routes_stats(self, trips_stats, dates, split_directions=False):
+    def get_routes_stats(self, trips_stats, dates, split_directions=False,
+        headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
         """
         Take ``trips_stats``, which is the output of 
         ``self.get_trips_stats()``, and use it to calculate stats for 
@@ -1171,6 +1173,11 @@ class Feed(object):
         trips_stats['start_time'] = trips_stats['start_time'].map(lambda x: 
           utils.seconds_to_timestr(x, inverse=True))
 
+        headway_start = utils.seconds_to_timestr(headway_start_timestr, 
+          inverse=True)
+        headway_end = utils.seconds_to_timestr(headway_end_timestr, 
+          inverse=True)
+
         def get_route_stats_split_directions(group):
             # Take this group of all trips stats for a single route
             # and compute route-level stats.
@@ -1179,7 +1186,7 @@ class Feed(object):
                 stimes = group[(group[date] > 0)]['start_time'].\
                   values
                 stimes = sorted([stime for stime in stimes 
-                  if 7*3600 <= stime <= 19*3600])
+                  if headway_start <= stime <= headway_end])
                 headways.extend([stimes[i + 1] - stimes[i] 
                   for i in range(len(stimes) - 1)])
             if headways:
@@ -1222,7 +1229,7 @@ class Feed(object):
                       (group['direction_id'] == direction)]['start_time'].\
                       values
                     stimes = sorted([stime for stime in stimes 
-                      if 7*3600 <= stime <= 19*3600])
+                      if headway_start <= stime <= headway_end])
                     headways.extend([stimes[i + 1] - stimes[i] 
                       for i in range(len(stimes) - 1)])
             if headways:
