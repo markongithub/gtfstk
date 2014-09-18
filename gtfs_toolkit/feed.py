@@ -597,15 +597,16 @@ class Feed(object):
                 linestring_by_shape[shape] = LineString(lonlats)
         return linestring_by_shape
 
-    def get_vehicles_locations(self, linestring_by_shape, date, timestr):
+    def get_vehicles_locations(self, linestring_by_shape, date, timestrs):
         """
-        Return a Pandas data frame of the positions of all trips 
-        active on the given date and time.
+        Return a Pandas data frame of the positions of all trips
+        active on the given date and times.
         Include the columns:
 
         - trip_id
         - direction_id
         - route_id
+        - time
         - rel_dist: number between 0 (start) and 1 (end) indicating 
           the relative distance of the vehicle along its path
         - lon: longitude of vehicle at given time
@@ -614,13 +615,19 @@ class Feed(object):
         Requires input ``self.get_linestring_from_shape(use_utm=False)``.
         Assume ``self.stop_times`` has a ``shape_dist_traveled``
         column, possibly created by ``add_dist_to_stop_times()``.
+
+        NOTES:
+
+        On the Portland feed, can do 24*60 timestrings (minute frequency)
+        in 0.4 min.
+
         """
         assert 'shape_dist_traveled' in self.stop_times.columns,\
           "The shape_dist_traveled column is required in self.stop_times."\
           "You can add it via self.stop_times = self.add_dist_to_stop_times()."
         
         # Get active trips
-        at = self.get_active_trips(date, timestr)
+        at = self.get_active_trips(date)
 
         # Merge active trips with stop times and convert
         # times to seconds past midnight
@@ -628,21 +635,37 @@ class Feed(object):
         f['departure_time'] = f['departure_time'].map(
           lambda x: utils.seconds_to_timestr(x, inverse=True))
 
-        # Compute relative distance of each vehicle along its path
-        # at the given time.
+        # Compute relative distance of each trip along its path
+        # at the given time times.
         # Use linear interpolation based on stop departure times and
         # shape distance traveled.
-        t = utils.seconds_to_timestr(timestr, inverse=True)
+        sample_times = np.array([utils.seconds_to_timestr(s, inverse=True) 
+          for s in timestrs])
         def F(group):
             dists = sorted(group['shape_dist_traveled'].values)
             times = sorted(group['departure_time'].values)
-            d = np.interp(t, times, dists)
-            return d/dists[-1]
+            ts = sample_times[(sample_times >= times[0]) &\
+              (sample_times <= times[-1])]
+            ds = np.interp(ts, times, dists)
+            # if len(ts):
+            return pd.DataFrame({'time': ts, 'rel_dist': ds/dists[-1]})
         g = f.groupby('trip_id').apply(F).reset_index()
-        g.columns = ['trip_id', 'rel_dist']
-        h = pd.merge(at, g)
+
+        # Delete extraneous multiindex column
+        del g['level_1']
+        
+        # Convert times back to time strings
+        g['time'] = g['time'].map(lambda x: utils.seconds_to_timestr(x))
 
         # Compute longitude and latitude of vehicle from relative distance
+        h = pd.merge(at, g)
+        if not h.shape[0]:
+            # Return a data frame with the promised headers but no data.
+            # Without this check, result below could be an empty data frame.
+            h['lon'] = pd.Series()
+            h['lat'] = pd.Series()
+            return h
+
         def G(group):
             shape = group['shape_id'].iat[0]
             linestring = linestring_by_shape[shape]
@@ -650,7 +673,8 @@ class Feed(object):
               for d in group['rel_dist'].values]
             group['lon'], group['lat'] = zip(*lonlats)
             return group
-        return h.groupby('shape_id').apply(G)
+        result = h.groupby('shape_id').apply(G)
+        return result
 
     def get_point_by_stop(self, use_utm=True):
         """
