@@ -2,10 +2,10 @@ from distutils.core import setup
 
 setup(
     name='gtfs-toolkit',
-    version='0.2.3',
+    version='0.3',
     author='Alexander Raichev',
     author_email='alex@raichev.net',
-    packages=['gtfs_toolkit', 'gtfs_toolkit.tests'],
+    packages=['gtfs_toolkit', 'tests'],
     url='https://github.com/araichev/gtfs-toolkit',
     license='LICENSE',
     description='A set of Python 3.4 tools for processing General Transit Feed Specification (GTFS) data',
