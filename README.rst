@@ -16,8 +16,8 @@ Installation
 
 Examples
 --------
-Play with ``examples/gtfs_toolkit_examples.ipynb`` in an iPython notebook
+Play with ``examples/gtfs_toolkit_examples.ipynb`` in an iPython notebook or view the notebook as HTML `here <https://rawgit.com/araichev/gtfs-toolkit/master/examples/examples.html>`_
 
 Documentation
 --------------
-Under ``docs/`` and also online via RawGit `here <https://rawgit.com/araichev/gtfs-toolkit/master/docs/_build/html/index.html>`_.
+Under ``docs/`` and also `here <https://rawgit.com/araichev/gtfs-toolkit/master/docs/_build/html/index.html>`_.

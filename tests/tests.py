@@ -9,12 +9,11 @@ from gtfs_toolkit.feed import *
 from gtfs_toolkit.utils import *
 
 # Load test feeds
-cairns = Feed('gtfs_toolkit/tests/cairns_gtfs.zip')
-cairns_shapeless = Feed('gtfs_toolkit/tests/cairns_gtfs.zip')
+cairns = Feed('data/cairns_gtfs.zip')
+cairns_shapeless = Feed('data/cairns_gtfs.zip')
 cairns_shapeless.shapes = None
 
 class TestFeed(unittest.TestCase):
-    """
     def test_seconds_to_timestr(self):
         seconds = 3600 + 60 + 1
         timestr = '01:01:01'
@@ -46,10 +45,10 @@ class TestFeed(unittest.TestCase):
     def test_init(self):
         # Test distance units check
         self.assertRaises(AssertionError, Feed, 
-          path='gtfs_toolkit/tests/cairns_gtfs.zip', 
+          path='data/cairns_gtfs.zip', 
           original_units='bingo')
         # Test other stuff
-        portland = Feed('gtfs_toolkit/tests/portland_gtfs.zip', 
+        portland = Feed('data/portland_gtfs.zip', 
           original_units='ft')
         for feed in [cairns, portland]:
             self.assertIsInstance(feed.routes, pd.core.frame.DataFrame)
@@ -94,7 +93,7 @@ class TestFeed(unittest.TestCase):
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
-        feed = Feed('gtfs_toolkit/tests/portland_gtfs.zip')
+        feed = Feed('data/portland_gtfs.zip')
         trip = '4526377'
         date1 = dt.date(2014, 5, 18)
         date2 = dt.date(2012, 5, 17)
@@ -121,7 +120,6 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(g.shape[1], f.shape[1])
         # Should have correct columns
         self.assertEqual(set(g.columns), set(feed.trips.columns))
-    """
 
     def test_get_vehicles_locations(self):
         feed = cairns
@@ -141,7 +139,6 @@ class TestFeed(unittest.TestCase):
         expect_cols = set(list(g.columns) + ['time', 'rel_dist', 'lon', 'lat'])
         self.assertEqual(get_cols, expect_cols)
 
-    """
     def test_get_trips_activity(self):
         feed = cairns
         dates = feed.get_first_week()
@@ -337,6 +334,7 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(arts.shape[1], num_cols)
             # Should have correct column names
             self.assertEqual(arts.columns.names, col_names)   
-    """
+
+
 if __name__ == '__main__':
     unittest.main()
