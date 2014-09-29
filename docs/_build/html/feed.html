@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.2.3 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.3 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.3',
+        VERSION:     '0.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.2.3 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.3 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.2.3 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,7 +57,11 @@ is valid.</p>
 2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.</p>
 <p>TODO:</p>
 <ul class="simple">
+<li>Add get_active_stops()</li>
+<li>Remove get_trips_activity()?</li>
+<li>Allow dates to be entered as YYYYMMDD strings?</li>
 <li>Speed up time series calculations</li>
+<li>Add start and end time options for headway calculations</li>
 </ul>
 <dl class="class">
 <dt id="gtfs_toolkit.feed.Feed">
@@ -71,7 +75,7 @@ The stop times object can be big.</p>
 <dt id="gtfs_toolkit.feed.Feed.add_dist_to_shapes">
 <tt class="descname">add_dist_to_shapes</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.add_dist_to_shapes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add/overwrite the optional <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> GTFS field for
-<tt class="docutils literal"><span class="pre">self.shapes</span></tt> and return the resulting Pandas data frame.</p>
+<tt class="docutils literal"><span class="pre">self.shapes</span></tt>.</p>
 <p>NOTE:</p>
 <p>Takes about 0.33 minutes on the Portland feed.
 All of the calculated <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> values 
@@ -82,8 +86,8 @@ from of the original values.</p>
 <dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.add_dist_to_stop_times">
 <tt class="descname">add_dist_to_stop_times</tt><big>(</big><em>trips_stats</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.add_dist_to_stop_times" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add/overwrite the optional <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> GTFS field for
-<tt class="docutils literal"><span class="pre">self.stop_times</span></tt> and return the resulting Pandas data frame.</p>
+<dd><p>Add/overwrite the optional <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> GTFS field in
+<tt class="docutils literal"><span class="pre">self.stop_times</span></tt>.</p>
 <p>Compute the <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> by using Shapely to measure 
 the distance of a stop along its trip linestring.
 If for a given trip, this process produces a non-monotonically 
@@ -115,6 +119,16 @@ and the maximum absolute difference is 6.3 km.</p>
 Also include a <tt class="docutils literal"><span class="pre">README.txt</span></tt> file that contains a few notes
 on units and include some useful charts.</p>
 <p>If no dates are given, then use <tt class="docutils literal"><span class="pre">self.get_first_week()[:5]</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.get_active_trips">
+<tt class="descname">get_active_trips</tt><big>(</big><em>date</em>, <em>timestr=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_active_trips" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the section of <tt class="docutils literal"><span class="pre">self.trips</span></tt> that contains
+only trips active on the given date (<tt class="docutils literal"><span class="pre">datetime.date</span></tt> object).
+If a time is given in the form of a GTFS time string %H:%M:%S,
+then return only those trips active at that date and time.
+Do not take times modulo 24.</p>
 </dd></dl>
 
 <dl class="method">
@@ -159,7 +173,7 @@ coordinates.</p>
 
 <dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.get_routes_stats">
-<tt class="descname">get_routes_stats</tt><big>(</big><em>trips_stats</em>, <em>dates</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_routes_stats</tt><big>(</big><em>trips_stats</em>, <em>dates</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Take <tt class="docutils literal"><span class="pre">trips_stats</span></tt>, which is the output of 
 <tt class="docutils literal"><span class="pre">self.get_trips_stats()</span></tt>, and use it to calculate stats for 
 all the routes active on at least one day of the given dates
@@ -395,6 +409,30 @@ a maximum absolute difference of 0.75 km from using
 </dd></dl>
 
 <dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.get_vehicles_locations">
+<tt class="descname">get_vehicles_locations</tt><big>(</big><em>linestring_by_shape</em>, <em>date</em>, <em>timestrs</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_vehicles_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Pandas data frame of the positions of all trips
+active on the given date and times.
+Include the columns:</p>
+<ul class="simple">
+<li>trip_id</li>
+<li>direction_id</li>
+<li>route_id</li>
+<li>time</li>
+<li>rel_dist: number between 0 (start) and 1 (end) indicating 
+the relative distance of the vehicle along its path</li>
+<li>lon: longitude of vehicle at given time</li>
+<li>lat: latitude of vehicle at given time</li>
+</ul>
+<p>Requires input <tt class="docutils literal"><span class="pre">self.get_linestring_from_shape(use_utm=False)</span></tt>.
+Assume <tt class="docutils literal"><span class="pre">self.stop_times</span></tt> has a <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt>
+column, possibly created by <tt class="docutils literal"><span class="pre">add_dist_to_stop_times()</span></tt>.</p>
+<p>NOTES:</p>
+<p>On the Portland feed, can do 24*60 timestrings (minute frequency)
+in 0.4 min.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.is_active_trip">
 <tt class="descname">is_active_trip</tt><big>(</big><em>trip</em>, <em>date</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.is_active_trip" title="Permalink to this definition">¶</a></dt>
 <dd><p>If the given trip (trip ID) is active on the given date 
@@ -516,7 +554,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.2.3 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
