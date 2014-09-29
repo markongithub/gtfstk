@@ -88,6 +88,20 @@ def weekday_to_str(weekday, inverse=False):
         except:
             return
 
+def to_km(x, units='km'):
+    """
+    Given a distance ``x`` in units ``units``,
+    convert it to kilometers and return the result.
+    """
+    if units == 'km':
+        return x
+    if units == 'm':
+        return x/1000
+    if units == 'mi':
+        return x*1.6093
+    if units == 'ft':
+        return x*0.00030480
+
 def get_segment_length(linestring, p, q=None):
     """
     Given a Shapely linestring and two Shapely points,

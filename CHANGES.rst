@@ -14,3 +14,5 @@
 - v0.2.0, 2014-07-22: Restructured modules 
 - v0.2.1, 2014-07-22: Changed from period indices to timestamp indices for time series, because the latter are better supported in Pandas. Upgraded to Pandas 0.14.1.
 - v0.2.2, 2014-08-17: Changed ``get_xy_by_stop()`` name and output type
+- v0.2.3, 2014-08-22: Added ``add_dist_to_stop_times()`` and ``add_dist_to_shapes``
+- v0.3, 2014-09-29: Switched from major.minor.micro version numbering to major.minor numbering. Added ``get_vehicle_locations()``.
