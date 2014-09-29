@@ -11,9 +11,9 @@ setup(
     description='A set of Python 3.4 tools for processing General Transit Feed Specification (GTFS) data',
     long_description=open('README.rst').read(),
     install_requires=[
-        'Shapely==1.3.2',
-        'pandas==0.14.1',
-        'utm==0.3.1',    
+        'Shapely>=1.3.2',
+        'pandas>=0.14.1',
+        'utm>=0.3.1',    
     ],
 )
 

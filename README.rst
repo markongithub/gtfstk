@@ -8,7 +8,6 @@ Warning
 --------
 This is an alpha release.
 It needs more testing and the API might change.
-Use at your own risk.
 
 Installation
 -------------
@@ -16,7 +15,7 @@ Installation
 
 Examples
 --------
-Play with ``examples/gtfs_toolkit_examples.ipynb`` in an iPython notebook or view the notebook as HTML `here <https://rawgit.com/araichev/gtfs-toolkit/master/examples/examples.html>`_
+Play with ``examples/gtfs_toolkit_examples.ipynb`` in an iPython notebook or view the notebook as HTML `here <https://rawgit.com/araichev/gtfs-toolkit/master/examples/examples.html>`_.
 
 Documentation
 --------------
