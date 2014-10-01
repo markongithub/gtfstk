@@ -11,7 +11,7 @@ TODO:
 - Remove get_trips_activity()? 
 - Allow dates to be entered as YYYYMMDD strings?
 - Speed up time series calculations
-- Add start and end time options for headway calculations
+- Add start and end time options for headway calculations in stop stats
 """
 import datetime as dt
 import dateutil.relativedelta as rd
