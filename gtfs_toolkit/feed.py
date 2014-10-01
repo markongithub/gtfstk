@@ -547,7 +547,11 @@ class Feed(object):
         # Compute trip distance (in kilometers) from shapes
         def get_dist(group):
             shape = group['shape_id'].iat[0]
-            return linestring_by_shape[shape].length/1000
+            try:
+                return linestring_by_shape[shape].length/1000
+            except KeyError:
+                # Shape ID is nan or doesn't exist in shapes
+                return np.nan 
 
         if 'shape_dist_traveled' in f.columns and not get_dist_from_shapes:
             # Compute distances using shape_dist_traveled column

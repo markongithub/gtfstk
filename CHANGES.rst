@@ -16,3 +16,4 @@
 - v0.2.2, 2014-08-17: Changed ``get_xy_by_stop()`` name and output type
 - v0.2.3, 2014-08-22: Added ``add_dist_to_stop_times()`` and ``add_dist_to_shapes``
 - v0.3, 2014-09-29: Switched from major.minor.micro version numbering to major.minor numbering. Added ``get_vehicle_locations()``.
+- v0.4, 2014-10-02: Fixed a bug in get_trips_stats() that caused a failure when a trip was missing a shape ID.
