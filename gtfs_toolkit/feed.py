@@ -11,7 +11,6 @@ TODO:
 - Remove get_trips_activity()? 
 - Allow dates to be entered as YYYYMMDD strings?
 - Speed up time series calculations
-- Add start and end time options for headway calculations in stop stats
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -92,7 +91,7 @@ def plot_headways(stats, max_headway_limit=60):
         # Move the direction_id column to a hierarchical column,
         # select the headway columns, and convert from seconds to minutes
         f = stats.pivot(index=index, columns='direction_id')[['max_headway', 
-          'mean_headway']]/60
+          'mean_headway']]
         # Only take the stops/routes within the max headway limit
         if max_headway_limit is not None:
             f = f[(f[('max_headway', 0)] <= max_headway_limit) |
@@ -100,7 +99,7 @@ def plot_headways(stats, max_headway_limit=60):
         # Sort by max headway
         f = f.sort(columns=[('max_headway', 0)], ascending=False)
     else:
-        f = stats.set_index(index)[['max_headway', 'mean_headway']]/60
+        f = stats.set_index(index)[['max_headway', 'mean_headway']]
         if max_headway_limit is not None:
             f = f[f['max_headway'] <= max_headway_limit]
         f = f.sort(columns=['max_headway'], ascending=False)
@@ -856,19 +855,20 @@ class Feed(object):
                 f = pd.merge(f, g[date].max().reset_index())
         return f
 
-    def get_stops_stats(self, dates, split_directions=False):
+    def get_stops_stats(self, dates, split_directions=False,
+        headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
         """
         Return a Pandas data frame with the following columns:
 
         - stop_id
         - direction_id
         - mean_daily_num_vehicles: mean daily number of vehicles visiting stop 
-        - max_headway: maximum of the durations (in seconds) between 
-          vehicle departures at the stop between 07:00 and 19:00 
-          on the given dates
-        - mean_headway: mean of the durations (in seconds) between 
-          vehicle departures at the stop between 07:00 and 19:00 
-          on the given dates
+        - max_headway: maximum of the durations (in minuts) between 
+          vehicle departures at the stop between ``headway_start_timestr`` and 
+          ``headway_end_timestr`` on the given dates
+        - mean_headway: mean of the durations (in minutes) between 
+          vehicle departures at the stop between ``headway_start_timestr`` and 
+          ``headway_end_timestr`` on the given dates
         - min_start_time: earliest departure time of a vehicle from this stop
           over the given date range
         - max_end_time: latest departure time of a vehicle from this stop
@@ -891,6 +891,11 @@ class Feed(object):
         f['departure_time'] = f['departure_time'].map(lambda x: 
           utils.seconds_to_timestr(x, inverse=True))
 
+        headway_start = utils.seconds_to_timestr(headway_start_timestr, 
+          inverse=True)
+        headway_end = utils.seconds_to_timestr(headway_end_timestr, 
+          inverse=True)
+
         # Compute stats for each stop
         def get_stop_stats(group):
             # Operate on the group of all stop times for an individual stop
@@ -901,12 +906,12 @@ class Feed(object):
                   values)
                 num_vehicles += len(dtimes)
                 dtimes = [dtime for dtime in dtimes 
-                  if 7*3600 <= dtime <= 19*3600]
+                  if headway_start <= dtime <= headway_end]
                 headways.extend([dtimes[i + 1] - dtimes[i] 
                   for i in range(len(dtimes) - 1)])
             if headways:
-                max_headway = np.max(headways)
-                mean_headway = round(np.mean(headways))
+                max_headway = np.max(headways)/60  # minutes
+                mean_headway = np.mean(headways)/60  # minutes
             else:
                 max_headway = np.nan
                 mean_headway = np.nan
@@ -1067,7 +1072,8 @@ class Feed(object):
             return
         return result
 
-    def get_stations_stats(self, dates, split_directions=False):
+    def get_stations_stats(self, dates, split_directions=False,
+        headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
         """
         If this feed has station data, that is, 'location_type' and
         'parent_station' columns in ``self.stops``, then compute
@@ -1095,6 +1101,11 @@ class Feed(object):
         f['departure_time'] = f['departure_time'].map(lambda x: 
           utils.seconds_to_timestr(x, inverse=True))
 
+        headway_start = utils.seconds_to_timestr(headway_start_timestr, 
+          inverse=True)
+        headway_end = utils.seconds_to_timestr(headway_end_timestr, 
+          inverse=True)
+
         # Compute stats for each station
         def get_station_stats(group):
             # Operate on the group of all stop times for an individual stop
@@ -1105,12 +1116,12 @@ class Feed(object):
                   values)
                 num_vehicles += len(dtimes)
                 dtimes = [dtime for dtime in dtimes 
-                  if 7*3600 <= dtime <= 19*3600]
+                  if headway_start <= dtime <= headway_end]
                 headways.extend([dtimes[i + 1] - dtimes[i] 
                   for i in range(len(dtimes) - 1)])
             if headways:
-                max_headway = np.max(headways)
-                mean_headway = round(np.mean(headways))
+                max_headway = np.max(headways)/60
+                mean_headway = np.mean(headways)/60
             else:
                 max_headway = np.nan
                 mean_headway = np.nan
@@ -1165,10 +1176,12 @@ class Feed(object):
         - min_start_time: start time of the earliest active trip on 
           the route
         - max_end_time: end time of latest active trip on the route
-        - max_headway: maximum of the durations (in seconds) between 
-          trip starts on the route between 07:00 and 19:00 on the given dates
-        - mean_headway: mean of the durations (in seconds) between 
-          trip starts on the route between 07:00 and 19:00 on the given dates
+        - max_headway: maximum of the durations (in minutes) between 
+          trip starts on the route between ``headway_start_timestr`` and 
+          ``headway_end_timestr`` on the given dates
+        - mean_headway: mean of the durations (in minutes) between 
+          trip starts on the route between ``headway_start_timestr`` and 
+          ``headway_end_timestr`` on the given dates
         - mean_daily_duration: in hours
         - mean_daily_distance: in kilometers; contains all ``np.nan`` entries
           if ``self.shapes is None``  
@@ -1218,8 +1231,8 @@ class Feed(object):
                 headways.extend([stimes[i + 1] - stimes[i] 
                   for i in range(len(stimes) - 1)])
             if headways:
-                max_headway = np.max(headways)
-                mean_headway = round(np.mean(headways))
+                max_headway = np.max(headways)/60  # minutes 
+                mean_headway = np.mean(headways)/60  # minutes 
             else:
                 max_headway = np.nan
                 mean_headway = np.nan
@@ -1261,8 +1274,8 @@ class Feed(object):
                     headways.extend([stimes[i + 1] - stimes[i] 
                       for i in range(len(stimes) - 1)])
             if headways:
-                max_headway = np.max(headways)
-                mean_headway = round(np.mean(headways))
+                max_headway = np.max(headways)/60  # minutes 
+                mean_headway = np.mean(headways)/60  # minutes
             else:
                 max_headway = np.nan
                 mean_headway = np.nan
