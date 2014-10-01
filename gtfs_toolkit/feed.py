@@ -740,7 +740,7 @@ class Feed(object):
             trip = group['trip_id'].iat[0]
             shape = group['shape_id'].iat[0]
             if not isinstance(shape, str):
-                print(trip, 'no shape_id:', shape)
+                print(trip, 'has no shape_id')
                 group['shape_dist_traveled'] = np.nan 
                 return group
             linestring = linestring_by_shape[shape]

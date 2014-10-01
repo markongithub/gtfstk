@@ -3,6 +3,14 @@ CHANGES.rst
 README.rst
 requirements.txt
 setup.py
+data/cairns_gtfs/agency.txt
+data/cairns_gtfs/calendar.txt
+data/cairns_gtfs/calendar_dates.txt
+data/cairns_gtfs/routes.txt
+data/cairns_gtfs/shapes.txt
+data/cairns_gtfs/stop_times.txt
+data/cairns_gtfs/stops.txt
+data/cairns_gtfs/trips.txt
 docs/Makefile
 docs/conf.py
 docs/feed.rst
