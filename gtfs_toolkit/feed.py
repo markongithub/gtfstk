@@ -475,6 +475,16 @@ class Feed(object):
               int(self.is_active_trip(trip, date)))
         return f[['trip_id', 'direction_id', 'route_id'] + dates]
 
+    def get_busiest_date_of_first_week(self):
+        """
+        Consider the dates in ``self.get_first_week()`` and 
+        return the first date that has the maximum number of active trips.
+        """
+        dates = self.get_first_week()
+        f = self.get_trips_activity(dates)
+        s = [(f[date].sum(), date) for date in dates]
+        return max(s)[1]
+
     def get_trips_stats(self, get_dist_from_shapes=False):
         """
         Return a Pandas data frame with the following columns:
@@ -519,8 +529,7 @@ class Feed(object):
 
         # Convert departure times to seconds past midnight, 
         # to compute durations below
-        f['departure_time'] = f['departure_time'].map(
-          lambda x: utils.seconds_to_timestr(x, inverse=True))
+        f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
         g = f.groupby('trip_id')
         h = g['departure_time'].agg(OrderedDict([('start_time', np.min), 
           ('end_time', np.max)]))
@@ -541,7 +550,7 @@ class Feed(object):
 
         # Convert times back to time strings
         h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
-          applymap(lambda x: utils.seconds_to_timestr(int(x)))
+          applymap(lambda x: utils.timestr_to_seconds(x, inverse=True))
 
         # Compute trip distance (in kilometers) from shapes
         def get_dist(group):
@@ -635,14 +644,13 @@ class Feed(object):
         # Merge active trips with stop times and convert
         # times to seconds past midnight
         f = pd.merge(at, self.stop_times)
-        f['departure_time'] = f['departure_time'].map(
-          lambda x: utils.seconds_to_timestr(x, inverse=True))
+        f['departure_time'] = f['departure_time'].map(timestr_to_seconds))
 
         # Compute relative distance of each trip along its path
         # at the given time times.
         # Use linear interpolation based on stop departure times and
         # shape distance traveled.
-        sample_times = np.array([utils.seconds_to_timestr(s, inverse=True) 
+        sample_times = np.array([utils.timestr_to_seconds(s) 
           for s in timestrs])
         def F(group):
             dists = sorted(group['shape_dist_traveled'].values)
@@ -658,7 +666,8 @@ class Feed(object):
         del g['level_1']
         
         # Convert times back to time strings
-        g['time'] = g['time'].map(lambda x: utils.seconds_to_timestr(x))
+        g['time'] = g['time'].map(
+          lambda x: utils.timestr_to_seconds(x, inverse=True))
 
         # Compute longitude and latitude of vehicle from relative distance
         h = pd.merge(at, g)
@@ -729,8 +738,7 @@ class Feed(object):
           'duration' ]], self.stop_times)
 
         # Convert departure times to seconds past midnight to ease calculations
-        f['departure_time'] = f['departure_time'].map(lambda x: 
-          utils.seconds_to_timestr(x, inverse=True))
+        f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
         dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
 
         def get_dist(group):
@@ -780,9 +788,9 @@ class Feed(object):
             return group
 
         result = f.groupby('trip_id', group_keys=False).apply(get_dist)
-        # Unconvert departure times from seconds past midnight
+        # Convert departure times back to time strings
         result['departure_time'] = result['departure_time'].map(lambda x: 
-          utils.seconds_to_timestr(x))
+          utils.timestr_to_seconds(x, inverse=True))
         del result['shape_id']
         del result['distance']
         del result['duration']
@@ -888,13 +896,10 @@ class Feed(object):
         f = pd.merge(ta, self.stop_times)
 
         # Convert departure times to seconds to ease headway calculations
-        f['departure_time'] = f['departure_time'].map(lambda x: 
-          utils.seconds_to_timestr(x, inverse=True))
+        f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
 
-        headway_start = utils.seconds_to_timestr(headway_start_timestr, 
-          inverse=True)
-        headway_end = utils.seconds_to_timestr(headway_end_timestr, 
-          inverse=True)
+        headway_start = utils.timestr_to_seconds(headway_start_timestr)
+        headway_end = utils.timestr_to_seconds(headway_end_timestr)
 
         # Compute stats for each stop
         def get_stop_stats(group):
@@ -945,7 +950,7 @@ class Feed(object):
         # Convert start and end times to time strings
         result[['min_start_time', 'max_end_time']] =\
           result[['min_start_time', 'max_end_time']].applymap(
-          lambda x: utils.seconds_to_timestr(x))
+          lambda x: utils.timestr_to_seconds(x, inverse=True))
         del result['foo']
 
         return result
@@ -1098,13 +1103,10 @@ class Feed(object):
         f = pd.merge(f, sis)
 
         # Convert departure times to seconds to ease headway calculations
-        f['departure_time'] = f['departure_time'].map(lambda x: 
-          utils.seconds_to_timestr(x, inverse=True))
+        f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
 
-        headway_start = utils.seconds_to_timestr(headway_start_timestr, 
-          inverse=True)
-        headway_end = utils.seconds_to_timestr(headway_end_timestr, 
-          inverse=True)
+        headway_start = utils.timestr_to_seconds(headway_start_timestr)
+        headway_end = utils.timestr_to_seconds(headway_end_timestr)
 
         # Compute stats for each station
         def get_station_stats(group):
@@ -1155,7 +1157,7 @@ class Feed(object):
         # Convert start and end times to time strings
         result[['min_start_time', 'max_end_time']] =\
           result[['min_start_time', 'max_end_time']].applymap(
-          lambda x: utils.seconds_to_timestr(x))
+          lambda x: utils.timestr_to_seconds(x, inverse=True))
         del result['foo']
 
         return result
@@ -1211,13 +1213,11 @@ class Feed(object):
         trips_stats = trips_stats[trips_stats['weight'] > 0]
         
         # Convert trip start times to seconds to ease headway calculations
-        trips_stats['start_time'] = trips_stats['start_time'].map(lambda x: 
-          utils.seconds_to_timestr(x, inverse=True))
+        trips_stats['start_time'] = trips_stats['start_time'].map(
+          utils.timestr_to_seconds)
 
-        headway_start = utils.seconds_to_timestr(headway_start_timestr, 
-          inverse=True)
-        headway_end = utils.seconds_to_timestr(headway_end_timestr, 
-          inverse=True)
+        headway_start = utils.timestr_to_seconds(headway_start_timestr)
+        headway_end = utils.timestr_to_seconds(headway_end_timestr)
 
         def get_route_stats_split_directions(group):
             # Take this group of all trips stats for a single route
@@ -1320,7 +1320,7 @@ class Feed(object):
 
         # Convert route start times to time strings
         result['min_start_time'] = result['min_start_time'].map(lambda x: 
-          utils.seconds_to_timestr(x))
+          utils.timestr_to_seconds(x, inverse=True))
 
         return result
 
