@@ -63,6 +63,19 @@ def timestr_to_seconds(x, inverse=False, mod24=False):
             result = None
     return result
 
+def timestr_mod_24(timestr):
+    """
+    Given a GTFS time string in the format %H:%M:%S, return a timestring
+    in the same format but with the hours taken modulo 24.
+    """
+    try:
+        hours, mins, seconds = [int(x) for x in timestr.split(':')]
+        hours %= 24
+        result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, seconds)
+    except:
+        result = None
+    return result
+
 def weekday_to_str(weekday, inverse=False):
     """
     Given a weekday, that is, an integer in ``range(7)``, return
