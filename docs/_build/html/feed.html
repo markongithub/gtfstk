@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.5 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.6 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5',
+        VERSION:     '0.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.5 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.6 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.5 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.6 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -128,6 +128,13 @@ only trips active on the given date (<tt class="docutils literal"><span class="p
 If a time is given in the form of a GTFS time string %H:%M:%S,
 then return only those trips active at that date and time.
 Do not take times modulo 24.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.get_busiest_date_of_first_week">
+<tt class="descname">get_busiest_date_of_first_week</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_busiest_date_of_first_week" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consider the dates in <tt class="docutils literal"><span class="pre">self.get_first_week()</span></tt> and 
+return the first date that has the maximum number of active trips.</p>
 </dd></dl>
 
 <dl class="method">
@@ -555,7 +562,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.5 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.6 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -33,29 +33,37 @@ def date_to_str(date, format_str='%Y%m%d', inverse=False):
         result = dt.datetime.strptime(date, format_str).date()
     return result
 
-def seconds_to_timestr(seconds, inverse=False):
+def timestr_to_seconds(x, inverse=False, mod24=False):
     """
-    Return the given number of integer seconds as the time string '%H:%M:%S'.
-    If ``inverse == True``, then do the inverse operation.
+    Given a time string of the form '%H:%M:%S', return the number of seconds
+    past midnight that it represents.
     In keeping with GTFS standards, the hours entry may be greater than 23.
+    If ``mod24 == True``, then return the number of seconds modulo ``24*3600``.
+    If ``inverse == True``, then do the inverse operation.
+    In this case, if ``mod24 == True`` also, then first take the number of 
+    seconds modulo ``24*3600``.
     """
     if not inverse:
         try:
-            seconds = int(seconds)
+            hours, mins, seconds = x.split(':')
+            result = int(hours)*3600 + int(mins)*60 + int(seconds)
+            if mod24:
+                result %= 24*3600
+        except:
+            result = None
+    else:
+        try:
+            seconds = int(x)
+            if mod24:
+                seconds %= 24*3600
             hours, remainder = divmod(seconds, 3600)
             mins, secs = divmod(remainder, 60)
             result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
         except:
             result = None
-    else:
-        try:
-            hours, mins, seconds = seconds.split(':')
-            result = int(hours)*3600 + int(mins)*60 + int(seconds)
-        except:
-            result = None
     return result
 
-def timestr_mod_24(timestr):
+def timestr_mod24(timestr):
     """
     Given a GTFS time string in the format %H:%M:%S, return a timestring
     in the same format but with the hours taken modulo 24.

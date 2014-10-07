@@ -14,21 +14,27 @@ cairns_shapeless = Feed('data/cairns_gtfs.zip')
 cairns_shapeless.shapes = None
 
 class TestFeed(unittest.TestCase):
-    def test_seconds_to_timestr(self):
-        seconds = 3600 + 60 + 1
-        timestr = '01:01:01'
-        self.assertEqual(seconds_to_timestr(seconds), timestr)
-        self.assertEqual(seconds_to_timestr(timestr, inverse=True), seconds)
-        self.assertIsNone(seconds_to_timestr(timestr))
-        self.assertIsNone(seconds_to_timestr(seconds, inverse=True))
-        self.assertIsNone(seconds_to_timestr('01:01', inverse=True))
-
-    def test_timestr_mod_24(self):
+    def test_timestr_to_seconds(self):
         timestr1 = '01:01:01'
-        self.assertEqual(timestr_mod_24(timestr1), timestr1)
+        seconds1 = 3600 + 60 + 1
         timestr2 = '25:01:01'
-        self.assertEqual(timestr_mod_24(timestr2), timestr1)
-        
+        seconds2 = 25*3600 + 60 + 1
+        self.assertEqual(timestr_to_seconds(timestr1), seconds1)
+        self.assertEqual(timestr_to_seconds(seconds1, inverse=True), timestr1)
+        self.assertEqual(timestr_to_seconds(seconds2, inverse=True), timestr2)
+        self.assertEqual(timestr_to_seconds(timestr2, mod24=True), seconds1)
+        self.assertEqual(
+          timestr_to_seconds(seconds2, mod24=True, inverse=True), timestr1)
+        # Test error handling
+        self.assertIsNone(timestr_to_seconds(seconds1))
+        self.assertIsNone(timestr_to_seconds(timestr1, inverse=True))
+
+    def test_timestr_mod24(self):
+        timestr1 = '01:01:01'
+        self.assertEqual(timestr_mod24(timestr1), timestr1)
+        timestr2 = '25:01:01'
+        self.assertEqual(timestr_mod24(timestr2), timestr1)
+
     def test_to_km(self):
         units = 'mi'
         self.assertEqual(to_km(1, units), 1.6093)
@@ -138,7 +144,6 @@ class TestFeed(unittest.TestCase):
         get_cols = set(f.columns)
         expect_cols = set(list(g.columns) + ['time', 'rel_dist', 'lon', 'lat'])
         self.assertEqual(get_cols, expect_cols)
-
     def test_get_trips_activity(self):
         feed = cairns
         dates = feed.get_first_week()
@@ -150,7 +155,14 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(trips_activity.shape[1], len(dates) + 3)
         # Date columns should contain only zeros and ones
         self.assertEqual(set(trips_activity[dates].values.flatten()), {0, 1})
-
+    
+    def test_get_busiest_date_of_first_week(self):
+        feed = cairns
+        dates = feed.get_first_week()
+        date = feed.get_busiest_date_of_first_week()
+        # Busiest day should lie in first week
+        self.assertTrue(date in dates)
+    
     def test_get_trips_stats(self):
         feed = cairns
         trips_stats = feed.get_trips_stats()

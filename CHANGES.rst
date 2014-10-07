@@ -1,3 +1,5 @@
+Changes
+========
 - v0.1.0, 2014-05-26: Initial version
 - v0.1.1, 2014-05-26: Minor tweaks to packaging
 - v0.1.2, 2014-05-26: Minor refactoring and tweaks to packaging
@@ -17,4 +19,5 @@
 - v0.2.3, 2014-08-22: Added ``add_dist_to_stop_times()`` and ``add_dist_to_shapes``
 - v0.3, 2014-09-29: Switched from major.minor.micro version numbering to major.minor numbering. Added ``get_vehicle_locations()``.
 - v0.4, 2014-10-02: Fixed a bug in get_trips_stats() that caused a failure when a trip was missing a shape ID.
-- v0.5, 2014-10-02: Converted headways to minutes. Added option to change headway start and end time cutoffs in get_stops_stats() and get_stations_stats().
+- v0.5, 2014-10-02: Converted headways to minutes. Added option to change headway start and end time cutoffs in ``get_stops_stats()`` and ``get_stations_stats()``.
+- v0.6, 2014-10-08: Changed ``seconds_to_timestr()`` to ``timestr_to_seconds().``.  Added ``get_busiest_date_of_first_week()``. 
