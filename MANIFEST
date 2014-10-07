@@ -51,10 +51,9 @@ docs/_build/html/_static/up-pressed.png
 docs/_build/html/_static/up.png
 docs/_build/html/_static/websupport.js
 examples/examples.ipynb
+examples/.ipynb_checkpoints/Untitled0-checkpoint.ipynb
 examples/.ipynb_checkpoints/examples-checkpoint.ipynb
 examples/.ipynb_checkpoints/gtfs_toolkit_examples-checkpoint.ipynb
-examples/stats/notes.rst
-examples/stats/stops_stats.csv
 gtfs_toolkit/__init__.py
 gtfs_toolkit/feed.py
 gtfs_toolkit/utils.py
