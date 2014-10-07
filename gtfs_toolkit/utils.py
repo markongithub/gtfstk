@@ -63,7 +63,7 @@ def timestr_to_seconds(x, inverse=False, mod24=False):
             result = None
     return result
 
-def timestr_mod_24(timestr):
+def timestr_mod24(timestr):
     """
     Given a GTFS time string in the format %H:%M:%S, return a timestring
     in the same format but with the hours taken modulo 24.

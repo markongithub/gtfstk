@@ -29,7 +29,12 @@ class TestFeed(unittest.TestCase):
         self.assertIsNone(timestr_to_seconds(seconds1))
         self.assertIsNone(timestr_to_seconds(timestr1, inverse=True))
 
-    """        
+    def test_timestr_mod24(self):
+        timestr1 = '01:01:01'
+        self.assertEqual(timestr_mod24(timestr1), timestr1)
+        timestr2 = '25:01:01'
+        self.assertEqual(timestr_mod24(timestr2), timestr1)
+
     def test_to_km(self):
         units = 'mi'
         self.assertEqual(to_km(1, units), 1.6093)
@@ -341,7 +346,7 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(arts.shape[1], num_cols)
             # Should have correct column names
             self.assertEqual(arts.columns.names, col_names)   
-    """
+
 
 if __name__ == '__main__':
     unittest.main()

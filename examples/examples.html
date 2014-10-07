@@ -1678,7 +1678,7 @@ div#notebook {
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[7]:
+In&nbsp;[1]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -1712,10 +1712,10 @@ In&nbsp;[7]:
 
 
 <div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_stream output_stdout output_text">
+<div class="output_subarea output_stream output_stderr output_text">
 <pre>
-The autoreload extension is already loaded. To reload it, use:
-  %reload_ext autoreload
+/Users/araichev/.virtualenvs/gtfs-toolkit/lib/python3.4/site-packages/pandas/io/excel.py:626: UserWarning: Installed openpyxl is not supported at this time. Use &gt;=1.6.1 and &lt;2.0.0.
+  .format(openpyxl_compat.start_ver, openpyxl_compat.stop_ver))
 
 </pre>
 </div>
@@ -1728,7 +1728,7 @@ The autoreload extension is already loaded. To reload it, use:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[8]:
+In&nbsp;[2]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -1745,7 +1745,7 @@ In&nbsp;[8]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[9]:
+In&nbsp;[3]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -1763,7 +1763,7 @@ In&nbsp;[9]:
 
 
 <div class="output_area"><div class="prompt output_prompt">
-    Out[9]:</div>
+    Out[3]:</div>
 
 <div class="output_html rendered_html output_subarea output_pyout">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -2654,7 +2654,7 @@ In&nbsp;[9]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[10]:
+In&nbsp;[4]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -2670,7 +2670,7 @@ In&nbsp;[10]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[11]:
+In&nbsp;[5]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -2699,7 +2699,7 @@ In&nbsp;[11]:
 </div>
 
 <div class="output_area"><div class="prompt output_prompt">
-    Out[11]:</div>
+    Out[5]:</div>
 
 <div class="output_html rendered_html output_subarea output_pyout">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -3528,7 +3528,7 @@ In&nbsp;[11]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[12]:
+In&nbsp;[6]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -3547,7 +3547,7 @@ In&nbsp;[12]:
 
 
 <div class="output_area"><div class="prompt output_prompt">
-    Out[12]:</div>
+    Out[6]:</div>
 
 <div class="output_html rendered_html output_subarea output_pyout">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -4128,7 +4128,7 @@ In&nbsp;[12]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[13]:
+In&nbsp;[7]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -4159,324 +4159,7 @@ Stops time series progress 100.0%
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[14]:
-</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class="highlight"><pre><span class="c"># Get routes stats for first workweek of feed</span>
-<span class="n">dates</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_first_week</span><span class="p">()[:</span><span class="mi">5</span><span class="p">]</span>
-<span class="n">routes_stats</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_routes_stats</span><span class="p">(</span><span class="n">trips_stats</span><span class="p">,</span> <span class="n">dates</span><span class="p">)</span>
-<span class="n">routes_stats</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">
-    Out[14]:</div>
-
-<div class="output_html rendered_html output_subarea output_pyout">
-<div style="max-height:1000px;max-width:1500px;overflow:auto;">
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>route_id</th>
-      <th>min_start_time</th>
-      <th>max_end_time</th>
-      <th>mean_daily_num_trips</th>
-      <th>max_headway</th>
-      <th>mean_headway</th>
-      <th>mean_daily_duration</th>
-      <th>mean_daily_distance</th>
-      <th>mean_daily_speed</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0 </th>
-      <td>  110-423</td>
-      <td> 05:50:00</td>
-      <td> 24:02:00</td>
-      <td> 59.0</td>
-      <td> 35</td>
-      <td> 29.955556</td>
-      <td> 57.350000</td>
-      <td> 1894.223063</td>
-      <td> 33.029173</td>
-    </tr>
-    <tr>
-      <th>1 </th>
-      <td> 110N-423</td>
-      <td> 24:40:00</td>
-      <td> 29:39:00</td>
-      <td>  1.8</td>
-      <td>NaN</td>
-      <td>       NaN</td>
-      <td>  1.583333</td>
-      <td>   79.901756</td>
-      <td> 50.464267</td>
-    </tr>
-    <tr>
-      <th>2 </th>
-      <td>  111-423</td>
-      <td> 06:02:00</td>
-      <td> 24:36:00</td>
-      <td> 58.0</td>
-      <td> 67</td>
-      <td> 30.954545</td>
-      <td> 59.350000</td>
-      <td> 2002.677623</td>
-      <td> 33.743515</td>
-    </tr>
-    <tr>
-      <th>3 </th>
-      <td>  112-423</td>
-      <td> 07:55:00</td>
-      <td> 22:31:00</td>
-      <td> 15.0</td>
-      <td> 60</td>
-      <td> 60.000000</td>
-      <td>  9.000000</td>
-      <td>  317.421880</td>
-      <td> 35.269098</td>
-    </tr>
-    <tr>
-      <th>4 </th>
-      <td>  113-423</td>
-      <td> 06:05:00</td>
-      <td> 18:42:00</td>
-      <td>  6.0</td>
-      <td> 60</td>
-      <td> 60.000000</td>
-      <td>  3.933333</td>
-      <td>  147.601565</td>
-      <td> 37.525822</td>
-    </tr>
-    <tr>
-      <th>5 </th>
-      <td>  120-423</td>
-      <td> 05:34:00</td>
-      <td> 22:23:00</td>
-      <td> 32.0</td>
-      <td> 60</td>
-      <td> 60.000000</td>
-      <td> 26.633333</td>
-      <td>  899.055146</td>
-      <td> 33.756764</td>
-    </tr>
-    <tr>
-      <th>6 </th>
-      <td> 120N-423</td>
-      <td> 22:00:00</td>
-      <td> 23:51:00</td>
-      <td>  2.0</td>
-      <td>NaN</td>
-      <td>       NaN</td>
-      <td>  1.700000</td>
-      <td>   81.004241</td>
-      <td> 47.649553</td>
-    </tr>
-    <tr>
-      <th>7 </th>
-      <td>  121-423</td>
-      <td> 06:28:00</td>
-      <td> 22:00:00</td>
-      <td> 34.0</td>
-      <td> 60</td>
-      <td> 52.800000</td>
-      <td> 18.133333</td>
-      <td>  586.058987</td>
-      <td> 32.319429</td>
-    </tr>
-    <tr>
-      <th>8 </th>
-      <td>  122-423</td>
-      <td> 06:16:00</td>
-      <td> 21:30:00</td>
-      <td> 33.0</td>
-      <td> 60</td>
-      <td> 54.000000</td>
-      <td> 15.400000</td>
-      <td>  541.875382</td>
-      <td> 35.186713</td>
-    </tr>
-    <tr>
-      <th>9 </th>
-      <td>  123-423</td>
-      <td> 06:14:00</td>
-      <td> 24:15:00</td>
-      <td> 60.0</td>
-      <td> 50</td>
-      <td> 29.565217</td>
-      <td> 40.466667</td>
-      <td> 1127.872412</td>
-      <td> 27.871641</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>  130-423</td>
-      <td> 06:04:00</td>
-      <td> 23:01:00</td>
-      <td> 33.0</td>
-      <td> 60</td>
-      <td> 60.000000</td>
-      <td> 17.050000</td>
-      <td>  361.053937</td>
-      <td> 21.176184</td>
-    </tr>
-    <tr>
-      <th>11</th>
-      <td>  131-423</td>
-      <td> 06:34:00</td>
-      <td> 22:31:00</td>
-      <td> 32.0</td>
-      <td> 60</td>
-      <td> 60.000000</td>
-      <td> 16.533333</td>
-      <td>  397.649576</td>
-      <td> 24.051386</td>
-    </tr>
-    <tr>
-      <th>12</th>
-      <td> 131N-423</td>
-      <td> 23:00:00</td>
-      <td> 23:31:00</td>
-      <td>  1.0</td>
-      <td>NaN</td>
-      <td>       NaN</td>
-      <td>  0.516667</td>
-      <td>   12.435046</td>
-      <td> 24.067831</td>
-    </tr>
-    <tr>
-      <th>13</th>
-      <td>  133-423</td>
-      <td> 06:20:00</td>
-      <td> 24:12:00</td>
-      <td> 36.0</td>
-      <td> 62</td>
-      <td> 58.913043</td>
-      <td> 22.200000</td>
-      <td>  576.582332</td>
-      <td> 25.972177</td>
-    </tr>
-    <tr>
-      <th>14</th>
-      <td>  140-423</td>
-      <td> 05:43:00</td>
-      <td> 24:04:00</td>
-      <td> 40.0</td>
-      <td> 60</td>
-      <td> 40.000000</td>
-      <td> 35.766667</td>
-      <td>  920.881198</td>
-      <td> 25.746911</td>
-    </tr>
-    <tr>
-      <th>15</th>
-      <td> 140N-423</td>
-      <td> 24:15:00</td>
-      <td> 28:45:00</td>
-      <td>  1.0</td>
-      <td>NaN</td>
-      <td>       NaN</td>
-      <td>  0.500000</td>
-      <td>   23.377648</td>
-      <td> 46.755296</td>
-    </tr>
-    <tr>
-      <th>16</th>
-      <td>  141-423</td>
-      <td> 06:40:00</td>
-      <td> 19:03:00</td>
-      <td> 47.0</td>
-      <td> 30</td>
-      <td> 30.000000</td>
-      <td> 30.533333</td>
-      <td>  635.606634</td>
-      <td> 20.816811</td>
-    </tr>
-    <tr>
-      <th>17</th>
-      <td>  142-423</td>
-      <td> 06:28:00</td>
-      <td> 22:38:00</td>
-      <td> 42.0</td>
-      <td> 60</td>
-      <td> 40.294118</td>
-      <td> 38.050000</td>
-      <td>  999.742639</td>
-      <td> 26.274445</td>
-    </tr>
-    <tr>
-      <th>18</th>
-      <td>  143-423</td>
-      <td> 06:34:00</td>
-      <td> 19:22:00</td>
-      <td> 48.0</td>
-      <td> 30</td>
-      <td> 30.000000</td>
-      <td> 36.866667</td>
-      <td>  897.079917</td>
-      <td> 24.333090</td>
-    </tr>
-    <tr>
-      <th>19</th>
-      <td> 143W-423</td>
-      <td> 18:15:00</td>
-      <td> 23:00:00</td>
-      <td>  9.0</td>
-      <td>NaN</td>
-      <td>       NaN</td>
-      <td>  6.750000</td>
-      <td>  204.735721</td>
-      <td> 30.331218</td>
-    </tr>
-    <tr>
-      <th>20</th>
-      <td>  150-423</td>
-      <td> 06:23:00</td>
-      <td> 19:30:00</td>
-      <td> 27.0</td>
-      <td> 60</td>
-      <td> 54.782609</td>
-      <td> 27.433333</td>
-      <td>  865.668383</td>
-      <td> 31.555348</td>
-    </tr>
-    <tr>
-      <th>21</th>
-      <td> 150E-423</td>
-      <td> 18:15:00</td>
-      <td> 23:32:00</td>
-      <td>  8.0</td>
-      <td>NaN</td>
-      <td>       NaN</td>
-      <td>  8.933333</td>
-      <td>  304.817663</td>
-      <td> 34.121380</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">
-In&nbsp;[15]:
+In&nbsp;[8]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -4495,7 +4178,7 @@ In&nbsp;[15]:
 
 
 <div class="output_area"><div class="prompt output_prompt">
-    Out[15]:</div>
+    Out[8]:</div>
 
 <div class="output_html rendered_html output_subarea output_pyout">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -5050,7 +4733,7 @@ In&nbsp;[15]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[16]:
+In&nbsp;[9]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -5067,7 +4750,7 @@ In&nbsp;[16]:
 
 
 <div class="output_area"><div class="prompt output_prompt">
-    Out[16]:</div>
+    Out[9]:</div>
 
 
 <div class="output_png output_subarea output_pyout">
@@ -6182,7 +5865,7 @@ B4NEREREJsbBIBEREZGJcTBIREREZGIcDBIRERGZ2P8HopyLSns93cgAAAAASUVORK5CYII=
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[17]:
+In&nbsp;[10]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -6209,7 +5892,7 @@ Routes time series progress 100.0%
 </div>
 
 <div class="output_area"><div class="prompt output_prompt">
-    Out[17]:</div>
+    Out[10]:</div>
 
 <div class="output_html rendered_html output_subarea output_pyout">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -6373,7 +6056,119 @@ Routes time series progress 100.0%
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[18]:
+In&nbsp;[12]:
+</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class="highlight"><pre><span class="n">arts</span> <span class="o">=</span> <span class="n">agg_routes_time_series</span><span class="p">(</span><span class="n">rts</span><span class="p">)</span>
+<span class="n">arts</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">
+    Out[12]:</div>
+
+<div class="output_html rendered_html output_subarea output_pyout">
+<div style="max-height:1000px;max-width:1500px;overflow:auto;">
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th>statistic</th>
+      <th colspan="2" halign="left">mean_daily_distance</th>
+      <th colspan="2" halign="left">mean_daily_duration</th>
+      <th colspan="2" halign="left">mean_daily_num_trip_starts</th>
+      <th colspan="2" halign="left">mean_daily_num_vehicles</th>
+      <th colspan="2" halign="left">mean_daily_speed</th>
+    </tr>
+    <tr>
+      <th>direction_id</th>
+      <th>0</th>
+      <th>1</th>
+      <th>0</th>
+      <th>1</th>
+      <th>0</th>
+      <th>1</th>
+      <th>0</th>
+      <th>1</th>
+      <th>0</th>
+      <th>1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2000-01-01 00:00:00</th>
+      <td>   62.942430</td>
+      <td>  106.519417</td>
+      <td>  1.483333</td>
+      <td>  2.633333</td>
+      <td>   3.8</td>
+      <td>   2</td>
+      <td>  3.200000</td>
+      <td>  5.400000</td>
+      <td> 42.433099</td>
+      <td> 40.450412</td>
+    </tr>
+    <tr>
+      <th>2000-01-01 06:00:00</th>
+      <td> 2759.370242</td>
+      <td> 2194.860771</td>
+      <td> 96.733333</td>
+      <td> 77.066667</td>
+      <td> 130.0</td>
+      <td> 110</td>
+      <td> 20.558261</td>
+      <td> 17.441691</td>
+      <td> 28.525537</td>
+      <td> 28.480027</td>
+    </tr>
+    <tr>
+      <th>2000-01-01 12:00:00</th>
+      <td> 2746.698583</td>
+      <td> 2758.644131</td>
+      <td> 96.650000</td>
+      <td> 96.566667</td>
+      <td> 127.0</td>
+      <td> 126</td>
+      <td> 19.047222</td>
+      <td> 19.322577</td>
+      <td> 28.419023</td>
+      <td> 28.567250</td>
+    </tr>
+    <tr>
+      <th>2000-01-01 18:00:00</th>
+      <td> 1546.455615</td>
+      <td> 1701.831561</td>
+      <td> 49.666667</td>
+      <td> 53.883333</td>
+      <td>  60.0</td>
+      <td>  66</td>
+      <td> 18.245436</td>
+      <td> 19.869827</td>
+      <td> 31.136690</td>
+      <td> 31.583636</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[13]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -6394,7 +6189,7 @@ In&nbsp;[18]:
 
 
 <div class="output_area"><div class="prompt output_prompt">
-    Out[18]:</div>
+    Out[13]:</div>
 
 <div class="output_html rendered_html output_subarea output_pyout">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -6558,7 +6353,7 @@ In&nbsp;[18]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[19]:
+In&nbsp;[14]:
 </div>
 <div class="inner_cell">
     <div class="input_area">
@@ -6590,7 +6385,7 @@ In&nbsp;[19]:
 </div>
 
 <div class="output_area"><div class="prompt output_prompt">
-    Out[19]:</div>
+    Out[14]:</div>
 
 <div class="output_html rendered_html output_subarea output_pyout">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -7497,7 +7292,7 @@ In&nbsp;[]:
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">
-In&nbsp;[41]:
+In&nbsp;[]:
 </div>
 <div class="inner_cell">
     <div class="input_area">

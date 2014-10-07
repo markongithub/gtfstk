@@ -644,7 +644,8 @@ class Feed(object):
         # Merge active trips with stop times and convert
         # times to seconds past midnight
         f = pd.merge(at, self.stop_times)
-        f['departure_time'] = f['departure_time'].map(timestr_to_seconds))
+        f['departure_time'] = f['departure_time'].map(
+          utils.timestr_to_seconds)
 
         # Compute relative distance of each trip along its path
         # at the given time times.
@@ -1028,7 +1029,7 @@ class Feed(object):
         
         def format(x):
             try:
-                return pd.to_datetime(date_str + ' ' + utils.timestr_mod_24(x))
+                return pd.to_datetime(date_str + ' ' + utils.timestr_mod24(x))
             except TypeError:
                 return pd.NaT
 
@@ -1424,9 +1425,9 @@ class Feed(object):
             start_time = row['start_time']
             end_time = row['end_time']
             start = pd.to_datetime(date_str + ' ' +\
-              utils.timestr_mod_24(start_time))
+              utils.timestr_mod24(start_time))
             end = pd.to_datetime(date_str + ' ' +\
-              utils.timestr_mod_24(end_time))
+              utils.timestr_mod24(end_time))
 
             for name, f in series_by_name.items():
                 if start == end:
