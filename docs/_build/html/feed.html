@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.6 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.7 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6',
+        VERSION:     '0.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.6 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.7 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.7 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -188,20 +188,27 @@ all the routes active on at least one day of the given dates
 <ul class="simple">
 <li>route_id</li>
 <li>direction_id</li>
-<li>mean_daily_num_trips</li>
-<li>min_start_time: start time of the earliest active trip on 
+<li>num_trips: mean daily number of trips</li>
+<li>start_time: start time of the earliest active trip on 
 the route</li>
-<li>max_end_time: end time of latest active trip on the route</li>
+<li>end_time: end time of latest active trip on the route</li>
 <li>max_headway: maximum of the durations (in minutes) between 
 trip starts on the route between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
 <tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given dates</li>
 <li>mean_headway: mean of the durations (in minutes) between 
 trip starts on the route between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
 <tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given dates</li>
-<li>mean_daily_duration: in hours</li>
-<li>mean_daily_distance: in kilometers; contains all <tt class="docutils literal"><span class="pre">np.nan</span></tt> entries
-if <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></tt></li>
-<li>mean_daily_speed: in kilometers per hour</li>
+<li>service_duration: mean daily service duration; 
+total the duration of each trip on the route for each of the given
+dates and divide by the number of dates; 
+measured in hours</li>
+<li>service_distance: mean daily service distance;
+total the distance traveled by each trip on the route for each of
+the given dates and divide by the number of dates;
+measured in kilometers; 
+contains all <tt class="docutils literal"><span class="pre">np.nan</span></tt> entries if <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></tt></li>
+<li>service_speed: service_distance/service_duration;
+measured in kilometers per hour</li>
 </ul>
 <p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then remove the direction_id column
 and compute each route&#8217;s stats, except for headways, using its trips
@@ -239,9 +246,9 @@ apppropriate, but
 <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period">Pandas 0.14.1 doesn&#8217;t support period index frequencies at multiples of DateOffsets (e.g. &#8216;5Min&#8217;)</a>.</p>
 <p>The columns of the data frame are hierarchical (multi-index) with</p>
 <ul class="simple">
-<li>top level: name = &#8216;statistic&#8217;, values = [&#8216;mean_daily_distance&#8217;,
-&#8216;mean_daily_duration&#8217;, &#8216;mean_daily_num_trip_starts&#8217;, 
-&#8216;mean_daily_num_vehicles&#8217;, &#8216;mean_daily_speed&#8217;]</li>
+<li>top level: name = &#8216;statistic&#8217;, values = [&#8216;service_distance&#8217;,
+&#8216;service_duration&#8217;, &#8216;num_trip_starts&#8217;, 
+&#8216;num_vehicles&#8217;, &#8216;service_speed&#8217;]</li>
 <li>middle level: name = &#8216;stop_id&#8217;, values = the active stop IDs</li>
 <li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
 </ul>
@@ -251,10 +258,10 @@ apppropriate, but
 <li><dl class="first docutils">
 <dt>To resample the resulting time series use the following methods:</dt>
 <dd><ul class="first last simple">
-<li>for &#8216;mean_daily_num_vehicles&#8217; series, use <tt class="docutils literal"><span class="pre">how=np.mean</span></tt></li>
+<li>for &#8216;num_vehicles&#8217; series, use <tt class="docutils literal"><span class="pre">how=np.mean</span></tt></li>
 <li>for the other series, use <tt class="docutils literal"><span class="pre">how=np.sum</span></tt></li>
-<li>&#8216;mean_daily_speed&#8217; can&#8217;t be resampled and must be recalculated
-from &#8216;mean_daily_distance&#8217; and &#8216;mean_daily_duration&#8217;</li>
+<li>&#8216;service_speed&#8217; can&#8217;t be resampled and must be recalculated
+from &#8216;service_distance&#8217; and &#8216;service_duration&#8217;</li>
 </ul>
 </dd>
 </dl>
@@ -314,16 +321,16 @@ Otherwise, return <tt class="docutils literal"><span class="pre">None</span></tt
 <ul class="simple">
 <li>stop_id</li>
 <li>direction_id</li>
-<li>mean_daily_num_vehicles: mean daily number of vehicles visiting stop</li>
+<li>num_vehicles: mean daily number of vehicles visiting stop</li>
 <li>max_headway: maximum of the durations (in minuts) between 
 vehicle departures at the stop between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
 <tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given dates</li>
 <li>mean_headway: mean of the durations (in minutes) between 
 vehicle departures at the stop between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
 <tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given dates</li>
-<li>min_start_time: earliest departure time of a vehicle from this stop
+<li>start_time: earliest departure time of a vehicle from this stop
 over the given date range</li>
-<li>max_end_time: latest departure time of a vehicle from this stop
+<li>end_time: latest departure time of a vehicle from this stop
 over the given date range</li>
 </ul>
 <p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then compute each stop&#8217;s stats
@@ -352,14 +359,14 @@ apppropriate, but
 <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period">Pandas 0.14.1 doesn&#8217;t support period index frequencies at multiples of DateOffsets (e.g. &#8216;5Min&#8217;)</a>.</p>
 <p>The columns of the data frame are hierarchical (multi-index) with</p>
 <ul class="simple">
-<li>top level: name = &#8216;statistic&#8217;, values = [&#8216;mean_daily_num_vehicles&#8217;]</li>
+<li>top level: name = &#8216;statistic&#8217;, values = [&#8216;num_vehicles&#8217;]</li>
 <li>middle level: name = &#8216;stop_id&#8217;, values = the active stop IDs</li>
 <li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
 </ul>
 <p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then don&#8217;t include the bottom level.</p>
 <p>NOTES:</p>
 <ul class="simple">
-<li>&#8216;mean_daily_num_vehicles&#8217; should be resampled with <tt class="docutils literal"><span class="pre">how=np.sum</span></tt></li>
+<li>&#8216;num_vehicles&#8217; should be resampled with <tt class="docutils literal"><span class="pre">how=np.sum</span></tt></li>
 <li>To remove the placeholder date (2001-1-1) and seconds from 
 the time series f, do <tt class="docutils literal"><span class="pre">f.index</span> <span class="pre">=</span> <span class="pre">[t.time().strftime('%H:%M')</span> 
 <span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">f.index.to_datetime()]</span></tt></li>
@@ -460,17 +467,17 @@ assume <tt class="docutils literal"><span class="pre">trip</span></tt> is a vali
 return a Pandas data frame with the following columns:</p>
 <ul class="simple">
 <li>direction_id</li>
-<li>mean_daily_num_trips: the sum of the corresponding column in the
+<li>num_trips: the sum of the corresponding column in the
 input across all routes</li>
-<li>min_start_time: the minimum of the corresponding column of the input
+<li>start_time: the minimum of the corresponding column of the input
 across all routes</li>
-<li>max_end_time: the maximum of the corresponding column of the input
+<li>end_time: the maximum of the corresponding column of the input
 across all routes</li>
-<li>mean_daily_duration: the sum of the corresponding column in the
+<li>service_duration: the sum of the corresponding column in the
 input across all routes</li>
-<li>mean_daily_distance: the sum of the corresponding column in the
+<li>service_distance: the sum of the corresponding column in the
 input across all routes</li>
-<li>mean_daily_speed: mean_daily_distance/mean_daily_distance</li>
+<li>service_speed: service_distance/service_distance</li>
 </ul>
 <p>If the input has no direction id, then the output won&#8217;t.</p>
 </dd></dl>
@@ -562,7 +569,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.7 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
