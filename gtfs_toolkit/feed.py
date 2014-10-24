@@ -7,8 +7,6 @@ All time estimates below were produced on a 2013 MacBook Pro with a
 
 TODO:
 
-- Add get_active_stops()
-- Remove get_trips_activity()? 
 - Allow dates to be entered as YYYYMMDD strings?
 - Speed up time series calculations
 """
@@ -837,6 +835,24 @@ class Feed(object):
         result = f.groupby('shape_id', group_keys=False).apply(get_dist)
         self.shapes = result
 
+    def get_active_stops(self, date, timestr=None):
+        """
+        Return the section of ``self.stops`` that contains
+        only stops active on the given date (``datetime.date`` object).
+        If a time is given in the form of a GTFS time string '%H:%M:%S',
+        then return only those stops that have a departure time at
+        that date and time.
+        Do not take times modulo 24.
+        """    
+        if not date:
+            return    
+        
+        f = pd.merge(self.get_active_trips(date), self.stop_times)
+        if timestr:
+            f[f['departure_time'] == timestr]
+        active_stop_ids = set(f['stop_id'].values)
+        return self.stops[self.stops['stop_id'].isin(active_stop_ids)]
+
     def get_stops_activity(self, dates):
         """
         Return a Pandas data frame with the columns
@@ -864,37 +880,37 @@ class Feed(object):
                 f = pd.merge(f, g[date].max().reset_index())
         return f
 
-    def get_stops_stats(self, dates, split_directions=False,
+    def get_stops_stats(self, date, split_directions=False,
         headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
         """
         Return a Pandas data frame with the following columns:
 
         - stop_id
         - direction_id
-        - num_vehicles: mean daily number of vehicles visiting stop 
-        - max_headway: maximum of the durations (in minuts) between 
+        - num_vehicles: number of vehicles visiting stop 
+        - max_headway: durations (in minuts) between 
           vehicle departures at the stop between ``headway_start_timestr`` and 
-          ``headway_end_timestr`` on the given dates
-        - mean_headway: mean of the durations (in minutes) between 
+          ``headway_end_timestr`` on the given date
+        - mean_headway: durations (in minutes) between 
           vehicle departures at the stop between ``headway_start_timestr`` and 
-          ``headway_end_timestr`` on the given dates
+          ``headway_end_timestr`` on the given date
         - start_time: earliest departure time of a vehicle from this stop
-          over the given date range
+          on the given date
         - end_time: latest departure time of a vehicle from this stop
-          over the given date range
+          on the given date
 
         If ``split_directions == False``, then compute each stop's stats
         using vehicles visiting it from both directions.
 
         NOTES:
 
-        Takes about 0.7 minutes on the Portland feed given the first
-        five weekdays of the feed.
+        Takes about 0.7 minutes on the Portland feed.
         """
+        if not date:
+            return 
+
         # Get active trips and merge with stop times
-        trips_activity = self.get_trips_activity(dates)
-        ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
-        f = pd.merge(ta, self.stop_times)
+        f = pd.merge(self.get_active_trips(date), self.stop_times)
 
         # Convert departure times to seconds to ease headway calculations
         f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
@@ -907,21 +923,18 @@ class Feed(object):
             # Operate on the group of all stop times for an individual stop
             headways = []
             num_vehicles = 0
-            for date in dates:
-                dtimes = sorted(group[group[date] > 0]['departure_time'].\
-                  values)
-                num_vehicles += len(dtimes)
-                dtimes = [dtime for dtime in dtimes 
-                  if headway_start <= dtime <= headway_end]
-                headways.extend([dtimes[i + 1] - dtimes[i] 
-                  for i in range(len(dtimes) - 1)])
+            dtimes = sorted(group['departure_time'].values)
+            num_vehicles += len(dtimes)
+            dtimes = [dtime for dtime in dtimes 
+              if headway_start <= dtime <= headway_end]
+            headways.extend([dtimes[i + 1] - dtimes[i] 
+              for i in range(len(dtimes) - 1)])
             if headways:
                 max_headway = np.max(headways)/60  # minutes
                 mean_headway = np.mean(headways)/60  # minutes
             else:
                 max_headway = np.nan
                 mean_headway = np.nan
-            num_vehicles = num_vehicles/len(dates)
             start_time = group['departure_time'].min()
             end_time = group['departure_time'].max()
             df = pd.DataFrame([[
@@ -956,21 +969,19 @@ class Feed(object):
 
         return result
 
-    def get_stops_time_series(self, dates, split_directions=False,
+    def get_stops_time_series(self, date, split_directions=False,
       freq='5Min'):
         """
         Return a time series version of the following stops stats
-        for the given dates:
+        for the given date:
         
-        - mean daily number of vehicles by stop ID
+        - number of vehicles by stop ID
 
         The time series is a Pandas data frame with a timestamp index 
-        for a 24-hour period sampled at the given frequency.
+        for the 24-hour period on the given date sampled at 
+        the given frequency.
         The maximum allowable frequency is 1 minute.
-        If multiples dates are given, a generic placeholder date of
-        2001-01-01 is used as the date for the timestamp index.
-        Otherwise, the given date is used.
-
+        
         Using a period index instead of a timestamp index would be more
         apppropriate, but 
         `Pandas 0.14.1 doesn't support period index frequencies at multiples of DateOffsets (e.g. '5Min') <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period>`_.
@@ -986,30 +997,21 @@ class Feed(object):
         NOTES:
 
         - 'num_vehicles' should be resampled with ``how=np.sum``
-        - To remove the placeholder date (2001-1-1) and seconds from 
+        - To remove the date and seconds from 
           the time series f, do ``f.index = [t.time().strftime('%H:%M') 
           for t in f.index.to_datetime()]``
         - Takes about 6.15 minutes on the Portland feed given the first
           five weekdays of the feed.
         """  
-        if not dates:
+        if not date:
             return 
 
         # Get active trips and merge with stop times
-        trips_activity = self.get_trips_activity(dates)
-        ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
-        stats = pd.merge(ta, self.stop_times)
-        n = len(dates)
-        stats['weight'] = stats[dates].sum(axis=1)/n
+        stats = pd.merge(self.get_active_trips(date), self.stop_times)
 
         # Create a dictionary of time series and combine them all 
         # at the end
-        if n > 1:
-            # Assign a uniform generic date for the index
-            date_str = '2000-1-1'
-        else:
-            # Use the given date for the index
-            date_str = utils.date_to_str(dates[0]) 
+        date_str = utils.date_to_str(date)
         day_start = pd.to_datetime(date_str + ' 00:00:00')
         day_end = pd.to_datetime(date_str + ' 23:59:00')
         rng = pd.period_range(day_start, day_end, freq='Min')
@@ -1045,7 +1047,6 @@ class Feed(object):
             print("Stops time series progress {:2.1%}".format(i/num_rows), 
               end="\r")
             stop = row['stop_id']
-            weight = row['weight']
             dtime = row['departure_time']
             # Bin stop time
             criterion = f.index == dtime
@@ -1053,7 +1054,7 @@ class Feed(object):
             # Use fill_value=0 to overwrite NaNs with numbers.
             # Need to use pd.Series() to get fill_value to work.
             f.loc[criterion, stop] = g.add(pd.Series(
-              weight, index=g.index), fill_value=0)
+              1, index=g.index), fill_value=0)
       
         # Combine dictionary of time series into one time series
         f = _combine_time_series(series_by_name, kind='stop',
@@ -1078,7 +1079,7 @@ class Feed(object):
             return
         return result
 
-    def get_stations_stats(self, dates, split_directions=False,
+    def get_stations_stats(self, date, split_directions=False,
         headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
         """
         If this feed has station data, that is, 'location_type' and
@@ -1094,13 +1095,11 @@ class Feed(object):
         """
         # Get stop times of active trips that visit stops in stations
         stop_times = self.stop_times
-        trips_activity = self.get_trips_activity(dates)
-        ta = trips_activity[trips_activity[dates].sum(axis=1) > 0]
         sis = self.get_stops_in_stations()
         if sis is None:
             return
 
-        f = pd.merge(stop_times, ta)
+        f = pd.merge(stop_times, self.get_active_trips(date))
         f = pd.merge(f, sis)
 
         # Convert departure times to seconds to ease headway calculations
@@ -1114,21 +1113,18 @@ class Feed(object):
             # Operate on the group of all stop times for an individual stop
             headways = []
             num_vehicles = 0
-            for date in dates:
-                dtimes = sorted(group[group[date] > 0]['departure_time'].\
-                  values)
-                num_vehicles += len(dtimes)
-                dtimes = [dtime for dtime in dtimes 
-                  if headway_start <= dtime <= headway_end]
-                headways.extend([dtimes[i + 1] - dtimes[i] 
-                  for i in range(len(dtimes) - 1)])
+            dtimes = sorted(group['departure_time'].values)
+            num_vehicles += len(dtimes)
+            dtimes = [dtime for dtime in dtimes 
+              if headway_start <= dtime <= headway_end]
+            headways.extend([dtimes[i + 1] - dtimes[i] 
+              for i in range(len(dtimes) - 1)])
             if headways:
                 max_headway = np.max(headways)/60
                 mean_headway = np.mean(headways)/60
             else:
                 max_headway = np.nan
                 mean_headway = np.nan
-            num_vehicles = num_vehicles/len(dates)
             start_time = group['departure_time'].min()
             end_time = group['departure_time'].max()
             df = pd.DataFrame([[
@@ -1163,13 +1159,38 @@ class Feed(object):
 
         return result
 
-    def get_routes_stats(self, trips_stats, dates, split_directions=False,
+    def get_routes_stats(self, trips_stats, date, split_directions=False,
         headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
         """
         Take ``trips_stats``, which is the output of 
-        ``self.get_trips_stats()``, and use it to calculate stats for 
-        all the routes active on at least one day of the given dates
-        (list of ``datetime.date`` objects). 
+        ``self.get_trips_stats()``, cut it down to the subset ``S`` of trips
+        that are active on the given date, and then call
+        ``self.get_routes_stats_0()`` with ``S`` and the keyword arguments
+        ``split_directions``, ``headway_start_timestr``, and 
+        ``headway_end_timestr``.
+
+        See ``self.get_routes_stats_0()`` for a description of the output.
+
+        NOTES:
+
+        A more user-friendly version of ``get_routes_stats_0()``.
+        I didn't want to discard the latter function, though, because i use
+        it for another project.
+        Takes about 0.2 minutes on the Portland feed.
+        """
+        # Get the subset of trips_stats that contains only trips active
+        # on the given date
+        trips_stats_subset = pd.merge(trips_stats, self.get_active_trips(date))
+        return self.get_routes_stats_0(trips_stats_subset, 
+          split_directions=split_directions,
+          headway_start_timestr=headway_start_timestr, 
+          headway_end_timestr=headway_end_timestr)
+
+    def get_routes_stats_0(self, trips_stats_subset, split_directions=False,
+        headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
+        """
+        Given a subset of the output of ``self.get_trips_stats()``, 
+        calculate stats for the routes in that subset.
         
         Return a Pandas data frame with the following columns:
 
@@ -1185,13 +1206,10 @@ class Feed(object):
         - mean_headway: mean of the durations (in minutes) between 
           trip starts on the route between ``headway_start_timestr`` and 
           ``headway_end_timestr`` on the given dates
-        - service_duration: mean daily service duration; 
-          total the duration of each trip on the route for each of the given
-          dates and divide by the number of dates; 
-          measured in hours
-        - service_distance: mean daily service distance;
-          total the distance traveled by each trip on the route for each of
-          the given dates and divide by the number of dates;
+        - service_duration: total of the duration of each trip on 
+          the route in the given subset of trips; measured in hours
+        - service_distance: total of the distance traveled by each trip on 
+          the route in the given subset of trips;
           measured in kilometers; 
           contains all ``np.nan`` entries if ``self.shapes is None``  
         - service_speed: service_distance/service_duration;
@@ -1209,19 +1227,10 @@ class Feed(object):
 
         Takes about 0.2 minutes on the Portland feed given the first
         five weekdays of the feed.
-        """
-        if not dates:
-            return 
-
-        # Merge trips stats with trips activity, 
-        # assign a weight to each trip equal to the fraction of days in 
-        # dates for which it is active, and and drop 0-weight trips
-        trips_stats = pd.merge(trips_stats, self.get_trips_activity(dates))
-        trips_stats['weight'] = trips_stats[dates].sum(axis=1)/len(dates)
-        trips_stats = trips_stats[trips_stats['weight'] > 0]
-        
+        """        
         # Convert trip start times to seconds to ease headway calculations
-        trips_stats['start_time'] = trips_stats['start_time'].map(
+        tss = trips_stats_subset
+        tss['start_time'] = tss['start_time'].map(
           utils.timestr_to_seconds)
 
         headway_start = utils.timestr_to_seconds(headway_start_timestr)
@@ -1231,24 +1240,22 @@ class Feed(object):
             # Take this group of all trips stats for a single route
             # and compute route-level stats.
             headways = []
-            for date in dates:
-                stimes = group[(group[date] > 0)]['start_time'].\
-                  values
-                stimes = sorted([stime for stime in stimes 
-                  if headway_start <= stime <= headway_end])
-                headways.extend([stimes[i + 1] - stimes[i] 
-                  for i in range(len(stimes) - 1)])
+            stimes = group['start_time'].values
+            stimes = sorted([stime for stime in stimes 
+              if headway_start <= stime <= headway_end])
+            headways.extend([stimes[i + 1] - stimes[i] 
+              for i in range(len(stimes) - 1)])
             if headways:
                 max_headway = np.max(headways)/60  # minutes 
                 mean_headway = np.mean(headways)/60  # minutes 
             else:
                 max_headway = np.nan
                 mean_headway = np.nan
-            num_trips = group['weight'].sum()
+            num_trips = group.shape[0]
             start_time = group['start_time'].min()
             end_time = group['end_time'].max()
-            service_duration = (group['duration']*group['weight']).sum()
-            service_distance = (group['distance']*group['weight']).sum()
+            service_duration = group['duration'].sum()
+            service_distance = group['distance'].sum()
             df = pd.DataFrame([[
               start_time, 
               end_time, 
@@ -1273,14 +1280,12 @@ class Feed(object):
             # Compute headways. Need to separate directions for these.
             headways = []
             for direction in [0, 1]:
-                for date in dates:
-                    stimes = group[(group[date] > 0) &\
-                      (group['direction_id'] == direction)]['start_time'].\
-                      values
-                    stimes = sorted([stime for stime in stimes 
-                      if headway_start <= stime <= headway_end])
-                    headways.extend([stimes[i + 1] - stimes[i] 
-                      for i in range(len(stimes) - 1)])
+                stimes = group[group['direction_id'] == direction][
+                  'start_time'].values
+                stimes = sorted([stime for stime in stimes 
+                  if headway_start <= stime <= headway_end])
+                headways.extend([stimes[i + 1] - stimes[i] 
+                  for i in range(len(stimes) - 1)])
             if headways:
                 max_headway = np.max(headways)/60  # minutes 
                 mean_headway = np.mean(headways)/60  # minutes
@@ -1288,11 +1293,11 @@ class Feed(object):
                 max_headway = np.nan
                 mean_headway = np.nan
             # Compute rest of stats
-            num_trips = group['weight'].sum()
+            num_trips = group.shape[0]
             start_time = group['start_time'].min()
             end_time = group['end_time'].max()
-            service_duration = (group['duration']*group['weight']).sum()
-            service_distance = (group['distance']*group['weight']).sum()
+            service_duration = group['duration'].sum()
+            service_distance = group['distance'].sum()
             df = pd.DataFrame([[
               start_time, 
               end_time, 
@@ -1314,10 +1319,10 @@ class Feed(object):
             return df
 
         if split_directions:
-            result = trips_stats.groupby(['route_id', 'direction_id']).apply(
+            result = tss.groupby(['route_id', 'direction_id']).apply(
               get_route_stats_split_directions).reset_index()
         else:
-            result = trips_stats.groupby('route_id').apply(
+            result = tss.groupby('route_id').apply(
               get_route_stats).reset_index()
 
         del result['foo']
@@ -1332,25 +1337,48 @@ class Feed(object):
 
         return result
 
-    def get_routes_time_series(self, trips_stats, dates, 
+    def get_routes_time_series(self, trips_stats, date, 
       split_directions=False, freq='5Min'):
         """
-        Given ``trips_stats``, which is the output of 
-        ``self.get_trips_stats()``, return a time series version of the 
-        following route stats for the given dates:
+        Take ``trips_stats``, which is the output of 
+        ``self.get_trips_stats()``, cut it down to the subset ``S`` of trips
+        that are active on the given date, and then call
+        ``self.get_routes_time_series_0()`` with ``S`` and the given 
+        keyword arguments ``split_directions`` and ``freq``
+        and with ``date_label = utils.date_to_str(date)``.
+
+        See ``self.get_routes_stats_0()`` for a description of the output.
+
+        NOTES:
+
+        A more user-friendly version of ``get_routes_time_series_0()``.
+        I didn't want to discard the latter function, though, because i use
+        it for another project.
+        Takes about 0.6 minutes on the Portland feed.
+        """  
+        trips_stats_subset = pd.merge(trips_stats, self.get_active_trips(date))
+        return self.get_routes_time_series_0(trips_stats_subset, 
+          split_directions=split_directions, freq=freq, 
+          date_label=utils.date_to_str(date))
+
+    def get_routes_time_series_0(self, trips_stats_subset,
+      split_directions=False, freq='5Min', date_label='2001-01-01'):
+        """
+        Given a subset of the output of ``self.get_trips_stats()``, 
+        calculate time series for the routes in that subset.
+
+        Return a time series version of the following route stats:
         
-        - mean daily number of vehicles in service by route ID
-        - mean daily number of trip starts by route ID
-        - mean daily service duration in hours by route ID
-        - mean daily service distance in kilometers by route ID
-        - mean daily speed in kilometers per hour
+        - number of vehicles in service by route ID
+        - number of trip starts by route ID
+        - service duration in hours by route ID
+        - service distance in kilometers by route ID
+        - service speed in kilometers per hour
 
         The time series is a Pandas data frame with a timestamp index 
         for a 24-hour period sampled at the given frequency.
         The maximum allowable frequency is 1 minute.
-        If multiples dates are given, a generic placeholder date of
-        2001-01-01 is used as the date for the timestamp index.
-        Otherwise, the given date is used.
+        ``date_label`` is used as the date for the timestamp index.
 
         Using a period index instead of a timestamp index would be more
         apppropriate, but 
@@ -1362,7 +1390,7 @@ class Feed(object):
         - top level: name = 'statistic', values = ['service_distance',
           'service_duration', 'num_trip_starts', 
           'num_vehicles', 'service_speed']
-        - middle level: name = 'stop_id', values = the active stop IDs
+        - middle level: name = 'route_id', values = the active routes
         - bottom level: name = 'direction_id', values = 0s and 1s
 
         If ``split_directions == False``, then don't include the bottom level.
@@ -1374,37 +1402,28 @@ class Feed(object):
             - for the other series, use ``how=np.sum`` 
             - 'service_speed' can't be resampled and must be recalculated
               from 'service_distance' and 'service_duration' 
-        - To remove the placeholder date (2001-1-1) and seconds from the 
+        - To remove the date and seconds from the 
           time series f, do ``f.index = [t.time().strftime('%H:%M') 
           for t in f.index.to_datetime()]``
         - Takes about 0.6 minutes on the Portland feed given the first
           five weekdays of the feed.
         """  
-        if not dates:
-            return 
         # Merge trips_stats with trips activity, get trip weights,
         # and drop 0-weight trips
-        n = len(dates)
-        stats = pd.merge(trips_stats, self.get_trips_activity(dates))
-        stats['weight'] = stats[dates].sum(axis=1)/n
-        stats = stats[stats.weight > 0]
+        tss = trips_stats_subset
 
         if split_directions:
             # Alter route IDs to encode direction: 
             # <route ID>-0 and <route ID>-1
-            stats['route_id'] = stats['route_id'] + '-' +\
-              stats['direction_id'].map(str)
+            tss['route_id'] = tss['route_id'] + '-' +\
+              tss['direction_id'].map(str)
             
-        routes = sorted(stats['route_id'].unique())
+        routes = sorted(tss['route_id'].unique())
         
         # Build a dictionary of time series and then merge them all
         # at the end
-        if n > 1:
-            # Assign a uniform generic date for the index
-            date_str = '2000-1-1'
-        else:
-            # Use the given date for the index
-            date_str = utils.date_to_str(dates[0]) 
+        # Assign a uniform generic date for the index
+        date_str = date_label
         day_start = pd.to_datetime(date_str + ' 00:00:00')
         day_end = pd.to_datetime(date_str + ' 23:59:00')
         rng = pd.period_range(day_start, day_end, freq='Min')
@@ -1421,14 +1440,13 @@ class Feed(object):
         
         # Bin each trip according to its start and end time and weight
         i = 0
-        num_rows = stats.shape[0]
-        for index, row in stats.iterrows():
+        num_rows = tss.shape[0]
+        for index, row in tss.iterrows():
             i += 1
             print("Routes time series progress {:2.1%}".format(i/num_rows), 
               end="\r")
             trip = row['trip_id']
             route = row['route_id']
-            weight = row['weight']
             start_time = row['start_time']
             end_time = row['end_time']
             start = pd.to_datetime(date_str + ' ' +\
@@ -1454,17 +1472,17 @@ class Feed(object):
                 # Need to use pd.Series() to get fill_value to work.
                 if name == 'num_trip_starts':
                     f.loc[f.index == start, route] = g.add(pd.Series(
-                      weight, index=g.index), fill_value=0)
+                      1, index=g.index), fill_value=0)
                 elif name == 'num_vehicles':
                     f.loc[criterion, route] = g.add(pd.Series(
-                      weight, index=g.index), fill_value=0)
+                      1, index=g.index), fill_value=0)
                 elif name == 'service_duration':
                     f.loc[criterion, route] = g.add(pd.Series(
-                      weight/60, index=g.index), fill_value=0)
+                      1/60, index=g.index), fill_value=0)
                 else:
                     # name == 'distance'
                     f.loc[criterion, route] = g.add(pd.Series(
-                      weight*row['distance']/num_bins, index=g.index),
+                      row['distance']/num_bins, index=g.index),
                       fill_value=0)
                     
         # Combine dictionary of time series into one time series
@@ -1475,32 +1493,31 @@ class Feed(object):
         g = g.to_timestamp()
         return downsample(g, freq=freq)
 
-    def dump_all_stats(self, directory, dates=None, freq='1H', 
+    def dump_all_stats(self, directory, date=None, freq='1H', 
       split_directions=False):
         """
         Into the given directory, dump to separate CSV files the outputs of
         
-        - ``self.get_stops_stats(dates)``
-        - ``self.get_stops_time_series(dates)``
+        - ``self.get_stops_stats(date)``
+        - ``self.get_stops_time_series(date)``
         - ``trips_stats = self.get_trips_stats()``
-        - ``self.get_routes_stats(trips_stats, dates)``
-        - ``self.get_routes_time_series(dates)``
+        - ``self.get_routes_stats(trips_stats, date)``
+        - ``self.get_routes_time_series(date)``
 
         where each time series is resampled to the given frequency.
         Also include a ``README.txt`` file that contains a few notes
         on units and include some useful charts.
 
-        If no dates are given, then use ``self.get_first_week()[:5]``.
+        If no date is given, then use the first Monday of the feed.
         """
         import os
         import textwrap
 
         if not os.path.exists(directory):
             os.makedirs(directory)
-        if dates is None:
-            dates = self.get_first_week()[:5]
-        dates_str = ' to '.join(
-          [utils.date_to_str(d) for d in [dates[0], dates[-1]]])
+        if date is None:
+            date = self.get_first_week()[0]
+        date_str = utils.date_to_str(date) 
 
         # Write README.txt, which contains notes on units and date range
         readme = """
@@ -1508,18 +1525,18 @@ class Feed(object):
         =====
         - Distances are measured in kilometers and durations are measured in
         hours
-        - Stats were calculated for the period {!s}
-        """.format(dates_str)
+        - Stats were calculated for {!s}
+        """.format(date_str)
         
         with open(directory + 'notes.rst', 'w') as f:
             f.write(textwrap.dedent(readme))
 
         # Stops stats
-        stops_stats = self.get_stops_stats(dates)
+        stops_stats = self.get_stops_stats(date)
         stops_stats.to_csv(directory + 'stops_stats.csv', index=False)
 
         # Stops time series
-        sts = self.get_stops_time_series(dates, 
+        sts = self.get_stops_time_series(date, 
           split_directions=split_directions)
         sts = downsample(sts, freq=freq)
         sts.to_csv(directory + 'stops_time_series_{!s}.csv'.format(freq))
@@ -1529,12 +1546,12 @@ class Feed(object):
         trips_stats.to_csv(directory + 'trips_stats.csv', index=False)
 
         # Routes stats
-        routes_stats = self.get_routes_stats(trips_stats, dates,
+        routes_stats = self.get_routes_stats(trips_stats, date,
           split_directions=split_directions)
         routes_stats.to_csv(directory + 'routes_stats.csv', index=False)
 
         # Routes time series
-        rts = self.get_routes_time_series(trips_stats, dates,
+        rts = self.get_routes_time_series(trips_stats, date,
           split_directions=split_directions)
         rts = downsample(rts, freq=freq)
         rts.to_csv(directory + 'routes_time_series_{!s}.csv'.format(freq))

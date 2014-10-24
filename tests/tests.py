@@ -144,6 +144,7 @@ class TestFeed(unittest.TestCase):
         get_cols = set(f.columns)
         expect_cols = set(list(g.columns) + ['time', 'rel_dist', 'lon', 'lat'])
         self.assertEqual(get_cols, expect_cols)
+    
     def test_get_trips_activity(self):
         feed = cairns
         dates = feed.get_first_week()
@@ -252,28 +253,46 @@ class TestFeed(unittest.TestCase):
             sdt = list(group['shape_dist_traveled'].values)
             self.assertEqual(sdt, sorted(sdt))
 
+    def get_active_stops(self):
+        feed = cairns
+        date = feed.get_first_week()[0]
+        f = feed.get_active_stops(date)
+        # Should be a data frame
+        self.assertIsInstance(f, pd.core.frame.DataFrame)
+        # Should have the correct shape
+        self.assertTrue(f.shape[0] <= feed.stops.shape[0])
+        self.assertEqual(f.shape[1], feed.stops.shape[1])
+        # Should have correct columns
+        self.assertEqual(set(f.columns), set(feed.stops.columns))
+
+        g = feed.get_active_stops(date, "07:30:00")
+        # Should be a data frame
+        self.assertIsInstance(g, pd.core.frame.DataFrame)
+        # Should have the correct shape
+        self.assertTrue(g.shape[0] <= f.shape[0])
+        self.assertEqual(g.shape[1], f.shape[1])
+        # Should have correct columns
+        self.assertEqual(set(g.columns), set(feed.stops.columns))
+
     def test_get_stops_stats(self):
         feed = cairns
-        dates = feed.get_first_week()
-        stops_stats = feed.get_stops_stats(dates)
+        date = feed.get_first_week()[0]
+        stops_stats = feed.get_stops_stats(date)
         # Should be a data frame
         self.assertIsInstance(stops_stats, pd.core.frame.DataFrame)
         # Should contain the correct stops
         get_stops = set(stops_stats['stop_id'].values)
-        sa = feed.get_stops_activity(dates)
-        sa = sa[sa[dates].sum(axis=1) > 0]
-        expect_stops = set(sa['stop_id'].values)
+        f = feed.get_active_stops(date)
+        expect_stops = set(f['stop_id'].values)
         self.assertEqual(get_stops, expect_stops)
 
     def test_get_stops_time_series(self):
         feed = cairns
-        dates = feed.get_first_week()
-        sa = feed.get_stops_activity(dates)
-        sa = sa[sa[dates].sum(axis=1) > 0]
+        date = feed.get_first_week()[0]
         for split_directions in [True, False]:
-            f = feed.get_stops_stats(dates, 
+            f = feed.get_stops_stats(date, 
               split_directions=split_directions)
-            stops_ts = feed.get_stops_time_series(dates, freq='1H',
+            stops_ts = feed.get_stops_time_series(date, freq='1H',
               split_directions=split_directions) 
             # Should be a data frame
             self.assertIsInstance(stops_ts, pd.core.frame.DataFrame)
@@ -289,12 +308,11 @@ class TestFeed(unittest.TestCase):
 
     def test_get_routes_stats(self):
         feed = cairns
-        dates = feed.get_first_week()
+        date = feed.get_first_week()[0]
         trips_stats = feed.get_trips_stats()
-        f = pd.merge(trips_stats, feed.get_trips_activity(dates))
-        f = f[f[dates].sum(axis=1) > 0]
+        f = pd.merge(trips_stats, feed.get_active_trips(date))
         for split_directions in [True, False]:
-            rs = feed.get_routes_stats(trips_stats, dates, 
+            rs = feed.get_routes_stats(trips_stats, date, 
               split_directions=split_directions)
             # Should be a data frame of the correct shape
             self.assertIsInstance(rs, pd.core.frame.DataFrame)
@@ -308,12 +326,12 @@ class TestFeed(unittest.TestCase):
 
     def test_get_routes_time_series(self):
         feed = cairns 
-        dates = feed.get_first_week()
+        date = feed.get_first_week()[0]
         trips_stats = feed.get_trips_stats()
         for split_directions in [True, False]:
-            f = feed.get_routes_stats(trips_stats, dates, 
+            f = feed.get_routes_stats(trips_stats, date, 
               split_directions=split_directions)
-            rts = feed.get_routes_time_series(trips_stats, dates, 
+            rts = feed.get_routes_time_series(trips_stats, date, 
               split_directions=split_directions, freq='1H')
             # Should be a data frame of the correct shape
             self.assertIsInstance(rts, pd.core.frame.DataFrame)
@@ -328,10 +346,10 @@ class TestFeed(unittest.TestCase):
     
     def test_agg_routes_time_series(self):
         feed = cairns 
-        dates = feed.get_first_week()
+        date = feed.get_first_week()[0]
         trips_stats = feed.get_trips_stats()
         for split_directions in [True, False]:
-            rts = feed.get_routes_time_series(trips_stats, dates, 
+            rts = feed.get_routes_time_series(trips_stats, date, 
               split_directions=split_directions, freq='1H')
             arts = agg_routes_time_series(rts)
             if split_directions:
