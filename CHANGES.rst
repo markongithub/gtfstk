@@ -23,3 +23,4 @@ Changes
 - v0.6, 2014-10-08: Changed ``seconds_to_timestr()`` to ``timestr_to_seconds().``.  Added ``get_busiest_date_of_first_week()``. 
 - v0.7, 2014-10-08: Whoops, lost track of the changes for this version.
 - v0.8, 2014-10-24: Simplified methods to accept a single date instead of a list of dates.
+- v0.9, 2014-10-29: Scooped out main logic from ``Feed.get_routes_stats()`` and ``Feed.get_routes_time_series()`` and put it into top level functions for the sake of greater flexibility.  I at least need that flexibility to plug into another project. Require Pandas v0.14.1, because date handling after groupby fails in Pandas v0.15.

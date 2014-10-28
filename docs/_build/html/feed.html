@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.8 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.9 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.8',
+        VERSION:     '0.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.8 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.9 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.8 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.9 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,7 +57,11 @@ is valid.</p>
 2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.</p>
 <p>TODO:</p>
 <ul class="simple">
-<li>Allow dates to be entered as YYYYMMDD strings?</li>
+<li>Possibly store dates as &#8216;%Y%m%d&#8217; strings instead</li>
+<li>Possibly scoop out main logic from <tt class="docutils literal"><span class="pre">Feed.get_stops_stats()</span></tt> and 
+<tt class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></tt> and put it into top level functions
+for the sake of greater flexibility.  Similar to what i did for 
+<tt class="docutils literal"><span class="pre">Feed.get_routes_stats()</span></tt> and <tt class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></tt>.</li>
 <li>Speed up time series calculations</li>
 </ul>
 <dl class="class">
@@ -192,55 +196,14 @@ coordinates.</p>
 <dd><p>Take <tt class="docutils literal"><span class="pre">trips_stats</span></tt>, which is the output of 
 <tt class="docutils literal"><span class="pre">self.get_trips_stats()</span></tt>, cut it down to the subset <tt class="docutils literal"><span class="pre">S</span></tt> of trips
 that are active on the given date, and then call
-<tt class="docutils literal"><span class="pre">self.get_routes_stats_0()</span></tt> with <tt class="docutils literal"><span class="pre">S</span></tt> and the keyword arguments
+<tt class="docutils literal"><span class="pre">get_routes_stats()</span></tt> with <tt class="docutils literal"><span class="pre">S</span></tt> and the keyword arguments
 <tt class="docutils literal"><span class="pre">split_directions</span></tt>, <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt>, and 
 <tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt>.</p>
-<p>See <tt class="docutils literal"><span class="pre">self.get_routes_stats_0()</span></tt> for a description of the output.</p>
+<p>See <tt class="docutils literal"><span class="pre">get_routes_stats()</span></tt> for a description of the output.</p>
 <p>NOTES:</p>
-<p>A more user-friendly version of <tt class="docutils literal"><span class="pre">get_routes_stats_0()</span></tt>.
-I didn&#8217;t want to discard the latter function, though, because i use
-it for another project.
+<p>A more user-friendly version of <tt class="docutils literal"><span class="pre">get_routes_stats()</span></tt>.
+The latter function works without a feed, though.
 Takes about 0.2 minutes on the Portland feed.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_routes_stats_0">
-<tt class="descname">get_routes_stats_0</tt><big>(</big><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_routes_stats_0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a subset of the output of <tt class="docutils literal"><span class="pre">self.get_trips_stats()</span></tt>, 
-calculate stats for the routes in that subset.</p>
-<p>Return a Pandas data frame with the following columns:</p>
-<ul class="simple">
-<li>route_id</li>
-<li>direction_id</li>
-<li>num_trips: mean daily number of trips</li>
-<li>start_time: start time of the earliest active trip on 
-the route</li>
-<li>end_time: end time of latest active trip on the route</li>
-<li>max_headway: maximum of the durations (in minutes) between 
-trip starts on the route between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
-<tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given dates</li>
-<li>mean_headway: mean of the durations (in minutes) between 
-trip starts on the route between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
-<tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given dates</li>
-<li>service_duration: total of the duration of each trip on 
-the route in the given subset of trips; measured in hours</li>
-<li>service_distance: total of the distance traveled by each trip on 
-the route in the given subset of trips;
-measured in kilometers; 
-contains all <tt class="docutils literal"><span class="pre">np.nan</span></tt> entries if <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></tt></li>
-<li>service_speed: service_distance/service_duration;
-measured in kilometers per hour</li>
-</ul>
-<p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then remove the direction_id column
-and compute each route&#8217;s stats, except for headways, using its trips
-running in both directions. 
-In this case, (1) compute max headway by taking the max of the max 
-headways in both directions; 
-(2) compute mean headway by taking the weighted mean of the mean
-headways in both directions.</p>
-<p>NOTES:</p>
-<p>Takes about 0.2 minutes on the Portland feed given the first
-five weekdays of the feed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -252,64 +215,11 @@ that are active on the given date, and then call
 <tt class="docutils literal"><span class="pre">self.get_routes_time_series_0()</span></tt> with <tt class="docutils literal"><span class="pre">S</span></tt> and the given 
 keyword arguments <tt class="docutils literal"><span class="pre">split_directions</span></tt> and <tt class="docutils literal"><span class="pre">freq</span></tt>
 and with <tt class="docutils literal"><span class="pre">date_label</span> <span class="pre">=</span> <span class="pre">utils.date_to_str(date)</span></tt>.</p>
-<p>See <tt class="docutils literal"><span class="pre">self.get_routes_stats_0()</span></tt> for a description of the output.</p>
+<p>See <tt class="docutils literal"><span class="pre">get_routes_stats()</span></tt> for a description of the output.</p>
 <p>NOTES:</p>
-<p>A more user-friendly version of <tt class="docutils literal"><span class="pre">get_routes_time_series_0()</span></tt>.
-I didn&#8217;t want to discard the latter function, though, because i use
-it for another project.
+<p>A more user-friendly version of <tt class="docutils literal"><span class="pre">get_routes_time_series()</span></tt>.
+The latter function works without a feed, though.
 Takes about 0.6 minutes on the Portland feed.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_routes_time_series_0">
-<tt class="descname">get_routes_time_series_0</tt><big>(</big><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>freq='5Min'</em>, <em>date_label='2001-01-01'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_routes_time_series_0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a subset of the output of <tt class="docutils literal"><span class="pre">self.get_trips_stats()</span></tt>, 
-calculate time series for the routes in that subset.</p>
-<p>Return a time series version of the following route stats:</p>
-<ul class="simple">
-<li>number of vehicles in service by route ID</li>
-<li>number of trip starts by route ID</li>
-<li>service duration in hours by route ID</li>
-<li>service distance in kilometers by route ID</li>
-<li>service speed in kilometers per hour</li>
-</ul>
-<p>The time series is a Pandas data frame with a timestamp index 
-for a 24-hour period sampled at the given frequency.
-The maximum allowable frequency is 1 minute.
-<tt class="docutils literal"><span class="pre">date_label</span></tt> is used as the date for the timestamp index.</p>
-<p>Using a period index instead of a timestamp index would be more
-apppropriate, but 
-<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period">Pandas 0.14.1 doesn&#8217;t support period index frequencies at multiples of DateOffsets (e.g. &#8216;5Min&#8217;)</a>.</p>
-<p>The columns of the data frame are hierarchical (multi-index) with</p>
-<ul class="simple">
-<li>top level: name = &#8216;statistic&#8217;, values = [&#8216;service_distance&#8217;,
-&#8216;service_duration&#8217;, &#8216;num_trip_starts&#8217;, 
-&#8216;num_vehicles&#8217;, &#8216;service_speed&#8217;]</li>
-<li>middle level: name = &#8216;route_id&#8217;, values = the active routes</li>
-<li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
-</ul>
-<p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then don&#8217;t include the bottom level.</p>
-<p>NOTES:</p>
-<ul>
-<li><dl class="first docutils">
-<dt>To resample the resulting time series use the following methods:</dt>
-<dd><ul class="first last simple">
-<li>for &#8216;num_vehicles&#8217; series, use <tt class="docutils literal"><span class="pre">how=np.mean</span></tt></li>
-<li>for the other series, use <tt class="docutils literal"><span class="pre">how=np.sum</span></tt></li>
-<li>&#8216;service_speed&#8217; can&#8217;t be resampled and must be recalculated
-from &#8216;service_distance&#8217; and &#8216;service_duration&#8217;</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p class="first">To remove the date and seconds from the 
-time series f, do <tt class="docutils literal"><span class="pre">f.index</span> <span class="pre">=</span> <span class="pre">[t.time().strftime('%H:%M')</span> 
-<span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">f.index.to_datetime()]</span></tt></p>
-</li>
-<li><p class="first">Takes about 0.6 minutes on the Portland feed given the first
-five weekdays of the feed.</p>
-</li>
-</ul>
 </dd></dl>
 
 <dl class="method">
@@ -521,6 +431,20 @@ input across all routes</li>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="gtfs_toolkit.feed.combine_time_series">
+<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">combine_time_series</tt><big>(</big><em>time_series_dict</em>, <em>kind</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.combine_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a dictionary of time series data frames, combine the time series
+into one time series data frame with multi-index (hierarchical) columns
+and return the result.
+The top level columns are the keys of the dictionary and
+the second and third level columns are &#8216;route_id&#8217; and &#8216;direction_id&#8217;,
+if <tt class="docutils literal"><span class="pre">kind</span> <span class="pre">==</span> <span class="pre">'route'</span></tt>, or &#8216;stop_id&#8217; and &#8216;direction_id&#8217;, 
+if <tt class="docutils literal"><span class="pre">kind</span> <span class="pre">==</span> <span class="pre">'stop'</span></tt>.
+If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then there is no third column level,
+no &#8216;direction_id&#8217; column.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfs_toolkit.feed.downsample">
 <tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">downsample</tt><big>(</big><em>time_series</em>, <em>freq</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.downsample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Downsample the given route or stop time series, which is the output of 
@@ -528,6 +452,98 @@ input across all routes</li>
 to the given Pandas-style frequency.
 Can&#8217;t downsample to frequencies less one minute (&#8216;1Min&#8217;), because the
 time series are generated with one-minute frequency.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.feed.get_routes_stats">
+<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">get_routes_stats</tt><big>(</big><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a subset of the output of <tt class="docutils literal"><span class="pre">Feed.get_trips_stats()</span></tt>, 
+calculate stats for the routes in that subset.</p>
+<p>Return a Pandas data frame with the following columns:</p>
+<ul class="simple">
+<li>route_id</li>
+<li>direction_id</li>
+<li>num_trips: mean daily number of trips</li>
+<li>start_time: start time of the earliest active trip on 
+the route</li>
+<li>end_time: end time of latest active trip on the route</li>
+<li>max_headway: maximum of the durations (in minutes) between 
+trip starts on the route between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
+<tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given dates</li>
+<li>mean_headway: mean of the durations (in minutes) between 
+trip starts on the route between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
+<tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given dates</li>
+<li>service_duration: total of the duration of each trip on 
+the route in the given subset of trips; measured in hours</li>
+<li>service_distance: total of the distance traveled by each trip on 
+the route in the given subset of trips;
+measured in kilometers; 
+contains all <tt class="docutils literal"><span class="pre">np.nan</span></tt> entries if <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></tt></li>
+<li>service_speed: service_distance/service_duration;
+measured in kilometers per hour</li>
+</ul>
+<p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then remove the direction_id column
+and compute each route&#8217;s stats, except for headways, using its trips
+running in both directions. 
+In this case, (1) compute max headway by taking the max of the max 
+headways in both directions; 
+(2) compute mean headway by taking the weighted mean of the mean
+headways in both directions.</p>
+<p>NOTES:</p>
+<p>Takes about 0.2 minutes on the Portland feed given the first
+five weekdays of the feed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.feed.get_routes_time_series">
+<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">get_routes_time_series</tt><big>(</big><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>freq='5Min'</em>, <em>date_label='2001-01-01'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.get_routes_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a subset of the output of <tt class="docutils literal"><span class="pre">Feed.get_trips_stats()</span></tt>, 
+calculate time series for the routes in that subset.</p>
+<p>Return a time series version of the following route stats:</p>
+<ul class="simple">
+<li>number of vehicles in service by route ID</li>
+<li>number of trip starts by route ID</li>
+<li>service duration in hours by route ID</li>
+<li>service distance in kilometers by route ID</li>
+<li>service speed in kilometers per hour</li>
+</ul>
+<p>The time series is a Pandas data frame with a timestamp index 
+for a 24-hour period sampled at the given frequency.
+The maximum allowable frequency is 1 minute.
+<tt class="docutils literal"><span class="pre">date_label</span></tt> is used as the date for the timestamp index.</p>
+<p>Using a period index instead of a timestamp index would be more
+apppropriate, but 
+<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period">Pandas 0.14.1 doesn&#8217;t support period index frequencies at multiples of DateOffsets (e.g. &#8216;5Min&#8217;)</a>.</p>
+<p>The columns of the data frame are hierarchical (multi-index) with</p>
+<ul class="simple">
+<li>top level: name = &#8216;statistic&#8217;, values = [&#8216;service_distance&#8217;,
+&#8216;service_duration&#8217;, &#8216;num_trip_starts&#8217;, 
+&#8216;num_vehicles&#8217;, &#8216;service_speed&#8217;]</li>
+<li>middle level: name = &#8216;route_id&#8217;, values = the active routes</li>
+<li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
+</ul>
+<p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then don&#8217;t include the bottom level.</p>
+<p>NOTES:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>To resample the resulting time series use the following methods:</dt>
+<dd><ul class="first last simple">
+<li>for &#8216;num_vehicles&#8217; series, use <tt class="docutils literal"><span class="pre">how=np.mean</span></tt></li>
+<li>for the other series, use <tt class="docutils literal"><span class="pre">how=np.sum</span></tt></li>
+<li>&#8216;service_speed&#8217; can&#8217;t be resampled and must be recalculated
+from &#8216;service_distance&#8217; and &#8216;service_duration&#8217;</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first">To remove the date and seconds from the 
+time series f, do <tt class="docutils literal"><span class="pre">f.index</span> <span class="pre">=</span> <span class="pre">[t.time().strftime('%H:%M')</span> 
+<span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">f.index.to_datetime()]</span></tt></p>
+</li>
+<li><p class="first">Takes about 0.6 minutes on the Portland feed given the first
+five weekdays of the feed.</p>
+</li>
+</ul>
 </dd></dl>
 
 <dl class="function">
@@ -602,7 +618,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.8 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.9 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
