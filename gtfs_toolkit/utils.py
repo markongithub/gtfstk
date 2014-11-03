@@ -50,7 +50,7 @@ def timestr_to_seconds(x, inverse=False, mod24=False):
             if mod24:
                 result %= 24*3600
         except:
-            result = None
+            result = np.nan
     else:
         try:
             seconds = int(x)
@@ -60,7 +60,7 @@ def timestr_to_seconds(x, inverse=False, mod24=False):
             mins, secs = divmod(remainder, 60)
             result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
         except:
-            result = None
+            result = np.nan
     return result
 
 def timestr_mod24(timestr):

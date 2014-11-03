@@ -208,7 +208,7 @@ def get_routes_time_series_new(trips_stats_subset,
 
     The columns of the data frame are hierarchical (multi-index) with
 
-    - top level: name = 'statistic', values = ['service_distance',
+    - top level: name = 'indicator', values = ['service_distance',
       'service_duration', 'num_trip_starts', 
       'num_vehicles', 'service_speed']
     - middle level: name = 'route_id', values = the active routes
@@ -226,12 +226,11 @@ def get_routes_time_series_new(trips_stats_subset,
     - To remove the date and seconds from the 
       time series f, do ``f.index = [t.time().strftime('%H:%M') 
       for t in f.index.to_datetime()]``
-    - Takes about 0.6 minutes on the Portland feed given the first
-      five weekdays of the feed.
+    - Takes about 0.05 minutes on the Portland feed 
     """  
     # Merge trips_stats with trips activity, get trip weights,
     # and drop 0-weight trips
-    tss = trips_stats_subset
+    tss = trips_stats_subset.copy()
 
     if split_directions:
         # Alter route IDs to encode direction: 
@@ -249,8 +248,8 @@ def get_routes_time_series_new(trips_stats_subset,
     day_end = pd.to_datetime(date_str + ' 23:59:00')
     rng = pd.period_range(day_start, day_end, freq='Min')
     indicators = [
-      'num_vehicles', 
       'num_trip_starts', 
+      'num_vehicles', 
       'service_duration', 
       'service_distance',
       ]
@@ -258,39 +257,27 @@ def get_routes_time_series_new(trips_stats_subset,
     bins = [i for i in range(24*60)] # One bin for each minute
     num_bins = len(bins)
 
-    # Convert start and end times to seconds past midnight
-    tss[['start_time', 'end_time']] =\
-      tss[['start_time', 'end_time']].applymap(
-      lambda x: utils.timestr_to_seconds(x) % (24*3600))
     # Bin start and end times
+    def F(x):
+        return (utils.timestr_to_seconds(x)//60) % (24*60)
+
     tss[['start_index', 'end_index']] =\
-      tss[['start_time', 'end_time']].applymap(
-      lambda x: int(x/60))
+      tss[['start_time', 'end_time']].applymap(F)
+    routes = sorted(set(tss['route_id'].values))
 
     # Bin each trip according to its start and end time and weight
-    i = 0
-    num_rows = tss.shape[0]
     series_by_route_by_indicator = {indicator: 
-      {route: [0 for i in range(num_bins)]} 
+      {route: [0 for i in range(num_bins)] for route in routes} 
       for indicator in indicators}
-
-    def get_weight(indicator, num_bins, dist):
-        if indicator in ['num_trip_starts', 'num_vehicles']:
-            return 1
-        elif indicator == 'service_duration':
-            return 1/60
-        else:
-            # indicator == 'service_distance'
-            return dist/num_bins
-
     for index, row in tss.iterrows():
-        i += 1
-        print("Routes time series progress {:2.1%}".format(i/num_rows), 
-          end="\r")
         trip = row['trip_id']
         route = row['route_id']
         start = row['start_index']
         end = row['end_index']
+        distance = row['distance']
+
+        if start is None or start == end:
+            continue
 
         # Get bins to fill
         if start <= end:
@@ -299,29 +286,29 @@ def get_routes_time_series_new(trips_stats_subset,
             bins_to_fill = bins[start:] + bins[:end] 
 
         # Bin trip
-        for indicator in indicators:
-            s = series_by_route_by_indicator[indicator][route]
-            if name == 'num_trip_starts':
-                s = g.add(pd.Series(
-                  1, index=g.index), fill_value=0)
-            elif name == 'num_vehicles':
-                f.loc[criterion, route] = g.add(pd.Series(
-                  1, index=g.index), fill_value=0)
-            elif name == 'service_duration':
-                f.loc[criterion, route] = g.add(pd.Series(
-                  1/60, index=g.index), fill_value=0)
+        # Do num trip starts
+        series_by_route_by_indicator['num_trip_starts'][route][start] += 1
+        # Do rest of indicators
+        for indicator in indicators[1:]:
+            if indicator == 'num_vehicles':
+                weight = 1
+            elif indicator == 'service_duration':
+                weight = 1/60
             else:
-                # name == 'distance'
-                f.loc[criterion, route] = g.add(pd.Series(
-                  row['distance']/num_bins, index=g.index),
-                  fill_value=0)
-                
-    # Combine dictionary of time series into one time series
-    g = combine_time_series(series_by_name, kind='route',
+                weight = distance/len(bins_to_fill)
+            for bin in bins_to_fill:
+                series_by_route_by_indicator[indicator][route][bin] += weight
+
+    # Create one time series per indicator
+    rng = pd.date_range(date_str, periods=24*60, freq='Min')
+    series_by_indicator = {indicator:
+      pd.DataFrame(series_by_route_by_indicator[indicator],
+        index=rng).fillna(0)
+      for indicator in indicators}
+
+    # Combine all time series into one time series
+    g = combine_time_series(series_by_indicator, kind='route',
       split_directions=split_directions)
-    # Convert to timestamp index, because Pandas 0.14.1 can't handle
-    # period index frequencies at multiples of DateOffsets (e.g. '5Min') 
-    g = g.to_timestamp()
     return downsample(g, freq=freq)
 
 def get_routes_time_series(trips_stats_subset,
@@ -350,7 +337,7 @@ def get_routes_time_series(trips_stats_subset,
 
     The columns of the data frame are hierarchical (multi-index) with
 
-    - top level: name = 'statistic', values = ['service_distance',
+    - top level: name = 'indicator', values = ['service_distance',
       'service_duration', 'num_trip_starts', 
       'num_vehicles', 'service_speed']
     - middle level: name = 'route_id', values = the active routes
@@ -451,6 +438,7 @@ def get_routes_time_series(trips_stats_subset,
     # Combine dictionary of time series into one time series
     g = combine_time_series(series_by_name, kind='route',
       split_directions=split_directions)
+
     # Convert to timestamp index, because Pandas 0.14.1 can't handle
     # period index frequencies at multiples of DateOffsets (e.g. '5Min') 
     g = g.to_timestamp()
@@ -505,7 +493,7 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
     assert kind in ['stop', 'route'],\
       "kind must be 'stop' or 'route'"
 
-    subcolumns = ['statistic']
+    subcolumns = ['indicator']
     if kind == 'stop':
         subcolumns.append('stop_id')
     else:
@@ -640,13 +628,13 @@ def agg_routes_time_series(routes_time_series):
         # For each stat and each direction, sum across routes.
         frames = []
         for stat in stats:
-            f0 = rts.xs((stat, '0'), level=('statistic', 'direction_id'), 
+            f0 = rts.xs((stat, '0'), level=('indicator', 'direction_id'), 
               axis=1).sum(axis=1)
-            f1 = rts.xs((stat, '1'), level=('statistic', 'direction_id'), 
+            f1 = rts.xs((stat, '1'), level=('indicator', 'direction_id'), 
               axis=1).sum(axis=1)
             f = pd.concat([f0, f1], axis=1, keys=['0', '1'])
             frames.append(f)
-        F = pd.concat(frames, axis=1, keys=stats, names=['statistic', 
+        F = pd.concat(frames, axis=1, keys=stats, names=['indicator', 
           'direction_id'])
         # Fix speed
         F['service_speed'] = F['service_distance'].divide(
@@ -662,8 +650,8 @@ def agg_routes_time_series(routes_time_series):
 def plot_routes_time_series(routes_time_series):
     """
     Given a routes time series data frame,
-    sum each time series statistic over all routes, 
-    plot each series statistic using MatplotLib, 
+    sum each time series indicator over all routes, 
+    plot each series indicator using MatplotLib, 
     and return the resulting figure of subplots.
 
     NOTES:
@@ -686,7 +674,7 @@ def plot_routes_time_series(routes_time_series):
     
     #split_directions = 'direction_id' in rts.columns.names
 
-    # Split time series by into its component time series by statistic type
+    # Split time series by into its component time series by indicator type
     # stats = rts.columns.levels[0].tolist()
     stats = [
       'num_trip_starts',
@@ -1459,7 +1447,7 @@ class Feed(object):
 
         The columns of the data frame are hierarchical (multi-index) with
 
-        - top level: name = 'statistic', values = ['num_vehicles']
+        - top level: name = 'indicator', values = ['num_vehicles']
         - middle level: name = 'stop_id', values = the active stop IDs
         - bottom level: name = 'direction_id', values = 0s and 1s
 
