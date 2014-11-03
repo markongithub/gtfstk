@@ -19,6 +19,7 @@ import dateutil.relativedelta as rd
 from collections import OrderedDict
 import os
 import zipfile
+import tempfile
 import shutil
 
 import pandas as pd
@@ -604,6 +605,7 @@ class Feed(object):
             'Units must be one of {!s}'.format(VALID_DISTANCE_UNITS)
         self.original_units = original_units
 
+        self.agency = pd.read_csv(path + 'agency.txt')
         self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str, 
           'stop_code': str})
         self.routes = pd.read_csv(path + 'routes.txt', dtype={'route_id': str,
@@ -1602,3 +1604,29 @@ class Feed(object):
         fig = plot_routes_time_series(rts)
         fig.tight_layout()
         fig.savefig(directory + 'routes_time_series_agg.pdf', dpi=200)
+
+    def export(self, path):
+        """
+        Assuming all the necessary data frames have been created
+        (as in create_all()), export them to a zip archive of CSV files
+        located at ``path``.
+        """
+        names = ['agency', 'calendar', 'routes', 'stops', 'trips',
+          'stop_times', 'shapes']
+        
+        # Remove '.zip' extension from path, because it gets added
+        # automatically below
+        path = path.rstrip('.zip')
+
+        # Write files to a temporary directory 
+        tmp_dir = tempfile.mkdtemp()
+        for name in names:
+            tmp_path = os.path.join(tmp_dir, name + '.txt')
+            getattr(self, name).to_csv(tmp_path, index=False)
+
+        # Zip directory 
+        shutil.make_archive(path, format="zip", root_dir=tmp_dir)    
+
+        # Delete temporary directory
+        shutil.rmtree(tmp_dir)
+
