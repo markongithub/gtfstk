@@ -182,6 +182,148 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
 
     return result
 
+def get_routes_time_series_new(trips_stats_subset,
+  split_directions=False, freq='5Min', date_label='2001-01-01'):
+    """
+    Given a subset of the output of ``Feed.get_trips_stats()``, 
+    calculate time series for the routes in that subset.
+
+    Return a time series version of the following route stats:
+    
+    - number of vehicles in service by route ID
+    - number of trip starts by route ID
+    - service duration in hours by route ID
+    - service distance in kilometers by route ID
+    - service speed in kilometers per hour
+
+    The time series is a Pandas data frame with a timestamp index 
+    for a 24-hour period sampled at the given frequency.
+    The maximum allowable frequency is 1 minute.
+    ``date_label`` is used as the date for the timestamp index.
+
+    Using a period index instead of a timestamp index would be more
+    apppropriate, but 
+    `Pandas 0.14.1 doesn't support period index frequencies at multiples of DateOffsets (e.g. '5Min') <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period>`_.
+
+
+    The columns of the data frame are hierarchical (multi-index) with
+
+    - top level: name = 'statistic', values = ['service_distance',
+      'service_duration', 'num_trip_starts', 
+      'num_vehicles', 'service_speed']
+    - middle level: name = 'route_id', values = the active routes
+    - bottom level: name = 'direction_id', values = 0s and 1s
+
+    If ``split_directions == False``, then don't include the bottom level.
+    
+    NOTES:
+
+    - To resample the resulting time series use the following methods:
+        - for 'num_vehicles' series, use ``how=np.mean``
+        - for the other series, use ``how=np.sum`` 
+        - 'service_speed' can't be resampled and must be recalculated
+          from 'service_distance' and 'service_duration' 
+    - To remove the date and seconds from the 
+      time series f, do ``f.index = [t.time().strftime('%H:%M') 
+      for t in f.index.to_datetime()]``
+    - Takes about 0.6 minutes on the Portland feed given the first
+      five weekdays of the feed.
+    """  
+    # Merge trips_stats with trips activity, get trip weights,
+    # and drop 0-weight trips
+    tss = trips_stats_subset
+
+    if split_directions:
+        # Alter route IDs to encode direction: 
+        # <route ID>-0 and <route ID>-1
+        tss['route_id'] = tss['route_id'] + '-' +\
+          tss['direction_id'].map(str)
+        
+    routes = sorted(tss['route_id'].unique())
+    
+    # Build a dictionary of time series and then merge them all
+    # at the end
+    # Assign a uniform generic date for the index
+    date_str = date_label
+    day_start = pd.to_datetime(date_str + ' 00:00:00')
+    day_end = pd.to_datetime(date_str + ' 23:59:00')
+    rng = pd.period_range(day_start, day_end, freq='Min')
+    indicators = [
+      'num_vehicles', 
+      'num_trip_starts', 
+      'service_duration', 
+      'service_distance',
+      ]
+    
+    bins = [i for i in range(24*60)] # One bin for each minute
+    num_bins = len(bins)
+
+    # Convert start and end times to seconds past midnight
+    tss[['start_time', 'end_time']] =\
+      tss[['start_time', 'end_time']].applymap(
+      lambda x: utils.timestr_to_seconds(x) % (24*3600))
+    # Bin start and end times
+    tss[['start_index', 'end_index']] =\
+      tss[['start_time', 'end_time']].applymap(
+      lambda x: int(x/60))
+
+    # Bin each trip according to its start and end time and weight
+    i = 0
+    num_rows = tss.shape[0]
+    series_by_route_by_indicator = {indicator: 
+      {route: [0 for i in range(num_bins)]} 
+      for indicator in indicators}
+
+    def get_weight(indicator, num_bins, dist):
+        if indicator in ['num_trip_starts', 'num_vehicles']:
+            return 1
+        elif indicator == 'service_duration':
+            return 1/60
+        else:
+            # indicator == 'service_distance'
+            return dist/num_bins
+
+    for index, row in tss.iterrows():
+        i += 1
+        print("Routes time series progress {:2.1%}".format(i/num_rows), 
+          end="\r")
+        trip = row['trip_id']
+        route = row['route_id']
+        start = row['start_index']
+        end = row['end_index']
+
+        # Get bins to fill
+        if start <= end:
+            bins_to_fill = bins[start:end]
+        else:
+            bins_to_fill = bins[start:] + bins[:end] 
+
+        # Bin trip
+        for indicator in indicators:
+            s = series_by_route_by_indicator[indicator][route]
+            if name == 'num_trip_starts':
+                s = g.add(pd.Series(
+                  1, index=g.index), fill_value=0)
+            elif name == 'num_vehicles':
+                f.loc[criterion, route] = g.add(pd.Series(
+                  1, index=g.index), fill_value=0)
+            elif name == 'service_duration':
+                f.loc[criterion, route] = g.add(pd.Series(
+                  1/60, index=g.index), fill_value=0)
+            else:
+                # name == 'distance'
+                f.loc[criterion, route] = g.add(pd.Series(
+                  row['distance']/num_bins, index=g.index),
+                  fill_value=0)
+                
+    # Combine dictionary of time series into one time series
+    g = combine_time_series(series_by_name, kind='route',
+      split_directions=split_directions)
+    # Convert to timestamp index, because Pandas 0.14.1 can't handle
+    # period index frequencies at multiples of DateOffsets (e.g. '5Min') 
+    g = g.to_timestamp()
+    return downsample(g, freq=freq)
+
 def get_routes_time_series(trips_stats_subset,
   split_directions=False, freq='5Min', date_label='2001-01-01'):
     """
