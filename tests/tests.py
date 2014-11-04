@@ -26,8 +26,8 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(
           timestr_to_seconds(seconds2, mod24=True, inverse=True), timestr1)
         # Test error handling
-        self.assertIsNone(timestr_to_seconds(seconds1))
-        self.assertIsNone(timestr_to_seconds(timestr1, inverse=True))
+        self.assertTrue(np.isnan(timestr_to_seconds(seconds1)))
+        self.assertTrue(np.isnan(timestr_to_seconds(timestr1, inverse=True)))
 
     def test_timestr_mod24(self):
         timestr1 = '01:01:01'
@@ -289,22 +289,34 @@ class TestFeed(unittest.TestCase):
     def test_get_stops_time_series(self):
         feed = cairns
         date = feed.get_first_week()[0]
+        ast = pd.merge(feed.get_active_trips(date), feed.stop_times)
         for split_directions in [True, False]:
             f = feed.get_stops_stats(date, 
               split_directions=split_directions)
             stops_ts = feed.get_stops_time_series(date, freq='1H',
               split_directions=split_directions) 
+            
             # Should be a data frame
             self.assertIsInstance(stops_ts, pd.core.frame.DataFrame)
+            
             # Should have the correct shape
             self.assertEqual(stops_ts.shape[0], 24)
             self.assertEqual(stops_ts.shape[1], f.shape[0])
+            
             # Should have correct column names
             if split_directions:
-                expect = ['statistic', 'stop_id', 'direction_id']
+                expect = ['indicator', 'stop_id', 'direction_id']
             else:
-                expect = ['statistic', 'stop_id']
+                expect = ['indicator', 'stop_id']
             self.assertEqual(stops_ts.columns.names, expect)
+
+            # Each stop should have a correct total vehicle count
+            if split_directions == False:
+                astg = ast.groupby('stop_id')
+                for stop in set(ast['stop_id'].values):
+                    get = stops_ts['num_vehicles'][stop].sum() 
+                    expect = astg.get_group(stop)['departure_time'].count()
+                    self.assertEqual(get, expect)
 
     def test_get_routes_stats(self):
         feed = cairns
@@ -328,22 +340,33 @@ class TestFeed(unittest.TestCase):
         feed = cairns 
         date = feed.get_first_week()[0]
         trips_stats = feed.get_trips_stats()
+        ats = pd.merge(trips_stats, feed.get_active_trips(date))
         for split_directions in [True, False]:
             f = feed.get_routes_stats(trips_stats, date, 
               split_directions=split_directions)
             rts = feed.get_routes_time_series(trips_stats, date, 
               split_directions=split_directions, freq='1H')
+            
             # Should be a data frame of the correct shape
             self.assertIsInstance(rts, pd.core.frame.DataFrame)
             self.assertEqual(rts.shape[0], 24)
             self.assertEqual(rts.shape[1], 5*f.shape[0])
+            
             # Should have correct column names
             if split_directions:
-                expect = ['statistic', 'route_id', 'direction_id']
+                expect = ['indicator', 'route_id', 'direction_id']
             else:
-                expect = ['statistic', 'route_id']
+                expect = ['indicator', 'route_id']
             self.assertEqual(rts.columns.names, expect)   
-    
+            
+            # Each route have a correct service distance total
+            if split_directions == False:
+                atsg = ats.groupby('route_id')
+                for route in ats['route_id'].values:
+                    get = rts['service_distance'][route].sum() 
+                    expect = atsg.get_group(route)['distance'].sum()
+                    self.assertTrue(abs((get - expect)/expect) < 0.001)
+
     def test_agg_routes_time_series(self):
         feed = cairns 
         date = feed.get_first_week()[0]
@@ -354,7 +377,7 @@ class TestFeed(unittest.TestCase):
             arts = agg_routes_time_series(rts)
             if split_directions:
                 num_cols = 2*len(rts.columns.levels[0])
-                col_names = ['statistic', 'direction_id']
+                col_names = ['indicator', 'direction_id']
             else:
                 num_cols = len(rts.columns.levels[0])
                 col_names = [None]

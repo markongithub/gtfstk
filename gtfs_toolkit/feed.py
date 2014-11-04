@@ -16,7 +16,7 @@ TODO:
 """
 import datetime as dt
 import dateutil.relativedelta as rd
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import os
 import zipfile
 import tempfile
@@ -182,7 +182,8 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
 
     return result
 
-def get_routes_time_series_new(trips_stats_subset,
+# TODO: Handle empty time series
+def get_routes_time_series(trips_stats_subset,
   split_directions=False, freq='5Min', date_label='2001-01-01'):
     """
     Given a subset of the output of ``Feed.get_trips_stats()``, 
@@ -309,139 +310,6 @@ def get_routes_time_series_new(trips_stats_subset,
     # Combine all time series into one time series
     g = combine_time_series(series_by_indicator, kind='route',
       split_directions=split_directions)
-    return downsample(g, freq=freq)
-
-def get_routes_time_series(trips_stats_subset,
-  split_directions=False, freq='5Min', date_label='2001-01-01'):
-    """
-    Given a subset of the output of ``Feed.get_trips_stats()``, 
-    calculate time series for the routes in that subset.
-
-    Return a time series version of the following route stats:
-    
-    - number of vehicles in service by route ID
-    - number of trip starts by route ID
-    - service duration in hours by route ID
-    - service distance in kilometers by route ID
-    - service speed in kilometers per hour
-
-    The time series is a Pandas data frame with a timestamp index 
-    for a 24-hour period sampled at the given frequency.
-    The maximum allowable frequency is 1 minute.
-    ``date_label`` is used as the date for the timestamp index.
-
-    Using a period index instead of a timestamp index would be more
-    apppropriate, but 
-    `Pandas 0.14.1 doesn't support period index frequencies at multiples of DateOffsets (e.g. '5Min') <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period>`_.
-
-
-    The columns of the data frame are hierarchical (multi-index) with
-
-    - top level: name = 'indicator', values = ['service_distance',
-      'service_duration', 'num_trip_starts', 
-      'num_vehicles', 'service_speed']
-    - middle level: name = 'route_id', values = the active routes
-    - bottom level: name = 'direction_id', values = 0s and 1s
-
-    If ``split_directions == False``, then don't include the bottom level.
-    
-    NOTES:
-
-    - To resample the resulting time series use the following methods:
-        - for 'num_vehicles' series, use ``how=np.mean``
-        - for the other series, use ``how=np.sum`` 
-        - 'service_speed' can't be resampled and must be recalculated
-          from 'service_distance' and 'service_duration' 
-    - To remove the date and seconds from the 
-      time series f, do ``f.index = [t.time().strftime('%H:%M') 
-      for t in f.index.to_datetime()]``
-    - Takes about 0.6 minutes on the Portland feed given the first
-      five weekdays of the feed.
-    """  
-    # Merge trips_stats with trips activity, get trip weights,
-    # and drop 0-weight trips
-    tss = trips_stats_subset
-
-    if split_directions:
-        # Alter route IDs to encode direction: 
-        # <route ID>-0 and <route ID>-1
-        tss['route_id'] = tss['route_id'] + '-' +\
-          tss['direction_id'].map(str)
-        
-    routes = sorted(tss['route_id'].unique())
-    
-    # Build a dictionary of time series and then merge them all
-    # at the end
-    # Assign a uniform generic date for the index
-    date_str = date_label
-    day_start = pd.to_datetime(date_str + ' 00:00:00')
-    day_end = pd.to_datetime(date_str + ' 23:59:00')
-    rng = pd.period_range(day_start, day_end, freq='Min')
-    names = [
-      'num_vehicles', 
-      'num_trip_starts', 
-      'service_duration', 
-      'service_distance',
-      ]
-    series_by_name = {}
-    for name in names:
-        series_by_name[name] = pd.DataFrame(np.nan, index=rng, 
-          columns=routes)
-    
-    # Bin each trip according to its start and end time and weight
-    i = 0
-    num_rows = tss.shape[0]
-    for index, row in tss.iterrows():
-        i += 1
-        print("Routes time series progress {:2.1%}".format(i/num_rows), 
-          end="\r")
-        trip = row['trip_id']
-        route = row['route_id']
-        start_time = row['start_time']
-        end_time = row['end_time']
-        start = pd.to_datetime(date_str + ' ' +\
-          utils.timestr_mod24(start_time))
-        end = pd.to_datetime(date_str + ' ' +\
-          utils.timestr_mod24(end_time))
-
-        for name, f in series_by_name.items():
-            if start == end:
-                criterion = f.index == start
-                num_bins = 1
-            elif start < end:
-                criterion = (f.index >= start) & (f.index < end)
-                num_bins = (end - start).seconds/60
-            else:
-                criterion = (f.index >= start) | (f.index < end)
-                # Need to add 1 because day_end is 23:59 not 24:00
-                num_bins = (day_end - start).seconds/60 + 1 +\
-                  (end - day_start).seconds/60
-            # Bin route
-            g = f.loc[criterion, route] 
-            # Use fill_value=0 to overwrite NaNs with numbers.
-            # Need to use pd.Series() to get fill_value to work.
-            if name == 'num_trip_starts':
-                f.loc[f.index == start, route] = g.add(pd.Series(
-                  1, index=g.index), fill_value=0)
-            elif name == 'num_vehicles':
-                f.loc[criterion, route] = g.add(pd.Series(
-                  1, index=g.index), fill_value=0)
-            elif name == 'service_duration':
-                f.loc[criterion, route] = g.add(pd.Series(
-                  1/60, index=g.index), fill_value=0)
-            else:
-                # name == 'distance'
-                f.loc[criterion, route] = g.add(pd.Series(
-                  row['distance']/num_bins, index=g.index),
-                  fill_value=0)
-                
-    # Combine dictionary of time series into one time series
-    g = combine_time_series(series_by_name, kind='route',
-      split_directions=split_directions)
-
-    # Convert to timestamp index, because Pandas 0.14.1 can't handle
-    # period index frequencies at multiples of DateOffsets (e.g. '5Min') 
-    g = g.to_timestamp()
     return downsample(g, freq=freq)
 
 def downsample(time_series, freq):
@@ -1428,6 +1296,7 @@ class Feed(object):
 
         return result
 
+    # TODO: Handle empty time series
     def get_stops_time_series(self, date, split_directions=False,
       freq='5Min'):
         """
@@ -1465,63 +1334,48 @@ class Feed(object):
         if not date:
             return 
 
-        # Get active trips and merge with stop times
-        stats = pd.merge(self.get_active_trips(date), self.stop_times)
-
-        # Create a dictionary of time series and combine them all 
-        # at the end
-        date_str = utils.date_to_str(date)
-        day_start = pd.to_datetime(date_str + ' 00:00:00')
-        day_end = pd.to_datetime(date_str + ' 23:59:00')
-        rng = pd.period_range(day_start, day_end, freq='Min')
-        names = ['num_vehicles']
-        series_by_name = {}
+        # Get active stop times for date
+        ast = pd.merge(self.get_active_trips(date), self.stop_times)
 
         if split_directions:
             # Alter stop IDs to encode trip direction: 
             # <stop ID>-0 and <stop ID>-1
-            stats['stop_id'] = stats['stop_id'] + '-' +\
-              stats['direction_id'].map(str)            
-        stops = sorted(stats['stop_id'].unique())
+            ast['stop_id'] = ast['stop_id'] + '-' +\
+              ast['direction_id'].map(str)            
+        stops = sorted(ast['stop_id'].unique())    
 
-        for name in names:
-            series_by_name[name] = pd.DataFrame(np.nan, index=rng, 
-              columns=stops)
-        
-        def format(x):
-            try:
-                return pd.to_datetime(date_str + ' ' + utils.timestr_mod24(x))
-            except TypeError:
-                return pd.NaT
+        # Create one time series for each stop. Use a list first.    
+        bins = [i for i in range(24*60)] # One bin for each minute
+        num_bins = len(bins)
 
-        # Convert departure time string to datetime
-        stats['departure_time'] = stats['departure_time'].map(format)
+        # Bin each stop departure time
+        def F(x):
+            return (utils.timestr_to_seconds(x)//60) % (24*60)
 
-        # Bin each trip according to its departure time at the stop
-        i = 0
-        f = series_by_name['num_vehicles']
-        num_rows = stats.shape[0]
-        for index, row in stats.iterrows():
-            i += 1
-            print("Stops time series progress {:2.1%}".format(i/num_rows), 
-              end="\r")
-            stop = row['stop_id']
-            dtime = row['departure_time']
-            # Bin stop time
-            criterion = f.index == dtime
-            g = f.loc[criterion, stop] 
-            # Use fill_value=0 to overwrite NaNs with numbers.
-            # Need to use pd.Series() to get fill_value to work.
-            f.loc[criterion, stop] = g.add(pd.Series(
-              1, index=g.index), fill_value=0)
-      
-        # Combine dictionary of time series into one time series
-        f = combine_time_series(series_by_name, kind='stop',
+        ast['departure_index'] = ast['departure_time'].map(F)
+
+        # Create one time series for each stop
+        series_by_stop = {stop: [0 for i in range(num_bins)] 
+          for stop in stops} 
+
+        for stop, group in ast.groupby('stop_id'):
+            counts = Counter((bin, 0) for bin in bins) +\
+              Counter(group['departure_index'].values)
+            series_by_stop[stop] = [counts[bin] for bin in bins]
+
+        # Combine lists into one time series.
+        # Actually, a dictionary indicator -> time series.
+        # Only one indicator in this case, but could add more
+        # in the future as was done with routes time series.
+        date_str = utils.date_to_str(date)
+        rng = pd.date_range(date_str, periods=24*60, freq='Min')
+        series_by_indicator = {'num_vehicles':
+          pd.DataFrame(series_by_stop, index=rng).fillna(0)}
+
+        # Combine all time series into one time series
+        g = combine_time_series(series_by_indicator, kind='stop',
           split_directions=split_directions)
-        # Convert to timestamp index, because Pandas 0.14.1 can't handle
-        # period index frequencies at multiples of DateOffsets (e.g. '5Min') 
-        f = f.to_timestamp()
-        return downsample(f, freq=freq)
+        return downsample(g, freq=freq)
 
     def get_stops_in_stations(self):
         """
