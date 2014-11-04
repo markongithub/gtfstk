@@ -1595,8 +1595,8 @@ class Feed(object):
         (as in create_all()), export them to a zip archive of CSV files
         located at ``path``.
         """
-        names = ['agency', 'calendar', 'routes', 'stops', 'trips',
-          'stop_times', 'shapes']
+        names = ['agency', 'calendar', 'calendar_dates', 
+          'routes', 'stops', 'trips', 'stop_times', 'shapes']
         
         # Remove '.zip' extension from path, because it gets added
         # automatically below
