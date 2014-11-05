@@ -669,9 +669,7 @@ class Feed(object):
         # required by the GTFS.
         if os.path.isfile(path + 'calendar.txt'):
             self.calendar = pd.read_csv(path + 'calendar.txt', 
-              dtype={'service_id': str}, 
-              date_parser=lambda x: utils.date_to_str(x, inverse=True), 
-              parse_dates=['start_date', 'end_date'])
+              dtype={'service_id': str, 'start_date': str, 'end_date': str})
             # Index by service ID to make self.is_active_trip() fast
             self.calendar_s = self.calendar.set_index('service_id')
         else:
@@ -679,9 +677,7 @@ class Feed(object):
             self.calendar_s = None
         if os.path.isfile(path + 'calendar_dates.txt'):
             self.calendar_dates = pd.read_csv(path + 'calendar_dates.txt', 
-              dtype={'service_id': str}, 
-              date_parser=lambda x: utils.date_to_str(x, inverse=True), 
-              parse_dates=['date'])
+              dtype={'service_id': str, 'date': str})
             # Group by service ID and date to make self.is_active_trip() fast
             self.calendar_dates_g = self.calendar_dates.groupby(
               ['service_id', 'date'])
@@ -715,10 +711,12 @@ class Feed(object):
             # Remove extracted directory
             shutil.rmtree(path)
 
-    def get_dates(self):
+    def get_dates(self, as_date_obj=True):
         """
-        Return a chronologically ordered list of dates 
-        (``datetime.date`` objects) for which this feed is valid. 
+        Return a chronologically ordered list of date strings
+        in the form '%Y%m%d' for which this feed is valid.
+        If ``as_date_obj == True``, then return the dates as
+        as ``datetime.date`` objects.  
         """
         if self.calendar is not None:
             start_date = self.calendar['start_date'].min()
@@ -727,19 +725,27 @@ class Feed(object):
             # Use calendar_dates
             start_date = self.calendar_dates['date'].min()
             end_date = self.calendar_dates['date'].max()
-        days =  (end_date - start_date).days
-        return [start_date + rd.relativedelta(days=+d) 
-          for d in range(days + 1)]
+        start_date = utils.datestr_to_date(start_date)
+        end_date = utils.datestr_to_date(end_date)
+        num_days = (end_date - start_date).days
+        result = [start_date + rd.relativedelta(days=+d) 
+          for d in range(num_days + 1)]
+        if not as_date_obj:
+            result = [utils.datestr_to_date(x, inverse=True)
+              for x in result]
+        return result
 
-    def get_first_week(self):
+    def get_first_week(self, as_date_obj=False):
         """
-        Return a list of dates (``datetime.date`` objects) 
-        of the first Monday--Sunday week for which this feed is valid.
+        Return a list of date strings in the form '%Y%m%d' corresponding
+        to the first Monday--Sunday week for which this feed is valid.
         In the unlikely event that this feed does not cover a full 
         Monday--Sunday week, then return whatever initial segment of the 
         week it does cover. 
+        If ``as_date_obj == True``, then return the dates as
+        as ``datetime.date`` objects.          
         """
-        dates = self.get_dates()
+        dates = self.get_dates(as_date_obj=True)
         # Get first Monday
         monday_index = None
         for (i, date) in enumerate(dates):
@@ -752,12 +758,16 @@ class Feed(object):
                 week.append(dates[monday_index + j])
             except:
                 break
+        # Convert to date strings if requested
+        if not as_date_obj:
+            week = [utils.datestr_to_date(x, inverse=True)
+              for x in week]
         return week
 
     def is_active_trip(self, trip, date):
         """
         If the given trip (trip ID) is active on the given date 
-        (date object), then return ``True``.
+        (string of the form '%Y%m%d'), then return ``True``.
         Otherwise, return ``False``.
         To avoid error checking in the interest of speed, 
         assume ``trip`` is a valid trip ID in the feed and 
@@ -778,7 +788,8 @@ class Feed(object):
         cals = self.calendar_s
         if cals is not None:
             if service in cals.index:
-                weekday_str = utils.weekday_to_str(date.weekday())
+                weekday_str = utils.weekday_to_str(
+                  utils.datestr_to_date(date).weekday())
                 if cals.at[service, 'start_date'] <= date <= cals.at[service,
                   'end_date'] and cals.at[service, weekday_str] == 1:
                     return True
@@ -787,10 +798,10 @@ class Feed(object):
         # If you made it here, then something went wrong
         return False
 
-    def get_active_trips(self, date, timestr=None):
+    def get_active_trips(self, date, time=None):
         """
         Return the section of ``self.trips`` that contains
-        only trips active on the given date (``datetime.date`` object).
+        only trips active on the given date (string of the form '%Y%m%d').
         If a time is given in the form of a GTFS time string %H:%M:%S,
         then return only those trips active at that date and time.
         Do not take times modulo 24.
@@ -804,7 +815,7 @@ class Feed(object):
         g = f[f['is_active'] == 1]
         del g['is_active']
 
-        if timestr is not None:
+        if time is not None:
             # Get trips active during given time
             h = pd.merge(g, self.stop_times[['trip_id', 'departure_time']])
           
@@ -812,7 +823,7 @@ class Feed(object):
                 start = group['departure_time'].min()
                 end = group['departure_time'].max()
                 try:
-                    return start <= timestr <= end
+                    return start <= time <= end
                 except TypeError:
                     return False
 
@@ -835,6 +846,7 @@ class Feed(object):
         - dates[-1]: ditto
 
         If ``dates is None``, then return ``None``.
+        Dates are strings of the form '%Y%m%d'.
         """
         if not dates:
             return
@@ -979,7 +991,7 @@ class Feed(object):
                 linestring_by_shape[shape] = LineString(lonlats)
         return linestring_by_shape
 
-    def get_vehicles_locations(self, linestring_by_shape, date, timestrs):
+    def get_vehicles_locations(self, linestring_by_shape, date, times):
         """
         Return a Pandas data frame of the positions of all trips
         active on the given date and times.
@@ -1000,7 +1012,7 @@ class Feed(object):
 
         NOTES:
 
-        On the Portland feed, can do 24*60 timestrings (minute frequency)
+        On the Portland feed, can do 24*60 times (minute frequency)
         in 0.4 min.
 
         """
@@ -1022,7 +1034,7 @@ class Feed(object):
         # Use linear interpolation based on stop departure times and
         # shape distance traveled.
         sample_times = np.array([utils.timestr_to_seconds(s) 
-          for s in timestrs])
+          for s in times])
         def F(group):
             dists = sorted(group['shape_dist_traveled'].values)
             times = sorted(group['departure_time'].values)
@@ -1207,10 +1219,10 @@ class Feed(object):
         result = f.groupby('shape_id', group_keys=False).apply(get_dist)
         self.shapes = result
 
-    def get_active_stops(self, date, timestr=None):
+    def get_active_stops(self, date, time=None):
         """
         Return the section of ``self.stops`` that contains
-        only stops active on the given date (``datetime.date`` object).
+        only stops active on the given date (string of the form '%Y%m%d').
         If a time is given in the form of a GTFS time string '%H:%M:%S',
         then return only those stops that have a departure time at
         that date and time.
@@ -1220,8 +1232,8 @@ class Feed(object):
             return    
         
         f = pd.merge(self.get_active_trips(date), self.stop_times)
-        if timestr:
-            f[f['departure_time'] == timestr]
+        if time:
+            f[f['departure_time'] == time]
         active_stop_ids = set(f['stop_id'].values)
         return self.stops[self.stops['stop_id'].isin(active_stop_ids)]
 
@@ -1236,6 +1248,7 @@ class Feed(object):
         - dates[-1]: ditto
 
         If ``dates is None``, then return ``None``.
+        Dates are represented as strings of the form '%Y%m%d'.
         """
         if not dates:
             return
@@ -1273,7 +1286,8 @@ class Feed(object):
 
         If ``split_directions == False``, then compute each stop's stats
         using vehicles visiting it from both directions.
-
+        The input ``date`` must be a string of the form '%Y%m%d'.
+        
         NOTES:
 
         Takes about 0.7 minutes on the Portland feed.
@@ -1345,7 +1359,7 @@ class Feed(object):
       freq='5Min'):
         """
         Return a time series version of the following stops stats
-        for the given date:
+        for the given date (string of the form '%Y%m%d'):
         
         - number of vehicles by stop ID
 
@@ -1416,8 +1430,7 @@ class Feed(object):
         # Actually, a dictionary indicator -> time series.
         # Only one indicator in this case, but could add more
         # in the future as was done with routes time series.
-        date_str = utils.date_to_str(date)
-        rng = pd.date_range(date_str, periods=24*60, freq='Min')
+        rng = pd.date_range(date, periods=24*60, freq='Min')
         series_by_indicator = {'num_vehicles':
           pd.DataFrame(series_by_stop, index=rng).fillna(0)}
 
@@ -1570,7 +1583,7 @@ class Feed(object):
         trips_stats_subset = pd.merge(trips_stats, self.get_active_trips(date))
         return get_routes_time_series(trips_stats_subset, 
           split_directions=split_directions, freq=freq, 
-          date_label=utils.date_to_str(date))
+          date_label=date)
 
     def dump_all_stats(self, directory, date=None, freq='1H', 
       split_directions=False):
@@ -1587,7 +1600,8 @@ class Feed(object):
         Also include a ``README.txt`` file that contains a few notes
         on units and include some useful charts.
 
-        If no date is given, then use the first Monday of the feed.
+        If no date (string of the form '%Y%m%d') is given, 
+        then use the busiest day of the first week of the feed.
         """
         import os
         import textwrap
@@ -1595,8 +1609,7 @@ class Feed(object):
         if not os.path.exists(directory):
             os.makedirs(directory)
         if date is None:
-            date = self.get_first_week()[0]
-        date_str = utils.date_to_str(date) 
+            date = self.get_busiest_date_of_first_week()
 
         # Write README.txt, which contains notes on units and date range
         readme = """
@@ -1605,7 +1618,7 @@ class Feed(object):
         - Distances are measured in kilometers and durations are measured in
         hours
         - Stats were calculated for {!s}
-        """.format(date_str)
+        """.format(date)
         
         with open(directory + 'notes.rst', 'w') as f:
             f.write(textwrap.dedent(readme))
@@ -1655,18 +1668,18 @@ class Feed(object):
             if getattr(self, name) is None:
                 continue
             # Convert dates back to strings
-            if name == 'calendar':
-                f = self.calendar.copy()
-                f[['start_date', 'end_date']] =\
-                  f[['start_date', 'end_date']].applymap(
-                  utils.date_to_str) 
-            elif name == 'calendar_dates':
-                f = self.calendar_dates.copy()
-                f['date'] = f['date'].map(utils.date_to_str) 
-            else:
-                f = getattr(self, name)
+            # if name == 'calendar':
+            #     f = self.calendar.copy()
+            #     f[['start_date', 'end_date']] =\
+            #       f[['start_date', 'end_date']].applymap(
+            #       utils.date_to_str) 
+            # elif name == 'calendar_dates':
+            #     f = self.calendar_dates.copy()
+            #     f['date'] = f['date'].map(utils.date_to_str) 
+            # else:
             tmp_path = os.path.join(tmp_dir, name + '.txt')
-            f.to_csv(tmp_path, index=False, float_format='%.5f')
+            getattr(self, name).to_csv(tmp_path, index=False, 
+              float_format='%.5f')
 
         # Zip directory 
         shutil.make_archive(path, format="zip", root_dir=tmp_dir)    

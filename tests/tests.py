@@ -36,6 +36,12 @@ class TestFeed(unittest.TestCase):
         timestr2 = '25:01:01'
         self.assertEqual(timestr_mod24(timestr2), timestr1)
 
+    def test_datestr_to_date(self):
+        datestr = '20140102'
+        date = dt.date(2014, 1, 2)
+        self.assertEqual(datestr_to_date(datestr), date)
+        self.assertEqual(datestr_to_date(date, inverse=True), datestr)
+
     def test_to_km(self):
         units = 'mi'
         self.assertEqual(to_km(1, units), 1.6093)
@@ -66,7 +72,7 @@ class TestFeed(unittest.TestCase):
 
     def test_get_dates(self):
         feed = cairns
-        dates = feed.get_dates()
+        dates = feed.get_dates(as_date_obj=True)
         d1 = dt.date(2014, 5, 26)
         d2 = dt.date(2014, 12, 28)
         self.assertEqual(dates[0], d1)
@@ -75,7 +81,7 @@ class TestFeed(unittest.TestCase):
 
     def test_get_first_week(self):
         feed = cairns
-        dates = feed.get_first_week()
+        dates = feed.get_first_week(as_date_obj=True)
         d1 = dt.date(2014, 5, 26)
         d2 = dt.date(2014, 6, 1)
         self.assertEqual(dates[0], d1)
@@ -85,21 +91,21 @@ class TestFeed(unittest.TestCase):
     def test_is_active(self):
         feed = cairns
         trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
-        date1 = dt.date(2014, 5, 26)
-        date2 = dt.date(2012, 3, 22)
+        date1 = '20140526'
+        date2 = '20120322'
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
         trip = 'CNS2014-CNS_MUL-Sunday-00-4165971'
-        date1 = dt.date(2014, 6, 1)
-        date2 = dt.date(2012, 6, 2)
+        date1 = '20140601'
+        date2 = '20120602'
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
         feed = Feed('data/portland_gtfs.zip')
         trip = '4526377'
-        date1 = dt.date(2014, 5, 18)
-        date2 = dt.date(2012, 5, 17)
+        date1 = '20140518'
+        date2 = '20120517'
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
@@ -316,7 +322,7 @@ class TestFeed(unittest.TestCase):
                     self.assertEqual(get, expect)
         
         # None check
-        date = dt.date(1900, 1, 1)
+        date = '19000101'
         stops_ts = feed.get_stops_time_series(date, freq='1H',
           split_directions=split_directions) 
         self.assertIsNone(stops_ts)
@@ -372,7 +378,7 @@ class TestFeed(unittest.TestCase):
                     self.assertTrue(abs((get - expect)/expect) < 0.001)
 
         # None check
-        date = dt.date(1900, 1, 1)
+        date = '19000101'
         rts = feed.get_routes_time_series(trips_stats, date, 
           split_directions=split_directions, freq='1H')
         self.assertIsNone(rts)
