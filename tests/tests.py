@@ -14,6 +14,7 @@ cairns_shapeless = Feed('data/cairns_gtfs.zip')
 cairns_shapeless.shapes = None
 
 class TestFeed(unittest.TestCase):
+    # Test utils functions
     def test_timestr_to_seconds(self):
         timestr1 = '01:01:01'
         seconds1 = 3600 + 60 + 1
@@ -48,24 +49,20 @@ class TestFeed(unittest.TestCase):
         p = Point((0, 1/2))
         self.assertEqual(get_segment_length(s, p), 0)
 
+    # Test feed functions
     def test_init(self):
         # Test distance units check
         self.assertRaises(AssertionError, Feed, 
           path='data/cairns_gtfs.zip', 
           original_units='bingo')
         # Test other stuff
-        portland = Feed('data/portland_gtfs.zip', 
-          original_units='ft')
-        for feed in [cairns, portland]:
-            self.assertIsInstance(feed.routes, pd.core.frame.DataFrame)
-            self.assertIsInstance(feed.stops, pd.core.frame.DataFrame)
-            self.assertIsInstance(feed.shapes, pd.core.frame.DataFrame)
-            self.assertIsInstance(feed.trips, pd.core.frame.DataFrame)
-            if feed.calendar is not None:
-                self.assertIsInstance(feed.calendar, pd.core.frame.DataFrame)
-            if feed.calendar_dates is not None:
-                self.assertIsInstance(feed.calendar_dates, 
-                  pd.core.frame.DataFrame)
+        feed = Feed('data/cairns_gtfs.zip')
+        for f in REQUIRED_GTFS_FILES + ['calendar_dates', 'shapes']:
+            self.assertIsInstance(getattr(feed, f), 
+              pd.core.frame.DataFrame)
+        for f in [f for f in OPTIONAL_GTFS_FILES 
+          if f not in ['calendar_dates', 'shapes']]:
+            self.assertIsNone(getattr(feed, f))
 
     def test_get_dates(self):
         feed = cairns

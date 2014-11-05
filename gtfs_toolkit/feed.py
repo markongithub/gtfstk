@@ -30,7 +30,7 @@ import utm
 import gtfs_toolkit.utils as utils
 
 VALID_DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
-REQIRED_GTFS_FILES = [
+REQUIRED_GTFS_FILES = [
   'agency',  
   'stops',   
   'routes',
@@ -626,7 +626,7 @@ class Feed(object):
         self.original_units = original_units
 
         # Check that the required GTFS files exist
-        for f in REQIRED_GTFS_FILES:
+        for f in REQUIRED_GTFS_FILES:
             ff = f + '.txt'
             if ff == 'calendar.txt':
                 assert os.path.exists(path + ff) or\
@@ -703,7 +703,7 @@ class Feed(object):
             self.shapes = None
 
         # Load the rest of the optional GTFS files without special formatting
-        for f in [f for OPTIONAL_GTFS_FILES if f != 'shapes']:
+        for f in [f for f in OPTIONAL_GTFS_FILES if f != 'shapes']:
             p = path + f + '.txt'
             if os.path.isfile(p):
                 setattr(self, f, pd.read_csv(p))
@@ -1650,7 +1650,7 @@ class Feed(object):
 
         # Write files to a temporary directory 
         tmp_dir = tempfile.mkdtemp()
-        names = REQIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
+        names = REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
         for name in names:
             if getattr(self, name) is None:
                 continue
@@ -1659,10 +1659,10 @@ class Feed(object):
                 f = self.calendar.copy()
                 f[['start_date', 'end_date']] =\
                   f[['start_date', 'end_date']].applymap(
-                  gt_utils.date_to_str) 
+                  utils.date_to_str) 
             elif name == 'calendar_dates':
                 f = self.calendar_dates.copy()
-                f['date'] = f['date'].map(gt_utils.date_to_str) 
+                f['date'] = f['date'].map(utils.date_to_str) 
             else:
                 f = getattr(self, name)
             tmp_path = os.path.join(tmp_dir, name + '.txt')
