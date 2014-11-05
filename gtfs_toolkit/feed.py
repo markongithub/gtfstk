@@ -7,12 +7,12 @@ All time estimates below were produced on a 2013 MacBook Pro with a
 
 TODO:
 
-- Possibly store dates as '%Y%m%d' strings instead
+- Possibly leave table dates as '%Y%m%d' strings instead of converting
+  them to date objects
 - Possibly scoop out main logic from ``Feed.get_stops_stats()`` and 
   ``Feed.get_stops_time_series()`` and put it into top level functions
   for the sake of greater flexibility.  Similar to what i did for 
   ``Feed.get_routes_stats()`` and ``Feed.get_routes_time_series()``. 
-- Speed up time series calculations
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -1605,8 +1605,18 @@ class Feed(object):
         # Write files to a temporary directory 
         tmp_dir = tempfile.mkdtemp()
         for name in names:
+            if name == 'calendar':
+                f = feed.calendar.copy()
+                f[['start_date', 'end_date']] =\
+                  f[['start_date', 'end_date']].applymap(
+                  gt_utils.date_to_str) 
+            elif name == 'calendar_dates':
+                f = feed.calendar_dates.copy()
+                f['date'] = f['date'].map(gt_utils.date_to_str) 
+            else:
+                f = getattr(feed, name)
             tmp_path = os.path.join(tmp_dir, name + '.txt')
-            getattr(self, name).to_csv(tmp_path, index=False)
+            f.to_csv(tmp_path, index=False, float_format='%.5f')
 
         # Zip directory 
         shutil.make_archive(path, format="zip", root_dir=tmp_dir)    
