@@ -30,6 +30,24 @@ import utm
 import gtfs_toolkit.utils as utils
 
 VALID_DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
+REQIRED_GTFS_FILES = [
+  'agency',  
+  'stops',   
+  'routes',
+  'trips',
+  'stop_times',
+  'calendar',
+  ]
+OPTIONAL_GTFS_FILES = [
+  'calendar_dates',  
+  'fare_attributes',    
+  'fare_rules',  
+  'shapes',  
+  'frequencies',     
+  'transfers',   
+  'feed_info',
+  ]
+
 
 def get_routes_stats(trips_stats_subset, split_directions=False,
     headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
@@ -182,7 +200,6 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
 
     return result
 
-# TODO: Handle empty time series
 def get_routes_time_series(trips_stats_subset,
   split_directions=False, freq='5Min', date_label='2001-01-01'):
     """
@@ -217,6 +234,8 @@ def get_routes_time_series(trips_stats_subset,
 
     If ``split_directions == False``, then don't include the bottom level.
     
+    If ``trips_stats_subset`` is ``None`` or empty, then return ``None``.
+
     NOTES:
 
     - To resample the resulting time series use the following methods:
@@ -229,6 +248,9 @@ def get_routes_time_series(trips_stats_subset,
       for t in f.index.to_datetime()]``
     - Takes about 0.05 minutes on the Portland feed 
     """  
+    if trips_stats_subset is None or trips_stats_subset.empty:
+        return None
+
     # Merge trips_stats with trips activity, get trip weights,
     # and drop 0-weight trips
     tss = trips_stats_subset.copy()
@@ -603,6 +625,19 @@ class Feed(object):
             'Units must be one of {!s}'.format(VALID_DISTANCE_UNITS)
         self.original_units = original_units
 
+        # Check that the required GTFS files exist
+        for f in REQIRED_GTFS_FILES:
+            ff = f + '.txt'
+            if ff == 'calendar.txt':
+                assert os.path.exists(path + ff) or\
+                  os.path.exists(path + 'calendar_dates.txt'),\
+                  "File calendar.txt or calendar_dates.txt"\
+                  " is required in GTFS feeds"
+            else:
+                assert os.path.exists(path + ff),\
+                  "File {!s} is required in GTFS feeds".format(ff)
+
+        # Get required GTFS files
         self.agency = pd.read_csv(path + 'agency.txt')
         self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str, 
           'stop_code': str})
@@ -630,7 +665,7 @@ class Feed(object):
               lambda x: utils.to_km(x, original_units))
         self.stop_times = st
 
-        # Note that at least one of calendar.txt or calendar_dates.txt is
+        # One of calendar.txt and calendar_dates.txt is
         # required by the GTFS.
         if os.path.isfile(path + 'calendar.txt'):
             self.calendar = pd.read_csv(path + 'calendar.txt', 
@@ -654,6 +689,7 @@ class Feed(object):
             self.calendar_dates = None
             self.calendar_dates_g = None
 
+        # Get optional GTFS files if they exist
         if os.path.isfile(path + 'shapes.txt'):
             shapes = pd.read_csv(path + 'shapes.txt', 
               dtype={'shape_id': str})
@@ -665,7 +701,16 @@ class Feed(object):
             self.shapes = shapes
         else:
             self.shapes = None
-        
+
+        # Load the rest of the optional GTFS files without special formatting
+        for f in [f for OPTIONAL_GTFS_FILES if f != 'shapes']:
+            p = path + f + '.txt'
+            if os.path.isfile(p):
+                setattr(self, f, pd.read_csv(p))
+            else:
+                setattr(self, f, None)
+
+        # Clean up
         if zipped:
             # Remove extracted directory
             shutil.rmtree(path)
@@ -1296,7 +1341,6 @@ class Feed(object):
 
         return result
 
-    # TODO: Handle empty time series
     def get_stops_time_series(self, date, split_directions=False,
       freq='5Min'):
         """
@@ -1322,6 +1366,8 @@ class Feed(object):
 
         If ``split_directions == False``, then don't include the bottom level.
         
+        If there are no active trips on the date, then return ``None``.
+
         NOTES:
 
         - 'num_vehicles' should be resampled with ``how=np.sum``
@@ -1336,6 +1382,9 @@ class Feed(object):
 
         # Get active stop times for date
         ast = pd.merge(self.get_active_trips(date), self.stop_times)
+
+        if ast.empty:
+            return None
 
         if split_directions:
             # Alter stop IDs to encode trip direction: 
@@ -1504,11 +1553,13 @@ class Feed(object):
         Take ``trips_stats``, which is the output of 
         ``self.get_trips_stats()``, cut it down to the subset ``S`` of trips
         that are active on the given date, and then call
-        ``self.get_routes_time_series_0()`` with ``S`` and the given 
+        ``Feed.get_routes_time_series_0()`` with ``S`` and the given 
         keyword arguments ``split_directions`` and ``freq``
         and with ``date_label = utils.date_to_str(date)``.
 
-        See ``get_routes_stats()`` for a description of the output.
+        See ``Feed.get_routes_time_series()`` for a description of the output.
+
+        If there are no active trips on the date, then return ``None``.
 
         NOTES:
 
@@ -1591,30 +1642,29 @@ class Feed(object):
 
     def export(self, path):
         """
-        Assuming all the necessary data frames have been created
-        (as in create_all()), export them to a zip archive of CSV files
-        located at ``path``.
+        Export this feed to a zip archive located at ``path``.
         """
-        names = ['agency', 'calendar', 'calendar_dates', 
-          'routes', 'stops', 'trips', 'stop_times', 'shapes']
-        
         # Remove '.zip' extension from path, because it gets added
         # automatically below
         path = path.rstrip('.zip')
 
         # Write files to a temporary directory 
         tmp_dir = tempfile.mkdtemp()
+        names = REQIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
         for name in names:
+            if getattr(self, name) is None:
+                continue
+            # Convert dates back to strings
             if name == 'calendar':
-                f = feed.calendar.copy()
+                f = self.calendar.copy()
                 f[['start_date', 'end_date']] =\
                   f[['start_date', 'end_date']].applymap(
                   gt_utils.date_to_str) 
             elif name == 'calendar_dates':
-                f = feed.calendar_dates.copy()
+                f = self.calendar_dates.copy()
                 f['date'] = f['date'].map(gt_utils.date_to_str) 
             else:
-                f = getattr(feed, name)
+                f = getattr(self, name)
             tmp_path = os.path.join(tmp_dir, name + '.txt')
             f.to_csv(tmp_path, index=False, float_format='%.5f')
 

@@ -317,6 +317,13 @@ class TestFeed(unittest.TestCase):
                     get = stops_ts['num_vehicles'][stop].sum() 
                     expect = astg.get_group(stop)['departure_time'].count()
                     self.assertEqual(get, expect)
+        
+        # None check
+        date = dt.date(1900, 1, 1)
+        stops_ts = feed.get_stops_time_series(date, freq='1H',
+          split_directions=split_directions) 
+        self.assertIsNone(stops_ts)
+
 
     def test_get_routes_stats(self):
         feed = cairns
@@ -366,6 +373,12 @@ class TestFeed(unittest.TestCase):
                     get = rts['service_distance'][route].sum() 
                     expect = atsg.get_group(route)['distance'].sum()
                     self.assertTrue(abs((get - expect)/expect) < 0.001)
+
+        # None check
+        date = dt.date(1900, 1, 1)
+        rts = feed.get_routes_time_series(trips_stats, date, 
+          split_directions=split_directions, freq='1H')
+        self.assertIsNone(rts)
 
     def test_agg_routes_time_series(self):
         feed = cairns 
