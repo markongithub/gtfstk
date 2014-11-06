@@ -7,11 +7,11 @@ All time estimates below were produced on a 2013 MacBook Pro with a
 
 TODO:
 
-- Deal with the possibility that some feeds, e.g. Portland, 
-  have trips with first stop times with large positive 
+- In ``add_dist_to_stop_times()``, deal with the possibility that some feeds,
+  e.g. Portland, have trips with first stop times with large positive 
   shape_dist_traveled values. 
-  In the case of self-intersecting shapes, 
-  add_dist_to_shapes() sets first stop times to have 
+  In case of self-intersecting shapes, 
+  ``add_dist_to_stop_times()`` sets first stop times to have 
   shape_dist_traveled = 0 and increments from there.
 - Possibly scoop out main logic from ``Feed.get_stops_stats()`` and 
   ``Feed.get_stops_time_series()`` and put it into top level functions
