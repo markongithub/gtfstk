@@ -1,4 +1,5 @@
 import unittest
+from copy import copy
 
 import pandas as pd 
 import numpy as np
@@ -71,25 +72,29 @@ class TestFeed(unittest.TestCase):
             self.assertIsNone(getattr(feed, f))
 
     def test_get_dates(self):
-        feed = cairns
-        dates = feed.get_dates(as_date_obj=True)
-        d1 = dt.date(2014, 5, 26)
-        d2 = dt.date(2014, 12, 28)
-        self.assertEqual(dates[0], d1)
-        self.assertEqual(dates[-1], d2)
-        self.assertEqual(len(dates), (d2 - d1).days + 1)
+        feed = copy(cairns)
+        for as_date_obj in [True, False]:
+            dates = feed.get_dates(as_date_obj=as_date_obj)
+            d1 = '20140526'
+            d2 = '20141228'
+            if as_date_obj:
+                d1 = utils.datestr_to_date(d1)
+                d2 = utils.datestr_to_date(d2)
+                self.assertEqual(len(dates), (d2 - d1).days + 1)
+            self.assertEqual(dates[0], d1)
+            self.assertEqual(dates[-1], d2)
 
     def test_get_first_week(self):
-        feed = cairns
-        dates = feed.get_first_week(as_date_obj=True)
-        d1 = dt.date(2014, 5, 26)
-        d2 = dt.date(2014, 6, 1)
+        feed = copy(cairns)
+        dates = feed.get_first_week()
+        d1 = '20140526'
+        d2 = '20140601'
         self.assertEqual(dates[0], d1)
         self.assertEqual(dates[-1], d2)
         self.assertEqual(len(dates), 7)
 
     def test_is_active(self):
-        feed = cairns
+        feed = copy(cairns)
         trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
         date1 = '20140526'
         date2 = '20120322'
@@ -110,7 +115,7 @@ class TestFeed(unittest.TestCase):
         self.assertFalse(feed.is_active_trip(trip, date2))
 
     def test_get_active_trips(self):
-        feed = cairns
+        feed = copy(cairns)
         date = feed.get_first_week()[0]
         f = feed.get_active_trips(date)
         # Should be a data frame
@@ -131,7 +136,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(set(g.columns), set(feed.trips.columns))
 
     def test_get_vehicles_locations(self):
-        feed = cairns
+        feed = copy(cairns)
         trips_stats = feed.get_trips_stats()
         feed.add_dist_to_stop_times(trips_stats)
         linestring_by_shape = feed.get_linestring_by_shape(use_utm=False)
@@ -149,7 +154,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(get_cols, expect_cols)
     
     def test_get_trips_activity(self):
-        feed = cairns
+        feed = copy(cairns)
         dates = feed.get_first_week()
         trips_activity = feed.get_trips_activity(dates)
         # Should be a data frame
@@ -161,14 +166,14 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(set(trips_activity[dates].values.flatten()), {0, 1})
     
     def test_get_busiest_date_of_first_week(self):
-        feed = cairns
+        feed = copy(cairns)
         dates = feed.get_first_week()
         date = feed.get_busiest_date_of_first_week()
         # Busiest day should lie in first week
         self.assertTrue(date in dates)
     
     def test_get_trips_stats(self):
-        feed = cairns
+        feed = copy(cairns)
         trips_stats = feed.get_trips_stats()
         # Should be a data frame with the correct number of rows
         self.assertIsInstance(trips_stats, pd.core.frame.DataFrame)
@@ -184,7 +189,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(get_trips, expect_trips)
 
     def test_get_linestring_by_shape(self):
-        feed = cairns
+        feed = copy(cairns)
         linestring_by_shape = feed.get_linestring_by_shape()
         # Should be a dictionary
         self.assertIsInstance(linestring_by_shape, dict)
@@ -199,7 +204,7 @@ class TestFeed(unittest.TestCase):
         self.assertIsNone(feed2.get_linestring_by_shape())
 
     def test_get_point_by_stop(self):
-        feed = cairns
+        feed = copy(cairns)
         point_by_stop = feed.get_point_by_stop()
         # Should be a dictionary
         self.assertIsInstance(point_by_stop, dict)
@@ -209,7 +214,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(len(point_by_stop), feed.stops.shape[0])
 
     def test_get_stops_activity(self):
-        feed = cairns
+        feed = copy(cairns)
         dates = feed.get_first_week()
         stops_activity = feed.get_stops_activity(dates)
         # Should be a data frame
@@ -221,7 +226,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(set(stops_activity[dates].values.flatten()), {0, 1})
 
     def test_add_dist_to_stop_times(self):
-        feed = cairns
+        feed = copy(cairns)
         st1 = feed.stop_times.copy()
         trips_stats = feed.get_trips_stats()
         feed.add_dist_to_stop_times(trips_stats)
@@ -240,7 +245,7 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(sdt, sorted(sdt))
 
     def test_add_dist_to_shapes(self):
-        feed = cairns
+        feed = copy(cairns)
         s1 = feed.shapes.copy()
         feed.add_dist_to_shapes()
         s2 = feed.shapes
@@ -257,7 +262,7 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(sdt, sorted(sdt))
 
     def get_active_stops(self):
-        feed = cairns
+        feed = copy(cairns)
         date = feed.get_first_week()[0]
         f = feed.get_active_stops(date)
         # Should be a data frame
@@ -278,7 +283,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(set(g.columns), set(feed.stops.columns))
 
     def test_get_stops_stats(self):
-        feed = cairns
+        feed = copy(cairns)
         date = feed.get_first_week()[0]
         stops_stats = feed.get_stops_stats(date)
         # Should be a data frame
@@ -290,7 +295,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(get_stops, expect_stops)
 
     def test_get_stops_time_series(self):
-        feed = cairns
+        feed = copy(cairns)
         date = feed.get_first_week()[0]
         ast = pd.merge(feed.get_active_trips(date), feed.stop_times)
         for split_directions in [True, False]:
@@ -329,7 +334,7 @@ class TestFeed(unittest.TestCase):
 
 
     def test_get_routes_stats(self):
-        feed = cairns
+        feed = copy(cairns)
         date = feed.get_first_week()[0]
         trips_stats = feed.get_trips_stats()
         f = pd.merge(trips_stats, feed.get_active_trips(date))
@@ -347,7 +352,7 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(rs.shape[0], expect_num_routes)
 
     def test_get_routes_time_series(self):
-        feed = cairns 
+        feed = copy(cairns)
         date = feed.get_first_week()[0]
         trips_stats = feed.get_trips_stats()
         ats = pd.merge(trips_stats, feed.get_active_trips(date))
@@ -384,7 +389,7 @@ class TestFeed(unittest.TestCase):
         self.assertIsNone(rts)
 
     def test_agg_routes_time_series(self):
-        feed = cairns 
+        feed = copy(cairns)
         date = feed.get_first_week()[0]
         trips_stats = feed.get_trips_stats()
         for split_directions in [True, False]:
@@ -405,8 +410,8 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(arts.columns.names, col_names)   
 
     def test_export(self):
-        feed1 = cairns
-        # Export feed1, then import it as feed2, then test that the
+        feed1 = copy(cairns)
+        # Export feed1, import it as feed2, and then test that the
         # attributes of the two feeds are equal.
         path = 'data/test_gtfs.zip'
         feed1.export(path)
@@ -415,11 +420,12 @@ class TestFeed(unittest.TestCase):
         for name in names:
             attr1 = getattr(feed1, name)
             attr2 = getattr(feed2, name)
+            print(attr1)
             if attr1 is not None:
                 assert_frame_equal(attr1, attr2)
             else:
                 self.assertIsNone(attr2)
 
-                
+
 if __name__ == '__main__':
     unittest.main()

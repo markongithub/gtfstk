@@ -7,6 +7,12 @@ All time estimates below were produced on a 2013 MacBook Pro with a
 
 TODO:
 
+- Deal with the possibility that some feeds, e.g. Portland, 
+  have trips with first stop times with large positive 
+  shape_dist_traveled values. 
+  In the case of self-intersecting shapes, 
+  add_dist_to_shapes() sets first stop times to have 
+  shape_dist_traveled = 0 and increments from there.
 - Possibly scoop out main logic from ``Feed.get_stops_stats()`` and 
   ``Feed.get_stops_time_series()`` and put it into top level functions
   for the sake of greater flexibility.  Similar to what i did for 
@@ -84,11 +90,6 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     headways in both directions; 
     (2) compute mean headway by taking the weighted mean of the mean
     headways in both directions. 
-
-    NOTES:
-
-    Takes about 0.2 minutes on the Portland feed given the first
-    five weekdays of the feed.
     """        
     # Convert trip start times to seconds to ease headway calculations
     tss = trips_stats_subset
@@ -245,7 +246,6 @@ def get_routes_time_series(trips_stats_subset,
     - To remove the date and seconds from the 
       time series f, do ``f.index = [t.time().strftime('%H:%M') 
       for t in f.index.to_datetime()]``
-    - Takes about 0.05 minutes on the Portland feed 
     """  
     if trips_stats_subset is None or trips_stats_subset.empty:
         return None
@@ -606,9 +606,8 @@ class Feed(object):
         ZIP file given by ``path`` and assign them to instance attributes.
         Assume the zip file unzips as a collection of GTFS text files
         rather than as a directory of GTFS text files.
-        Set the native distance units of this feed to the given distance
-        units.
-        Valid options are listed in ``DISTANCE_UNITS``.
+        Set the ``original_units`` to the original distance units of this 
+        feed; valid options are listed in ``DISTANCE_UNITS``.
         All distance units will then be converted to kilometers.
         """
         zipped = False
@@ -698,7 +697,8 @@ class Feed(object):
             self.shapes = None
 
         # Load the rest of the optional GTFS files without special formatting
-        for f in [f for f in OPTIONAL_GTFS_FILES if f != 'shapes']:
+        for f in [f for f in OPTIONAL_GTFS_FILES 
+          if f not in ['shapes', 'calendar_dates']]:
             p = path + f + '.txt'
             if os.path.isfile(p):
                 setattr(self, f, pd.read_csv(p))
@@ -710,7 +710,7 @@ class Feed(object):
             # Remove extracted directory
             shutil.rmtree(path)
 
-    def get_dates(self, as_date_obj=True):
+    def get_dates(self, as_date_obj=False):
         """
         Return a chronologically ordered list of date strings
         in the form '%Y%m%d' for which this feed is valid.
@@ -892,7 +892,7 @@ class Feed(object):
         column using the shapes and Shapely. 
         Otherwise, set the distances to ``np.nan``.
 
-        Takes about 0.3 minutes on the Portland feed, which has the
+        Takes about 0.2 minutes on the Portland feed, which has the
         ``shape_dist_traveled`` column.
         Using ``get_dist_from_shapes=True`` on the Portland feed, yields 
         a maximum absolute difference of 0.75 km from using 
@@ -1012,8 +1012,7 @@ class Feed(object):
         NOTES:
 
         On the Portland feed, can do 24*60 times (minute frequency)
-        in 0.4 min.
-
+        in 0.28 min.
         """
         assert 'shape_dist_traveled' in self.stop_times.columns,\
           "The shape_dist_traveled column is required in self.stop_times."\
@@ -1153,19 +1152,23 @@ class Feed(object):
                 # opposes the direction of the bus trip.
                 distances = distances[::-1]
             else:
-                # Redo, and this time estimate distances 
-                # using trip's average speed and linear interpolation
-                distances = [0]
-                dtimes = group['departure_time'].values
-                speed = group['distance'].iat[0]/\
-                  (group['duration'].iat[0]*3600) # km/s
-                d = 0
-                t_prev = dtimes[0]
-                # Finish calculating distances
-                for t in dtimes[1:]:
-                    d += speed*(t - t_prev)
-                    distances.append(d)
-                    t_prev = t
+                # Totally redo using trip's average speed and 
+                # linear interpolation
+                times = group['departure_time'].values
+                t0, t1 = times[0], times[-1]
+                d0, d1 = 0, group['distance'].iat[0]  # km
+                distances = np.interp(times, [t0, t1], [d0, d1])
+                # distances = [0]
+                # dtimes = group['departure_time'].values
+                # speed = group['distance'].iat[0]/\
+                #   (group['duration'].iat[0]*3600) # km/s
+                # d = 0
+                # t_prev = dtimes[0]
+                # # Finish calculating distances
+                # for t in dtimes[1:]:
+                #     d += speed*(t - t_prev)
+                #     distances.append(d)
+                #     t_prev = t
             group['shape_dist_traveled'] = distances
             return group
 
@@ -1387,8 +1390,7 @@ class Feed(object):
         - To remove the date and seconds from 
           the time series f, do ``f.index = [t.time().strftime('%H:%M') 
           for t in f.index.to_datetime()]``
-        - Takes about 6.15 minutes on the Portland feed given the first
-          five weekdays of the feed.
+        - Takes about 0.25 minutes on the Portland feed.
         """  
         if not date:
             return 
@@ -1549,7 +1551,7 @@ class Feed(object):
 
         A more user-friendly version of ``get_routes_stats()``.
         The latter function works without a feed, though.
-        Takes about 0.2 minutes on the Portland feed.
+        Takes about 0.02 minutes on the Portland feed.
         """
         # Get the subset of trips_stats that contains only trips active
         # on the given date
@@ -1577,7 +1579,7 @@ class Feed(object):
 
         A more user-friendly version of ``get_routes_time_series()``.
         The latter function works without a feed, though.
-        Takes about 0.6 minutes on the Portland feed.
+        Takes about 0.03 minutes on the Portland feed.
         """  
         trips_stats_subset = pd.merge(trips_stats, self.get_active_trips(date))
         return get_routes_time_series(trips_stats_subset, 
@@ -1652,10 +1654,12 @@ class Feed(object):
         fig.tight_layout()
         fig.savefig(directory + 'routes_time_series_agg.pdf', dpi=200)
 
-    def export(self, path, ndigits=5):
+    # TODO: Convert back to original distance units
+    def export(self, path, ndigits=5, use_original_units=True):
         """
         Export this feed to a zip archive located at ``path``.
         Round all decimals to ``ndigits`` decimal places.
+        All distances will be displayed in kilometers.
         """
         # Remove '.zip' extension from path, because it gets added
         # automatically below
