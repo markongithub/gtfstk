@@ -240,8 +240,11 @@ class TestFeed(unittest.TestCase):
 
         # Check that within each trip the shape_dist_traveled column 
         # is monotonically increasing
-        for name, group in st2.groupby('trip_id'):
+        for trip, group in st2.groupby('trip_id'):
+            group = group.sort('stop_sequence')
             sdt = list(group['shape_dist_traveled'].values)
+            print('-'*40)
+            print('trip', trip, sdt)
             self.assertEqual(sdt, sorted(sdt))
 
     def test_add_dist_to_shapes(self):
@@ -425,7 +428,6 @@ class TestFeed(unittest.TestCase):
                 assert_frame_equal(attr1, attr2)
             else:
                 self.assertIsNone(attr2)
-
 
 if __name__ == '__main__':
     unittest.main()

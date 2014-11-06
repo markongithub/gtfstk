@@ -7,16 +7,12 @@ All time estimates below were produced on a 2013 MacBook Pro with a
 
 TODO:
 
-- In ``add_dist_to_stop_times()``, deal with the possibility that some feeds,
-  e.g. Portland, have trips with first stop times with large positive 
-  shape_dist_traveled values. 
-  In case of self-intersecting shapes, 
-  ``add_dist_to_stop_times()`` sets first stop times to have 
-  shape_dist_traveled = 0 and increments from there.
 - Possibly scoop out main logic from ``Feed.get_stops_stats()`` and 
   ``Feed.get_stops_time_series()`` and put it into top level functions
   for the sake of greater flexibility.  Similar to what i did for 
   ``Feed.get_routes_stats()`` and ``Feed.get_routes_time_series()``. 
+- Possibly add the option in ``export()`` to convert back to original distance units.
+
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -892,7 +888,7 @@ class Feed(object):
         column using the shapes and Shapely. 
         Otherwise, set the distances to ``np.nan``.
 
-        Takes about 0.2 minutes on the Portland feed, which has the
+        Takes about 0.13 minutes on the Portland feed, which has the
         ``shape_dist_traveled`` column.
         Using ``get_dist_from_shapes=True`` on the Portland feed, yields 
         a maximum absolute difference of 0.75 km from using 
@@ -905,28 +901,21 @@ class Feed(object):
         # Initialize data frame. Base it on trips.txt.
         stats = trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
 
-        # Compute start time, end time, duration
-        f = pd.merge(trips, stop_times)
-
-        # Convert departure times to seconds past midnight, 
-        # to compute durations below
+        # Get the relavent data frame and convert departure times
+        # to seconds past midnight to compute durations
+        f = pd.merge(trips, stop_times).sort(['trip_id', 'stop_sequence'])
         f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
         g = f.groupby('trip_id')
-        h = g['departure_time'].agg(OrderedDict([('start_time', np.min), 
-          ('end_time', np.max)]))
+
+        # Compute start time, end time, duration
+        h = g['departure_time'].agg(OrderedDict([
+          ('start_time', lambda x: x.iat[0]), 
+          ('end_time', lambda x: x.iat[-1])]))
         h['duration'] = (h['end_time'] - h['start_time'])/3600
 
-        # Compute start stop and end stop
-        def start_stop(group):
-            i = group['departure_time'].argmin()
-            return group['stop_id'].at[i]
-
-        def end_stop(group):
-            i = group['departure_time'].argmax()
-            return group['stop_id'].at[i]
-
-        h['start_stop'] = g.apply(start_stop)
-        h['end_stop'] = g.apply(end_stop)
+        # Compute start stop, end stop, num stops
+        h['start_stop'] = g.apply(lambda group: group['stop_id'].iat[0])
+        h['end_stop'] = g.apply(lambda group: group['stop_id'].iat[0])
         h['num_stops'] = g.size()
 
         # Convert times back to time strings
@@ -945,7 +934,7 @@ class Feed(object):
         if 'shape_dist_traveled' in f.columns and not get_dist_from_shapes:
             # Compute distances using shape_dist_traveled column
             h['distance'] = g.apply(lambda group: 
-            group['shape_dist_traveled'].max())
+              group['shape_dist_traveled'].max())
         elif self.shapes is not None:
             # Compute distances using the shapes and Shapely
             linestring_by_shape = self.get_linestring_by_shape()
@@ -1005,9 +994,9 @@ class Feed(object):
         - lon: longitude of vehicle at given time
         - lat: latitude of vehicle at given time
 
-        Requires input ``self.get_linestring_from_shape(use_utm=False)``.
-        Assume ``self.stop_times`` has a ``shape_dist_traveled``
-        column, possibly created by ``add_dist_to_stop_times()``.
+        Requires input ``linestring_by_shape = self.get_linestring_from_shape(use_utm=False)``.
+        Assume ``self.stop_times`` has an accurate ``shape_dist_traveled``
+        column.
 
         NOTES:
 
@@ -1015,8 +1004,9 @@ class Feed(object):
         in 0.28 min.
         """
         assert 'shape_dist_traveled' in self.stop_times.columns,\
-          "The shape_dist_traveled column is required in self.stop_times."\
-          "You can add it via self.stop_times = self.add_dist_to_stop_times()."
+          "The shape_dist_traveled column is required in self.stop_times. "\
+          "You can create it, possibly with some inaccuracies, "\
+          "via self.stop_times = self.add_dist_to_stop_times()."
         
         # Get active trips
         at = self.get_active_trips(date)
@@ -1093,30 +1083,40 @@ class Feed(object):
         """
         Add/overwrite the optional ``shape_dist_traveled`` GTFS field in
         ``self.stop_times``.
+        Doesn't always give accurate results, as described below.
 
-        Compute the ``shape_dist_traveled`` by using Shapely to measure 
+        ALGORITHM:
+
+        Compute the ``shape_dist_traveled`` field by using Shapely to measure 
         the distance of a stop along its trip linestring.
-        If for a given trip, this process produces a non-monotonically 
+        If for a given trip this process produces a non-monotonically 
         increasing, hence incorrect, list of (cumulative) distances, then
         fall back to estimating the distances as follows.
+        
         Get the average speed of the trip via ``trips_stats`` and
-        use is to linearly interpolate distances from stop times.
+        use is to linearly interpolate distances for stop times, 
+        assuming that the first stop is at shape_dist_traveled = 0
+        (the start of the shape) and the last stop is 
+        at shape_dist_traveled = the length of the trip 
+        (taken from trips_stats and equal to the length of the shape,
+        unless trips_stats was called with ``get_dist_from_shapes == False``).
         This fallback method usually kicks in on trips with self-intersecting
         linestrings.
+        Unfortunately, this fallback method will produce incorrect results
+        when the first stop does not start at the start of its shape
+        (so shape_dist_traveled != 0).
+        This is the case for several trips in the Portland feed, for example. 
 
         NOTE: 
 
         Takes about 0.75 minutes on the Portland feed.
-        98% of calculated 'shape_dist_traveled' values differ by at most
-        0.56 km in absolute value from the original values, 
-        and the maximum absolute difference is 6.3 km.
         """
         linestring_by_shape = self.get_linestring_by_shape()
         point_by_stop = self.get_point_by_stop()
 
         # Initialize data frame
         f = pd.merge(trips_stats[['trip_id', 'shape_id', 'distance', 
-          'duration' ]], self.stop_times)
+          'duration' ]], self.stop_times).sort(['trip_id', 'stop_sequence'])
 
         # Convert departure times to seconds past midnight to ease calculations
         f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
@@ -1124,11 +1124,13 @@ class Feed(object):
 
         def get_dist(group):
             # Compute the distances of the stops along this trip
-            group = group.sort('stop_sequence')
             trip = group['trip_id'].iat[0]
             shape = group['shape_id'].iat[0]
             if not isinstance(shape, str):
                 print(trip, 'has no shape_id')
+                group['shape_dist_traveled'] = np.nan 
+                return group
+            elif np.isnan(group['distance'].iat[0]):
                 group['shape_dist_traveled'] = np.nan 
                 return group
             linestring = linestring_by_shape[shape]
@@ -1153,22 +1155,42 @@ class Feed(object):
                 distances = distances[::-1]
             else:
                 # Totally redo using trip's average speed and 
-                # linear interpolation
-                times = group['departure_time'].values
-                t0, t1 = times[0], times[-1]
-                d0, d1 = 0, group['distance'].iat[0]  # km
+                # linear interpolation.
+                dt = group['departure_time']
+                times = dt.values # seconds
+                t0, t1 = times[0], times[-1]                  
+                d0, d1 = 0, group['distance'].iat[0]
+                # Get indices of nan departure times and 
+                # temporarily forward fill them
+                # for the purposes of using np.interp smoothly
+                nan_indices = np.where(dt.isnull())[0]
+                dt.fillna(method='ffill')
+                if trip == 'CNS2014-CNS_MUL-Saturday-00-4166464':
+                    print(nan_indices)
+                    print(dt)
+                # Interpolate
                 distances = np.interp(times, [t0, t1], [d0, d1])
+                # Nullify distances with nan departure times
+                for i in nan_indices:
+                    distances[i] = np.nan
+
+                # # Old method
+                # total_dist = group['distance'].iat[0]  # km
+                # duration = group['duration'].iat[0] # hours
+                # speed = total_dist/(duration*3600) # km/s
+                # times = group['departure_time'].values # seconds
+                # # Build up distances
                 # distances = [0]
-                # dtimes = group['departure_time'].values
-                # speed = group['distance'].iat[0]/\
-                #   (group['duration'].iat[0]*3600) # km/s
                 # d = 0
-                # t_prev = dtimes[0]
-                # # Finish calculating distances
-                # for t in dtimes[1:]:
-                #     d += speed*(t - t_prev)
-                #     distances.append(d)
-                #     t_prev = t
+                # t_prev = times[0]
+                # for t in times[1:]:
+                #     if np.isnan(t):
+                #         distances.append(np.nan)
+                #     else:
+                #         d += speed*(t - t_prev)
+                #         distances.append(d)
+                #         t_prev = t
+
             group['shape_dist_traveled'] = distances
             return group
 
@@ -1654,8 +1676,7 @@ class Feed(object):
         fig.tight_layout()
         fig.savefig(directory + 'routes_time_series_agg.pdf', dpi=200)
 
-    # TODO: Convert back to original distance units
-    def export(self, path, ndigits=5, use_original_units=True):
+    def export(self, path, ndigits=5):
         """
         Export this feed to a zip archive located at ``path``.
         Round all decimals to ``ndigits`` decimal places.
