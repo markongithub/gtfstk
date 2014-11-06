@@ -18,19 +18,19 @@ def time_it(f):
         return result
     return wrap
 
-def date_to_str(date, format_str='%Y%m%d', inverse=False):
+def datestr_to_date(x, format_str='%Y%m%d', inverse=False):
     """
-    Given a datetime.date object, convert it to a string in the given format
-    and return the result.
-    If ``inverse == True``, then assume the given date is in the given
-    string format and return its corresponding date object.
+    Given a string object ``x`` representing a date in the given format,
+    convert it to a datetime.date object and return the result
+    If ``inverse == True``, then assume that ``x`` is a date object
+    and return its corresponding string in the given format.
     """
-    if date is None:
+    if x is None:
         return None
     if not inverse:
-        result = date.strftime(format_str)
+        result = dt.datetime.strptime(x, format_str).date()
     else:
-        result = dt.datetime.strptime(date, format_str).date()
+        result = x.strftime(format_str)
     return result
 
 def timestr_to_seconds(x, inverse=False, mod24=False):
@@ -50,7 +50,7 @@ def timestr_to_seconds(x, inverse=False, mod24=False):
             if mod24:
                 result %= 24*3600
         except:
-            result = None
+            result = np.nan
     else:
         try:
             seconds = int(x)
@@ -60,7 +60,7 @@ def timestr_to_seconds(x, inverse=False, mod24=False):
             mins, secs = divmod(remainder, 60)
             result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
         except:
-            result = None
+            result = np.nan
     return result
 
 def timestr_mod24(timestr):
