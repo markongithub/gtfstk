@@ -7,8 +7,6 @@ All time estimates below were produced on a 2013 MacBook Pro with a
 
 TODO:
 
-- Possibly leave table dates as '%Y%m%d' strings instead of converting
-  them to date objects
 - Possibly scoop out main logic from ``Feed.get_stops_stats()`` and 
   ``Feed.get_stops_time_series()`` and put it into top level functions
   for the sake of greater flexibility.  Similar to what i did for 
@@ -29,7 +27,7 @@ import utm
 
 import gtfs_toolkit.utils as utils
 
-VALID_DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
+
 REQUIRED_GTFS_FILES = [
   'agency',  
   'stops',   
@@ -47,6 +45,7 @@ OPTIONAL_GTFS_FILES = [
   'transfers',   
   'feed_info',
   ]
+DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
 
 
 def get_routes_stats(trips_stats_subset, split_directions=False,
@@ -609,7 +608,7 @@ class Feed(object):
         rather than as a directory of GTFS text files.
         Set the native distance units of this feed to the given distance
         units.
-        Valid options are listed in ``VALID_DISTANCE_UNITS``.
+        Valid options are listed in ``DISTANCE_UNITS``.
         All distance units will then be converted to kilometers.
         """
         zipped = False
@@ -621,8 +620,8 @@ class Feed(object):
             archive.extractall(path)
 
         # Get distance units
-        assert original_units in VALID_DISTANCE_UNITS,\
-            'Units must be one of {!s}'.format(VALID_DISTANCE_UNITS)
+        assert original_units in DISTANCE_UNITS,\
+            'Units must be one of {!s}'.format(DISTANCE_UNITS)
         self.original_units = original_units
 
         # Check that the required GTFS files exist
@@ -1653,9 +1652,10 @@ class Feed(object):
         fig.tight_layout()
         fig.savefig(directory + 'routes_time_series_agg.pdf', dpi=200)
 
-    def export(self, path):
+    def export(self, path, ndigits=5):
         """
         Export this feed to a zip archive located at ``path``.
+        Round all decimals to ``ndigits`` decimal places.
         """
         # Remove '.zip' extension from path, because it gets added
         # automatically below
@@ -1667,19 +1667,9 @@ class Feed(object):
         for name in names:
             if getattr(self, name) is None:
                 continue
-            # Convert dates back to strings
-            # if name == 'calendar':
-            #     f = self.calendar.copy()
-            #     f[['start_date', 'end_date']] =\
-            #       f[['start_date', 'end_date']].applymap(
-            #       utils.date_to_str) 
-            # elif name == 'calendar_dates':
-            #     f = self.calendar_dates.copy()
-            #     f['date'] = f['date'].map(utils.date_to_str) 
-            # else:
             tmp_path = os.path.join(tmp_dir, name + '.txt')
             getattr(self, name).to_csv(tmp_path, index=False, 
-              float_format='%.5f')
+              float_format='%.{!s}f'.format(ndigits))
 
         # Zip directory 
         shutil.make_archive(path, format="zip", root_dir=tmp_dir)    

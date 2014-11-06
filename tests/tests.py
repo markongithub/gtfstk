@@ -404,6 +404,22 @@ class TestFeed(unittest.TestCase):
             # Should have correct column names
             self.assertEqual(arts.columns.names, col_names)   
 
+    def test_export(self):
+        feed1 = cairns
+        # Export feed1, then import it as feed2, then test that the
+        # attributes of the two feeds are equal.
+        path = 'data/test_gtfs.zip'
+        feed1.export(path)
+        feed2 = Feed(path)
+        names = REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
+        for name in names:
+            attr1 = getattr(feed1, name)
+            attr2 = getattr(feed2, name)
+            if attr1 is not None:
+                assert_frame_equal(attr1, attr2)
+            else:
+                self.assertIsNone(attr2)
 
+                
 if __name__ == '__main__':
     unittest.main()
