@@ -88,7 +88,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     headways in both directions. 
     """        
     # Convert trip start times to seconds to ease headway calculations
-    tss = trips_stats_subset
+    tss = trips_stats_subset.copy()
     tss['start_time'] = tss['start_time'].map(
       utils.timestr_to_seconds)
 
@@ -197,7 +197,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     return result
 
 def get_routes_time_series(trips_stats_subset,
-  split_directions=False, freq='5Min', date_label='2001-01-01'):
+  split_directions=False, freq='5Min', date_label='20010101'):
     """
     Given a subset of the output of ``Feed.get_trips_stats()``, 
     calculate time series for the routes in that subset.
@@ -294,7 +294,7 @@ def get_routes_time_series(trips_stats_subset,
         end = row['end_index']
         distance = row['distance']
 
-        if start is None or start == end:
+        if start is None or np.isnan(start) or start == end:
             continue
 
         # Get bins to fill
@@ -1165,9 +1165,6 @@ class Feed(object):
                 # for the purposes of using np.interp smoothly
                 nan_indices = np.where(dt.isnull())[0]
                 dt.fillna(method='ffill')
-                if trip == 'CNS2014-CNS_MUL-Saturday-00-4166464':
-                    print(nan_indices)
-                    print(dt)
                 # Interpolate
                 distances = np.interp(times, [t0, t1], [d0, d1])
                 # Nullify distances with nan departure times
