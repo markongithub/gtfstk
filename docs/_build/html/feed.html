@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.11 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.11.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11',
+        VERSION:     '0.11.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.1 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.11.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -136,6 +136,13 @@ then use the busiest day of the first week of the feed.</p>
 <dd><p>Export this feed to a zip archive located at <tt class="docutils literal"><span class="pre">path</span></tt>.
 Round all decimals to <tt class="docutils literal"><span class="pre">ndigits</span></tt> decimal places.
 All distances will be displayed in kilometers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.fill_nan_route_short_names">
+<tt class="descname">fill_nan_route_short_names</tt><big>(</big><em>base_name='NoName'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.fill_nan_route_short_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace NaN route short names in <tt class="docutils literal"><span class="pre">self.routes</span></tt> with 
+<tt class="docutils literal"><span class="pre">base_name</span> <span class="pre">+</span> <span class="pre">'00'</span></tt>, <tt class="docutils literal"><span class="pre">base_name</span> <span class="pre">+</span> <span class="pre">'01'</span></tt>, <tt class="docutils literal"><span class="pre">base_name</span> <span class="pre">+</span> <span class="pre">'02'</span></tt>, etc.</p>
 </dd></dl>
 
 <dl class="method">
@@ -637,7 +644,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.11.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

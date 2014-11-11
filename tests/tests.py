@@ -71,6 +71,29 @@ class TestFeed(unittest.TestCase):
           if f not in ['calendar_dates', 'shapes']]:
             self.assertIsNone(getattr(feed, f))
 
+    def test_fill_nan_route_short_names(self):
+        feed = copy(cairns) # Has all non-nan route short names
+        
+        # Set some route short names to nan
+        f = feed.routes
+        g = f[f['route_short_name'].str.startswith('12')]
+        g_indices = g.index.tolist()
+        for i in g_indices:
+            f['route_short_name'].iat[i] = np.nan
+        
+        # Fill nans
+        feed.fill_nan_route_short_names('bingo')
+        h = f[f['route_short_name'].str.startswith('bingo')]
+        h_indices = h.index.tolist()
+        
+        # The indices we set to nan should equal the indices we filled
+        self.assertEqual(h_indices, g_indices)
+
+        # The fill values should be correct. Just check the numeric suffixes.
+        get = [int(x.lstrip('bingo')) for x in h['route_short_name'].values]
+        expect = list(range(len(h_indices)))
+        self.assertEqual(get, expect)
+
     def test_get_dates(self):
         feed = copy(cairns)
         for as_date_obj in [True, False]:
