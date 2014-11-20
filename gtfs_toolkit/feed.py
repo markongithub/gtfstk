@@ -59,7 +59,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     Return a Pandas data frame with the following columns:
 
     - route_id
-    - direction_id
+    - direction_id (if available)
     - num_trips: mean daily number of trips
     - start_time: start time of the earliest active trip on 
       the route
@@ -87,6 +87,11 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     (2) compute mean headway by taking the weighted mean of the mean
     headways in both directions. 
     """        
+    has_direction = 'direction_id' in trips_stats_subset.columns
+    if split_directions:
+        assert has_direction,\
+        "Need 'direction_id' field in trips.txt for this"
+
     # Convert trip start times to seconds to ease headway calculations
     tss = trips_stats_subset.copy()
     tss['start_time'] = tss['start_time'].map(
@@ -138,13 +143,14 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     def get_route_stats(group):
         # Compute headways. Need to separate directions for these.
         headways = []
-        for direction in [0, 1]:
-            stimes = group[group['direction_id'] == direction][
-              'start_time'].values
-            stimes = sorted([stime for stime in stimes 
-              if headway_start <= stime <= headway_end])
-            headways.extend([stimes[i + 1] - stimes[i] 
-              for i in range(len(stimes) - 1)])
+        if has_direction:
+            for direction in [0, 1]:
+                stimes = group[group['direction_id'] == direction][
+                  'start_time'].values
+                stimes = sorted([stime for stime in stimes 
+                  if headway_start <= stime <= headway_end])
+                headways.extend([stimes[i + 1] - stimes[i] 
+                  for i in range(len(stimes) - 1)])
         if headways:
             max_headway = np.max(headways)/60  # minutes 
             mean_headway = np.mean(headways)/60  # minutes
@@ -245,6 +251,10 @@ def get_routes_time_series(trips_stats_subset,
     """  
     if trips_stats_subset is None or trips_stats_subset.empty:
         return None
+
+    if split_directions:
+        assert 'direction_id' in trips_stats_subset.columns,\
+        "Need 'direction_id' field in trips.txt for this"
 
     # Merge trips_stats with trips activity, get trip weights,
     # and drop 0-weight trips
@@ -466,7 +476,7 @@ def agg_routes_stats(routes_stats):
     Given ``route_stats`` which is the output of ``get_routes_stats()``,
     return a Pandas data frame with the following columns:
 
-    - direction_id
+    - direction_id (if available)
     - num_trips: the sum of the corresponding column in the
       input across all routes
     - start_time: the minimum of the corresponding column of the input
@@ -701,6 +711,12 @@ class Feed(object):
             else:
                 setattr(self, f, None)
 
+        # Set some flags
+        if 'direction_id' in self.trips.columns:
+            self.has_direction = True
+        else:
+            self.has_direction = False
+
         # Clean up
         if zipped:
             # Remove extracted directory
@@ -844,7 +860,7 @@ class Feed(object):
 
         - trip_id
         - route_id
-        - direction_id
+        - direction_id (if available)
         - dates[0]: a series of ones and zeros indicating if a 
           trip is active (1) on the given date or inactive (0)
         - etc.
@@ -860,7 +876,11 @@ class Feed(object):
         for date in dates:
             f[date] = f['trip_id'].map(lambda trip: 
               int(self.is_active_trip(trip, date)))
-        return f[['trip_id', 'direction_id', 'route_id'] + dates]
+        if self.has_direction:
+            columns = ['trip_id', 'direction_id', 'route_id'] + dates
+        else:
+            columns = ['trip_id', 'route_id'] + dates
+        return f[columns]
 
     def get_busiest_date_of_first_week(self):
         """
@@ -877,7 +897,7 @@ class Feed(object):
         Return a Pandas data frame with the following columns:
 
         - trip_id
-        - direction_id
+        - direction_id (if available)
         - route_id
         - shape_id
         - start_time: first departure time of the trip
@@ -909,7 +929,11 @@ class Feed(object):
         num_trips = trips.shape[0]
         
         # Initialize data frame. Base it on trips.txt.
-        stats = trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
+        if self.has_direction:
+            columns = ['route_id', 'trip_id', 'direction_id', 'shape_id']
+        else:
+            columns = ['route_id', 'trip_id', 'shape_id']
+        stats = trips[columns]
 
         # Get the relavent data frame and convert departure times
         # to seconds past midnight to compute durations
@@ -953,7 +977,7 @@ class Feed(object):
             h['distance'] = np.nan
 
         stats = pd.merge(stats, h.reset_index()).sort(['route_id', 
-          'direction_id', 'start_time'])
+          'start_time'])
         return stats
 
     def get_linestring_by_shape(self, use_utm=True):
@@ -996,7 +1020,7 @@ class Feed(object):
         Include the columns:
 
         - trip_id
-        - direction_id
+        - direction_id (if available)
         - route_id
         - time
         - rel_dist: number between 0 (start) and 1 (end) indicating 
@@ -1013,10 +1037,10 @@ class Feed(object):
         On the Portland feed, can do 24*60 times (minute frequency)
         in 0.28 min.
         """
-        assert 'shape_dist_traveled' in self.stop_times.columns,\
+        assert 'shape_dist_traveled' in self.stop_times,\
           "The shape_dist_traveled column is required in self.stop_times. "\
           "You can create it, possibly with some inaccuracies, "\
-          "via self.stop_times = self.add_dist_to_stop_times()."
+          "via self.stop_times = self.add_distance_to_stop_times()."
         
         # Get active trips
         at = self.get_active_trips(date)
@@ -1089,7 +1113,7 @@ class Feed(object):
                 point_by_stop[stop] = Point([lon, lat]) 
         return point_by_stop
 
-    def add_dist_to_stop_times(self, trips_stats):
+    def add_distance_to_stop_times(self, trips_stats):
         """
         Add/overwrite the optional ``shape_dist_traveled`` GTFS field in
         ``self.stop_times``.
@@ -1210,7 +1234,7 @@ class Feed(object):
         del result['duration']
         self.stop_times = result
 
-    def add_dist_to_shapes(self):
+    def add_distance_to_shapes(self):
         """
         Add/overwrite the optional ``shape_dist_traveled`` GTFS field for
         ``self.shapes``.
@@ -1302,7 +1326,7 @@ class Feed(object):
         Return a Pandas data frame with the following columns:
 
         - stop_id
-        - direction_id
+        - direction_id (if available)
         - num_vehicles: number of vehicles visiting stop 
         - max_headway: durations (in minuts) between 
           vehicle departures at the stop between ``headway_start_timestr`` and 
@@ -1325,6 +1349,10 @@ class Feed(object):
         """
         if not date:
             return 
+
+        if split_directions:
+            assert self.has_direction,\
+            "Need 'direction_id' field in trips.txt for this"
 
         # Get active trips and merge with stop times
         f = pd.merge(self.get_active_trips(date), self.stop_times)
@@ -1424,6 +1452,10 @@ class Feed(object):
         if not date:
             return 
 
+        if split_directions:
+            assert self.has_direction,\
+            "Need 'direction_id' field in trips.txt for this"
+
         # Get active stop times for date
         ast = pd.merge(self.get_active_trips(date), self.stop_times)
 
@@ -1503,6 +1535,10 @@ class Feed(object):
         sis = self.get_stops_in_stations()
         if sis is None:
             return
+
+        if split_directions:
+            assert self.has_direction,\
+            "Need 'direction_id' field in trips.txt for this"
 
         f = pd.merge(stop_times, self.get_active_trips(date))
         f = pd.merge(f, sis)

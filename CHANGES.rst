@@ -16,7 +16,7 @@ Changes
 - v0.2.0, 2014-07-22: Restructured modules 
 - v0.2.1, 2014-07-22: Changed from period indices to timestamp indices for time series, because the latter are better supported in Pandas. Upgraded to Pandas 0.14.1.
 - v0.2.2, 2014-08-17: Changed ``get_xy_by_stop()`` name and output type
-- v0.2.3, 2014-08-22: Added ``add_dist_to_stop_times()`` and ``add_dist_to_shapes``
+- v0.2.3, 2014-08-22: Added ``add_distance_to_stop_times()`` and ``add_distance_to_shapes``
 - v0.3, 2014-09-29: Switched from major.minor.micro version numbering to major.minor numbering. Added ``get_vehicle_locations()``.
 - v0.4, 2014-10-02: Fixed a bug in get_trips_stats() that caused a failure when a trip was missing a shape ID.
 - v0.5, 2014-10-02: Converted headways to minutes. Added option to change headway start and end time cutoffs in ``get_stops_stats()`` and ``get_stations_stats()``.
@@ -24,6 +24,6 @@ Changes
 - v0.7, 2014-10-08: Whoops, lost track of the changes for this version.
 - v0.8, 2014-10-24: Simplified methods to accept a single date instead of a list of dates.
 - v0.9, 2014-10-29: Scooped out main logic from ``Feed.get_routes_stats()`` and ``Feed.get_routes_time_series()`` and put it into top level functions for the sake of greater flexibility.  I at least need that flexibility to plug into another project. Require Pandas v0.14.1, because date handling after groupby fails in Pandas v0.15.
-- v0.10, 2014-11-06: Speeded up time series computations by at least a factor of 10. Switched from representing dates as ``datetime.date`` objects to '%Y%m%d' strings (the GTFS way of representing dates), because that's simpler and faster. Added an export method to feed objects. Minor tweaks to ``add_dist_to_stop_times()``.
+- v0.10, 2014-11-06: Speeded up time series computations by at least a factor of 10. Switched from representing dates as ``datetime.date`` objects to '%Y%m%d' strings (the GTFS way of representing dates), because that's simpler and faster. Added an export method to feed objects. Minor tweaks to ``add_distance_to_stop_times()``.
 - v0.11, 2014-11-10: Fixed a bug in ``Feed.get_routes_stats()`` that modified the input data frame and therefore affected the same data frame outside of the function (dumb Pandas gotcha). Changed it to operate on a copy of the data frame instead.
 - v0.11.1, 2014-11-12: Added ``fill_nan_route_short_names()``. Switched back to version numbering in the style of major.minor.micro.

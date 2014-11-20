@@ -161,7 +161,7 @@ class TestFeed(unittest.TestCase):
     def test_get_vehicles_locations(self):
         feed = copy(cairns)
         trips_stats = feed.get_trips_stats()
-        feed.add_dist_to_stop_times(trips_stats)
+        feed.add_distance_to_stop_times(trips_stats)
         linestring_by_shape = feed.get_linestring_by_shape(use_utm=False)
         date = feed.get_first_week()[0]
         timestrs = ['08:00:00']
@@ -248,11 +248,11 @@ class TestFeed(unittest.TestCase):
         # Date columns should contain only zeros and ones
         self.assertEqual(set(stops_activity[dates].values.flatten()), {0, 1})
 
-    def test_add_dist_to_stop_times(self):
+    def test_add_distance_to_stop_times(self):
         feed = copy(cairns)
         st1 = feed.stop_times.copy()
         trips_stats = feed.get_trips_stats()
-        feed.add_dist_to_stop_times(trips_stats)
+        feed.add_distance_to_stop_times(trips_stats)
         st2 = feed.stop_times
 
         # Check that colums of st2 equal the columns of st1 plus
@@ -270,10 +270,10 @@ class TestFeed(unittest.TestCase):
             print('trip', trip, sdt)
             self.assertEqual(sdt, sorted(sdt))
 
-    def test_add_dist_to_shapes(self):
+    def test_add_distance_to_shapes(self):
         feed = copy(cairns)
         s1 = feed.shapes.copy()
-        feed.add_dist_to_shapes()
+        feed.add_distance_to_shapes()
         s2 = feed.shapes
         # Check that colums of st2 equal the columns of st1 plus
         # a shape_dist_traveled column

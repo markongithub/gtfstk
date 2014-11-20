@@ -87,7 +87,7 @@
       "routes_stats = feed.get_routes_stats(trips_stats, dates, split_directions=False)\n",
       "routes_stats"
 =======
-      "s2 = time_it(feed.add_dist_to_shapes)()\n",
+      "s2 = time_it(feed.add_distance_to_shapes)()\n",
       "s2"
 >>>>>>> develop
      ],
@@ -98,7 +98,7 @@
        "output_type": "stream",
        "stream": "stdout",
        "text": [
-        "Timing add_dist_to_shapes\n",
+        "Timing add_distance_to_shapes\n",
         "2014-08-22 12:27:34.446151 Began process\n",
         "2014-08-22 12:27:54.740302"
        ]
@@ -2260,7 +2260,7 @@
      "cell_type": "code",
      "collapsed": false,
      "input": [
-      "st2 = time_it(feed.add_dist_to_stop_times)(trips_stats)"
+      "st2 = time_it(feed.add_distance_to_stop_times)(trips_stats)"
      ],
      "language": "python",
      "metadata": {},
@@ -2269,7 +2269,7 @@
        "output_type": "stream",
        "stream": "stdout",
        "text": [
-        "Timing add_dist_to_stop_times\n",
+        "Timing add_distance_to_stop_times\n",
         "2014-08-22 11:49:54.983987 Began process\n",
         "2014-08-22 11:50:40.706633"
        ]
