@@ -50,6 +50,174 @@ OPTIONAL_GTFS_FILES = [
 DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
 
 
+def get_stops_stats(stop_times_subset, split_directions=False,
+    headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
+    """
+    Given a subset of ``Feed.stop_times``, 
+    return a Pandas data frame that provides summary stats about
+    the stops in that subset.
+    The columns of the data frame are:
+
+    - stop_id
+    - direction_id
+    - num_vehicles: number of vehicles visiting stop 
+    - max_headway: durations (in minutes) between 
+      vehicle departures at the stop between ``headway_start_timestr`` and 
+      ``headway_end_timestr`` on the given date
+    - mean_headway: durations (in minutes) between 
+      vehicle departures at the stop between ``headway_start_timestr`` and 
+      ``headway_end_timestr`` on the given date
+    - start_time: earliest departure time of a vehicle from this stop
+      on the given date
+    - end_time: latest departure time of a vehicle from this stop
+      on the given date
+
+    If ``split_directions == False``, then compute each stop's stats
+    using vehicles visiting it from both directions.
+    
+    NOTES:
+
+    Takes about 0.7 minutes on the Portland feed.
+    """
+    if stop_times_subset is None or stop_times_subset.empty:
+        return None
+
+    f = stop_times_subset.copy()
+
+    # Convert departure times to seconds to ease headway calculations
+    f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
+
+    headway_start = utils.timestr_to_seconds(headway_start_timestr)
+    headway_end = utils.timestr_to_seconds(headway_end_timestr)
+
+    # Compute stats for each stop
+    def get_stop_stats(group):
+        # Operate on the group of all stop times for an individual stop
+        headways = []
+        num_vehicles = 0
+        dtimes = sorted(group['departure_time'].values)
+        num_vehicles += len(dtimes)
+        dtimes = [dtime for dtime in dtimes 
+          if headway_start <= dtime <= headway_end]
+        headways.extend([dtimes[i + 1] - dtimes[i] 
+          for i in range(len(dtimes) - 1)])
+        if headways:
+            max_headway = np.max(headways)/60  # minutes
+            mean_headway = np.mean(headways)/60  # minutes
+        else:
+            max_headway = np.nan
+            mean_headway = np.nan
+        start_time = group['departure_time'].min()
+        end_time = group['departure_time'].max()
+        df = pd.DataFrame([[
+          start_time, 
+          end_time, 
+          num_vehicles, 
+          max_headway, 
+          mean_headway,
+          ]], 
+          columns=[
+          'start_time', 
+          'end_time', 
+          'num_vehicles', 
+          'max_headway', 
+          'mean_headway',
+          ])
+        df.index.name = 'foo'
+        return df
+
+    if split_directions:
+        g = f.groupby(['stop_id', 'direction_id'])
+    else:
+        g = f.groupby('stop_id')
+
+    result = g.apply(get_stop_stats).reset_index()
+
+    # Convert start and end times to time strings
+    result[['start_time', 'end_time']] =\
+      result[['start_time', 'end_time']].applymap(
+      lambda x: utils.timestr_to_seconds(x, inverse=True))
+    del result['foo']
+
+    return result
+
+def get_stops_time_series(stop_times_subset, split_directions=False,
+  freq='5Min', date_label='20010101'):
+    """
+    Given a subset of ``Feed.stop_times``, 
+    return a time series that describes
+    
+    - the number of vehicles by stop ID
+
+    in that subset.
+    The time series is a Pandas data frame with a timestamp index 
+    for a 24-hour period sampled at the given frequency.
+    The maximum allowable frequency is 1 minute.
+    The timestamp includes the date given by ``date_label``,
+    a date string of the form '%Y%m%d'.
+    
+    The columns of the data frame are hierarchical (multi-index) with
+
+    - top level: name = 'indicator', values = ['num_vehicles']
+    - middle level: name = 'stop_id', values = the active stop IDs
+    - bottom level: name = 'direction_id', values = 0s and 1s
+
+    If ``split_directions == False``, then don't include the bottom level.
+    
+    If ``stop_times_subset`` is ``None`` or empty, then return ``None``.
+
+    NOTES:
+
+    - 'num_vehicles' should be resampled with ``how=np.sum``
+    - To remove the date and seconds from 
+      the time series f, do ``f.index = [t.time().strftime('%H:%M') 
+      for t in f.index.to_datetime()]``
+    - Takes about 0.25 minutes on the Portland feed.
+    """  
+    if stop_times_subset is None or stop_times_subset.empty:
+        return None
+
+    f = stop_times_subset.copy()
+
+    if split_directions:
+        # Alter stop IDs to encode trip direction: 
+        # <stop ID>-0 and <stop ID>-1
+        f['stop_id'] = f['stop_id'] + '-' +\
+          f['direction_id'].map(str)            
+    stops = sorted(f['stop_id'].unique())    
+
+    # Create one time series for each stop. Use a list first.    
+    bins = [i for i in range(24*60)] # One bin for each minute
+    num_bins = len(bins)
+
+    # Bin each stop departure time
+    def F(x):
+        return (utils.timestr_to_seconds(x)//60) % (24*60)
+
+    f['departure_index'] = f['departure_time'].map(F)
+
+    # Create one time series for each stop
+    series_by_stop = {stop: [0 for i in range(num_bins)] 
+      for stop in stops} 
+
+    for stop, group in f.groupby('stop_id'):
+        counts = Counter((bin, 0) for bin in bins) +\
+          Counter(group['departure_index'].values)
+        series_by_stop[stop] = [counts[bin] for bin in bins]
+
+    # Combine lists into one time series.
+    # Actually, a dictionary indicator -> time series.
+    # Only one indicator in this case, but could add more
+    # in the future as was done with routes time series.
+    rng = pd.date_range(date_label, periods=24*60, freq='Min')
+    series_by_indicator = {'num_vehicles':
+      pd.DataFrame(series_by_stop, index=rng).fillna(0)}
+
+    # Combine all time series into one time series
+    g = combine_time_series(series_by_indicator, kind='stop',
+      split_directions=split_directions)
+    return downsample(g, freq=freq)
+
 def get_routes_stats(trips_stats_subset, split_directions=False,
     headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
     """
@@ -214,11 +382,6 @@ def get_routes_time_series(trips_stats_subset,
     for a 24-hour period sampled at the given frequency.
     The maximum allowable frequency is 1 minute.
     ``date_label`` is used as the date for the timestamp index.
-
-    Using a period index instead of a timestamp index would be more
-    apppropriate, but 
-    `Pandas 0.14.1 doesn't support period index frequencies at multiples of DateOffsets (e.g. '5Min') <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period>`_.
-
 
     The columns of the data frame are hierarchical (multi-index) with
 
@@ -1299,175 +1462,54 @@ class Feed(object):
     def get_stops_stats(self, date, split_directions=False,
         headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
         """
-        Return a Pandas data frame with the following columns:
+        Get all the stop times ``S`` that have trips active on the given
+        date and call ``get_stops_stats()`` with ``S`` and the keyword 
+        arguments ``split_directions``, ``headway_start_timestr``, and 
+        ``headway_end_timestr``.
 
-        - stop_id
-        - direction_id
-        - num_vehicles: number of vehicles visiting stop 
-        - max_headway: durations (in minuts) between 
-          vehicle departures at the stop between ``headway_start_timestr`` and 
-          ``headway_end_timestr`` on the given date
-        - mean_headway: durations (in minutes) between 
-          vehicle departures at the stop between ``headway_start_timestr`` and 
-          ``headway_end_timestr`` on the given date
-        - start_time: earliest departure time of a vehicle from this stop
-          on the given date
-        - end_time: latest departure time of a vehicle from this stop
-          on the given date
+        See ``get_stops_stats()`` for a description of the output.
 
-        If ``split_directions == False``, then compute each stop's stats
-        using vehicles visiting it from both directions.
-        The input ``date`` must be a string of the form '%Y%m%d'.
-        
         NOTES:
 
+        This is a more user-friendly version of ``get_stops_stats()``.
+        The latter function works without a feed, though.
         Takes about 0.7 minutes on the Portland feed.
         """
         if not date:
             return 
 
-        # Get active trips and merge with stop times
+        # Get stop times active on date
         f = pd.merge(self.get_active_trips(date), self.stop_times)
 
-        # Convert departure times to seconds to ease headway calculations
-        f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
-
-        headway_start = utils.timestr_to_seconds(headway_start_timestr)
-        headway_end = utils.timestr_to_seconds(headway_end_timestr)
-
-        # Compute stats for each stop
-        def get_stop_stats(group):
-            # Operate on the group of all stop times for an individual stop
-            headways = []
-            num_vehicles = 0
-            dtimes = sorted(group['departure_time'].values)
-            num_vehicles += len(dtimes)
-            dtimes = [dtime for dtime in dtimes 
-              if headway_start <= dtime <= headway_end]
-            headways.extend([dtimes[i + 1] - dtimes[i] 
-              for i in range(len(dtimes) - 1)])
-            if headways:
-                max_headway = np.max(headways)/60  # minutes
-                mean_headway = np.mean(headways)/60  # minutes
-            else:
-                max_headway = np.nan
-                mean_headway = np.nan
-            start_time = group['departure_time'].min()
-            end_time = group['departure_time'].max()
-            df = pd.DataFrame([[
-              start_time, 
-              end_time, 
-              num_vehicles, 
-              max_headway, 
-              mean_headway,
-              ]], 
-              columns=[
-              'start_time', 
-              'end_time', 
-              'num_vehicles', 
-              'max_headway', 
-              'mean_headway',
-              ])
-            df.index.name = 'foo'
-            return df
-
-        if split_directions:
-            g = f.groupby(['stop_id', 'direction_id'])
-        else:
-            g = f.groupby('stop_id')
-
-        result = g.apply(get_stop_stats).reset_index()
-
-        # Convert start and end times to time strings
-        result[['start_time', 'end_time']] =\
-          result[['start_time', 'end_time']].applymap(
-          lambda x: utils.timestr_to_seconds(x, inverse=True))
-        del result['foo']
-
-        return result
+        return get_stops_stats(f, split_directions=split_directions,
+          headway_start_timestr=headway_start_timestr, 
+          headway_end_timestr=headway_end_timestr)
 
     def get_stops_time_series(self, date, split_directions=False,
       freq='5Min'):
         """
-        Return a time series version of the following stops stats
-        for the given date (string of the form '%Y%m%d'):
-        
-        - number of vehicles by stop ID
+        Get all the stop times ``S`` that have trips active on the given
+        date and call ``get_stops_stats()`` with ``S`` and the keyword 
+        arguments ``split_directions`` and ``freq`` and with 
+        ``date_label`` equal to ``date`` (a date string of the form
+            '%Y%m%d').
+        See ``Feed.get_stops_time_series()`` for a description of the output.
 
-        The time series is a Pandas data frame with a timestamp index 
-        for the 24-hour period on the given date sampled at 
-        the given frequency.
-        The maximum allowable frequency is 1 minute.
-        
-        Using a period index instead of a timestamp index would be more
-        apppropriate, but 
-        `Pandas 0.14.1 doesn't support period index frequencies at multiples of DateOffsets (e.g. '5Min') <http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period>`_.
-
-        The columns of the data frame are hierarchical (multi-index) with
-
-        - top level: name = 'indicator', values = ['num_vehicles']
-        - middle level: name = 'stop_id', values = the active stop IDs
-        - bottom level: name = 'direction_id', values = 0s and 1s
-
-        If ``split_directions == False``, then don't include the bottom level.
-        
-        If there are no active trips on the date, then return ``None``.
+        If there are no active stop times on the date, then return ``None``.
 
         NOTES:
 
-        - 'num_vehicles' should be resampled with ``how=np.sum``
-        - To remove the date and seconds from 
-          the time series f, do ``f.index = [t.time().strftime('%H:%M') 
-          for t in f.index.to_datetime()]``
-        - Takes about 0.25 minutes on the Portland feed.
+        This is a more user-friendly version of ``get_stops_time_series()``.
+        The latter function works without a feed, though.
+        Takes about 0.25 minutes on the Portland feed.
         """  
         if not date:
             return 
 
         # Get active stop times for date
-        ast = pd.merge(self.get_active_trips(date), self.stop_times)
-
-        if ast.empty:
-            return None
-
-        if split_directions:
-            # Alter stop IDs to encode trip direction: 
-            # <stop ID>-0 and <stop ID>-1
-            ast['stop_id'] = ast['stop_id'] + '-' +\
-              ast['direction_id'].map(str)            
-        stops = sorted(ast['stop_id'].unique())    
-
-        # Create one time series for each stop. Use a list first.    
-        bins = [i for i in range(24*60)] # One bin for each minute
-        num_bins = len(bins)
-
-        # Bin each stop departure time
-        def F(x):
-            return (utils.timestr_to_seconds(x)//60) % (24*60)
-
-        ast['departure_index'] = ast['departure_time'].map(F)
-
-        # Create one time series for each stop
-        series_by_stop = {stop: [0 for i in range(num_bins)] 
-          for stop in stops} 
-
-        for stop, group in ast.groupby('stop_id'):
-            counts = Counter((bin, 0) for bin in bins) +\
-              Counter(group['departure_index'].values)
-            series_by_stop[stop] = [counts[bin] for bin in bins]
-
-        # Combine lists into one time series.
-        # Actually, a dictionary indicator -> time series.
-        # Only one indicator in this case, but could add more
-        # in the future as was done with routes time series.
-        rng = pd.date_range(date, periods=24*60, freq='Min')
-        series_by_indicator = {'num_vehicles':
-          pd.DataFrame(series_by_stop, index=rng).fillna(0)}
-
-        # Combine all time series into one time series
-        g = combine_time_series(series_by_indicator, kind='stop',
-          split_directions=split_directions)
-        return downsample(g, freq=freq)
+        f = pd.merge(self.get_active_trips(date), self.stop_times)
+        return get_stops_time_series(f, split_directions=split_directions,
+            freq=freq, date_label=date)
 
     def get_stops_in_stations(self):
         """
@@ -1578,7 +1620,7 @@ class Feed(object):
 
         NOTES:
 
-        A more user-friendly version of ``get_routes_stats()``.
+        This is a more user-friendly version of ``get_routes_stats()``.
         The latter function works without a feed, though.
         Takes about 0.02 minutes on the Portland feed.
         """
@@ -1596,7 +1638,7 @@ class Feed(object):
         Take ``trips_stats``, which is the output of 
         ``self.get_trips_stats()``, cut it down to the subset ``S`` of trips
         that are active on the given date, and then call
-        ``Feed.get_routes_time_series_0()`` with ``S`` and the given 
+        ``Feed.get_routes_time_series()`` with ``S`` and the given 
         keyword arguments ``split_directions`` and ``freq``
         and with ``date_label = utils.date_to_str(date)``.
 
@@ -1606,7 +1648,7 @@ class Feed(object):
 
         NOTES:
 
-        A more user-friendly version of ``get_routes_time_series()``.
+        This is a more user-friendly version of ``get_routes_time_series()``.
         The latter function works without a feed, though.
         Takes about 0.03 minutes on the Portland feed.
         """  
