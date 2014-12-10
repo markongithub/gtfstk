@@ -8,6 +8,7 @@ v0.11.2 (2014-12-10)
   ``Feed.get_routes_stats()`` and ``Feed.get_routes_time_series()``
 - Fixed a bug in computing the last stop of each trip in ``get_trips_stats()``
 - Improved the accuracy of trip distances in ``get_trips_stats()``
+- Upgraded to Pandas 0.15.1
 
 v0.11.1 (2014-11-12)
 ----------------------
