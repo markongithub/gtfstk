@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.11.1 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.11.2 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.1',
+        VERSION:     '0.11.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.1 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.2 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.11.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,10 +57,6 @@ is valid.</p>
 2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.</p>
 <p>TODO:</p>
 <ul class="simple">
-<li>Possibly scoop out main logic from <tt class="docutils literal"><span class="pre">Feed.get_stops_stats()</span></tt> and 
-<tt class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></tt> and put it into top level functions
-for the sake of greater flexibility.  Similar to what i did for 
-<tt class="docutils literal"><span class="pre">Feed.get_routes_stats()</span></tt> and <tt class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></tt>.</li>
 <li>Possibly add the option in <tt class="docutils literal"><span class="pre">export()</span></tt> to convert back to original distance units.</li>
 </ul>
 <dl class="class">
@@ -228,7 +224,7 @@ that are active on the given date, and then call
 <tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt>.</p>
 <p>See <tt class="docutils literal"><span class="pre">get_routes_stats()</span></tt> for a description of the output.</p>
 <p>NOTES:</p>
-<p>A more user-friendly version of <tt class="docutils literal"><span class="pre">get_routes_stats()</span></tt>.
+<p>This is a more user-friendly version of <tt class="docutils literal"><span class="pre">get_routes_stats()</span></tt>.
 The latter function works without a feed, though.
 Takes about 0.02 minutes on the Portland feed.</p>
 </dd></dl>
@@ -239,13 +235,13 @@ Takes about 0.02 minutes on the Portland feed.</p>
 <dd><p>Take <tt class="docutils literal"><span class="pre">trips_stats</span></tt>, which is the output of 
 <tt class="docutils literal"><span class="pre">self.get_trips_stats()</span></tt>, cut it down to the subset <tt class="docutils literal"><span class="pre">S</span></tt> of trips
 that are active on the given date, and then call
-<tt class="docutils literal"><span class="pre">Feed.get_routes_time_series_0()</span></tt> with <tt class="docutils literal"><span class="pre">S</span></tt> and the given 
+<tt class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></tt> with <tt class="docutils literal"><span class="pre">S</span></tt> and the given 
 keyword arguments <tt class="docutils literal"><span class="pre">split_directions</span></tt> and <tt class="docutils literal"><span class="pre">freq</span></tt>
 and with <tt class="docutils literal"><span class="pre">date_label</span> <span class="pre">=</span> <span class="pre">utils.date_to_str(date)</span></tt>.</p>
 <p>See <tt class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></tt> for a description of the output.</p>
 <p>If there are no active trips on the date, then return <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
 <p>NOTES:</p>
-<p>A more user-friendly version of <tt class="docutils literal"><span class="pre">get_routes_time_series()</span></tt>.
+<p>This is a more user-friendly version of <tt class="docutils literal"><span class="pre">get_routes_time_series()</span></tt>.
 The latter function works without a feed, though.
 Takes about 0.03 minutes on the Portland feed.</p>
 </dd></dl>
@@ -292,60 +288,32 @@ Otherwise, return <tt class="docutils literal"><span class="pre">None</span></tt
 <dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.get_stops_stats">
 <tt class="descname">get_stops_stats</tt><big>(</big><em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a Pandas data frame with the following columns:</p>
-<ul class="simple">
-<li>stop_id</li>
-<li>direction_id</li>
-<li>num_vehicles: number of vehicles visiting stop</li>
-<li>max_headway: durations (in minuts) between 
-vehicle departures at the stop between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
-<tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given date</li>
-<li>mean_headway: durations (in minutes) between 
-vehicle departures at the stop between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
-<tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given date</li>
-<li>start_time: earliest departure time of a vehicle from this stop
-on the given date</li>
-<li>end_time: latest departure time of a vehicle from this stop
-on the given date</li>
-</ul>
-<p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then compute each stop&#8217;s stats
-using vehicles visiting it from both directions.
-The input <tt class="docutils literal"><span class="pre">date</span></tt> must be a string of the form &#8216;%Y%m%d&#8217;.</p>
+<dd><p>Get all the stop times <tt class="docutils literal"><span class="pre">S</span></tt> that have trips active on the given
+date and call <tt class="docutils literal"><span class="pre">get_stops_stats()</span></tt> with <tt class="docutils literal"><span class="pre">S</span></tt> and the keyword 
+arguments <tt class="docutils literal"><span class="pre">split_directions</span></tt>, <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt>, and 
+<tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt>.</p>
+<p>See <tt class="docutils literal"><span class="pre">get_stops_stats()</span></tt> for a description of the output.</p>
 <p>NOTES:</p>
-<p>Takes about 0.7 minutes on the Portland feed.</p>
+<p>This is a more user-friendly version of <tt class="docutils literal"><span class="pre">get_stops_stats()</span></tt>.
+The latter function works without a feed, though.
+Takes about 0.7 minutes on the Portland feed.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.get_stops_time_series">
 <tt class="descname">get_stops_time_series</tt><big>(</big><em>date</em>, <em>split_directions=False</em>, <em>freq='5Min'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stops_time_series" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a time series version of the following stops stats
-for the given date (string of the form &#8216;%Y%m%d&#8217;):</p>
-<ul class="simple">
-<li>number of vehicles by stop ID</li>
-</ul>
-<p>The time series is a Pandas data frame with a timestamp index 
-for the 24-hour period on the given date sampled at 
-the given frequency.
-The maximum allowable frequency is 1 minute.</p>
-<p>Using a period index instead of a timestamp index would be more
-apppropriate, but 
-<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period">Pandas 0.14.1 doesn&#8217;t support period index frequencies at multiples of DateOffsets (e.g. &#8216;5Min&#8217;)</a>.</p>
-<p>The columns of the data frame are hierarchical (multi-index) with</p>
-<ul class="simple">
-<li>top level: name = &#8216;indicator&#8217;, values = [&#8216;num_vehicles&#8217;]</li>
-<li>middle level: name = &#8216;stop_id&#8217;, values = the active stop IDs</li>
-<li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
-</ul>
-<p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then don&#8217;t include the bottom level.</p>
-<p>If there are no active trips on the date, then return <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+<dd><p>Get all the stop times <tt class="docutils literal"><span class="pre">S</span></tt> that have trips active on the given
+date and call <tt class="docutils literal"><span class="pre">get_stops_stats()</span></tt> with <tt class="docutils literal"><span class="pre">S</span></tt> and the keyword 
+arguments <tt class="docutils literal"><span class="pre">split_directions</span></tt> and <tt class="docutils literal"><span class="pre">freq</span></tt> and with 
+<tt class="docutils literal"><span class="pre">date_label</span></tt> equal to <tt class="docutils literal"><span class="pre">date</span></tt> (a date string of the form</p>
+<blockquote>
+<div>&#8216;%Y%m%d&#8217;).</div></blockquote>
+<p>See <tt class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></tt> for a description of the output.</p>
+<p>If there are no active stop times on the date, then return <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
 <p>NOTES:</p>
-<ul class="simple">
-<li>&#8216;num_vehicles&#8217; should be resampled with <tt class="docutils literal"><span class="pre">how=np.sum</span></tt></li>
-<li>To remove the date and seconds from 
-the time series f, do <tt class="docutils literal"><span class="pre">f.index</span> <span class="pre">=</span> <span class="pre">[t.time().strftime('%H:%M')</span> 
-<span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">f.index.to_datetime()]</span></tt></li>
-<li>Takes about 0.25 minutes on the Portland feed.</li>
-</ul>
+<p>This is a more user-friendly version of <tt class="docutils literal"><span class="pre">get_stops_time_series()</span></tt>.
+The latter function works without a feed, though.
+Takes about 0.25 minutes on the Portland feed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -390,11 +358,13 @@ then use that column to compute the distance column (in km).
 Elif <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></tt>, then compute the distance 
 column using the shapes and Shapely. 
 Otherwise, set the distances to <tt class="docutils literal"><span class="pre">np.nan</span></tt>.</p>
-<p>Takes about 0.13 minutes on the Portland feed, which has the
-<tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> column.
-Using <tt class="docutils literal"><span class="pre">get_dist_from_shapes=True</span></tt> on the Portland feed, yields 
-a maximum absolute difference of 0.75 km from using 
-<tt class="docutils literal"><span class="pre">get_dist_from_shapes=True</span></tt>.</p>
+<p>Calculating trip distances with <tt class="docutils literal"><span class="pre">get_dist_from_shapes=True</span></tt>
+seems pretty accurate.
+For example, calculating trip distances on the Portland feed using
+<tt class="docutils literal"><span class="pre">get_dist_from_shapes=False</span></tt> and <tt class="docutils literal"><span class="pre">get_dist_from_shapes=True</span></tt>,
+yields a diffence of at most 0.83km.</p>
+<p>Takes about 0.20 minutes on the Portland feed, which has the
+<tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> column.</p>
 </dd></dl>
 
 <dl class="method">
@@ -539,9 +509,6 @@ calculate time series for the routes in that subset.</p>
 for a 24-hour period sampled at the given frequency.
 The maximum allowable frequency is 1 minute.
 <tt class="docutils literal"><span class="pre">date_label</span></tt> is used as the date for the timestamp index.</p>
-<p>Using a period index instead of a timestamp index would be more
-apppropriate, but 
-<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/timeseries.html#period">Pandas 0.14.1 doesn&#8217;t support period index frequencies at multiples of DateOffsets (e.g. &#8216;5Min&#8217;)</a>.</p>
 <p>The columns of the data frame are hierarchical (multi-index) with</p>
 <ul class="simple">
 <li>top level: name = &#8216;indicator&#8217;, values = [&#8216;service_distance&#8217;,
@@ -569,6 +536,66 @@ from &#8216;service_distance&#8217; and &#8216;service_duration&#8217;</li>
 time series f, do <tt class="docutils literal"><span class="pre">f.index</span> <span class="pre">=</span> <span class="pre">[t.time().strftime('%H:%M')</span> 
 <span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">f.index.to_datetime()]</span></tt></p>
 </li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.feed.get_stops_stats">
+<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">get_stops_stats</tt><big>(</big><em>stop_times_subset</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a subset of <tt class="docutils literal"><span class="pre">Feed.stop_times</span></tt>, 
+return a Pandas data frame that provides summary stats about
+the stops in that subset.
+The columns of the data frame are:</p>
+<ul class="simple">
+<li>stop_id</li>
+<li>direction_id</li>
+<li>num_vehicles: number of vehicles visiting stop</li>
+<li>max_headway: durations (in minutes) between 
+vehicle departures at the stop between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
+<tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given date</li>
+<li>mean_headway: durations (in minutes) between 
+vehicle departures at the stop between <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt> and 
+<tt class="docutils literal"><span class="pre">headway_end_timestr</span></tt> on the given date</li>
+<li>start_time: earliest departure time of a vehicle from this stop
+on the given date</li>
+<li>end_time: latest departure time of a vehicle from this stop
+on the given date</li>
+</ul>
+<p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then compute each stop&#8217;s stats
+using vehicles visiting it from both directions.</p>
+<p>NOTES:</p>
+<p>Takes about 0.7 minutes on the Portland feed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.feed.get_stops_time_series">
+<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">get_stops_time_series</tt><big>(</big><em>stop_times_subset</em>, <em>split_directions=False</em>, <em>freq='5Min'</em>, <em>date_label='20010101'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.get_stops_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a subset of <tt class="docutils literal"><span class="pre">Feed.stop_times</span></tt>, 
+return a time series that describes</p>
+<ul class="simple">
+<li>the number of vehicles by stop ID</li>
+</ul>
+<p>in that subset.
+The time series is a Pandas data frame with a timestamp index 
+for a 24-hour period sampled at the given frequency.
+The maximum allowable frequency is 1 minute.
+The timestamp includes the date given by <tt class="docutils literal"><span class="pre">date_label</span></tt>,
+a date string of the form &#8216;%Y%m%d&#8217;.</p>
+<p>The columns of the data frame are hierarchical (multi-index) with</p>
+<ul class="simple">
+<li>top level: name = &#8216;indicator&#8217;, values = [&#8216;num_vehicles&#8217;]</li>
+<li>middle level: name = &#8216;stop_id&#8217;, values = the active stop IDs</li>
+<li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
+</ul>
+<p>If <tt class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></tt>, then don&#8217;t include the bottom level.</p>
+<p>If <tt class="docutils literal"><span class="pre">stop_times_subset</span></tt> is <tt class="docutils literal"><span class="pre">None</span></tt> or empty, then return <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+<p>NOTES:</p>
+<ul class="simple">
+<li>&#8216;num_vehicles&#8217; should be resampled with <tt class="docutils literal"><span class="pre">how=np.sum</span></tt></li>
+<li>To remove the date and seconds from 
+the time series f, do <tt class="docutils literal"><span class="pre">f.index</span> <span class="pre">=</span> <span class="pre">[t.time().strftime('%H:%M')</span> 
+<span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">f.index.to_datetime()]</span></tt></li>
+<li>Takes about 0.25 minutes on the Portland feed.</li>
 </ul>
 </dd></dl>
 
@@ -644,7 +671,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.11.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
