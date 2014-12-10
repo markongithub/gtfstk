@@ -6,6 +6,8 @@ v0.11.2 (2014-12-10)
 - Scooped out main logic from ``Feed.get_stops_stats()`` and ``Feed.get_stops_time_series()`` and put it into top level functions
   for the sake of greater flexibility.  Similar to what i did for 
   ``Feed.get_routes_stats()`` and ``Feed.get_routes_time_series()``
+- Fixed a bug in computing the last stop of each trip in ``get_trips_stats()``
+- Improved the accuracy of trip distances in ``get_trips_stats()``
 
 v0.11.1 (2014-11-12)
 ----------------------

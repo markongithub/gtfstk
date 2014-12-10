@@ -1031,7 +1031,7 @@ class Feed(object):
         s = [(f[date].sum(), date) for date in dates]
         return max(s)[1]
 
-    def get_trips_stats_new(self, get_dist_from_shapes=False):
+    def get_trips_stats(self, get_dist_from_shapes=False):
         """
         Return a Pandas data frame with the following columns:
 
@@ -1057,23 +1057,11 @@ class Feed(object):
         column using the shapes and Shapely. 
         Otherwise, set the distances to ``np.nan``.
 
-        Calculating trip distances with ``get_dist_from_shapes``
-        works as follows.
-        Get the distance ``d`` along the trip's shape between the first
-        and last stops.
-        If ``d`` divided by the number of stops on the trip
-        is greater than 0.2km (a little error checking), then return ``d``.
-        Otherwise, return the length of the trip's shape.
-        Calculating distances this way is pretty accurate.
-        
+        Calculating trip distances with ``get_dist_from_shapes=True``
+        seems pretty accurate.
         For example, calculating trip distances on the Portland feed using
         ``get_dist_from_shapes=False`` and ``get_dist_from_shapes=True``,
-        we get a diffence of at most 1km on 99% of trips and a maximum 
-        absolute difference of 3.4km.
-        The big differences occur when a trip's shape intersects itself at 
-        the start stop or end stop.
-        In that case Shapely miscalculates the distance of the stops 
-        along the shape.
+        yields a diffence of at most 0.83km.
 
         Takes about 0.20 minutes on the Portland feed, which has the
         ``shape_dist_traveled`` column.
@@ -1117,122 +1105,51 @@ class Feed(object):
 
             def get_dist(group):
                 """
-                Return the distance between the first and last trip stops.
-                If that distance divided by the number of stops on the trip 
-                is less than 200m, then assume that something went wrong 
-                and instead return the length of the trip's linestring.
+                Return the distance traveled along the trip between the first
+                and last stops.
+                If that distance is negative or if the trip's linestring 
+                intersects itself, then return the length of the trip's 
+                linestring instead.
                 """
                 shape = group['shape_id'].iat[0]
                 try:
+                    # Get the linestring for this trip
                     linestring = linestring_by_shape[shape]
                 except KeyError:
                     # Shape ID is NaN or doesn't exist in shapes.
                     # No can do.
                     return np.nan 
+                
+                # If the linestring intersects itself, then that can cause
+                # errors in the computation below, so just 
+                # return the length of the linestring as a good approximation
+                if not linestring.is_simple:
+                    return linestring.length/1000
+
+                # Otherwise, return the difference of the distances along
+                # the linestring of the first and last stop
                 start_stop = group['stop_id'].iat[0]
                 end_stop = group['stop_id'].iat[-1]
                 try:
                     start_point = point_by_stop[start_stop]
                     end_point = point_by_stop[end_stop]
                 except KeyError:
-                    # One of the two stop IDs is NaN.
-                    # Approximate trip length by length of linestring.
+                    # One of the two stop IDs is NaN, so just
+                    # return the length of the linestring
                     return linestring.length/1000
                 d1 = linestring.project(start_point)
                 d2 = linestring.project(end_point)
                 d = d2 - d1
-                num_stops = group.shape[0]
-                if d/num_stops >= 200:
-                    return (d2 - d1)/1000
+                if d > 0:
+                    return d/1000
+                # num_stops = group.shape[0]
+                # if d/num_stops >= 200:
+                #     return (d2 - d1)/1000
                 else:
-                    # Something is probably wrong.
-                    # Approximate trip length by length of linestring.
+                    # Something is probably wrong, so just
+                    # return the length of the linestring
                     return linestring.length/1000
 
-            h['distance'] = g.apply(get_dist)
-        else:
-            h['distance'] = np.nan
-
-        stats = pd.merge(stats, h.reset_index()).sort(['route_id', 
-          'direction_id', 'start_time'])
-        return stats
-
-    def get_trips_stats(self, get_dist_from_shapes=False):
-        """
-        Return a Pandas data frame with the following columns:
-
-        - trip_id
-        - direction_id
-        - route_id
-        - shape_id
-        - start_time: first departure time of the trip
-        - end_time: last departure time of the trip
-        - duration: duration of the trip in hours
-        - start_stop_id: stop ID of the first stop of the trip 
-        - end_stop_id: stop ID of the last stop of the trip
-        - num_stops: number of stops on trip
-        - distance: distance of the trip in kilometers; contains all ``np.nan``
-          entries if ``self.shapes is None``
-
-        NOTES:
-
-        If ``self.stop_times`` has a ``shape_dist_traveled`` column
-        and ``get_dist_from_shapes == False``,
-        then use that column to compute the distance column (in km).
-        Elif ``self.shapes is not None``, then compute the distance 
-        column using the shapes and Shapely. 
-        Otherwise, set the distances to ``np.nan``.
-
-        Takes about 0.13 minutes on the Portland feed, which has the
-        ``shape_dist_traveled`` column.
-        Using ``get_dist_from_shapes=True`` on the Portland feed, yields 
-        a maximum absolute difference of 0.75 km from using 
-        ``get_dist_from_shapes=True``.
-        """
-        trips = self.trips
-        stop_times = self.stop_times
-        num_trips = trips.shape[0]
-        
-        # Initialize data frame. Base it on trips.txt.
-        stats = trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
-
-        # Get the relavent data frame and convert departure times
-        # to seconds past midnight to compute durations
-        f = pd.merge(trips, stop_times).sort(['trip_id', 'stop_sequence'])
-        f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
-        g = f.groupby('trip_id')
-
-        # Compute start time, end time, duration
-        h = g['departure_time'].agg(OrderedDict([
-          ('start_time', lambda x: x.iat[0]), 
-          ('end_time', lambda x: x.iat[-1])]))
-        h['duration'] = (h['end_time'] - h['start_time'])/3600
-
-        # Compute start stop, end stop, num stops
-        h['start_stop'] = g.apply(lambda group: group['stop_id'].iat[0])
-        h['end_stop'] = g.apply(lambda group: group['stop_id'].iat[-1])
-        h['num_stops'] = g.size()
-
-        # Convert times back to time strings
-        h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
-          applymap(lambda x: utils.timestr_to_seconds(x, inverse=True))
-
-        # Compute trip distance (in kilometers) from shapes
-        def get_dist(group):
-            shape = group['shape_id'].iat[0]
-            try:
-                return linestring_by_shape[shape].length/1000
-            except KeyError:
-                # Shape ID is nan or doesn't exist in shapes
-                return np.nan 
-
-        if 'shape_dist_traveled' in f.columns and not get_dist_from_shapes:
-            # Compute distances using shape_dist_traveled column
-            h['distance'] = g.apply(lambda group: 
-              group['shape_dist_traveled'].max())
-        elif self.shapes is not None:
-            # Compute distances using the shapes and Shapely
-            linestring_by_shape = self.get_linestring_by_shape()
             h['distance'] = g.apply(get_dist)
         else:
             h['distance'] = np.nan
