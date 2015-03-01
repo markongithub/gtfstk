@@ -20,7 +20,7 @@ import shutil
 
 import pandas as pd
 import numpy as np
-from shapely.geometry import Point, LineString
+from shapely.geometry import Point, LineString, mapping
 import utm
 
 import gtfs_toolkit.utils as utils
@@ -1158,6 +1158,7 @@ class Feed(object):
           'direction_id', 'start_time'])
         return stats
 
+
     def get_linestring_by_shape(self, use_utm=True):
         """
         Return a dictionary with structure
@@ -1190,6 +1191,31 @@ class Feed(object):
                 lonlats = zip(lons, lats)
                 linestring_by_shape[shape] = LineString(lonlats)
         return linestring_by_shape
+
+
+    def get_shapes_geojson(self):
+        """
+        Return a (decoded) GeoJSON feature collection of linestring features
+        representing ``self.shapes``.
+        Each feature will have a ``shape_id`` property. 
+        If ``self.shapes is None``, then return ``None``.
+        The coordinates reference system is the default one for GeoJSON,
+        namely WGS84.
+        """
+
+        linestring_by_shape = self.get_linestring_by_shape(use_utm=False)
+        if linestring_by_shape is None:
+            return
+
+        return {
+          'type': 'FeatureCollection', 
+          'features': [{
+            'properties': {'shape_id': shape},
+            'type': 'Feature',
+            'geometry': mapping(linestring),
+            }
+            for shape, linestring in linestring_by_shape.items()]
+          }
 
     def get_vehicles_locations(self, linestring_by_shape, date, times):
         """
