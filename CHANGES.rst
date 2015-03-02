@@ -1,6 +1,13 @@
 Changes
 ========
 
+v0.11.3 (2015-03-02)
+----------------------
+- Add ``get_shapes_geojson()``
+- Renamed ``get_active_trips()`` and ``get_active_stops()`` to ``get_trips()`` and ``get_stops()``
+- Upgraded to Pandas 0.15.2
+
+
 v0.11.2 (2014-12-10)
 ----------------------
 - Scooped out main logic from ``Feed.get_stops_stats()`` and ``Feed.get_stops_time_series()`` and put it into top level functions

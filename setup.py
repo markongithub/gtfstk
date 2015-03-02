@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='gtfs-toolkit',
-    version='0.11.2',
+    version='0.11.3',
     author='Alexander Raichev',
     author_email='alex@raichev.net',
     packages=['gtfs_toolkit', 'tests'],
@@ -11,8 +11,8 @@ setup(
     description='A set of Python 3.4 tools for processing General Transit Feed Specification (GTFS) data',
     long_description=open('README.rst').read(),
     install_requires=[
-        'Shapely>=1.3.2',
-        'pandas==0.15.1',
+        'Shapely==1.5.1',
+        'pandas==0.15.2',
         'utm>=0.3.1',    
     ],
 )
