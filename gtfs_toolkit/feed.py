@@ -142,10 +142,7 @@ def get_stops_time_series(stop_times_subset, split_directions=False,
   freq='5Min', date_label='20010101'):
     """
     Given a subset of ``Feed.stop_times``, 
-    return a time series that describes
-    
-    - the number of vehicles by stop ID
-
+    return a time series that describes the number of vehicles by stop ID
     in that subset.
     The time series is a Pandas data frame with a timestamp index 
     for a 24-hour period sampled at the given frequency.
@@ -1544,8 +1541,8 @@ class Feed(object):
         Get all the stop times ``S`` that have trips active on the given
         date and call ``get_stops_stats()`` with ``S`` and the keyword 
         arguments ``split_directions`` and ``freq`` and with 
-        ``date_label`` equal to ``date`` (a date string of the form
-            '%Y%m%d').
+        ``date_label`` equal to ``date`` 
+        (a date string of the form '%Y%m%d').
         See ``Feed.get_stops_time_series()`` for a description of the output.
 
         If there are no active stop times on the date, then return ``None``.
