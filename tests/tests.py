@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 from shapely.geometry import Point, LineString, mapping
+from shapely.geometry import shape as sh_shape
 
 from gtfs_toolkit.feed import *
 from gtfs_toolkit.utils import *
@@ -137,10 +138,10 @@ class TestFeed(unittest.TestCase):
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
-    def test_get_active_trips(self):
+    def test_get_trips(self):
         feed = copy(cairns)
         date = feed.get_first_week()[0]
-        f = feed.get_active_trips(date)
+        f = feed.get_trips(date)
         # Should be a data frame
         self.assertIsInstance(f, pd.core.frame.DataFrame)
         # Should have the correct shape
@@ -149,7 +150,7 @@ class TestFeed(unittest.TestCase):
         # Should have correct columns
         self.assertEqual(set(f.columns), set(feed.trips.columns))
 
-        g = feed.get_active_trips(date, "07:30:00")
+        g = feed.get_trips(date, "07:30:00")
         # Should be a data frame
         self.assertIsInstance(g, pd.core.frame.DataFrame)
         # Should have the correct shape
@@ -166,7 +167,7 @@ class TestFeed(unittest.TestCase):
         date = feed.get_first_week()[0]
         timestrs = ['08:00:00']
         f = feed.get_vehicles_locations(linestring_by_shape, date, timestrs)
-        g = feed.get_active_trips(date, timestrs[0])
+        g = feed.get_trips(date, timestrs[0])
         # Should be a data frame
         self.assertIsInstance(f, pd.core.frame.DataFrame)
         # Should have the correct number of rows
@@ -225,6 +226,15 @@ class TestFeed(unittest.TestCase):
         # Should be None if feed.shapes is None
         feed2 = cairns_shapeless
         self.assertIsNone(feed2.get_linestring_by_shape())
+
+    def test_get_shapes_geojson(self):
+        feed = copy(cairns)
+        collection = json.loads(feed.get_shapes_geojson())
+        linestring_by_shape = feed.get_linestring_by_shape(use_utm=False)
+        for f in collection['features']:
+            shape = f['properties']['shape_id']
+            geom = sh_shape(f['geometry'])
+            self.assertTrue(geom.equals(linestring_by_shape[shape]))
 
     def test_get_point_by_stop(self):
         feed = copy(cairns)
@@ -287,10 +297,10 @@ class TestFeed(unittest.TestCase):
             sdt = list(group['shape_dist_traveled'].values)
             self.assertEqual(sdt, sorted(sdt))
 
-    def get_active_stops(self):
+    def test_get_stops(self):
         feed = copy(cairns)
         date = feed.get_first_week()[0]
-        f = feed.get_active_stops(date)
+        f = feed.get_stops(date)
         # Should be a data frame
         self.assertIsInstance(f, pd.core.frame.DataFrame)
         # Should have the correct shape
@@ -299,7 +309,7 @@ class TestFeed(unittest.TestCase):
         # Should have correct columns
         self.assertEqual(set(f.columns), set(feed.stops.columns))
 
-        g = feed.get_active_stops(date, "07:30:00")
+        g = feed.get_stops(date, "07:30:00")
         # Should be a data frame
         self.assertIsInstance(g, pd.core.frame.DataFrame)
         # Should have the correct shape
@@ -316,14 +326,14 @@ class TestFeed(unittest.TestCase):
         self.assertIsInstance(stops_stats, pd.core.frame.DataFrame)
         # Should contain the correct stops
         get_stops = set(stops_stats['stop_id'].values)
-        f = feed.get_active_stops(date)
+        f = feed.get_stops(date)
         expect_stops = set(f['stop_id'].values)
         self.assertEqual(get_stops, expect_stops)
 
     def test_get_stops_time_series(self):
         feed = copy(cairns)
         date = feed.get_first_week()[0]
-        ast = pd.merge(feed.get_active_trips(date), feed.stop_times)
+        ast = pd.merge(feed.get_trips(date), feed.stop_times)
         for split_directions in [True, False]:
             f = feed.get_stops_stats(date, 
               split_directions=split_directions)
@@ -363,7 +373,7 @@ class TestFeed(unittest.TestCase):
         feed = copy(cairns)
         date = feed.get_first_week()[0]
         trips_stats = feed.get_trips_stats()
-        f = pd.merge(trips_stats, feed.get_active_trips(date))
+        f = pd.merge(trips_stats, feed.get_trips(date))
         for split_directions in [True, False]:
             rs = feed.get_routes_stats(trips_stats, date, 
               split_directions=split_directions)
@@ -381,7 +391,7 @@ class TestFeed(unittest.TestCase):
         feed = copy(cairns)
         date = feed.get_first_week()[0]
         trips_stats = feed.get_trips_stats()
-        ats = pd.merge(trips_stats, feed.get_active_trips(date))
+        ats = pd.merge(trips_stats, feed.get_trips(date))
         for split_directions in [True, False]:
             f = feed.get_routes_stats(trips_stats, date, 
               split_directions=split_directions)

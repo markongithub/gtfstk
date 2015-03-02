@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.11.2 documentation</title>
+    <title>GTFS Toolkit 0.11.3 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.2',
+        VERSION:     '0.11.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,23 +24,13 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.2 documentation" href="index.html" />
-    <link rel="prev" title="The utils Module" href="utils.html" /> 
+    <link rel="top" title="None" href="index.html#document-index" /> 
   </head>
   <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="utils.html" title="The utils Module"
-             accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html#document-index">GTFS Toolkit 0.11.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -49,8 +39,95 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-gtfs_toolkit.feed">
-<span id="the-feed-module"></span><h1>The feed Module<a class="headerlink" href="#module-gtfs_toolkit.feed" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="welcome-to-gtfs-toolkit-s-documentation">
+<h1>Welcome to GTFS Toolkit&#8217;s documentation!<a class="headerlink" href="#welcome-to-gtfs-toolkit-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<span id="document-introduction"></span><div class="section" id="gtfs-toolkit">
+<h2>GTFS Toolkit<a class="headerlink" href="#gtfs-toolkit" title="Permalink to this headline">¶</a></h2>
+<p>This is a set of Python 3.4 tools for processing <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
+It&#8217;s mostly for computing network-level statistics, such as mean daily service distance per route and mean daily number of vehicles per stop.
+Uses Pandas and Shapely to do the heavy lifting.</p>
+<div class="section" id="warning">
+<h3>Warning<a class="headerlink" href="#warning" title="Permalink to this headline">¶</a></h3>
+<p>This is an alpha release.
+It needs more testing and the API might change.
+Use at your own risk.</p>
+</div>
+<div class="section" id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">gtfs-toolkit</span></tt></p>
+</div>
+<div class="section" id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>Play with <tt class="docutils literal"><span class="pre">examples/gtfs_toolkit_examples.ipynb</span></tt> in an iPython notebook</p>
+</div>
+</div>
+<span id="document-utils"></span><div class="section" id="module-gtfs_toolkit.utils">
+<span id="the-utils-module"></span><h2>The utils Module<a class="headerlink" href="#module-gtfs_toolkit.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="gtfs_toolkit.utils.datestr_to_date">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">datestr_to_date</tt><big>(</big><em>x</em>, <em>format_str='%Y%m%d'</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.datestr_to_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a string object <tt class="docutils literal"><span class="pre">x</span></tt> representing a date in the given format,
+convert it to a datetime.date object and return the result
+If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then assume that <tt class="docutils literal"><span class="pre">x</span></tt> is a date object
+and return its corresponding string in the given format.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.get_segment_length">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">get_segment_length</tt><big>(</big><em>linestring</em>, <em>p</em>, <em>q=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.get_segment_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a Shapely linestring and two Shapely points,
+project the points onto the linestring, and return the distance along
+the linestring between the two points.
+If <tt class="docutils literal"><span class="pre">q</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return the distance from the start of the linestring
+to the projection of <tt class="docutils literal"><span class="pre">p</span></tt>.
+The distance is measured in the native coordinates of the linestring.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.time_it">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">time_it</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.time_it" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.timestr_mod24">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">timestr_mod24</tt><big>(</big><em>timestr</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.timestr_mod24" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a GTFS time string in the format %H:%M:%S, return a timestring
+in the same format but with the hours taken modulo 24.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.timestr_to_seconds">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">timestr_to_seconds</tt><big>(</big><em>x</em>, <em>inverse=False</em>, <em>mod24=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.timestr_to_seconds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a time string of the form &#8216;%H:%M:%S&#8217;, return the number of seconds
+past midnight that it represents.
+In keeping with GTFS standards, the hours entry may be greater than 23.
+If <tt class="docutils literal"><span class="pre">mod24</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then return the number of seconds modulo <tt class="docutils literal"><span class="pre">24*3600</span></tt>.
+If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then do the inverse operation.
+In this case, if <tt class="docutils literal"><span class="pre">mod24</span> <span class="pre">==</span> <span class="pre">True</span></tt> also, then first take the number of 
+seconds modulo <tt class="docutils literal"><span class="pre">24*3600</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.to_km">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">to_km</tt><big>(</big><em>x</em>, <em>units='km'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.to_km" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a distance <tt class="docutils literal"><span class="pre">x</span></tt> in units <tt class="docutils literal"><span class="pre">units</span></tt>,
+convert it to kilometers and return the result.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_toolkit.utils.weekday_to_str">
+<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">weekday_to_str</tt><big>(</big><em>weekday</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.weekday_to_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a weekday, that is, an integer in <tt class="docutils literal"><span class="pre">range(7)</span></tt>, return
+it&#8217;s corresponding weekday name as a lowercase string.
+Here 0 -&gt; &#8216;monday&#8217;, 1 -&gt; &#8216;tuesday&#8217;, and so on.
+If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then perform the inverse operation.</p>
+</dd></dl>
+
+</div>
+<span id="document-feed"></span><div class="section" id="module-gtfs_toolkit.feed">
+<span id="the-feed-module"></span><h2>The feed Module<a class="headerlink" href="#module-gtfs_toolkit.feed" title="Permalink to this headline">¶</a></h2>
 <p>Some tools for computing stats from a GTFS feed, assuming the feed
 is valid.</p>
 <p>All time estimates below were produced on a 2013 MacBook Pro with a
@@ -142,27 +219,6 @@ All distances will be displayed in kilometers.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_stops">
-<tt class="descname">get_stops</tt><big>(</big><em>date</em>, <em>time=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stops" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the section of <tt class="docutils literal"><span class="pre">self.stops</span></tt> that contains
-only stops active on the given date (string of the form &#8216;%Y%m%d&#8217;).
-If a time is given in the form of a GTFS time string &#8216;%H:%M:%S&#8217;,
-then return only those stops that have a departure time at
-that date and time.
-Do not take times modulo 24.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_trips">
-<tt class="descname">get_trips</tt><big>(</big><em>date</em>, <em>time=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_trips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the section of <tt class="docutils literal"><span class="pre">self.trips</span></tt> that contains
-only trips active on the given date (string of the form &#8216;%Y%m%d&#8217;).
-If a time is given in the form of a GTFS time string %H:%M:%S,
-then return only those trips active at that date and time.
-Do not take times modulo 24.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.get_busiest_date_of_first_week">
 <tt class="descname">get_busiest_date_of_first_week</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_busiest_date_of_first_week" title="Permalink to this definition">¶</a></dt>
 <dd><p>Consider the dates in <tt class="docutils literal"><span class="pre">self.get_first_week()</span></tt> and 
@@ -247,6 +303,17 @@ Takes about 0.03 minutes on the Portland feed.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.get_shapes_geojson">
+<tt class="descname">get_shapes_geojson</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_shapes_geojson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string that is a GeoJSON feature collection of 
+linestring features representing <tt class="docutils literal"><span class="pre">self.shapes</span></tt>.
+Each feature will have a <tt class="docutils literal"><span class="pre">shape_id</span></tt> property. 
+If <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return <tt class="docutils literal"><span class="pre">None</span></tt>.
+The coordinates reference system is the default one for GeoJSON,
+namely WGS84.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gtfs_toolkit.feed.Feed.get_stations_stats">
 <tt class="descname">get_stations_stats</tt><big>(</big><em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stations_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this feed has station data, that is, &#8216;location_type&#8217; and
@@ -257,6 +324,19 @@ Otherwise, return <tt class="docutils literal"><span class="pre">None</span></tt
 <p>NOTES:</p>
 <p>Takes about 0.2 minutes on the Portland feed given the first
 five weekdays of the feed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.get_stops">
+<tt class="descname">get_stops</tt><big>(</big><em>date=None</em>, <em>time=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the section of <tt class="docutils literal"><span class="pre">self.stops</span></tt> that contains
+only stops active on the given date (string of the form &#8216;%Y%m%d&#8217;).
+If <tt class="docutils literal"><span class="pre">date</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return all stops.
+If a date and a time are given, where the time is in the form of 
+a GTFS time string &#8216;%H:%M:%S&#8217;,
+then return only those stops that have a departure time at
+that date and time.
+Do not take times modulo 24.</p>
 </dd></dl>
 
 <dl class="method">
@@ -314,6 +394,18 @@ arguments <tt class="docutils literal"><span class="pre">split_directions</span>
 <p>This is a more user-friendly version of <tt class="docutils literal"><span class="pre">get_stops_time_series()</span></tt>.
 The latter function works without a feed, though.
 Takes about 0.25 minutes on the Portland feed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfs_toolkit.feed.Feed.get_trips">
+<tt class="descname">get_trips</tt><big>(</big><em>date=None</em>, <em>time=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_trips" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the section of <tt class="docutils literal"><span class="pre">self.trips</span></tt> that contains
+only trips active on the given date (string of the form &#8216;%Y%m%d&#8217;).
+If <tt class="docutils literal"><span class="pre">date</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return all trips.
+If a date and time are given, where the time is in the form of a GTFS 
+time string %H:%M:%S, then return only those trips active at that 
+date and time.
+Do not take times modulo 24.</p>
 </dd></dl>
 
 <dl class="method">
@@ -627,6 +719,16 @@ for a nice-looking plot.</p>
 </dd></dl>
 
 </div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
 
 
           </div>
@@ -634,27 +736,18 @@ for a nice-looking plot.</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="utils.html"
-                        title="previous chapter">The utils Module</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/feed.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  <h3><a href="index.html#document-index">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-introduction">GTFS Toolkit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#warning">Warning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-utils">The utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-feed">The feed Module</a></li>
+</ul>
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -662,16 +755,7 @@ for a nice-looking plot.</p>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="utils.html" title="The utils Module"
-             >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html#document-index">GTFS Toolkit 0.11.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
