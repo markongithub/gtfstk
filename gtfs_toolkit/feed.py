@@ -17,6 +17,7 @@ import os
 import zipfile
 import tempfile
 import shutil
+import json
 
 import pandas as pd
 import numpy as np
@@ -962,16 +963,18 @@ class Feed(object):
         # If you made it here, then something went wrong
         return False
 
-    def get_active_trips(self, date, time=None):
+    def get_trips(self, date=None, time=None):
         """
         Return the section of ``self.trips`` that contains
         only trips active on the given date (string of the form '%Y%m%d').
-        If a time is given in the form of a GTFS time string %H:%M:%S,
-        then return only those trips active at that date and time.
+        If ``date is None``, then return all trips.
+        If a date and time are given, where the time is in the form of a GTFS 
+        time string %H:%M:%S, then return only those trips active at that 
+        date and time.
         Do not take times modulo 24.
         """
         f = self.trips.copy()
-        if not date:
+        if date is None:
             return f
 
         f['is_active'] = f['trip_id'].map(lambda trip: 
@@ -1192,11 +1195,10 @@ class Feed(object):
                 linestring_by_shape[shape] = LineString(lonlats)
         return linestring_by_shape
 
-
     def get_shapes_geojson(self):
         """
-        Return a (decoded) GeoJSON feature collection of linestring features
-        representing ``self.shapes``.
+        Return a string that is a GeoJSON feature collection of 
+        linestring features representing ``self.shapes``.
         Each feature will have a ``shape_id`` property. 
         If ``self.shapes is None``, then return ``None``.
         The coordinates reference system is the default one for GeoJSON,
@@ -1207,7 +1209,7 @@ class Feed(object):
         if linestring_by_shape is None:
             return
 
-        return {
+        d = {
           'type': 'FeatureCollection', 
           'features': [{
             'properties': {'shape_id': shape},
@@ -1216,6 +1218,7 @@ class Feed(object):
             }
             for shape, linestring in linestring_by_shape.items()]
           }
+        return json.dumps(d)
 
     def get_vehicles_locations(self, linestring_by_shape, date, times):
         """
@@ -1247,7 +1250,7 @@ class Feed(object):
           "via self.stop_times = self.add_dist_to_stop_times()."
         
         # Get active trips
-        at = self.get_active_trips(date)
+        at = self.get_trips(date)
 
         # Merge active trips with stop times and convert
         # times to seconds past midnight
@@ -1409,23 +1412,6 @@ class Feed(object):
                 for i in nan_indices:
                     distances[i] = np.nan
 
-                # # Old method
-                # total_dist = group['distance'].iat[0]  # km
-                # duration = group['duration'].iat[0] # hours
-                # speed = total_dist/(duration*3600) # km/s
-                # times = group['departure_time'].values # seconds
-                # # Build up distances
-                # distances = [0]
-                # d = 0
-                # t_prev = times[0]
-                # for t in times[1:]:
-                #     if np.isnan(t):
-                #         distances.append(np.nan)
-                #     else:
-                #         d += speed*(t - t_prev)
-                #         distances.append(d)
-                #         t_prev = t
-
             group['shape_dist_traveled'] = distances
             return group
 
@@ -1478,19 +1464,21 @@ class Feed(object):
         result = f.groupby('shape_id', group_keys=False).apply(get_dist)
         self.shapes = result
 
-    def get_active_stops(self, date, time=None):
+    def get_stops(self, date=None, time=None):
         """
         Return the section of ``self.stops`` that contains
         only stops active on the given date (string of the form '%Y%m%d').
-        If a time is given in the form of a GTFS time string '%H:%M:%S',
+        If ``date is None``, then return all stops.
+        If a date and a time are given, where the time is in the form of 
+        a GTFS time string '%H:%M:%S',
         then return only those stops that have a departure time at
         that date and time.
         Do not take times modulo 24.
         """    
-        if not date:
-            return    
+        if date is None:
+            return self.stops.copy()    
         
-        f = pd.merge(self.get_active_trips(date), self.stop_times)
+        f = pd.merge(self.get_trips(date), self.stop_times)
         if time:
             f[f['departure_time'] == time]
         active_stop_ids = set(f['stop_id'].values)
@@ -1544,7 +1532,7 @@ class Feed(object):
             return 
 
         # Get stop times active on date
-        f = pd.merge(self.get_active_trips(date), self.stop_times)
+        f = pd.merge(self.get_trips(date), self.stop_times)
 
         return get_stops_stats(f, split_directions=split_directions,
           headway_start_timestr=headway_start_timestr, 
@@ -1572,7 +1560,7 @@ class Feed(object):
             return 
 
         # Get active stop times for date
-        f = pd.merge(self.get_active_trips(date), self.stop_times)
+        f = pd.merge(self.get_trips(date), self.stop_times)
         return get_stops_time_series(f, split_directions=split_directions,
             freq=freq, date_label=date)
 
@@ -1611,7 +1599,7 @@ class Feed(object):
         if sis is None:
             return
 
-        f = pd.merge(stop_times, self.get_active_trips(date))
+        f = pd.merge(stop_times, self.get_trips(date))
         f = pd.merge(f, sis)
 
         # Convert departure times to seconds to ease headway calculations
@@ -1691,7 +1679,7 @@ class Feed(object):
         """
         # Get the subset of trips_stats that contains only trips active
         # on the given date
-        trips_stats_subset = pd.merge(trips_stats, self.get_active_trips(date))
+        trips_stats_subset = pd.merge(trips_stats, self.get_trips(date))
         return get_routes_stats(trips_stats_subset, 
           split_directions=split_directions,
           headway_start_timestr=headway_start_timestr, 
@@ -1717,7 +1705,7 @@ class Feed(object):
         The latter function works without a feed, though.
         Takes about 0.03 minutes on the Portland feed.
         """  
-        trips_stats_subset = pd.merge(trips_stats, self.get_active_trips(date))
+        trips_stats_subset = pd.merge(trips_stats, self.get_trips(date))
         return get_routes_time_series(trips_stats_subset, 
           split_directions=split_directions, freq=freq, 
           date_label=date)
