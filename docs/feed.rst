@@ -1,7 +1,7 @@
 The feed Module
 ===========================
 
-.. automodule:: gtfs_toolkit.feed
+.. automodule:: gtfs_tk.feed
     :members:
     :undoc-members:
     :show-inheritance:

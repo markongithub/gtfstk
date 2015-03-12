@@ -1,8 +1,8 @@
-GTFS Toolkit
+GTFS-TK
 ============
-This is a set of Python 3.4 tools for processing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
-It's mostly for computing network-level statistics, such as mean daily service distance per route and mean daily number of vehicles per stop.
-Uses Pandas and Shapely to do the heavy lifting.
+This is a Python 3.4 toolkit for processing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
+It's mostly for computing network-level statistics, such as daily service distance per route and daily number of trips per stop.
+It uses Pandas and Shapely to do the heavy lifting.
 
 Warning
 --------
@@ -11,12 +11,16 @@ It needs more testing and the API might change.
 
 Installation
 -------------
-``pip install gtfs-toolkit``
+``pip install gtfs-tk``
 
 Examples
 --------
-Play with ``examples/gtfs_toolkit_examples.ipynb`` in an iPython notebook or view the notebook as HTML `here <https://rawgit.com/araichev/gtfs-toolkit/master/examples/examples.html>`_.
+Play with ``examples/gtfs_tk_examples.ipynb`` in an iPython notebook or view the notebook as HTML `here <https://rawgit.com/araichev/gtfs-tk/master/examples/examples.html>`_.
 
 Documentation
 --------------
-Under ``docs/`` and also `here <https://rawgit.com/araichev/gtfs-toolkit/master/docs/_build/html/index.html>`_.
+Documentation is in ``docs/`` and also `here <https://rawgit.com/araichev/gtfs-tk/master/docs/_build/html/index.html>`_.
+
+Comments
+------------
+Constructive comments are welcome and are best filed in this repositoriy's issue section with an appropriate label, e.g. 'enhancement', 'bug'.

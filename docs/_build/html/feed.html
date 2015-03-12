@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.11.3 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.11.4 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.3',
+        VERSION:     '0.11.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.3 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.4 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11.3 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.11.4 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -49,8 +49,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-gtfs_toolkit.feed">
-<span id="the-feed-module"></span><h1>The feed Module<a class="headerlink" href="#module-gtfs_toolkit.feed" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-gtfs_tk.feed">
+<span id="the-feed-module"></span><h1>The feed Module<a class="headerlink" href="#module-gtfs_tk.feed" title="Permalink to this headline">¶</a></h1>
 <p>Some tools for computing stats from a GTFS feed, assuming the feed
 is valid.</p>
 <p>All time estimates below were produced on a 2013 MacBook Pro with a
@@ -60,16 +60,16 @@ is valid.</p>
 <li>Possibly add the option in <tt class="docutils literal"><span class="pre">export()</span></tt> to convert back to original distance units.</li>
 </ul>
 <dl class="class">
-<dt id="gtfs_toolkit.feed.Feed">
-<em class="property">class </em><tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">Feed</tt><big>(</big><em>path</em>, <em>original_units='km'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed">
+<em class="property">class </em><tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">Feed</tt><big>(</big><em>path</em>, <em>original_units='km'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
 <p>A class to gather all the GTFS files for a feed and store them in memory 
 as Pandas data frames.  
 Make sure you have enough memory!  
 The stop times object can be big.</p>
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.add_dist_to_shapes">
-<tt class="descname">add_dist_to_shapes</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.add_dist_to_shapes" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.add_dist_to_shapes">
+<tt class="descname">add_dist_to_shapes</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.add_dist_to_shapes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add/overwrite the optional <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> GTFS field for
 <tt class="docutils literal"><span class="pre">self.shapes</span></tt>.</p>
 <p>NOTE:</p>
@@ -80,8 +80,8 @@ from of the original values.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.add_dist_to_stop_times">
-<tt class="descname">add_dist_to_stop_times</tt><big>(</big><em>trips_stats</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.add_dist_to_stop_times" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.add_dist_to_stop_times">
+<tt class="descname">add_dist_to_stop_times</tt><big>(</big><em>trips_stats</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.add_dist_to_stop_times" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add/overwrite the optional <tt class="docutils literal"><span class="pre">shape_dist_traveled</span></tt> GTFS field in
 <tt class="docutils literal"><span class="pre">self.stop_times</span></tt>.
 Doesn&#8217;t always give accurate results, as described below.</p>
@@ -109,8 +109,8 @@ This is the case for several trips in the Portland feed, for example.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.dump_all_stats">
-<tt class="descname">dump_all_stats</tt><big>(</big><em>directory</em>, <em>date=None</em>, <em>freq='1H'</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.dump_all_stats" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.dump_all_stats">
+<tt class="descname">dump_all_stats</tt><big>(</big><em>directory</em>, <em>date=None</em>, <em>freq='1H'</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.dump_all_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Into the given directory, dump to separate CSV files the outputs of</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">self.get_stops_stats(date)</span></tt></li>
@@ -127,30 +127,30 @@ then use the busiest day of the first week of the feed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.export">
-<tt class="descname">export</tt><big>(</big><em>path</em>, <em>ndigits=5</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.export" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.export">
+<tt class="descname">export</tt><big>(</big><em>path</em>, <em>ndigits=5</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.export" title="Permalink to this definition">¶</a></dt>
 <dd><p>Export this feed to a zip archive located at <tt class="docutils literal"><span class="pre">path</span></tt>.
 Round all decimals to <tt class="docutils literal"><span class="pre">ndigits</span></tt> decimal places.
 All distances will be displayed in kilometers.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.fill_nan_route_short_names">
-<tt class="descname">fill_nan_route_short_names</tt><big>(</big><em>base_name='NoName'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.fill_nan_route_short_names" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.fill_nan_route_short_names">
+<tt class="descname">fill_nan_route_short_names</tt><big>(</big><em>base_name='NoName'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.fill_nan_route_short_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replace NaN route short names in <tt class="docutils literal"><span class="pre">self.routes</span></tt> with 
 <tt class="docutils literal"><span class="pre">base_name</span> <span class="pre">+</span> <span class="pre">'00'</span></tt>, <tt class="docutils literal"><span class="pre">base_name</span> <span class="pre">+</span> <span class="pre">'01'</span></tt>, <tt class="docutils literal"><span class="pre">base_name</span> <span class="pre">+</span> <span class="pre">'02'</span></tt>, etc.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_busiest_date_of_first_week">
-<tt class="descname">get_busiest_date_of_first_week</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_busiest_date_of_first_week" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_busiest_date_of_first_week">
+<tt class="descname">get_busiest_date_of_first_week</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_busiest_date_of_first_week" title="Permalink to this definition">¶</a></dt>
 <dd><p>Consider the dates in <tt class="docutils literal"><span class="pre">self.get_first_week()</span></tt> and 
 return the first date that has the maximum number of active trips.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_dates">
-<tt class="descname">get_dates</tt><big>(</big><em>as_date_obj=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_dates" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_dates">
+<tt class="descname">get_dates</tt><big>(</big><em>as_date_obj=False</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_dates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a chronologically ordered list of date strings
 in the form &#8216;%Y%m%d&#8217; for which this feed is valid.
 If <tt class="docutils literal"><span class="pre">as_date_obj</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then return the dates as
@@ -158,8 +158,8 @@ as <tt class="docutils literal"><span class="pre">datetime.date</span></tt> obje
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_first_week">
-<tt class="descname">get_first_week</tt><big>(</big><em>as_date_obj=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_first_week" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_first_week">
+<tt class="descname">get_first_week</tt><big>(</big><em>as_date_obj=False</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_first_week" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of date strings in the form &#8216;%Y%m%d&#8217; corresponding
 to the first Monday&#8211;Sunday week for which this feed is valid.
 In the unlikely event that this feed does not cover a full 
@@ -170,8 +170,8 @@ as <tt class="docutils literal"><span class="pre">datetime.date</span></tt> obje
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_linestring_by_shape">
-<tt class="descname">get_linestring_by_shape</tt><big>(</big><em>use_utm=True</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_linestring_by_shape" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_linestring_by_shape">
+<tt class="descname">get_linestring_by_shape</tt><big>(</big><em>use_utm=True</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_linestring_by_shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dictionary with structure
 shape_id -&gt; Shapely linestring of shape.
 If <tt class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return <tt class="docutils literal"><span class="pre">None</span></tt>.
@@ -182,8 +182,8 @@ coordinates.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_point_by_stop">
-<tt class="descname">get_point_by_stop</tt><big>(</big><em>use_utm=True</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_point_by_stop" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_point_by_stop">
+<tt class="descname">get_point_by_stop</tt><big>(</big><em>use_utm=True</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_point_by_stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dictionary with structure
 stop_id -&gt; Shapely point object.
 If <tt class="docutils literal"><span class="pre">use_utm</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then return each point in
@@ -193,8 +193,8 @@ coordinates.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_routes_stats">
-<tt class="descname">get_routes_stats</tt><big>(</big><em>trips_stats</em>, <em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_routes_stats">
+<tt class="descname">get_routes_stats</tt><big>(</big><em>trips_stats</em>, <em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Take <tt class="docutils literal"><span class="pre">trips_stats</span></tt>, which is the output of 
 <tt class="docutils literal"><span class="pre">self.get_trips_stats()</span></tt>, cut it down to the subset <tt class="docutils literal"><span class="pre">S</span></tt> of trips
 that are active on the given date, and then call
@@ -209,8 +209,8 @@ Takes about 0.02 minutes on the Portland feed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_routes_time_series">
-<tt class="descname">get_routes_time_series</tt><big>(</big><em>trips_stats</em>, <em>date</em>, <em>split_directions=False</em>, <em>freq='5Min'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_routes_time_series" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_routes_time_series">
+<tt class="descname">get_routes_time_series</tt><big>(</big><em>trips_stats</em>, <em>date</em>, <em>split_directions=False</em>, <em>freq='5Min'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_routes_time_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Take <tt class="docutils literal"><span class="pre">trips_stats</span></tt>, which is the output of 
 <tt class="docutils literal"><span class="pre">self.get_trips_stats()</span></tt>, cut it down to the subset <tt class="docutils literal"><span class="pre">S</span></tt> of trips
 that are active on the given date, and then call
@@ -226,8 +226,8 @@ Takes about 0.03 minutes on the Portland feed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_shapes_geojson">
-<tt class="descname">get_shapes_geojson</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_shapes_geojson" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_shapes_geojson">
+<tt class="descname">get_shapes_geojson</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_shapes_geojson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a string that is a GeoJSON feature collection of 
 linestring features representing <tt class="docutils literal"><span class="pre">self.shapes</span></tt>.
 Each feature will have a <tt class="docutils literal"><span class="pre">shape_id</span></tt> property. 
@@ -237,8 +237,8 @@ namely WGS84.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_stations_stats">
-<tt class="descname">get_stations_stats</tt><big>(</big><em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stations_stats" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_stations_stats">
+<tt class="descname">get_stations_stats</tt><big>(</big><em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stations_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this feed has station data, that is, &#8216;location_type&#8217; and
 &#8216;parent_station&#8217; columns in <tt class="docutils literal"><span class="pre">self.stops</span></tt>, then compute
 the same stats that <tt class="docutils literal"><span class="pre">self.get_stops_stats()</span></tt> does, but for
@@ -250,8 +250,8 @@ five weekdays of the feed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_stops">
-<tt class="descname">get_stops</tt><big>(</big><em>date=None</em>, <em>time=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stops" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_stops">
+<tt class="descname">get_stops</tt><big>(</big><em>date=None</em>, <em>time=None</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stops" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the section of <tt class="docutils literal"><span class="pre">self.stops</span></tt> that contains
 only stops active on the given date (string of the form &#8216;%Y%m%d&#8217;).
 If <tt class="docutils literal"><span class="pre">date</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return all stops.
@@ -263,8 +263,8 @@ Do not take times modulo 24.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_stops_activity">
-<tt class="descname">get_stops_activity</tt><big>(</big><em>dates</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stops_activity" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_stops_activity">
+<tt class="descname">get_stops_activity</tt><big>(</big><em>dates</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stops_activity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Pandas data frame with the columns</p>
 <ul class="simple">
 <li>stop_id</li>
@@ -278,8 +278,8 @@ Dates are represented as strings of the form &#8216;%Y%m%d&#8217;.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_stops_in_stations">
-<tt class="descname">get_stops_in_stations</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stops_in_stations" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_stops_in_stations">
+<tt class="descname">get_stops_in_stations</tt><big>(</big><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stops_in_stations" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this feed has station data, that is, &#8216;location_type&#8217; and
 &#8216;parent_station&#8217; columns in <tt class="docutils literal"><span class="pre">self.stops</span></tt>, then return a Pandas
 data frame that has the same columns as <tt class="docutils literal"><span class="pre">self.stops</span></tt>
@@ -289,8 +289,8 @@ Otherwise, return <tt class="docutils literal"><span class="pre">None</span></tt
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_stops_stats">
-<tt class="descname">get_stops_stats</tt><big>(</big><em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_stops_stats">
+<tt class="descname">get_stops_stats</tt><big>(</big><em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all the stop times <tt class="docutils literal"><span class="pre">S</span></tt> that have trips active on the given
 date and call <tt class="docutils literal"><span class="pre">get_stops_stats()</span></tt> with <tt class="docutils literal"><span class="pre">S</span></tt> and the keyword 
 arguments <tt class="docutils literal"><span class="pre">split_directions</span></tt>, <tt class="docutils literal"><span class="pre">headway_start_timestr</span></tt>, and 
@@ -303,8 +303,8 @@ Takes about 0.7 minutes on the Portland feed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_stops_time_series">
-<tt class="descname">get_stops_time_series</tt><big>(</big><em>date</em>, <em>split_directions=False</em>, <em>freq='5Min'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_stops_time_series" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_stops_time_series">
+<tt class="descname">get_stops_time_series</tt><big>(</big><em>date</em>, <em>split_directions=False</em>, <em>freq='5Min'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stops_time_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all the stop times <tt class="docutils literal"><span class="pre">S</span></tt> that have trips active on the given
 date and call <tt class="docutils literal"><span class="pre">get_stops_stats()</span></tt> with <tt class="docutils literal"><span class="pre">S</span></tt> and the keyword 
 arguments <tt class="docutils literal"><span class="pre">split_directions</span></tt> and <tt class="docutils literal"><span class="pre">freq</span></tt> and with 
@@ -319,8 +319,8 @@ Takes about 0.25 minutes on the Portland feed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_trips">
-<tt class="descname">get_trips</tt><big>(</big><em>date=None</em>, <em>time=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_trips" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_trips">
+<tt class="descname">get_trips</tt><big>(</big><em>date=None</em>, <em>time=None</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_trips" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the section of <tt class="docutils literal"><span class="pre">self.trips</span></tt> that contains
 only trips active on the given date (string of the form &#8216;%Y%m%d&#8217;).
 If <tt class="docutils literal"><span class="pre">date</span> <span class="pre">is</span> <span class="pre">None</span></tt>, then return all trips.
@@ -331,8 +331,8 @@ Do not take times modulo 24.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_trips_activity">
-<tt class="descname">get_trips_activity</tt><big>(</big><em>dates</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_trips_activity" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_trips_activity">
+<tt class="descname">get_trips_activity</tt><big>(</big><em>dates</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_trips_activity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Pandas data frame with the columns</p>
 <ul class="simple">
 <li>trip_id</li>
@@ -348,8 +348,8 @@ Dates are strings of the form &#8216;%Y%m%d&#8217;.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_trips_stats">
-<tt class="descname">get_trips_stats</tt><big>(</big><em>get_dist_from_shapes=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_trips_stats" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_trips_stats">
+<tt class="descname">get_trips_stats</tt><big>(</big><em>get_dist_from_shapes=False</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_trips_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Pandas data frame with the following columns:</p>
 <ul class="simple">
 <li>trip_id</li>
@@ -382,8 +382,8 @@ yields a diffence of at most 0.83km.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.get_vehicles_locations">
-<tt class="descname">get_vehicles_locations</tt><big>(</big><em>linestring_by_shape</em>, <em>date</em>, <em>times</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.get_vehicles_locations" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_vehicles_locations">
+<tt class="descname">get_vehicles_locations</tt><big>(</big><em>linestring_by_shape</em>, <em>date</em>, <em>times</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.get_vehicles_locations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Pandas data frame of the positions of all trips
 active on the given date and times.
 Include the columns:</p>
@@ -406,8 +406,8 @@ in 0.28 min.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_toolkit.feed.Feed.is_active_trip">
-<tt class="descname">is_active_trip</tt><big>(</big><em>trip</em>, <em>date</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.Feed.is_active_trip" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.is_active_trip">
+<tt class="descname">is_active_trip</tt><big>(</big><em>trip</em>, <em>date</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.Feed.is_active_trip" title="Permalink to this definition">¶</a></dt>
 <dd><p>If the given trip (trip ID) is active on the given date 
 (string of the form &#8216;%Y%m%d&#8217;), then return <tt class="docutils literal"><span class="pre">True</span></tt>.
 Otherwise, return <tt class="docutils literal"><span class="pre">False</span></tt>.
@@ -419,8 +419,8 @@ assume <tt class="docutils literal"><span class="pre">trip</span></tt> is a vali
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.agg_routes_stats">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">agg_routes_stats</tt><big>(</big><em>routes_stats</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.agg_routes_stats" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.agg_routes_stats">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">agg_routes_stats</tt><big>(</big><em>routes_stats</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.agg_routes_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given <tt class="docutils literal"><span class="pre">route_stats</span></tt> which is the output of <tt class="docutils literal"><span class="pre">get_routes_stats()</span></tt>,
 return a Pandas data frame with the following columns:</p>
 <ul class="simple">
@@ -441,13 +441,13 @@ input across all routes</li>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.agg_routes_time_series">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">agg_routes_time_series</tt><big>(</big><em>routes_time_series</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.agg_routes_time_series" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.agg_routes_time_series">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">agg_routes_time_series</tt><big>(</big><em>routes_time_series</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.agg_routes_time_series" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.combine_time_series">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">combine_time_series</tt><big>(</big><em>time_series_dict</em>, <em>kind</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.combine_time_series" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.combine_time_series">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">combine_time_series</tt><big>(</big><em>time_series_dict</em>, <em>kind</em>, <em>split_directions=False</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.combine_time_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a dictionary of time series data frames, combine the time series
 into one time series data frame with multi-index (hierarchical) columns
 and return the result.
@@ -460,8 +460,8 @@ no &#8216;direction_id&#8217; column.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.downsample">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">downsample</tt><big>(</big><em>time_series</em>, <em>freq</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.downsample" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.downsample">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">downsample</tt><big>(</big><em>time_series</em>, <em>freq</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.downsample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Downsample the given route or stop time series, which is the output of 
 <tt class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></tt> or <tt class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></tt>, 
 to the given Pandas-style frequency.
@@ -470,8 +470,8 @@ time series are generated with one-minute frequency.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.get_routes_stats">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">get_routes_stats</tt><big>(</big><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.get_routes_stats">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">get_routes_stats</tt><big>(</big><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a subset of the output of <tt class="docutils literal"><span class="pre">Feed.get_trips_stats()</span></tt>, 
 calculate stats for the routes in that subset.</p>
 <p>Return a Pandas data frame with the following columns:</p>
@@ -507,8 +507,8 @@ headways in both directions.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.get_routes_time_series">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">get_routes_time_series</tt><big>(</big><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>freq='5Min'</em>, <em>date_label='20010101'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.get_routes_time_series" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.get_routes_time_series">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">get_routes_time_series</tt><big>(</big><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>freq='5Min'</em>, <em>date_label='20010101'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.get_routes_time_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a subset of the output of <tt class="docutils literal"><span class="pre">Feed.get_trips_stats()</span></tt>, 
 calculate time series for the routes in that subset.</p>
 <p>Return a time series version of the following route stats:</p>
@@ -554,8 +554,8 @@ time series f, do <tt class="docutils literal"><span class="pre">f.index</span> 
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.get_stops_stats">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">get_stops_stats</tt><big>(</big><em>stop_times_subset</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.get_stops_stats">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">get_stops_stats</tt><big>(</big><em>stop_times_subset</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a subset of <tt class="docutils literal"><span class="pre">Feed.stop_times</span></tt>, 
 return a Pandas data frame that provides summary stats about
 the stops in that subset.
@@ -582,8 +582,8 @@ using vehicles visiting it from both directions.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.get_stops_time_series">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">get_stops_time_series</tt><big>(</big><em>stop_times_subset</em>, <em>split_directions=False</em>, <em>freq='5Min'</em>, <em>date_label='20010101'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.get_stops_time_series" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.get_stops_time_series">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">get_stops_time_series</tt><big>(</big><em>stop_times_subset</em>, <em>split_directions=False</em>, <em>freq='5Min'</em>, <em>date_label='20010101'</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.get_stops_time_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a subset of <tt class="docutils literal"><span class="pre">Feed.stop_times</span></tt>, 
 return a time series that describes the number of vehicles by stop ID
 in that subset.
@@ -611,8 +611,8 @@ the time series f, do <tt class="docutils literal"><span class="pre">f.index</sp
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.plot_headways">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">plot_headways</tt><big>(</big><em>stats</em>, <em>max_headway_limit=60</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.plot_headways" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.plot_headways">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">plot_headways</tt><big>(</big><em>stats</em>, <em>max_headway_limit=60</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.plot_headways" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a stops or routes stats data frame, 
 return bar charts of the max and mean headways as a MatplotLib figure.
 Only include the stops/routes with max headways at most 
@@ -626,8 +626,8 @@ for a nice-looking plot.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.feed.plot_routes_time_series">
-<tt class="descclassname">gtfs_toolkit.feed.</tt><tt class="descname">plot_routes_time_series</tt><big>(</big><em>routes_time_series</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.feed.plot_routes_time_series" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.plot_routes_time_series">
+<tt class="descclassname">gtfs_tk.feed.</tt><tt class="descname">plot_routes_time_series</tt><big>(</big><em>routes_time_series</em><big>)</big><a class="headerlink" href="#gtfs_tk.feed.plot_routes_time_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a routes time series data frame,
 sum each time series indicator over all routes, 
 plot each series indicator using MatplotLib, 
@@ -682,7 +682,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11.3 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.11.4 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

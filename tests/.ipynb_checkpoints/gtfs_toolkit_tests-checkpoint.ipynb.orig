@@ -29,13 +29,13 @@
       "%autoreload 2\n",
       "%matplotlib inline  \n",
       "\n",
-      "# Set your gtfs_toolkit path here\n",
+      "# Set your gtfs_tk path here\n",
       "\n",
-      "#gtfs_toolkit_path = '/Users/araichev/gtfs-toolkit/'\n",
-      "gtfs_toolkit_path = '/home/araichev/gtfs-toolkit/'\n",
-      "sys.path.append(gtfs_toolkit_path)\n",
-      "from gtfs_toolkit.feed import *\n",
-      "from gtfs_toolkit.utils import *"
+      "#gtfs_tk_path = '/Users/araichev/gtfs-tk/'\n",
+      "gtfs_tk_path = '/home/araichev/gtfs-tk/'\n",
+      "sys.path.append(gtfs_tk_path)\n",
+      "from gtfs_tk.feed import *\n",
+      "from gtfs_tk.utils import *"
      ],
      "language": "python",
      "metadata": {},
@@ -48,7 +48,7 @@
      "collapsed": false,
      "input": [
       "# Load feed\n",
-      "feed = Feed(gtfs_toolkit_path + 'gtfs_toolkit/tests/cairns_gtfs.zip')\n"
+      "feed = Feed(gtfs_tk_path + 'gtfs_tk/tests/cairns_gtfs.zip')\n"
      ],
      "language": "python",
      "metadata": {},
@@ -72,7 +72,7 @@
      "cell_type": "code",
      "collapsed": false,
      "input": [
-      "feed = Feed(gtfs_toolkit_path + 'gtfs_toolkit/tests/portland_gtfs.zip', original_units='ft')\n"
+      "feed = Feed(gtfs_tk_path + 'gtfs_tk/tests/portland_gtfs.zip', original_units='ft')\n"
      ],
      "language": "python",
      "metadata": {},
@@ -2388,7 +2388,7 @@
      "collapsed": false,
      "input": [
       "# Test the trip distance estimater on Portland\n",
-      "feed = Feed(gtfs_toolkit_path + 'gtfs_toolkit/tests/portland_gtfs.zip', original_units='ft')\n",
+      "feed = Feed(gtfs_tk_path + 'gtfs_tk/tests/portland_gtfs.zip', original_units='ft')\n",
       "trips_stats1 = feed.get_trips_stats()\n",
       "trips_stats2 = feed.get_trips_stats(get_dist_from_shapes=True)\n",
       "d1 = trips_stats1['distance']\n",
@@ -2513,7 +2513,7 @@
      "cell_type": "code",
      "collapsed": false,
      "input": [
-      "feed = Feed(gtfs_toolkit_path + 'gtfs_toolkit/tests/cairns_gtfs.zip')\n"
+      "feed = Feed(gtfs_tk_path + 'gtfs_tk/tests/cairns_gtfs.zip')\n"
      ],
      "language": "python",
      "metadata": {},
@@ -6702,7 +6702,7 @@
        "traceback": [
         "\u001b[1;31m---------------------------------------------------------------------------\u001b[0m\n\u001b[1;31mAttributeError\u001b[0m                            Traceback (most recent call last)",
         "\u001b[1;32m<ipython-input-17-ada53d943cfe>\u001b[0m in \u001b[0;36m<module>\u001b[1;34m()\u001b[0m\n\u001b[0;32m      1\u001b[0m \u001b[1;31m# rts.loc[:,(slice(None), '110-275')]\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m----> 2\u001b[1;33m \u001b[0mrts\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mxs\u001b[0m\u001b[1;33m(\u001b[0m\u001b[1;34m'110-275'\u001b[0m\u001b[1;33m,\u001b[0m \u001b[0mlevel\u001b[0m\u001b[1;33m=\u001b[0m\u001b[1;34m'route_id'\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m",
-        "\u001b[1;32m/home/araichev/.virtualenvs/gtfs-toolkit/lib/python3.4/site-packages/pandas/core/generic.py\u001b[0m in \u001b[0;36mxs\u001b[1;34m(self, key, axis, level, copy, drop_level)\u001b[0m\n\u001b[0;32m   1319\u001b[0m         \u001b[0mlabels\u001b[0m \u001b[1;33m=\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0m_get_axis\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0maxis\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m   1320\u001b[0m         \u001b[1;32mif\u001b[0m \u001b[0mlevel\u001b[0m \u001b[1;32mis\u001b[0m \u001b[1;32mnot\u001b[0m \u001b[1;32mNone\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m-> 1321\u001b[1;33m             loc, new_ax = labels.get_loc_level(key, level=level,\n\u001b[0m\u001b[0;32m   1322\u001b[0m                                                drop_level=drop_level)\n\u001b[0;32m   1323\u001b[0m \u001b[1;33m\u001b[0m\u001b[0m\n",
+        "\u001b[1;32m/home/araichev/.virtualenvs/gtfs-tk/lib/python3.4/site-packages/pandas/core/generic.py\u001b[0m in \u001b[0;36mxs\u001b[1;34m(self, key, axis, level, copy, drop_level)\u001b[0m\n\u001b[0;32m   1319\u001b[0m         \u001b[0mlabels\u001b[0m \u001b[1;33m=\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0m_get_axis\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0maxis\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m   1320\u001b[0m         \u001b[1;32mif\u001b[0m \u001b[0mlevel\u001b[0m \u001b[1;32mis\u001b[0m \u001b[1;32mnot\u001b[0m \u001b[1;32mNone\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m-> 1321\u001b[1;33m             loc, new_ax = labels.get_loc_level(key, level=level,\n\u001b[0m\u001b[0;32m   1322\u001b[0m                                                drop_level=drop_level)\n\u001b[0;32m   1323\u001b[0m \u001b[1;33m\u001b[0m\u001b[0m\n",
         "\u001b[1;31mAttributeError\u001b[0m: 'DatetimeIndex' object has no attribute 'get_loc_level'"
        ]
       }
@@ -14426,9 +14426,9 @@
      "collapsed": false,
      "input": [
       "# Import a feed\n",
-      "# feed_path = gtfs_toolkit_path + 'gtfs_toolkit/tests/portland_gtfs.zip'\n",
+      "# feed_path = gtfs_tk_path + 'gtfs_tk/tests/portland_gtfs.zip'\n",
       "# feed = Feed(feed_path, distance_units='ft')\n",
-      "feed_path = gtfs_toolkit_path + 'gtfs_toolkit/tests/cairns_gtfs.zip'\n",
+      "feed_path = gtfs_tk_path + 'gtfs_tk/tests/cairns_gtfs.zip'\n",
       "feed = Feed(feed_path, distance_units='km')\n"
      ],
      "language": "python",
@@ -22894,7 +22894,7 @@
      "collapsed": false,
      "input": [
       "# Create and dump all stats to CSV\n",
-      "feed.dump_all_stats(gtfs_toolkit_path + 'examples/stats/')"
+      "feed.dump_all_stats(gtfs_tk_path + 'examples/stats/')"
      ],
      "language": "python",
      "metadata": {},

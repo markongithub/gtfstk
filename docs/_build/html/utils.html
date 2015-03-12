@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The utils Module &mdash; GTFS Toolkit 0.11.3 documentation</title>
+    <title>The utils Module &mdash; GTFS Toolkit 0.11.4 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.3',
+        VERSION:     '0.11.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.3 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.4 documentation" href="index.html" />
     <link rel="next" title="The feed Module" href="feed.html" />
     <link rel="prev" title="GTFS Toolkit" href="introduction.html" /> 
   </head>
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11.3 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.11.4 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -53,11 +53,11 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-gtfs_toolkit.utils">
-<span id="the-utils-module"></span><h1>The utils Module<a class="headerlink" href="#module-gtfs_toolkit.utils" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-gtfs_tk.utils">
+<span id="the-utils-module"></span><h1>The utils Module<a class="headerlink" href="#module-gtfs_tk.utils" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="gtfs_toolkit.utils.datestr_to_date">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">datestr_to_date</tt><big>(</big><em>x</em>, <em>format_str='%Y%m%d'</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.datestr_to_date" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.utils.datestr_to_date">
+<tt class="descclassname">gtfs_tk.utils.</tt><tt class="descname">datestr_to_date</tt><big>(</big><em>x</em>, <em>format_str='%Y%m%d'</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_tk.utils.datestr_to_date" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a string object <tt class="docutils literal"><span class="pre">x</span></tt> representing a date in the given format,
 convert it to a datetime.date object and return the result
 If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></tt>, then assume that <tt class="docutils literal"><span class="pre">x</span></tt> is a date object
@@ -65,8 +65,8 @@ and return its corresponding string in the given format.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.utils.get_segment_length">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">get_segment_length</tt><big>(</big><em>linestring</em>, <em>p</em>, <em>q=None</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.get_segment_length" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.utils.get_segment_length">
+<tt class="descclassname">gtfs_tk.utils.</tt><tt class="descname">get_segment_length</tt><big>(</big><em>linestring</em>, <em>p</em>, <em>q=None</em><big>)</big><a class="headerlink" href="#gtfs_tk.utils.get_segment_length" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a Shapely linestring and two Shapely points,
 project the points onto the linestring, and return the distance along
 the linestring between the two points.
@@ -76,20 +76,20 @@ The distance is measured in the native coordinates of the linestring.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.utils.time_it">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">time_it</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.time_it" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.utils.time_it">
+<tt class="descclassname">gtfs_tk.utils.</tt><tt class="descname">time_it</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#gtfs_tk.utils.time_it" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.utils.timestr_mod24">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">timestr_mod24</tt><big>(</big><em>timestr</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.timestr_mod24" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.utils.timestr_mod24">
+<tt class="descclassname">gtfs_tk.utils.</tt><tt class="descname">timestr_mod24</tt><big>(</big><em>timestr</em><big>)</big><a class="headerlink" href="#gtfs_tk.utils.timestr_mod24" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a GTFS time string in the format %H:%M:%S, return a timestring
 in the same format but with the hours taken modulo 24.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.utils.timestr_to_seconds">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">timestr_to_seconds</tt><big>(</big><em>x</em>, <em>inverse=False</em>, <em>mod24=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.timestr_to_seconds" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.utils.timestr_to_seconds">
+<tt class="descclassname">gtfs_tk.utils.</tt><tt class="descname">timestr_to_seconds</tt><big>(</big><em>x</em>, <em>inverse=False</em>, <em>mod24=False</em><big>)</big><a class="headerlink" href="#gtfs_tk.utils.timestr_to_seconds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a time string of the form &#8216;%H:%M:%S&#8217;, return the number of seconds
 past midnight that it represents.
 In keeping with GTFS standards, the hours entry may be greater than 23.
@@ -100,15 +100,15 @@ seconds modulo <tt class="docutils literal"><span class="pre">24*3600</span></tt
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.utils.to_km">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">to_km</tt><big>(</big><em>x</em>, <em>units='km'</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.to_km" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.utils.to_km">
+<tt class="descclassname">gtfs_tk.utils.</tt><tt class="descname">to_km</tt><big>(</big><em>x</em>, <em>units='km'</em><big>)</big><a class="headerlink" href="#gtfs_tk.utils.to_km" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a distance <tt class="docutils literal"><span class="pre">x</span></tt> in units <tt class="docutils literal"><span class="pre">units</span></tt>,
 convert it to kilometers and return the result.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_toolkit.utils.weekday_to_str">
-<tt class="descclassname">gtfs_toolkit.utils.</tt><tt class="descname">weekday_to_str</tt><big>(</big><em>weekday</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_toolkit.utils.weekday_to_str" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.utils.weekday_to_str">
+<tt class="descclassname">gtfs_tk.utils.</tt><tt class="descname">weekday_to_str</tt><big>(</big><em>weekday</em>, <em>inverse=False</em><big>)</big><a class="headerlink" href="#gtfs_tk.utils.weekday_to_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a weekday, that is, an integer in <tt class="docutils literal"><span class="pre">range(7)</span></tt>, return
 it&#8217;s corresponding weekday name as a lowercase string.
 Here 0 -&gt; &#8216;monday&#8217;, 1 -&gt; &#8216;tuesday&#8217;, and so on.
@@ -166,7 +166,7 @@ If <tt class="docutils literal"><span class="pre">inverse</span> <span class="pr
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              >previous</a> |</li>
-        <li><a href="index.html">GTFS Toolkit 0.11.3 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GTFS Toolkit 0.11.4 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

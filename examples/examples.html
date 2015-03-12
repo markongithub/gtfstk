@@ -1696,11 +1696,11 @@ In&nbsp;[1]:
 <span class="o">%</span><span class="k">autoreload</span> <span class="mi">2</span>
 <span class="o">%</span><span class="k">matplotlib</span> <span class="n">inline</span>  
 
-<span class="c"># Set your gtfs_toolkit path here</span>
-<span class="c">#gtfs_toolkit_path = &#39;/home/araichev/gtfs-toolkit/&#39;</span>
-<span class="n">gtfs_toolkit_path</span> <span class="o">=</span> <span class="s">&#39;/Users/araichev/gtfs-toolkit/&#39;</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gtfs_toolkit_path</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">gtfs_toolkit.feed</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="c"># Set your gtfs_tk path here</span>
+<span class="c">#gtfs_tk_path = &#39;/home/araichev/gtfs-tk/&#39;</span>
+<span class="n">gtfs_tk_path</span> <span class="o">=</span> <span class="s">&#39;/Users/araichev/gtfs-tk/&#39;</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gtfs_tk_path</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">gtfs_tk.feed</span> <span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 
 </div>
@@ -1714,7 +1714,7 @@ In&nbsp;[1]:
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stderr output_text">
 <pre>
-/Users/araichev/.virtualenvs/gtfs-toolkit/lib/python3.4/site-packages/pandas/io/excel.py:626: UserWarning: Installed openpyxl is not supported at this time. Use &gt;=1.6.1 and &lt;2.0.0.
+/Users/araichev/.virtualenvs/gtfs-tk/lib/python3.4/site-packages/pandas/io/excel.py:626: UserWarning: Installed openpyxl is not supported at this time. Use &gt;=1.6.1 and &lt;2.0.0.
   .format(openpyxl_compat.start_ver, openpyxl_compat.stop_ver))
 
 </pre>
@@ -1733,7 +1733,7 @@ In&nbsp;[2]:
 <div class="inner_cell">
     <div class="input_area">
 <div class="highlight"><pre><span class="c"># Import a feed</span>
-<span class="n">feed_path</span> <span class="o">=</span> <span class="n">gtfs_toolkit_path</span> <span class="o">+</span> <span class="s">&#39;data/cairns_gtfs.zip&#39;</span>
+<span class="n">feed_path</span> <span class="o">=</span> <span class="n">gtfs_tk_path</span> <span class="o">+</span> <span class="s">&#39;data/cairns_gtfs.zip&#39;</span>
 <span class="n">feed</span> <span class="o">=</span> <span class="n">Feed</span><span class="p">(</span><span class="n">feed_path</span><span class="p">)</span>
 </pre></div>
 
@@ -6173,7 +6173,7 @@ In&nbsp;[12]:
 <div class="inner_cell">
     <div class="input_area">
 <div class="highlight"><pre><span class="c"># Example CSV write and read</span>
-<span class="n">tmp_path</span> <span class="o">=</span> <span class="n">gtfs_toolkit_path</span> <span class="o">+</span> <span class="s">&#39;examples/tmp.csv&#39;</span>
+<span class="n">tmp_path</span> <span class="o">=</span> <span class="n">gtfs_tk_path</span> <span class="o">+</span> <span class="s">&#39;examples/tmp.csv&#39;</span>
 <span class="n">rts</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">parse_dates</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
@@ -7281,7 +7281,7 @@ In&nbsp;[14]:
 <div class="inner_cell">
     <div class="input_area">
 <div class="highlight"><pre><span class="c"># Create and dump all stats to CSV</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">dump_all_stats</span><span class="p">(</span><span class="n">gtfs_toolkit_path</span> <span class="o">+</span> <span class="s">&#39;examples/stats/&#39;</span><span class="p">,</span> <span class="n">split_directions</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">feed</span><span class="o">.</span><span class="n">dump_all_stats</span><span class="p">(</span><span class="n">gtfs_tk_path</span> <span class="o">+</span> <span class="s">&#39;examples/stats/&#39;</span><span class="p">,</span> <span class="n">split_directions</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </pre></div>
 
 </div>
