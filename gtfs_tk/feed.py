@@ -1,5 +1,5 @@
 """
-Some tools for computing stats from a GTFS feed, assuming the feed
+Tools for computing some stats from a GTFS feed, assuming the feed
 is valid.
 
 TODO:
