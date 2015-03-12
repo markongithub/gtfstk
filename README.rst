@@ -23,4 +23,4 @@ Documentation is in ``docs/`` and also `here <https://rawgit.com/araichev/gtfs-t
 
 Comments
 ------------
-Constructive comments are welcome and are best filed in this repositoriy's issue section with an appropriate label, e.g. 'enhancement', 'bug'.
+Constructive comments are welcome and are best filed in this repositoriy's issue section with an appropriate label, e.g. 'enhancement'.
