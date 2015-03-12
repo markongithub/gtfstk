@@ -2,9 +2,6 @@
 Some tools for computing stats from a GTFS feed, assuming the feed
 is valid.
 
-All time estimates below were produced on a 2013 MacBook Pro with a
-2.8 GHz Intel Core i7 processor and 16GB of RAM running OS 10.9.
-
 TODO:
  
 - Possibly add the option in ``export()`` to convert back to original distance units.
@@ -50,13 +47,17 @@ DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
 def get_stops_stats(stop_times_subset, split_directions=False,
     headway_start_timestr='07:00:00', headway_end_timestr='19:00:00'):
     """
-    Given a subset of ``Feed.stop_times``, 
+    Given a subset of ``Feed.stop_times``,
     return a Pandas data frame that provides summary stats about
     the stops in that subset.
-    The columns of the data frame are:
+    If ``split_directions == True``, then the stop times subset
+    must be augmented by a ``direction_id`` column indicating the 
+    direction of each trip.
+    
+    The columns of the returned data frame are:
 
     - stop_id
-    - direction_id
+    - direction_id: present iff ``split_directions == True``
     - num_vehicles: number of vehicles visiting stop 
     - max_headway: durations (in minutes) between 
       vehicle departures at the stop between ``headway_start_timestr`` and 
@@ -71,10 +72,6 @@ def get_stops_stats(stop_times_subset, split_directions=False,
 
     If ``split_directions == False``, then compute each stop's stats
     using vehicles visiting it from both directions.
-    
-    NOTES:
-
-    Takes about 0.7 minutes on the Portland feed.
     """
     if stop_times_subset is None or stop_times_subset.empty:
         return None
@@ -144,6 +141,10 @@ def get_stops_time_series(stop_times_subset, split_directions=False,
     Given a subset of ``Feed.stop_times``, 
     return a time series that describes the number of vehicles by stop ID
     in that subset.
+    If ``split_directions == True``, then the stop times subset
+    must be augmented by a ``direction_id`` column indicating the 
+    direction of each trip.
+
     The time series is a Pandas data frame with a timestamp index 
     for a 24-hour period sampled at the given frequency.
     The maximum allowable frequency is 1 minute.
@@ -862,16 +863,6 @@ class Feed(object):
         if zipped:
             # Remove extracted directory
             shutil.rmtree(path)
-
-    def fill_nan_route_short_names(self, base_name='NoName'):
-        """
-        Replace NaN route short names in ``self.routes`` with 
-        ``base_name + '00'``, ``base_name + '01'``, ``base_name + '02'``, etc.
-        """
-        nan_indices = np.where(self.routes['route_short_name'].isnull())[0]
-        fills = {index: '{!s}{:02d}'.format(base_name, i)
-          for i, index in enumerate(nan_indices)}
-        self.routes['route_short_name'].fillna(fills, inplace=True)     
         
     def get_dates(self, as_date_obj=False):
         """
@@ -934,6 +925,10 @@ class Feed(object):
         To avoid error checking in the interest of speed, 
         assume ``trip`` is a valid trip ID in the feed and 
         ``date`` is a valid date object.
+
+        Note: This method is key for getting all trips, routes, 
+        etc. that are active on a given date, 
+        so the method needs to be fast. 
         """
         service = self.trips_t.at[trip, 'service_id']
         # Check self.calendar_dates_g.
@@ -996,6 +991,50 @@ class Feed(object):
             del g[0]
 
         return g
+
+    def get_routes(self, date=None, time=None):
+        """
+        Return the section of ``self.routes`` that contains
+        only routes active on the given date (string of the form '%Y%m%d').
+        If ``date is None``, then return all routes.
+        If a date and time are given, where the time is in the form of a GTFS 
+        time string %H:%M:%S, then return only those routes with
+        trips active at that date and time.
+        Do not take times modulo 24.
+        """
+        if date is None:
+            return self.routes.copy()
+
+        trips = self.get_trips(date, time)
+        R = trips['route_id'].unique()
+        return self.routes[self.routes['route_id'].isin(R)]
+
+    def get_stop_times(self, date=None):
+        """
+        Return the section of ``self.stop_times`` that contains
+        only trips active on the given date (string of the form '%Y%m%d').
+        If ``date is None``, then return all stop times.
+        """
+        if date is None:
+            return self.stop_times.copy()
+
+        f = self.get_trips(date)
+        g = self.stop_times
+        return g[g['trip_id'].isin(f['trip_id'])]
+
+    def get_stops(self, date=None):
+        """
+        Return the section of ``self.stops`` that contains
+        only stops with active stop times on the given date 
+        (string of the form '%Y%m%d').
+        If ``date is None``, then return all stops.
+        """
+        if date is None:
+            return self.stops.copy()
+
+        stop_times = self.get_stop_times(date)
+        S = stop_times['stop_id'].unique()
+        return self.stops[self.stops['stop_id'].isin(S)]
 
     def get_trips_activity(self, dates):
         """
@@ -1086,8 +1125,8 @@ class Feed(object):
         h['duration'] = (h['end_time'] - h['start_time'])/3600
 
         # Compute start stop, end stop, num stops
-        h['start_stop'] = g.apply(lambda group: group['stop_id'].iat[0])
-        h['end_stop'] = g.apply(lambda group: group['stop_id'].iat[-1])
+        h['start_stop_id'] = g.apply(lambda group: group['stop_id'].iat[0])
+        h['end_stop_id'] = g.apply(lambda group: group['stop_id'].iat[-1])
         h['num_stops'] = g.size()
 
         # Convert times back to time strings
@@ -1774,6 +1813,16 @@ class Feed(object):
         fig = plot_routes_time_series(rts)
         fig.tight_layout()
         fig.savefig(directory + 'routes_time_series_agg.pdf', dpi=200)
+
+    def fill_nan_route_short_names(self, base_name='NoName'):
+        """
+        Replace NaN route short names in ``self.routes`` with 
+        ``base_name + '00'``, ``base_name + '01'``, ``base_name + '02'``, etc.
+        """
+        nan_indices = np.where(self.routes['route_short_name'].isnull())[0]
+        fills = {index: '{!s}{:02d}'.format(base_name, i)
+          for i, index in enumerate(nan_indices)}
+        self.routes['route_short_name'].fillna(fills, inplace=True)     
 
     def export(self, path, ndigits=5):
         """
