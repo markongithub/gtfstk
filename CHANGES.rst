@@ -1,6 +1,14 @@
 Changes
 ========
 
+v0.11.5 (2015-03-13)
+---------------------
+- Added route and stop timetable methods
+- Improved tests slightly
+- Tidied code slightly
+- Change occurrences of 'vehicle' to 'trips', because that's clearer
+- Updated some packages
+
 v0.11.4 (2015-03-12)
 ---------------------
 - Changed name to gtfs-tk
