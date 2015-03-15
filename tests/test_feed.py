@@ -31,94 +31,80 @@ class TestFeed(unittest.TestCase):
           if f not in ['calendar_dates', 'shapes']]:
             self.assertIsNone(getattr(feed, f))
 
-    def test_get_stops_stats_outer(self):
-        feed = copy(cairns)
-        st = pd.merge(feed.stop_times, 
-          feed.trips[['trip_id', 'direction_id']])
-        for split_directions in [True, False]:
-            stops_stats = get_stops_stats(st, 
-              split_directions=split_directions)
-            # Should be a data frame
-            self.assertIsInstance(stops_stats, pd.core.frame.DataFrame)
-            # Should contain the correct columns
-            expect_cols = set([
-              'stop_id',
-              'num_trips',
-              'max_headway',
-              'mean_headway',
-              'start_time',
-              'end_time',
-              ])
-            if split_directions:
-                expect_cols.add('direction_id')
-            self.assertEqual(set(stops_stats.columns), expect_cols)
-            # Should contain the correct stops
-            expect_stops = set(feed.stops['stop_id'].values)
-            get_stops = set(stops_stats['stop_id'].values)
-            self.assertEqual(get_stops, expect_stops)
-
-    # def test_get_stops_time_series_outer(self):
-    #     feed = copy(cairns)
-    #     date = feed.get_dates()[0]
-    #     ast = pd.merge(feed.get_trips(date), feed.stop_times)
-    #     for split_directions in [True, False]:
-    #         f = feed.get_stops_stats(date, 
-    #           split_directions=split_directions)
-    #         stops_ts = feed.get_stops_time_series(date, freq='1H',
-    #           split_directions=split_directions) 
-            
-    #         # Should be a data frame
-    #         self.assertIsInstance(stops_ts, pd.core.frame.DataFrame)
-            
-    #         # Should have the correct shape
-    #         self.assertEqual(stops_ts.shape[0], 24)
-    #         self.assertEqual(stops_ts.shape[1], f.shape[0])
-            
-    #         # Should have correct column names
-    #         if split_directions:
-    #             expect = ['indicator', 'stop_id', 'direction_id']
-    #         else:
-    #             expect = ['indicator', 'stop_id']
-    #         self.assertEqual(stops_ts.columns.names, expect)
-
-    #         # Each stop should have a correct total trip count
-    #         if split_directions == False:
-    #             astg = ast.groupby('stop_id')
-    #             for stop in set(ast['stop_id'].values):
-    #                 get = stops_ts['num_trips'][stop].sum() 
-    #                 expect = astg.get_group(stop)['departure_time'].count()
-    #                 self.assertEqual(get, expect)
-        
-    #     # None check
-    #     date = '19000101'
-    #     stops_ts = feed.get_stops_time_series(date, freq='1H',
-    #       split_directions=split_directions) 
-    #     self.assertIsNone(stops_ts)
 
     # Test route methods
     # ----------------------------------
-    def test_fill_nan_route_short_names(self):
-        feed = copy(cairns) # Has all non-nan route short names
-        
-        # Set some route short names to nan
-        f = feed.routes
-        g = f[f['route_short_name'].str.startswith('12')]
-        g_indices = g.index.tolist()
-        for i in g_indices:
-            f['route_short_name'].iat[i] = np.nan
-        
-        # Fill nans
-        feed.fill_nan_route_short_names('bingo')
-        h = f[f['route_short_name'].str.startswith('bingo')]
-        h_indices = h.index.tolist()
-        
-        # The indices we set to nan should equal the indices we filled
-        self.assertEqual(h_indices, g_indices)
+    def test_get_routes_stats_outer(self):
+        feed = copy(cairns)
+        f = feed.get_trips_stats()
+        for split_directions in [True, False]:
+            rs = get_routes_stats(f, split_directions=split_directions)
 
-        # The fill values should be correct. Just check the numeric suffixes.
-        get = [int(x.lstrip('bingo')) for x in h['route_short_name'].values]
-        expect = list(range(len(h_indices)))
-        self.assertEqual(get, expect)
+            # Should be a data frame of the correct shape
+            self.assertIsInstance(rs, pd.core.frame.DataFrame)
+            if split_directions:
+                f['tmp'] = f['route_id'] + '-' +\
+                  f['direction_id'].map(str)
+            else:
+                f['tmp'] = f['route_id'].copy()
+            expect_num_routes = len(f['tmp'].unique())
+            self.assertEqual(rs.shape[0], expect_num_routes)
+
+            # Should contain the correct columns
+            expect_cols = set([
+              'route_id',
+              'num_trips',
+              'is_loop',
+              'start_time',
+              'end_time',
+              'max_headway',
+              'mean_headway', 
+              'service_duration', 
+              'service_distance',
+              'service_speed',              
+              ])
+            if split_directions:
+                expect_cols.add('direction_id')
+            self.assertEqual(set(rs.columns), expect_cols)
+
+        # None check
+        rs = get_routes_stats(pd.DataFrame(), 
+          split_directions=split_directions)    
+        self.assertIsNone(rs)
+
+    def test_get_routes_time_series_outer(self):
+        feed = copy(cairns)
+        f = feed.get_trips_stats()
+        for split_directions in [True, False]:
+            rs = get_routes_stats(f, split_directions=split_directions)
+            rts = get_routes_time_series(f, 
+              split_directions=split_directions, freq='1H')
+            
+            # Should be a data frame of the correct shape
+            self.assertIsInstance(rts, pd.core.frame.DataFrame)
+            self.assertEqual(rts.shape[0], 24)
+            self.assertEqual(rts.shape[1], 5*rs.shape[0])
+            
+            # Should have correct column names
+            if split_directions:
+                expect = ['indicator', 'route_id', 'direction_id']
+            else:
+                expect = ['indicator', 'route_id']
+            self.assertEqual(rts.columns.names, expect)   
+            
+            # Each route have a correct service distance total
+            if split_directions == False:
+                g = f.groupby('route_id')
+                for route in f['route_id'].values:
+                    get = rts['service_distance'][route].sum() 
+                    expect = g.get_group(route)['distance'].sum()
+                    self.assertTrue(abs((get - expect)/expect) < 0.001)
+
+        # None check
+        rts = get_routes_time_series(pd.DataFrame(), 
+          split_directions=split_directions, 
+          freq='1H')    
+        self.assertIsNone(rts)
 
     def test_get_routes(self):
         feed = copy(cairns)
@@ -164,6 +150,7 @@ class TestFeed(unittest.TestCase):
             expect_cols = set([
               'route_id',
               'num_trips',
+              'is_loop',
               'start_time',
               'end_time',
               'max_headway',
@@ -234,6 +221,29 @@ class TestFeed(unittest.TestCase):
             # Should have correct column names
             self.assertEqual(arts.columns.names, col_names)   
 
+    def test_fill_nan_route_short_names(self):
+        feed = copy(cairns) # Has all non-nan route short names
+        
+        # Set some route short names to nan
+        f = feed.routes
+        g = f[f['route_short_name'].str.startswith('12')]
+        g_indices = g.index.tolist()
+        for i in g_indices:
+            f['route_short_name'].iat[i] = np.nan
+        
+        # Fill nans
+        feed.fill_nan_route_short_names('bingo')
+        h = f[f['route_short_name'].str.startswith('bingo')]
+        h_indices = h.index.tolist()
+        
+        # The indices we set to nan should equal the indices we filled
+        self.assertEqual(h_indices, g_indices)
+
+        # The fill values should be correct. Just check the numeric suffixes.
+        get = [int(x.lstrip('bingo')) for x in h['route_short_name'].values]
+        expect = list(range(len(h_indices)))
+        self.assertEqual(get, expect)
+
     def test_get_route_timetable(self):
         feed = copy(cairns)
         route = feed.routes['route_id'].values[0]
@@ -294,19 +304,26 @@ class TestFeed(unittest.TestCase):
         feed = copy(cairns)
         trips_stats = feed.get_trips_stats()
         feed.add_dist_to_stop_times(trips_stats)
-        linestring_by_shape = feed.get_linestring_by_shape(use_utm=False)
         date = feed.get_dates()[0]
         timestrs = ['08:00:00']
-        f = feed.get_trips_locations(linestring_by_shape, date, timestrs)
+        f = feed.get_trips_locations(date, timestrs)
         g = feed.get_trips(date, timestrs[0])
         # Should be a data frame
         self.assertIsInstance(f, pd.core.frame.DataFrame)
         # Should have the correct number of rows
         self.assertEqual(f.shape[0], g.shape[0])
         # Should have the correct columns
-        get_cols = set(f.columns)
-        expect_cols = set(list(g.columns) + ['time', 'rel_dist', 'lon', 'lat'])
-        self.assertEqual(get_cols, expect_cols)
+        expect_cols = set([
+          'route_id',
+          'trip_id',
+          'direction_id',
+          'shape_id',
+          'time', 
+          'rel_dist', 
+          'lon', 
+          'lat',
+          ])
+        self.assertEqual(set(f.columns), expect_cols)
     
     def test_get_trips_activity(self):
         feed = copy(cairns)
@@ -334,13 +351,15 @@ class TestFeed(unittest.TestCase):
           'direction_id',
           'route_id',
           'shape_id',
+          'num_stops',
           'start_time', 
           'end_time',
-          'duration',
           'start_stop_id',
           'end_stop_id',
-          'num_stops',
           'distance',
+          'duration',
+          'speed',
+          'is_loop',
           ])
         self.assertEqual(set(trips_stats.columns), expect_cols)
         
@@ -357,6 +376,68 @@ class TestFeed(unittest.TestCase):
     
     # Test stop methods
     # ----------------------------------
+    def test_get_stops_stats_outer(self):
+        feed = copy(cairns)
+        st = pd.merge(feed.stop_times, 
+          feed.trips[['trip_id', 'direction_id']])
+        for split_directions in [True, False]:
+            stops_stats = get_stops_stats(st, 
+              split_directions=split_directions)
+            # Should be a data frame
+            self.assertIsInstance(stops_stats, pd.core.frame.DataFrame)
+            # Should contain the correct columns
+            expect_cols = set([
+              'stop_id',
+              'num_trips',
+              'max_headway',
+              'mean_headway',
+              'start_time',
+              'end_time',
+              ])
+            if split_directions:
+                expect_cols.add('direction_id')
+            self.assertEqual(set(stops_stats.columns), expect_cols)
+            # Should contain the correct stops
+            expect_stops = set(feed.stops['stop_id'].values)
+            get_stops = set(stops_stats['stop_id'].values)
+            self.assertEqual(get_stops, expect_stops)
+
+    def test_get_stops_time_series_outer(self):
+        feed = copy(cairns)
+        st = pd.merge(feed.stop_times, 
+          feed.trips[['trip_id', 'direction_id']])
+        for split_directions in [True, False]:
+            ss = get_stops_stats(st, split_directions=split_directions)
+            sts = get_stops_time_series(st, freq='1H',
+              split_directions=split_directions) 
+            
+            # Should be a data frame
+            self.assertIsInstance(sts, pd.core.frame.DataFrame)
+            
+            # Should have the correct shape
+            self.assertEqual(sts.shape[0], 24)
+            self.assertEqual(sts.shape[1], ss.shape[0])
+            
+            # Should have correct column names
+            if split_directions:
+                expect = ['indicator', 'stop_id', 'direction_id']
+            else:
+                expect = ['indicator', 'stop_id']
+            self.assertEqual(sts.columns.names, expect)
+
+            # Each stop should have a correct total trip count
+            if split_directions == False:
+                stg = st.groupby('stop_id')
+                for stop in set(st['stop_id'].values):
+                    get = sts['num_trips'][stop].sum() 
+                    expect = stg.get_group(stop)['departure_time'].count()
+                    self.assertEqual(get, expect)
+        
+        # None check
+        stops_ts = get_stops_time_series(pd.DataFrame(), freq='1H',
+          split_directions=split_directions) 
+        self.assertIsNone(stops_ts)
+
     def test_get_stops(self):
         feed = copy(cairns)
         date = feed.get_dates()[0]

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.11.5 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.11.6 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.5',
+        VERSION:     '0.11.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.5 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.6 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body role="document">
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.5 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.6 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -101,8 +101,6 @@ Unfortunately, this fallback method will produce incorrect results
 when the first stop does not start at the start of its shape
 (so shape_dist_traveled != 0).
 This is the case for several trips in the Portland feed, for example.</p>
-<p>NOTE:</p>
-<p>Takes about 0.75 minutes on the Portland feed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -224,8 +222,7 @@ that are active on the given date, and then call
 <p>See <code class="docutils literal"><span class="pre">get_routes_stats()</span></code> for a description of the output.</p>
 <p>NOTES:</p>
 <p>This is a more user-friendly version of <code class="docutils literal"><span class="pre">get_routes_stats()</span></code>.
-The latter function works without a feed, though.
-Takes about 0.02 minutes on the Portland feed.</p>
+The latter function works without a feed, though.</p>
 </dd></dl>
 
 <dl class="method">
@@ -241,8 +238,7 @@ and with <code class="docutils literal"><span class="pre">date_label</span> <spa
 <p>If there are no active trips on the date, then return <code class="docutils literal"><span class="pre">None</span></code>.</p>
 <p>NOTES:</p>
 <p>This is a more user-friendly version of <code class="docutils literal"><span class="pre">get_routes_time_series()</span></code>.
-The latter function works without a feed, though.
-Takes about 0.03 minutes on the Portland feed.</p>
+The latter function works without a feed, though.</p>
 </dd></dl>
 
 <dl class="method">
@@ -264,9 +260,6 @@ namely WGS84.</p>
 the same stats that <code class="docutils literal"><span class="pre">self.get_stops_stats()</span></code> does, but for
 stations.
 Otherwise, return <code class="docutils literal"><span class="pre">None</span></code>.</p>
-<p>NOTES:</p>
-<p>Takes about 0.2 minutes on the Portland feed given the first
-five weekdays of the feed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -332,8 +325,7 @@ arguments <code class="docutils literal"><span class="pre">split_directions</spa
 <p>See <code class="docutils literal"><span class="pre">get_stops_stats()</span></code> for a description of the output.</p>
 <p>NOTES:</p>
 <p>This is a more user-friendly version of <code class="docutils literal"><span class="pre">get_stops_stats()</span></code>.
-The latter function works without a feed, though.
-Takes about 0.7 minutes on the Portland feed.</p>
+The latter function works without a feed, though.</p>
 </dd></dl>
 
 <dl class="method">
@@ -348,8 +340,7 @@ See <code class="docutils literal"><span class="pre">Feed.get_stops_time_series(
 <p>If there are no active stop times on the date, then return <code class="docutils literal"><span class="pre">None</span></code>.</p>
 <p>NOTES:</p>
 <p>This is a more user-friendly version of <code class="docutils literal"><span class="pre">get_stops_time_series()</span></code>.
-The latter function works without a feed, though.
-Takes about 0.25 minutes on the Portland feed.</p>
+The latter function works without a feed, though.</p>
 </dd></dl>
 
 <dl class="method">
@@ -383,22 +374,22 @@ Dates are strings of the form &#8216;%Y%m%d&#8217;.</p>
 
 <dl class="method">
 <dt id="gtfs_tk.feed.Feed.get_trips_locations">
-<code class="descname">get_trips_locations</code><span class="sig-paren">(</span><em>linestring_by_shape</em>, <em>date</em>, <em>times</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_trips_locations" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_trips_locations</code><span class="sig-paren">(</span><em>date</em>, <em>times</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_trips_locations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Pandas data frame of the positions of all trips
-active on the given date and times.
+active on the given date (date string of the form &#8216;%Y%m%d&#8217;)
+and times (time strings of the form &#8216;%H:%M:%S&#8217;).
 Include the columns:</p>
 <ul class="simple">
 <li>trip_id</li>
-<li>direction_id</li>
 <li>route_id</li>
+<li>direction_id</li>
 <li>time</li>
 <li>rel_dist: number between 0 (start) and 1 (end) indicating 
 the relative distance of the trip along its path</li>
 <li>lon: longitude of trip at given time</li>
 <li>lat: latitude of trip at given time</li>
 </ul>
-<p>Requires input <code class="docutils literal"><span class="pre">linestring_by_shape</span> <span class="pre">=</span> <span class="pre">self.get_linestring_from_shape(use_utm=False)</span></code>.
-Assume <code class="docutils literal"><span class="pre">self.stop_times</span></code> has an accurate <code class="docutils literal"><span class="pre">shape_dist_traveled</span></code>
+<p>Assume <code class="docutils literal"><span class="pre">self.stop_times</span></code> has an accurate <code class="docutils literal"><span class="pre">shape_dist_traveled</span></code>
 column.</p>
 </dd></dl>
 
@@ -408,32 +399,33 @@ column.</p>
 <dd><p>Return a Pandas data frame with the following columns:</p>
 <ul class="simple">
 <li>trip_id</li>
-<li>direction_id</li>
 <li>route_id</li>
+<li>direction_id</li>
 <li>shape_id</li>
+<li>num_stops: number of stops on trip</li>
 <li>start_time: first departure time of the trip</li>
 <li>end_time: last departure time of the trip</li>
-<li>duration: duration of the trip in hours</li>
 <li>start_stop_id: stop ID of the first stop of the trip</li>
 <li>end_stop_id: stop ID of the last stop of the trip</li>
-<li>num_stops: number of stops on trip</li>
+<li>is_loop: 1 if the start and end stop are less than 400m apart and
+0 otherwise</li>
 <li>distance: distance of the trip in kilometers; contains all <code class="docutils literal"><span class="pre">np.nan</span></code>
 entries if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
+<li>duration: duration of the trip in hours</li>
+<li>speed: distance/duration</li>
 </ul>
 <p>NOTES:</p>
 <p>If <code class="docutils literal"><span class="pre">self.stop_times</span></code> has a <code class="docutils literal"><span class="pre">shape_dist_traveled</span></code> column
 and <code class="docutils literal"><span class="pre">get_dist_from_shapes</span> <span class="pre">==</span> <span class="pre">False</span></code>,
 then use that column to compute the distance column (in km).
-Elif <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code>, then compute the distance 
+Else if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code>, then compute the distance 
 column using the shapes and Shapely. 
 Otherwise, set the distances to <code class="docutils literal"><span class="pre">np.nan</span></code>.</p>
 <p>Calculating trip distances with <code class="docutils literal"><span class="pre">get_dist_from_shapes=True</span></code>
 seems pretty accurate.
 For example, calculating trip distances on the Portland feed using
 <code class="docutils literal"><span class="pre">get_dist_from_shapes=False</span></code> and <code class="docutils literal"><span class="pre">get_dist_from_shapes=True</span></code>,
-yields a diffence of at most 0.83km.</p>
-<p>Takes about 0.20 minutes on the Portland feed, which has the
-<code class="docutils literal"><span class="pre">shape_dist_traveled</span></code> column.</p>
+yields a difference of at most 0.83km.</p>
 </dd></dl>
 
 <dl class="method">
@@ -512,10 +504,12 @@ calculate stats for the routes in that subset.</p>
 <ul class="simple">
 <li>route_id</li>
 <li>direction_id</li>
-<li>num_trips: mean daily number of trips</li>
-<li>start_time: start time of the earliest active trip on 
+<li>num_trips: number of trips</li>
+<li>is_loop: 1 if at least one of the trips on the route has its
+<code class="docutils literal"><span class="pre">is_loop</span></code> field equal to 1, and 0 otherwise</li>
+<li>start_time: start time of the earliest trip on 
 the route</li>
-<li>end_time: end time of latest active trip on the route</li>
+<li>end_time: end time of latest trip on the route</li>
 <li>max_headway: maximum of the durations (in minutes) between 
 trip starts on the route between <code class="docutils literal"><span class="pre">headway_start_timestr</span></code> and 
 <code class="docutils literal"><span class="pre">headway_end_timestr</span></code> on the given dates</li>
@@ -644,7 +638,6 @@ a date string of the form &#8216;%Y%m%d&#8217;.</p>
 <li>To remove the date and seconds from 
 the time series f, do <code class="docutils literal"><span class="pre">f.index</span> <span class="pre">=</span> <span class="pre">[t.time().strftime('%H:%M')</span> 
 <span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">f.index.to_datetime()]</span></code></li>
-<li>Takes about 0.25 minutes on the Portland feed.</li>
 </ul>
 </dd></dl>
 
@@ -722,7 +715,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.5 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.6 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

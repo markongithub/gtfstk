@@ -1,6 +1,13 @@
 Changes
 ========
 
+v0.11.6 (2015-03-16)
+---------------------
+- Cleaned code slightly
+- Added 'speed' column in trips stats
+- Added 'is_loop' column in trips stats and routes stats
+- Added more tests
+
 v0.11.5 (2015-03-13)
 ---------------------
 - Added route and stop timetable methods
@@ -32,7 +39,7 @@ v0.11.2 (2014-12-10)
 v0.11.1 (2014-11-12)
 ----------------------
 - Added ``fill_nan_route_short_names()``
-- Switched back to version numbering in the style of major.minor.micro
+- Switched back to version numbering in the style of major.minor.micro, because that seems more useful
 
 v0.11 (2014-11-10)
 ----------------------
