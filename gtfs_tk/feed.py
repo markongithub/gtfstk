@@ -150,7 +150,6 @@ def get_stops_time_series(stop_times_subset, split_directions=False,
     - To remove the date and seconds from 
       the time series f, do ``f.index = [t.time().strftime('%H:%M') 
       for t in f.index.to_datetime()]``
-    - Takes about 0.25 minutes on the Portland feed.
     """  
     if stop_times_subset is None or stop_times_subset.empty:
         return None
@@ -206,10 +205,12 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
 
     - route_id
     - direction_id
-    - num_trips: mean daily number of trips
-    - start_time: start time of the earliest active trip on 
+    - num_trips: number of trips
+    - is_loop: 1 if at least one of the trips on the route has its
+      ``is_loop`` field equal to 1, and 0 otherwise
+    - start_time: start time of the earliest trip on 
       the route
-    - end_time: end time of latest active trip on the route
+    - end_time: end time of latest trip on the route
     - max_headway: maximum of the durations (in minutes) between 
       trip starts on the route between ``headway_start_timestr`` and 
       ``headway_end_timestr`` on the given dates
@@ -233,6 +234,9 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     (2) compute mean headway by taking the weighted mean of the mean
     headways in both directions. 
     """        
+    if trips_stats_subset is None or trips_stats_subset.empty:
+        return None
+
     # Convert trip start times to seconds to ease headway calculations
     f = trips_stats_subset.copy()
     f['start_time'] = f['start_time'].map(
@@ -246,6 +250,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
         # and compute route-level stats.
         d = OrderedDict()
         d['num_trips'] = group.shape[0]
+        d['is_loop'] = int(group['is_loop'].any())
         d['start_time'] = group['start_time'].min()
         d['end_time'] = group['end_time'].max()
         headways = []
@@ -268,6 +273,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
         # Compute headways. Need to separate directions for these.
         d = OrderedDict()
         d['num_trips'] = group.shape[0]
+        d['is_loop'] = int(group['is_loop'].any())
         d['start_time'] = group['start_time'].min()
         d['end_time'] = group['end_time'].max()
         headways = []
@@ -918,14 +924,16 @@ class Feed(object):
         Return a Pandas data frame with the following columns:
 
         - trip_id
-        - direction_id
         - route_id
+        - direction_id
         - shape_id
         - num_stops: number of stops on trip
         - start_time: first departure time of the trip
         - end_time: last departure time of the trip
         - start_stop_id: stop ID of the first stop of the trip 
         - end_stop_id: stop ID of the last stop of the trip
+        - is_loop: 1 if the start and end stop are less than 400m apart and
+          0 otherwise
         - distance: distance of the trip in kilometers; contains all ``np.nan``
           entries if ``self.shapes is None``
         - duration: duration of the trip in hours
@@ -956,6 +964,7 @@ class Feed(object):
         
         # Compute all trips stats except distance, 
         # which is possibly more involved
+        point_by_stop = self.get_point_by_stop(use_utm=True)
         g = f.groupby('trip_id')
 
         def my_agg(group):
@@ -968,6 +977,9 @@ class Feed(object):
             d['end_time'] = group['departure_time'].iat[-1]
             d['start_stop_id'] = group['stop_id'].iat[0]
             d['end_stop_id'] = group['stop_id'].iat[-1]
+            dist = point_by_stop[d['start_stop_id']].distance(
+              point_by_stop[d['end_stop_id']])
+            d['is_loop'] = int(dist < 400)
             d['duration'] = (d['end_time'] - d['start_time'])/3600
             return pd.Series(d)
 
@@ -1103,7 +1115,8 @@ class Feed(object):
 
         # Merge in more trip info and
         # compute longitude and latitude of trip from relative distance
-        h = pd.merge(self.trips, g)
+        h = pd.merge(self.trips[['trip_id', 'route_id', 'direction_id', 
+          'shape_id']], g)
         if not h.shape[0]:
             # Return a data frame with the promised headers but no data.
             # Without this check, result below could be an empty data frame.
@@ -1156,7 +1169,6 @@ class Feed(object):
 
         This is a more user-friendly version of ``get_routes_stats()``.
         The latter function works without a feed, though.
-        Takes about 0.02 minutes on the Portland feed.
         """
         # Get the subset of trips_stats that contains only trips active
         # on the given date
@@ -1184,7 +1196,6 @@ class Feed(object):
 
         This is a more user-friendly version of ``get_routes_time_series()``.
         The latter function works without a feed, though.
-        Takes about 0.03 minutes on the Portland feed.
         """  
         trips_stats_subset = pd.merge(trips_stats, self.get_trips(date))
         return get_routes_time_series(trips_stats_subset, 
@@ -1299,7 +1310,6 @@ class Feed(object):
 
         This is a more user-friendly version of ``get_stops_stats()``.
         The latter function works without a feed, though.
-        Takes about 0.7 minutes on the Portland feed.
         """
         if not date:
             return 
@@ -1327,7 +1337,6 @@ class Feed(object):
 
         This is a more user-friendly version of ``get_stops_time_series()``.
         The latter function works without a feed, though.
-        Takes about 0.25 minutes on the Portland feed.
         """  
         if not date:
             return 
@@ -1373,11 +1382,6 @@ class Feed(object):
         the same stats that ``self.get_stops_stats()`` does, but for
         stations.
         Otherwise, return ``None``.
-
-        NOTES:
-
-        Takes about 0.2 minutes on the Portland feed given the first
-        five weekdays of the feed.
         """
         # Get stop times of active trips that visit stops in stations
         sis = self.get_stops_in_stations()
@@ -1568,10 +1572,6 @@ class Feed(object):
         when the first stop does not start at the start of its shape
         (so shape_dist_traveled != 0).
         This is the case for several trips in the Portland feed, for example. 
-
-        NOTE: 
-
-        Takes about 0.75 minutes on the Portland feed.
         """
         linestring_by_shape = self.get_linestring_by_shape()
         point_by_stop = self.get_point_by_stop()

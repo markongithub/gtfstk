@@ -174,7 +174,7 @@ div#notebook {
 
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
@@ -219,7 +219,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Import a feed</span>
@@ -233,7 +233,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get trips stats</span>
@@ -249,7 +249,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[15]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[16]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -257,439 +257,501 @@ div#notebook {
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>route_id</th>
       <th>trip_id</th>
+      <th>route_id</th>
       <th>direction_id</th>
       <th>shape_id</th>
+      <th>num_stops</th>
       <th>start_time</th>
       <th>end_time</th>
-      <th>duration</th>
       <th>start_stop_id</th>
       <th>end_stop_id</th>
-      <th>num_stops</th>
+      <th>is_loop</th>
+      <th>duration</th>
       <th>distance</th>
+      <th>speed</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>0   </th>
-      <td>  110-423</td>
+      <th>703 </th>
       <td>  CNS2014-CNS_MUL-Weekday-00-4165878</td>
+      <td>  110-423</td>
       <td> 0</td>
       <td>  1100023</td>
+      <td> 35</td>
       <td> 05:50:00</td>
       <td> 06:50:00</td>
-      <td> 1.000000</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
       <td> 32.507121</td>
     </tr>
     <tr>
-      <th>636 </th>
-      <td>  110-423</td>
+      <th>0   </th>
       <td> CNS2014-CNS_MUL-Saturday-00-4165937</td>
+      <td>  110-423</td>
       <td> 0</td>
       <td>  1100023</td>
+      <td> 35</td>
       <td> 06:16:00</td>
       <td> 07:10:00</td>
-      <td> 0.900000</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
+      <td> 0</td>
+      <td> 0.900000</td>
       <td> 32.507121</td>
+      <td> 36.119024</td>
+    </tr>
+    <tr>
+      <th>704 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165879</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 06:20:00</td>
+      <td> 07:20:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
+      <td> 32.507121</td>
+    </tr>
+    <tr>
+      <th>705 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165880</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 06:50:00</td>
+      <td> 07:50:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
+      <td> 32.507121</td>
+    </tr>
+    <tr>
+      <th>706 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165881</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 07:15:00</td>
+      <td> 08:20:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.083333</td>
+      <td> 32.507121</td>
+      <td> 30.006574</td>
     </tr>
     <tr>
       <th>1   </th>
+      <td> CNS2014-CNS_MUL-Saturday-00-4165938</td>
       <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165879</td>
       <td> 0</td>
       <td>  1100023</td>
-      <td> 06:20:00</td>
-      <td> 07:20:00</td>
-      <td> 1.000000</td>
+      <td> 35</td>
+      <td> 07:16:00</td>
+      <td> 08:10:00</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
+      <td> 0</td>
+      <td> 0.900000</td>
       <td> 32.507121</td>
+      <td> 36.119024</td>
+    </tr>
+    <tr>
+      <th>437 </th>
+      <td>   CNS2014-CNS_MUL-Sunday-00-4165971</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100015</td>
+      <td> 35</td>
+      <td> 07:16:00</td>
+      <td> 08:10:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 0.900000</td>
+      <td> 32.038273</td>
+      <td> 35.598081</td>
+    </tr>
+    <tr>
+      <th>707 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165882</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 07:45:00</td>
+      <td> 08:50:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.083333</td>
+      <td> 32.507121</td>
+      <td> 30.006574</td>
+    </tr>
+    <tr>
+      <th>708 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165883</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 08:15:00</td>
+      <td> 09:20:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.083333</td>
+      <td> 32.507121</td>
+      <td> 30.006574</td>
     </tr>
     <tr>
       <th>2   </th>
+      <td> CNS2014-CNS_MUL-Saturday-00-4165939</td>
       <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165880</td>
       <td> 0</td>
       <td>  1100023</td>
-      <td> 06:50:00</td>
-      <td> 07:50:00</td>
-      <td> 1.000000</td>
+      <td> 35</td>
+      <td> 08:16:00</td>
+      <td> 09:10:00</td>
       <td> 750337</td>
       <td> 750449</td>
+      <td> 0</td>
+      <td> 0.900000</td>
+      <td> 32.507121</td>
+      <td> 36.119024</td>
+    </tr>
+    <tr>
+      <th>438 </th>
+      <td>   CNS2014-CNS_MUL-Sunday-00-4165972</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100015</td>
       <td> 35</td>
+      <td> 08:16:00</td>
+      <td> 09:10:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 0.900000</td>
+      <td> 32.038273</td>
+      <td> 35.598081</td>
+    </tr>
+    <tr>
+      <th>709 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165884</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 08:50:00</td>
+      <td> 09:50:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
       <td> 32.507121</td>
     </tr>
     <tr>
       <th>3   </th>
+      <td> CNS2014-CNS_MUL-Saturday-00-4165940</td>
       <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165881</td>
       <td> 0</td>
       <td>  1100023</td>
-      <td> 07:15:00</td>
-      <td> 08:20:00</td>
-      <td> 1.083333</td>
+      <td> 35</td>
+      <td> 09:16:00</td>
+      <td> 10:10:00</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>637 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Saturday-00-4165938</td>
       <td> 0</td>
-      <td>  1100023</td>
-      <td> 07:16:00</td>
-      <td> 08:10:00</td>
       <td> 0.900000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
       <td> 32.507121</td>
+      <td> 36.119024</td>
     </tr>
     <tr>
-      <th>1073</th>
+      <th>439 </th>
+      <td>   CNS2014-CNS_MUL-Sunday-00-4165973</td>
       <td>  110-423</td>
-      <td>   CNS2014-CNS_MUL-Sunday-00-4165971</td>
       <td> 0</td>
       <td>  1100015</td>
-      <td> 07:16:00</td>
-      <td> 08:10:00</td>
-      <td> 0.900000</td>
+      <td> 35</td>
+      <td> 09:16:00</td>
+      <td> 10:10:00</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
+      <td> 0</td>
+      <td> 0.900000</td>
       <td> 32.038273</td>
+      <td> 35.598081</td>
+    </tr>
+    <tr>
+      <th>710 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165885</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 09:20:00</td>
+      <td> 10:20:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
+      <td> 32.507121</td>
+    </tr>
+    <tr>
+      <th>711 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165886</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 09:50:00</td>
+      <td> 10:50:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
+      <td> 32.507121</td>
     </tr>
     <tr>
       <th>4   </th>
+      <td> CNS2014-CNS_MUL-Saturday-00-4165941</td>
       <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165882</td>
       <td> 0</td>
       <td>  1100023</td>
-      <td> 07:45:00</td>
-      <td> 08:50:00</td>
-      <td> 1.083333</td>
+      <td> 35</td>
+      <td> 10:16:00</td>
+      <td> 11:10:00</td>
       <td> 750337</td>
       <td> 750449</td>
+      <td> 0</td>
+      <td> 0.900000</td>
+      <td> 32.507121</td>
+      <td> 36.119024</td>
+    </tr>
+    <tr>
+      <th>440 </th>
+      <td>   CNS2014-CNS_MUL-Sunday-00-4165974</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100015</td>
       <td> 35</td>
+      <td> 10:16:00</td>
+      <td> 11:10:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 0.900000</td>
+      <td> 32.038273</td>
+      <td> 35.598081</td>
+    </tr>
+    <tr>
+      <th>712 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165887</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 10:20:00</td>
+      <td> 11:20:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
+      <td> 32.507121</td>
+    </tr>
+    <tr>
+      <th>713 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165888</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 10:50:00</td>
+      <td> 11:50:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
       <td> 32.507121</td>
     </tr>
     <tr>
       <th>5   </th>
+      <td> CNS2014-CNS_MUL-Saturday-00-4165942</td>
       <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165883</td>
       <td> 0</td>
       <td>  1100023</td>
-      <td> 08:15:00</td>
-      <td> 09:20:00</td>
-      <td> 1.083333</td>
+      <td> 35</td>
+      <td> 11:16:00</td>
+      <td> 12:10:00</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>638 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Saturday-00-4165939</td>
       <td> 0</td>
-      <td>  1100023</td>
-      <td> 08:16:00</td>
-      <td> 09:10:00</td>
       <td> 0.900000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
       <td> 32.507121</td>
+      <td> 36.119024</td>
     </tr>
     <tr>
-      <th>1074</th>
+      <th>441 </th>
+      <td>   CNS2014-CNS_MUL-Sunday-00-4165975</td>
       <td>  110-423</td>
-      <td>   CNS2014-CNS_MUL-Sunday-00-4165972</td>
       <td> 0</td>
       <td>  1100015</td>
-      <td> 08:16:00</td>
-      <td> 09:10:00</td>
-      <td> 0.900000</td>
+      <td> 35</td>
+      <td> 11:16:00</td>
+      <td> 12:10:00</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
+      <td> 0</td>
+      <td> 0.900000</td>
       <td> 32.038273</td>
+      <td> 35.598081</td>
+    </tr>
+    <tr>
+      <th>714 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165889</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 11:20:00</td>
+      <td> 12:20:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
+      <td> 32.507121</td>
+    </tr>
+    <tr>
+      <th>715 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165890</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 11:50:00</td>
+      <td> 12:50:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
+      <td> 32.507121</td>
     </tr>
     <tr>
       <th>6   </th>
+      <td> CNS2014-CNS_MUL-Saturday-00-4165943</td>
       <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165884</td>
       <td> 0</td>
       <td>  1100023</td>
-      <td> 08:50:00</td>
-      <td> 09:50:00</td>
-      <td> 1.000000</td>
+      <td> 35</td>
+      <td> 12:16:00</td>
+      <td> 13:10:00</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>639 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Saturday-00-4165940</td>
       <td> 0</td>
-      <td>  1100023</td>
-      <td> 09:16:00</td>
-      <td> 10:10:00</td>
       <td> 0.900000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
       <td> 32.507121</td>
+      <td> 36.119024</td>
     </tr>
     <tr>
-      <th>1075</th>
+      <th>442 </th>
+      <td>   CNS2014-CNS_MUL-Sunday-00-4165976</td>
       <td>  110-423</td>
-      <td>   CNS2014-CNS_MUL-Sunday-00-4165973</td>
       <td> 0</td>
       <td>  1100015</td>
-      <td> 09:16:00</td>
-      <td> 10:10:00</td>
-      <td> 0.900000</td>
+      <td> 35</td>
+      <td> 12:16:00</td>
+      <td> 13:10:00</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
+      <td> 0</td>
+      <td> 0.900000</td>
       <td> 32.038273</td>
+      <td> 35.598081</td>
+    </tr>
+    <tr>
+      <th>716 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165891</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 12:20:00</td>
+      <td> 13:20:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
+      <td> 32.507121</td>
+    </tr>
+    <tr>
+      <th>717 </th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4165892</td>
+      <td>  110-423</td>
+      <td> 0</td>
+      <td>  1100023</td>
+      <td> 35</td>
+      <td> 12:50:00</td>
+      <td> 13:50:00</td>
+      <td> 750337</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.000000</td>
+      <td> 32.507121</td>
+      <td> 32.507121</td>
     </tr>
     <tr>
       <th>7   </th>
-      <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165885</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 09:20:00</td>
-      <td> 10:20:00</td>
-      <td> 1.000000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>8   </th>
-      <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165886</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 09:50:00</td>
-      <td> 10:50:00</td>
-      <td> 1.000000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>640 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Saturday-00-4165941</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 10:16:00</td>
-      <td> 11:10:00</td>
-      <td> 0.900000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>1076</th>
-      <td>  110-423</td>
-      <td>   CNS2014-CNS_MUL-Sunday-00-4165974</td>
-      <td> 0</td>
-      <td>  1100015</td>
-      <td> 10:16:00</td>
-      <td> 11:10:00</td>
-      <td> 0.900000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.038273</td>
-    </tr>
-    <tr>
-      <th>9   </th>
-      <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165887</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 10:20:00</td>
-      <td> 11:20:00</td>
-      <td> 1.000000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>10  </th>
-      <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165888</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 10:50:00</td>
-      <td> 11:50:00</td>
-      <td> 1.000000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>641 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Saturday-00-4165942</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 11:16:00</td>
-      <td> 12:10:00</td>
-      <td> 0.900000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>1077</th>
-      <td>  110-423</td>
-      <td>   CNS2014-CNS_MUL-Sunday-00-4165975</td>
-      <td> 0</td>
-      <td>  1100015</td>
-      <td> 11:16:00</td>
-      <td> 12:10:00</td>
-      <td> 0.900000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.038273</td>
-    </tr>
-    <tr>
-      <th>11  </th>
-      <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165889</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 11:20:00</td>
-      <td> 12:20:00</td>
-      <td> 1.000000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>12  </th>
-      <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165890</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 11:50:00</td>
-      <td> 12:50:00</td>
-      <td> 1.000000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>642 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Saturday-00-4165943</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 12:16:00</td>
-      <td> 13:10:00</td>
-      <td> 0.900000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>1078</th>
-      <td>  110-423</td>
-      <td>   CNS2014-CNS_MUL-Sunday-00-4165976</td>
-      <td> 0</td>
-      <td>  1100015</td>
-      <td> 12:16:00</td>
-      <td> 13:10:00</td>
-      <td> 0.900000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.038273</td>
-    </tr>
-    <tr>
-      <th>13  </th>
-      <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165891</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 12:20:00</td>
-      <td> 13:20:00</td>
-      <td> 1.000000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>14  </th>
-      <td>  110-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4165892</td>
-      <td> 0</td>
-      <td>  1100023</td>
-      <td> 12:50:00</td>
-      <td> 13:50:00</td>
-      <td> 1.000000</td>
-      <td> 750337</td>
-      <td> 750449</td>
-      <td> 35</td>
-      <td> 32.507121</td>
-    </tr>
-    <tr>
-      <th>643 </th>
-      <td>  110-423</td>
       <td> CNS2014-CNS_MUL-Saturday-00-4165944</td>
+      <td>  110-423</td>
       <td> 0</td>
       <td>  1100023</td>
+      <td> 35</td>
       <td> 13:16:00</td>
       <td> 14:10:00</td>
-      <td> 0.900000</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
+      <td> 0</td>
+      <td> 0.900000</td>
       <td> 32.507121</td>
+      <td> 36.119024</td>
     </tr>
     <tr>
-      <th>1079</th>
-      <td>  110-423</td>
+      <th>443 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4165977</td>
+      <td>  110-423</td>
       <td> 0</td>
       <td>  1100015</td>
+      <td> 35</td>
       <td> 13:16:00</td>
       <td> 14:10:00</td>
-      <td> 0.900000</td>
       <td> 750337</td>
       <td> 750449</td>
-      <td> 35</td>
+      <td> 0</td>
+      <td> 0.900000</td>
       <td> 32.038273</td>
+      <td> 35.598081</td>
     </tr>
     <tr>
       <th>...</th>
@@ -704,430 +766,492 @@ div#notebook {
       <td>...</td>
       <td>...</td>
       <td>...</td>
+      <td>...</td>
+      <td>...</td>
     </tr>
     <tr>
-      <th>1337</th>
-      <td> 150E-423</td>
+      <th>701 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180881</td>
+      <td> 150E-423</td>
       <td> 0</td>
       <td> 150E0007</td>
+      <td> 42</td>
       <td> 20:15:00</td>
       <td> 21:23:00</td>
+      <td> 750412</td>
+      <td> 750449</td>
+      <td> 0</td>
       <td> 1.133333</td>
-      <td> 750412</td>
-      <td> 750449</td>
-      <td> 42</td>
       <td> 37.780417</td>
+      <td> 33.335662</td>
     </tr>
     <tr>
-      <th>460 </th>
-      <td> 150E-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4179083</td>
-      <td> 0</td>
-      <td> 150E0007</td>
-      <td> 20:25:00</td>
-      <td> 21:32:00</td>
-      <td> 1.116667</td>
-      <td> 750412</td>
-      <td> 750449</td>
-      <td> 42</td>
-      <td> 37.780417</td>
-    </tr>
-    <tr>
-      <th>963 </th>
-      <td> 150E-423</td>
+      <th>327 </th>
       <td> CNS2014-CNS_MUL-Saturday-00-4179093</td>
+      <td> 150E-423</td>
       <td> 0</td>
       <td> 150E0007</td>
+      <td> 42</td>
       <td> 20:25:00</td>
       <td> 21:32:00</td>
-      <td> 1.116667</td>
       <td> 750412</td>
       <td> 750449</td>
-      <td> 42</td>
+      <td> 0</td>
+      <td> 1.116667</td>
       <td> 37.780417</td>
+      <td> 33.833209</td>
     </tr>
     <tr>
-      <th>461 </th>
+      <th>1163</th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4179083</td>
       <td> 150E-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4179084</td>
       <td> 0</td>
       <td> 150E0007</td>
-      <td> 21:25:00</td>
-      <td> 22:32:00</td>
-      <td> 1.116667</td>
+      <td> 42</td>
+      <td> 20:25:00</td>
+      <td> 21:32:00</td>
       <td> 750412</td>
       <td> 750449</td>
-      <td> 42</td>
+      <td> 0</td>
+      <td> 1.116667</td>
       <td> 37.780417</td>
+      <td> 33.833209</td>
     </tr>
     <tr>
-      <th>964 </th>
-      <td> 150E-423</td>
+      <th>328 </th>
       <td> CNS2014-CNS_MUL-Saturday-00-4179094</td>
+      <td> 150E-423</td>
       <td> 0</td>
       <td> 150E0007</td>
+      <td> 42</td>
       <td> 21:25:00</td>
       <td> 22:32:00</td>
-      <td> 1.116667</td>
       <td> 750412</td>
       <td> 750449</td>
-      <td> 42</td>
+      <td> 0</td>
+      <td> 1.116667</td>
       <td> 37.780417</td>
+      <td> 33.833209</td>
     </tr>
     <tr>
-      <th>462 </th>
+      <th>1164</th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4179084</td>
       <td> 150E-423</td>
-      <td>  CNS2014-CNS_MUL-Weekday-00-4179085</td>
       <td> 0</td>
       <td> 150E0007</td>
-      <td> 22:25:00</td>
-      <td> 23:32:00</td>
-      <td> 1.116667</td>
+      <td> 42</td>
+      <td> 21:25:00</td>
+      <td> 22:32:00</td>
       <td> 750412</td>
       <td> 750449</td>
-      <td> 42</td>
+      <td> 0</td>
+      <td> 1.116667</td>
       <td> 37.780417</td>
+      <td> 33.833209</td>
     </tr>
     <tr>
-      <th>965 </th>
-      <td> 150E-423</td>
+      <th>329 </th>
       <td> CNS2014-CNS_MUL-Saturday-00-4179095</td>
+      <td> 150E-423</td>
       <td> 0</td>
       <td> 150E0007</td>
+      <td> 42</td>
       <td> 22:25:00</td>
       <td> 23:32:00</td>
-      <td> 1.116667</td>
       <td> 750412</td>
       <td> 750449</td>
-      <td> 42</td>
+      <td> 0</td>
+      <td> 1.116667</td>
       <td> 37.780417</td>
+      <td> 33.833209</td>
     </tr>
     <tr>
-      <th>1310</th>
+      <th>1165</th>
+      <td>  CNS2014-CNS_MUL-Weekday-00-4179085</td>
       <td> 150E-423</td>
+      <td> 0</td>
+      <td> 150E0007</td>
+      <td> 42</td>
+      <td> 22:25:00</td>
+      <td> 23:32:00</td>
+      <td> 750412</td>
+      <td> 750449</td>
+      <td> 0</td>
+      <td> 1.116667</td>
+      <td> 37.780417</td>
+      <td> 33.833209</td>
+    </tr>
+    <tr>
+      <th>674 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180854</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 09:00:00</td>
       <td> 10:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>1311</th>
-      <td> 150E-423</td>
+      <th>675 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180855</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 10:00:00</td>
       <td> 11:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>1312</th>
-      <td> 150E-423</td>
+      <th>676 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180856</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 11:00:00</td>
       <td> 12:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>1313</th>
-      <td> 150E-423</td>
+      <th>677 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180857</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 12:00:00</td>
       <td> 13:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>1314</th>
-      <td> 150E-423</td>
+      <th>678 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180858</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 13:00:00</td>
       <td> 14:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>1315</th>
-      <td> 150E-423</td>
+      <th>679 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180859</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 14:00:00</td>
       <td> 15:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>1316</th>
-      <td> 150E-423</td>
+      <th>680 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180860</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 15:00:00</td>
       <td> 16:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>1317</th>
-      <td> 150E-423</td>
+      <th>681 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180861</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 16:00:00</td>
       <td> 17:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>1318</th>
-      <td> 150E-423</td>
+      <th>682 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180862</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 17:00:00</td>
       <td> 18:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>956 </th>
-      <td> 150E-423</td>
+      <th>320 </th>
       <td> CNS2014-CNS_MUL-Saturday-00-4179086</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0009</td>
+      <td> 40</td>
       <td> 17:28:00</td>
       <td> 18:37:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.423999</td>
+      <td> 33.412173</td>
     </tr>
     <tr>
-      <th>1319</th>
-      <td> 150E-423</td>
+      <th>683 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180863</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 18:00:00</td>
       <td> 19:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>957 </th>
-      <td> 150E-423</td>
+      <th>321 </th>
       <td> CNS2014-CNS_MUL-Saturday-00-4179087</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0009</td>
+      <td> 40</td>
       <td> 18:13:00</td>
       <td> 19:22:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.423999</td>
+      <td> 33.412173</td>
     </tr>
     <tr>
-      <th>455 </th>
-      <td> 150E-423</td>
+      <th>1158</th>
       <td>  CNS2014-CNS_MUL-Weekday-00-4179078</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0009</td>
+      <td> 40</td>
       <td> 18:15:00</td>
       <td> 19:22:00</td>
-      <td> 1.116667</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.116667</td>
       <td> 38.423999</td>
+      <td> 34.409551</td>
     </tr>
     <tr>
-      <th>1320</th>
-      <td> 150E-423</td>
+      <th>684 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180864</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 19:00:00</td>
       <td> 20:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>958 </th>
-      <td> 150E-423</td>
+      <th>322 </th>
       <td> CNS2014-CNS_MUL-Saturday-00-4179088</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0009</td>
+      <td> 40</td>
       <td> 19:13:00</td>
       <td> 20:22:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.423999</td>
+      <td> 33.412173</td>
     </tr>
     <tr>
-      <th>456 </th>
-      <td> 150E-423</td>
+      <th>1159</th>
       <td>  CNS2014-CNS_MUL-Weekday-00-4179079</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0009</td>
+      <td> 40</td>
       <td> 19:15:00</td>
       <td> 20:22:00</td>
-      <td> 1.116667</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.116667</td>
       <td> 38.423999</td>
+      <td> 34.409551</td>
     </tr>
     <tr>
-      <th>1321</th>
-      <td> 150E-423</td>
+      <th>685 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180865</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 20:00:00</td>
       <td> 21:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>959 </th>
-      <td> 150E-423</td>
+      <th>323 </th>
       <td> CNS2014-CNS_MUL-Saturday-00-4179089</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0009</td>
+      <td> 40</td>
       <td> 20:13:00</td>
       <td> 21:22:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.423999</td>
+      <td> 33.412173</td>
     </tr>
     <tr>
-      <th>457 </th>
-      <td> 150E-423</td>
+      <th>1160</th>
       <td>  CNS2014-CNS_MUL-Weekday-00-4179080</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0009</td>
+      <td> 40</td>
       <td> 20:15:00</td>
       <td> 21:22:00</td>
-      <td> 1.116667</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.116667</td>
       <td> 38.423999</td>
+      <td> 34.409551</td>
     </tr>
     <tr>
-      <th>1322</th>
-      <td> 150E-423</td>
+      <th>686 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180866</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 21:00:00</td>
       <td> 22:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
     <tr>
-      <th>960 </th>
-      <td> 150E-423</td>
+      <th>324 </th>
       <td> CNS2014-CNS_MUL-Saturday-00-4179090</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0009</td>
+      <td> 40</td>
       <td> 21:13:00</td>
       <td> 22:22:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.423999</td>
+      <td> 33.412173</td>
     </tr>
     <tr>
-      <th>458 </th>
-      <td> 150E-423</td>
+      <th>1161</th>
       <td>  CNS2014-CNS_MUL-Weekday-00-4179081</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0009</td>
+      <td> 40</td>
       <td> 21:15:00</td>
       <td> 22:22:00</td>
-      <td> 1.116667</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.116667</td>
       <td> 38.423999</td>
+      <td> 34.409551</td>
     </tr>
     <tr>
-      <th>1323</th>
-      <td> 150E-423</td>
+      <th>687 </th>
       <td>   CNS2014-CNS_MUL-Sunday-00-4180867</td>
+      <td> 150E-423</td>
       <td> 1</td>
       <td> 150E0008</td>
+      <td> 40</td>
       <td> 22:00:00</td>
       <td> 23:09:00</td>
-      <td> 1.150000</td>
       <td> 750453</td>
       <td> 750412</td>
-      <td> 40</td>
+      <td> 0</td>
+      <td> 1.150000</td>
       <td> 38.139859</td>
+      <td> 33.165095</td>
     </tr>
   </tbody>
 </table>
-<p>1339 rows × 11 columns</p>
+<p>1339 rows × 13 columns</p>
 </div>
 </div>
 
@@ -1139,7 +1263,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Add shape distance traveled field to stop times</span>
@@ -1155,7 +1279,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[16]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[17]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -1859,7 +1983,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get trips for the busiest day of the first week of the feed</span>
@@ -1883,7 +2007,7 @@ div#notebook {
 </div>
 </div>
 
-<div class="output_area"><div class="prompt output_prompt">Out[17]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[18]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -2525,7 +2649,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get stops stats for that date</span>
@@ -2541,7 +2665,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[18]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[19]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -2551,9 +2675,9 @@ div#notebook {
       <th></th>
       <th>stop_id</th>
       <th>direction_id</th>
+      <th>num_trips</th>
       <th>start_time</th>
       <th>end_time</th>
-      <th>num_trips</th>
       <th>max_headway</th>
       <th>mean_headway</th>
     </tr>
@@ -2563,9 +2687,9 @@ div#notebook {
       <th>0  </th>
       <td> 750000</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 05:50:00</td>
       <td> 27:50:00</td>
-      <td>  34</td>
       <td> 34</td>
       <td> 29.863636</td>
     </tr>
@@ -2573,9 +2697,9 @@ div#notebook {
       <th>1  </th>
       <td> 750001</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 05:52:00</td>
       <td> 27:51:00</td>
-      <td>  34</td>
       <td> 35</td>
       <td> 29.909091</td>
     </tr>
@@ -2583,9 +2707,9 @@ div#notebook {
       <th>2  </th>
       <td> 750002</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 05:54:00</td>
       <td> 27:52:00</td>
-      <td>  34</td>
       <td> 35</td>
       <td> 29.909091</td>
     </tr>
@@ -2593,9 +2717,9 @@ div#notebook {
       <th>3  </th>
       <td> 750003</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 05:55:00</td>
       <td> 27:52:00</td>
-      <td>  34</td>
       <td> 35</td>
       <td> 29.909091</td>
     </tr>
@@ -2603,9 +2727,9 @@ div#notebook {
       <th>4  </th>
       <td> 750004</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 05:57:00</td>
       <td> 27:53:00</td>
-      <td>  34</td>
       <td> 34</td>
       <td> 29.863636</td>
     </tr>
@@ -2613,9 +2737,9 @@ div#notebook {
       <th>5  </th>
       <td> 750005</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 05:59:00</td>
       <td> 27:54:00</td>
-      <td>  34</td>
       <td> 34</td>
       <td> 29.863636</td>
     </tr>
@@ -2623,9 +2747,9 @@ div#notebook {
       <th>6  </th>
       <td> 750006</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 06:00:00</td>
       <td> 27:55:00</td>
-      <td>  34</td>
       <td> 34</td>
       <td> 29.695652</td>
     </tr>
@@ -2633,9 +2757,9 @@ div#notebook {
       <th>7  </th>
       <td> 750007</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 06:01:00</td>
       <td> 27:55:00</td>
-      <td>  34</td>
       <td> 34</td>
       <td> 29.695652</td>
     </tr>
@@ -2643,9 +2767,9 @@ div#notebook {
       <th>8  </th>
       <td> 750008</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 06:02:00</td>
       <td> 27:55:00</td>
-      <td>  34</td>
       <td> 34</td>
       <td> 29.695652</td>
     </tr>
@@ -2653,9 +2777,9 @@ div#notebook {
       <th>9  </th>
       <td> 750009</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 06:03:00</td>
       <td> 27:56:00</td>
-      <td>  34</td>
       <td> 33</td>
       <td> 29.695652</td>
     </tr>
@@ -2663,9 +2787,9 @@ div#notebook {
       <th>10 </th>
       <td> 750010</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 06:04:00</td>
       <td> 27:56:00</td>
-      <td>  34</td>
       <td> 34</td>
       <td> 29.695652</td>
     </tr>
@@ -2673,9 +2797,9 @@ div#notebook {
       <th>11 </th>
       <td> 750011</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 06:05:00</td>
       <td> 27:56:00</td>
-      <td>  34</td>
       <td> 33</td>
       <td> 29.695652</td>
     </tr>
@@ -2683,9 +2807,9 @@ div#notebook {
       <th>12 </th>
       <td> 750012</td>
       <td> 0</td>
+      <td>  34</td>
       <td> 06:05:00</td>
       <td> 27:57:00</td>
-      <td>  34</td>
       <td> 33</td>
       <td> 29.695652</td>
     </tr>
@@ -2693,9 +2817,9 @@ div#notebook {
       <th>13 </th>
       <td> 750013</td>
       <td> 0</td>
+      <td>  33</td>
       <td> 06:02:00</td>
       <td> 27:59:00</td>
-      <td>  33</td>
       <td> 67</td>
       <td> 32.000000</td>
     </tr>
@@ -2703,9 +2827,9 @@ div#notebook {
       <th>14 </th>
       <td> 750014</td>
       <td> 0</td>
+      <td>  33</td>
       <td> 06:07:00</td>
       <td> 28:03:00</td>
-      <td>  33</td>
       <td> 67</td>
       <td> 31.863636</td>
     </tr>
@@ -2713,19 +2837,19 @@ div#notebook {
       <th>15 </th>
       <td> 750015</td>
       <td> 0</td>
+      <td>  63</td>
       <td> 06:09:00</td>
       <td> 28:04:00</td>
-      <td>  63</td>
-      <td> 67</td>
+      <td> 37</td>
       <td> 15.577778</td>
     </tr>
     <tr>
       <th>16 </th>
       <td> 750016</td>
       <td> 0</td>
+      <td>  33</td>
       <td> 06:11:00</td>
       <td> 28:05:00</td>
-      <td>  33</td>
       <td> 67</td>
       <td> 31.863636</td>
     </tr>
@@ -2733,9 +2857,9 @@ div#notebook {
       <th>17 </th>
       <td> 750017</td>
       <td> 0</td>
+      <td>  33</td>
       <td> 06:12:00</td>
       <td> 28:06:00</td>
-      <td>  33</td>
       <td> 67</td>
       <td> 31.863636</td>
     </tr>
@@ -2743,9 +2867,9 @@ div#notebook {
       <th>18 </th>
       <td> 750018</td>
       <td> 0</td>
+      <td>  33</td>
       <td> 06:14:00</td>
       <td> 28:07:00</td>
-      <td>  33</td>
       <td> 67</td>
       <td> 31.818182</td>
     </tr>
@@ -2753,9 +2877,9 @@ div#notebook {
       <th>19 </th>
       <td> 750018</td>
       <td> 1</td>
+      <td>  34</td>
       <td> 08:14:00</td>
       <td> 29:14:00</td>
-      <td>  34</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2763,9 +2887,9 @@ div#notebook {
       <th>20 </th>
       <td> 750019</td>
       <td> 1</td>
+      <td>  34</td>
       <td> 08:14:00</td>
       <td> 29:15:00</td>
-      <td>  34</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2773,9 +2897,9 @@ div#notebook {
       <th>21 </th>
       <td> 750020</td>
       <td> 0</td>
+      <td>  33</td>
       <td> 06:15:00</td>
       <td> 28:08:00</td>
-      <td>  33</td>
       <td> 67</td>
       <td> 31.818182</td>
     </tr>
@@ -2783,9 +2907,9 @@ div#notebook {
       <th>22 </th>
       <td> 750021</td>
       <td> 0</td>
+      <td>  33</td>
       <td> 06:17:00</td>
       <td> 28:09:00</td>
-      <td>  33</td>
       <td> 67</td>
       <td> 31.772727</td>
     </tr>
@@ -2793,9 +2917,9 @@ div#notebook {
       <th>23 </th>
       <td> 750022</td>
       <td> 1</td>
+      <td>  34</td>
       <td> 08:17:00</td>
       <td> 29:17:00</td>
-      <td>  34</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2803,9 +2927,9 @@ div#notebook {
       <th>24 </th>
       <td> 750024</td>
       <td> 1</td>
+      <td>  34</td>
       <td> 08:11:00</td>
       <td> 29:13:00</td>
-      <td>  34</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2813,9 +2937,9 @@ div#notebook {
       <th>25 </th>
       <td> 750025</td>
       <td> 1</td>
+      <td>  34</td>
       <td> 08:11:00</td>
       <td> 29:13:00</td>
-      <td>  34</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2823,9 +2947,9 @@ div#notebook {
       <th>26 </th>
       <td> 750026</td>
       <td> 1</td>
+      <td>  34</td>
       <td> 08:12:00</td>
       <td> 29:13:00</td>
-      <td>  34</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2833,9 +2957,9 @@ div#notebook {
       <th>27 </th>
       <td> 750027</td>
       <td> 1</td>
+      <td>  34</td>
       <td> 08:15:00</td>
       <td> 29:16:00</td>
-      <td>  34</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2843,9 +2967,9 @@ div#notebook {
       <th>28 </th>
       <td> 750028</td>
       <td> 1</td>
+      <td>  63</td>
       <td> 07:49:00</td>
       <td> 29:19:00</td>
-      <td>  63</td>
       <td> 29</td>
       <td> 15.000000</td>
     </tr>
@@ -2853,9 +2977,9 @@ div#notebook {
       <th>29 </th>
       <td> 750029</td>
       <td> 1</td>
+      <td>  34</td>
       <td> 08:21:00</td>
       <td> 29:21:00</td>
-      <td>  34</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2873,9 +2997,9 @@ div#notebook {
       <th>439</th>
       <td> 750417</td>
       <td> 0</td>
+      <td>  18</td>
       <td> 06:40:00</td>
       <td> 22:34:00</td>
-      <td>  18</td>
       <td> 60</td>
       <td> 55.000000</td>
     </tr>
@@ -2883,9 +3007,9 @@ div#notebook {
       <th>440</th>
       <td> 750418</td>
       <td> 1</td>
+      <td>  17</td>
       <td> 07:16:00</td>
       <td> 22:12:00</td>
-      <td>  17</td>
       <td> 60</td>
       <td> 55.000000</td>
     </tr>
@@ -2893,9 +3017,9 @@ div#notebook {
       <th>441</th>
       <td> 750419</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:20:00</td>
       <td> 18:20:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2903,9 +3027,9 @@ div#notebook {
       <th>442</th>
       <td> 750420</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:18:00</td>
       <td> 22:46:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 29.913043</td>
     </tr>
@@ -2913,9 +3037,9 @@ div#notebook {
       <th>443</th>
       <td> 750421</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:15:00</td>
       <td> 22:43:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 29.913043</td>
     </tr>
@@ -2923,9 +3047,9 @@ div#notebook {
       <th>444</th>
       <td> 750422</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:14:00</td>
       <td> 22:42:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 29.913043</td>
     </tr>
@@ -2933,9 +3057,9 @@ div#notebook {
       <th>445</th>
       <td> 750423</td>
       <td> 0</td>
+      <td>  28</td>
       <td> 07:05:00</td>
       <td> 22:28:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2943,9 +3067,9 @@ div#notebook {
       <th>446</th>
       <td> 750424</td>
       <td> 1</td>
+      <td>  23</td>
       <td> 07:27:00</td>
       <td> 18:27:00</td>
-      <td>  23</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2953,9 +3077,9 @@ div#notebook {
       <th>447</th>
       <td> 750425</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:25:00</td>
       <td> 22:55:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2963,9 +3087,9 @@ div#notebook {
       <th>448</th>
       <td> 750426</td>
       <td> 0</td>
+      <td>  29</td>
       <td> 06:42:00</td>
       <td> 22:12:00</td>
-      <td>  29</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2973,9 +3097,9 @@ div#notebook {
       <th>449</th>
       <td> 750427</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:24:00</td>
       <td> 22:54:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2983,9 +3107,9 @@ div#notebook {
       <th>450</th>
       <td> 750428</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:22:00</td>
       <td> 22:52:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -2993,9 +3117,9 @@ div#notebook {
       <th>451</th>
       <td> 750429</td>
       <td> 0</td>
+      <td>  29</td>
       <td> 06:48:00</td>
       <td> 22:16:00</td>
-      <td>  29</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -3003,9 +3127,9 @@ div#notebook {
       <th>452</th>
       <td> 750429</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:21:00</td>
       <td> 22:51:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -3013,9 +3137,9 @@ div#notebook {
       <th>453</th>
       <td> 750430</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:20:00</td>
       <td> 22:50:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -3023,9 +3147,9 @@ div#notebook {
       <th>454</th>
       <td> 750431</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 07:19:00</td>
       <td> 22:49:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 30.000000</td>
     </tr>
@@ -3033,9 +3157,9 @@ div#notebook {
       <th>455</th>
       <td> 750432</td>
       <td> 0</td>
+      <td>   3</td>
       <td> 06:05:00</td>
       <td> 07:25:00</td>
-      <td>   3</td>
       <td>NaN</td>
       <td>       NaN</td>
     </tr>
@@ -3043,9 +3167,9 @@ div#notebook {
       <th>456</th>
       <td> 750432</td>
       <td> 1</td>
+      <td>   3</td>
       <td> 16:42:00</td>
       <td> 18:42:00</td>
-      <td>   3</td>
       <td> 60</td>
       <td> 60.000000</td>
     </tr>
@@ -3053,9 +3177,9 @@ div#notebook {
       <th>457</th>
       <td> 750435</td>
       <td> 1</td>
+      <td>  21</td>
       <td> 08:18:00</td>
       <td> 22:33:00</td>
-      <td>  21</td>
       <td> 60</td>
       <td> 39.375000</td>
     </tr>
@@ -3063,9 +3187,9 @@ div#notebook {
       <th>458</th>
       <td> 750436</td>
       <td> 0</td>
+      <td>  21</td>
       <td> 06:33:00</td>
       <td> 19:48:00</td>
-      <td>  21</td>
       <td> 60</td>
       <td> 39.625000</td>
     </tr>
@@ -3073,9 +3197,9 @@ div#notebook {
       <th>459</th>
       <td> 750437</td>
       <td> 0</td>
+      <td>  16</td>
       <td> 06:50:00</td>
       <td> 21:50:00</td>
-      <td>  16</td>
       <td> 60</td>
       <td> 60.000000</td>
     </tr>
@@ -3083,9 +3207,9 @@ div#notebook {
       <th>460</th>
       <td> 750440</td>
       <td> 1</td>
+      <td>  17</td>
       <td> 07:40:00</td>
       <td> 23:41:00</td>
-      <td>  17</td>
       <td> 61</td>
       <td> 60.090909</td>
     </tr>
@@ -3093,9 +3217,9 @@ div#notebook {
       <th>461</th>
       <td> 750448</td>
       <td> 0</td>
+      <td>  21</td>
       <td> 06:28:00</td>
       <td> 19:43:00</td>
-      <td>  21</td>
       <td> 60</td>
       <td> 40.882353</td>
     </tr>
@@ -3103,9 +3227,9 @@ div#notebook {
       <th>462</th>
       <td> 750449</td>
       <td> 0</td>
+      <td> 293</td>
       <td> 06:23:00</td>
       <td> 28:35:00</td>
-      <td> 293</td>
       <td> 15</td>
       <td>  3.042735</td>
     </tr>
@@ -3113,9 +3237,9 @@ div#notebook {
       <th>463</th>
       <td> 750450</td>
       <td> 1</td>
+      <td> 106</td>
       <td> 06:40:00</td>
       <td> 28:40:00</td>
-      <td> 106</td>
       <td> 15</td>
       <td>  8.470588</td>
     </tr>
@@ -3123,9 +3247,9 @@ div#notebook {
       <th>464</th>
       <td> 750452</td>
       <td> 1</td>
+      <td>  81</td>
       <td> 06:28:00</td>
       <td> 23:40:00</td>
-      <td>  81</td>
       <td> 20</td>
       <td> 11.803279</td>
     </tr>
@@ -3133,9 +3257,9 @@ div#notebook {
       <th>465</th>
       <td> 750453</td>
       <td> 1</td>
+      <td>  79</td>
       <td> 06:23:00</td>
       <td> 28:15:00</td>
-      <td>  79</td>
       <td> 25</td>
       <td> 11.694915</td>
     </tr>
@@ -3143,9 +3267,9 @@ div#notebook {
       <th>466</th>
       <td> 750454</td>
       <td> 1</td>
+      <td>  28</td>
       <td> 06:46:00</td>
       <td> 22:15:00</td>
-      <td>  28</td>
       <td> 30</td>
       <td> 29.954545</td>
     </tr>
@@ -3153,9 +3277,9 @@ div#notebook {
       <th>467</th>
       <td> 750455</td>
       <td> 0</td>
+      <td>  15</td>
       <td> 08:21:00</td>
       <td> 22:21:00</td>
-      <td>  15</td>
       <td> 60</td>
       <td> 60.000000</td>
     </tr>
@@ -3163,9 +3287,9 @@ div#notebook {
       <th>468</th>
       <td> 750456</td>
       <td> 1</td>
+      <td> 130</td>
       <td> 06:25:00</td>
       <td> 28:15:00</td>
-      <td> 130</td>
       <td> 23</td>
       <td>  6.663462</td>
     </tr>
@@ -3183,7 +3307,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">sts</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_stops_time_series</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">split_directions</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
@@ -3199,7 +3323,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[19]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[20]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -3369,7 +3493,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get routes stats for that date</span>
@@ -3385,7 +3509,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[20]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[21]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -3395,13 +3519,14 @@ div#notebook {
       <th></th>
       <th>route_id</th>
       <th>direction_id</th>
+      <th>num_trips</th>
+      <th>is_loop</th>
       <th>start_time</th>
       <th>end_time</th>
-      <th>num_trips</th>
       <th>max_headway</th>
       <th>mean_headway</th>
-      <th>service_duration</th>
       <th>service_distance</th>
+      <th>service_duration</th>
       <th>service_speed</th>
     </tr>
   </thead>
@@ -3410,520 +3535,560 @@ div#notebook {
       <th>0 </th>
       <td>  110-423</td>
       <td> 0</td>
+      <td> 30</td>
+      <td> 0</td>
       <td> 05:50:00</td>
       <td> 23:05:00</td>
-      <td> 30</td>
       <td> 35</td>
       <td> 29.909091</td>
-      <td> 29.916667</td>
       <td>  975.213639</td>
+      <td> 29.916667</td>
       <td> 32.597670</td>
     </tr>
     <tr>
       <th>1 </th>
       <td>  110-423</td>
       <td> 1</td>
+      <td> 29</td>
+      <td> 0</td>
       <td> 07:10:00</td>
       <td> 24:02:00</td>
-      <td> 29</td>
       <td> 30</td>
       <td> 30.000000</td>
-      <td> 27.433333</td>
       <td>  919.009424</td>
+      <td> 27.433333</td>
       <td> 33.499736</td>
     </tr>
     <tr>
       <th>2 </th>
       <td> 110N-423</td>
       <td> 0</td>
+      <td>  4</td>
+      <td> 0</td>
       <td> 24:50:00</td>
       <td> 28:35:00</td>
-      <td>  4</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  3.000000</td>
       <td>  177.781479</td>
+      <td>  3.000000</td>
       <td> 59.260493</td>
     </tr>
     <tr>
       <th>3 </th>
       <td> 110N-423</td>
       <td> 1</td>
+      <td>  5</td>
+      <td> 0</td>
       <td> 24:40:00</td>
       <td> 29:39:00</td>
-      <td>  5</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  4.916667</td>
       <td>  221.727299</td>
+      <td>  4.916667</td>
       <td> 45.097078</td>
     </tr>
     <tr>
       <th>4 </th>
       <td>  111-423</td>
       <td> 0</td>
+      <td> 29</td>
+      <td> 0</td>
       <td> 06:02:00</td>
       <td> 23:35:00</td>
-      <td> 29</td>
       <td> 67</td>
       <td> 32.000000</td>
-      <td> 30.366667</td>
       <td> 1005.368216</td>
+      <td> 30.366667</td>
       <td> 33.107625</td>
     </tr>
     <tr>
       <th>5 </th>
       <td>  111-423</td>
       <td> 1</td>
+      <td> 29</td>
+      <td> 0</td>
       <td> 07:25:00</td>
       <td> 24:36:00</td>
-      <td> 29</td>
       <td> 30</td>
       <td> 30.000000</td>
-      <td> 28.983333</td>
       <td>  997.309407</td>
+      <td> 28.983333</td>
       <td> 34.409755</td>
     </tr>
     <tr>
       <th>6 </th>
       <td>  112-423</td>
       <td> 0</td>
+      <td> 15</td>
+      <td> 1</td>
       <td> 07:55:00</td>
       <td> 22:31:00</td>
-      <td> 15</td>
       <td> 60</td>
       <td> 60.000000</td>
-      <td>  9.000000</td>
       <td>  317.421880</td>
+      <td>  9.000000</td>
       <td> 35.269098</td>
     </tr>
     <tr>
       <th>7 </th>
       <td>  113-423</td>
       <td> 0</td>
+      <td>  3</td>
+      <td> 0</td>
       <td> 06:05:00</td>
       <td> 08:10:00</td>
-      <td>  3</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  2.083333</td>
       <td>   74.298371</td>
+      <td>  2.083333</td>
       <td> 35.663218</td>
     </tr>
     <tr>
       <th>8 </th>
       <td>  113-423</td>
       <td> 1</td>
+      <td>  3</td>
+      <td> 0</td>
       <td> 16:05:00</td>
       <td> 18:42:00</td>
-      <td>  3</td>
       <td> 60</td>
       <td> 60.000000</td>
-      <td>  1.850000</td>
       <td>   73.303194</td>
+      <td>  1.850000</td>
       <td> 39.623348</td>
     </tr>
     <tr>
       <th>9 </th>
       <td>  120-423</td>
       <td> 0</td>
+      <td> 17</td>
+      <td> 0</td>
       <td> 05:34:00</td>
       <td> 22:23:00</td>
-      <td> 17</td>
       <td> 60</td>
       <td> 60.000000</td>
-      <td> 13.883333</td>
       <td>  470.550755</td>
+      <td> 13.883333</td>
       <td> 33.893212</td>
     </tr>
     <tr>
       <th>10</th>
       <td>  120-423</td>
       <td> 1</td>
+      <td> 15</td>
+      <td> 0</td>
       <td> 07:00:00</td>
       <td> 21:51:00</td>
-      <td> 15</td>
       <td> 60</td>
       <td> 60.000000</td>
-      <td> 12.750000</td>
       <td>  428.504391</td>
+      <td> 12.750000</td>
       <td> 33.608188</td>
     </tr>
     <tr>
       <th>11</th>
       <td> 120N-423</td>
       <td> 1</td>
+      <td>  2</td>
+      <td> 0</td>
       <td> 22:00:00</td>
       <td> 23:51:00</td>
-      <td>  2</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  1.700000</td>
       <td>   81.004241</td>
+      <td>  1.700000</td>
       <td> 47.649553</td>
     </tr>
     <tr>
       <th>12</th>
       <td>  121-423</td>
       <td> 0</td>
+      <td> 17</td>
+      <td> 0</td>
       <td> 06:46:00</td>
       <td> 20:48:00</td>
-      <td> 17</td>
       <td> 60</td>
       <td> 50.769231</td>
-      <td>  9.066667</td>
       <td>  285.795933</td>
+      <td>  9.066667</td>
       <td> 31.521610</td>
     </tr>
     <tr>
       <th>13</th>
       <td>  121-423</td>
       <td> 1</td>
+      <td> 17</td>
+      <td> 0</td>
       <td> 06:28:00</td>
       <td> 22:00:00</td>
-      <td> 17</td>
       <td> 60</td>
       <td> 55.000000</td>
-      <td>  9.066667</td>
       <td>  300.263053</td>
+      <td>  9.066667</td>
       <td> 33.117249</td>
     </tr>
     <tr>
       <th>14</th>
       <td>  122-423</td>
       <td> 0</td>
+      <td> 16</td>
+      <td> 0</td>
       <td> 07:02:00</td>
       <td> 21:30:00</td>
-      <td> 16</td>
       <td> 60</td>
       <td> 55.000000</td>
-      <td>  7.466667</td>
       <td>  253.731365</td>
+      <td>  7.466667</td>
       <td> 33.981879</td>
     </tr>
     <tr>
       <th>15</th>
       <td>  122-423</td>
       <td> 1</td>
+      <td> 17</td>
+      <td> 0</td>
       <td> 06:16:00</td>
       <td> 20:14:00</td>
-      <td> 17</td>
       <td> 60</td>
       <td> 53.076923</td>
-      <td>  7.933333</td>
       <td>  288.144018</td>
+      <td>  7.933333</td>
       <td> 36.320674</td>
     </tr>
     <tr>
       <th>16</th>
       <td>  123-423</td>
       <td> 0</td>
+      <td> 30</td>
+      <td> 0</td>
       <td> 06:14:00</td>
       <td> 22:50:00</td>
-      <td> 30</td>
       <td> 50</td>
       <td> 29.130435</td>
-      <td> 20.350000</td>
       <td>  589.881282</td>
+      <td> 20.350000</td>
       <td> 28.986795</td>
     </tr>
     <tr>
       <th>17</th>
       <td>  123-423</td>
       <td> 1</td>
+      <td> 30</td>
+      <td> 0</td>
       <td> 06:40:00</td>
       <td> 24:15:00</td>
       <td> 30</td>
-      <td> 30</td>
       <td> 30.000000</td>
-      <td> 20.116667</td>
       <td>  537.988296</td>
+      <td> 20.116667</td>
       <td> 26.743412</td>
     </tr>
     <tr>
       <th>18</th>
       <td>  130-423</td>
       <td> 0</td>
+      <td> 16</td>
+      <td> 0</td>
       <td> 06:04:00</td>
       <td> 21:35:00</td>
-      <td> 16</td>
       <td> 60</td>
       <td> 60.000000</td>
-      <td>  8.266667</td>
       <td>  174.739915</td>
+      <td>  8.266667</td>
       <td> 21.137893</td>
     </tr>
     <tr>
       <th>19</th>
       <td>  130-423</td>
       <td> 1</td>
+      <td> 17</td>
+      <td> 0</td>
       <td> 06:30:00</td>
       <td> 23:01:00</td>
-      <td> 17</td>
       <td> 60</td>
       <td> 60.000000</td>
-      <td>  8.783333</td>
       <td>  186.310006</td>
+      <td>  8.783333</td>
       <td> 21.211765</td>
     </tr>
     <tr>
       <th>20</th>
       <td>  131-423</td>
       <td> 0</td>
+      <td> 16</td>
+      <td> 0</td>
       <td> 06:34:00</td>
       <td> 22:05:00</td>
-      <td> 16</td>
       <td> 60</td>
       <td> 60.000000</td>
-      <td>  8.266667</td>
       <td>  198.688841</td>
+      <td>  8.266667</td>
       <td> 24.034940</td>
     </tr>
     <tr>
       <th>21</th>
       <td>  131-423</td>
       <td> 1</td>
+      <td> 16</td>
+      <td> 0</td>
       <td> 07:00:00</td>
       <td> 22:31:00</td>
-      <td> 16</td>
       <td> 60</td>
       <td> 60.000000</td>
-      <td>  8.266667</td>
       <td>  198.956956</td>
+      <td>  8.266667</td>
       <td> 24.067374</td>
     </tr>
     <tr>
       <th>22</th>
       <td> 131N-423</td>
       <td> 1</td>
+      <td>  1</td>
+      <td> 0</td>
       <td> 23:00:00</td>
       <td> 23:31:00</td>
-      <td>  1</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  0.516667</td>
       <td>   12.434810</td>
+      <td>  0.516667</td>
       <td> 24.067374</td>
     </tr>
     <tr>
       <th>23</th>
       <td>  133-423</td>
       <td> 0</td>
+      <td> 18</td>
+      <td> 0</td>
       <td> 06:20:00</td>
       <td> 23:50:00</td>
-      <td> 18</td>
       <td> 60</td>
       <td> 60.000000</td>
-      <td> 11.250000</td>
       <td>  283.728382</td>
+      <td> 11.250000</td>
       <td> 25.220301</td>
     </tr>
     <tr>
       <th>24</th>
       <td>  133-423</td>
       <td> 1</td>
+      <td> 18</td>
+      <td> 0</td>
       <td> 07:03:00</td>
       <td> 24:12:00</td>
-      <td> 18</td>
       <td> 62</td>
       <td> 57.916667</td>
-      <td> 10.950000</td>
       <td>  292.853794</td>
+      <td> 10.950000</td>
       <td> 26.744639</td>
     </tr>
     <tr>
       <th>25</th>
       <td>  140-423</td>
       <td> 0</td>
+      <td> 21</td>
+      <td> 0</td>
       <td> 05:43:00</td>
       <td> 19:36:00</td>
-      <td> 21</td>
       <td> 60</td>
       <td> 40.588235</td>
-      <td> 18.550000</td>
       <td>  476.703908</td>
+      <td> 18.550000</td>
       <td> 25.698324</td>
     </tr>
     <tr>
       <th>26</th>
       <td>  140-423</td>
       <td> 1</td>
+      <td> 19</td>
+      <td> 0</td>
       <td> 07:13:00</td>
       <td> 24:04:00</td>
-      <td> 19</td>
       <td> 60</td>
       <td> 39.375000</td>
-      <td> 17.216667</td>
       <td>  444.173697</td>
+      <td> 17.216667</td>
       <td> 25.799053</td>
     </tr>
     <tr>
       <th>27</th>
       <td> 140N-423</td>
       <td> 1</td>
+      <td>  5</td>
+      <td> 0</td>
       <td> 24:15:00</td>
       <td> 28:45:00</td>
-      <td>  5</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  2.500000</td>
       <td>  116.887815</td>
+      <td>  2.500000</td>
       <td> 46.755126</td>
     </tr>
     <tr>
       <th>28</th>
       <td>  141-423</td>
       <td> 0</td>
+      <td> 24</td>
+      <td> 0</td>
       <td> 06:55:00</td>
       <td> 19:03:00</td>
-      <td> 24</td>
       <td> 30</td>
       <td> 30.000000</td>
-      <td> 15.200000</td>
       <td>  321.622691</td>
+      <td> 15.200000</td>
       <td> 21.159388</td>
     </tr>
     <tr>
       <th>29</th>
       <td>  141-423</td>
       <td> 1</td>
+      <td> 23</td>
+      <td> 0</td>
       <td> 06:40:00</td>
       <td> 18:20:00</td>
-      <td> 23</td>
       <td> 30</td>
       <td> 30.000000</td>
-      <td> 15.333333</td>
       <td>  313.982447</td>
+      <td> 15.333333</td>
       <td> 20.477116</td>
     </tr>
     <tr>
       <th>30</th>
       <td>  142-423</td>
       <td> 0</td>
+      <td> 21</td>
+      <td> 0</td>
       <td> 06:28:00</td>
       <td> 20:36:00</td>
-      <td> 21</td>
       <td> 60</td>
       <td> 40.882353</td>
-      <td> 18.800000</td>
       <td>  495.784503</td>
+      <td> 18.800000</td>
       <td> 26.371516</td>
     </tr>
     <tr>
       <th>31</th>
       <td>  142-423</td>
       <td> 1</td>
+      <td> 21</td>
+      <td> 0</td>
       <td> 07:28:00</td>
       <td> 22:38:00</td>
-      <td> 21</td>
       <td> 60</td>
       <td> 39.705882</td>
-      <td> 19.250000</td>
       <td>  503.958136</td>
+      <td> 19.250000</td>
       <td> 26.179643</td>
     </tr>
     <tr>
       <th>32</th>
       <td>  143-423</td>
       <td> 0</td>
+      <td> 25</td>
+      <td> 0</td>
       <td> 06:34:00</td>
       <td> 19:22:00</td>
-      <td> 25</td>
       <td> 30</td>
       <td> 30.000000</td>
-      <td> 20.000000</td>
       <td>  467.041105</td>
+      <td> 20.000000</td>
       <td> 23.352055</td>
     </tr>
     <tr>
       <th>33</th>
       <td>  143-423</td>
       <td> 1</td>
+      <td> 23</td>
+      <td> 0</td>
       <td> 06:46:00</td>
       <td> 18:30:00</td>
-      <td> 23</td>
       <td> 30</td>
       <td> 30.000000</td>
-      <td> 16.866667</td>
       <td>  430.038811</td>
+      <td> 16.866667</td>
       <td> 25.496372</td>
     </tr>
     <tr>
       <th>34</th>
       <td> 143W-423</td>
       <td> 0</td>
+      <td>  4</td>
+      <td> 0</td>
       <td> 19:05:00</td>
       <td> 22:50:00</td>
-      <td>  4</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  3.000000</td>
       <td>   92.722582</td>
+      <td>  3.000000</td>
       <td> 30.907527</td>
     </tr>
     <tr>
       <th>35</th>
       <td> 143W-423</td>
       <td> 1</td>
+      <td>  5</td>
+      <td> 0</td>
       <td> 18:15:00</td>
       <td> 23:00:00</td>
-      <td>  5</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  3.750000</td>
       <td>  112.013139</td>
+      <td>  3.750000</td>
       <td> 29.870170</td>
     </tr>
     <tr>
       <th>36</th>
       <td>  150-423</td>
       <td> 0</td>
+      <td> 14</td>
+      <td> 0</td>
       <td> 06:30:00</td>
       <td> 19:30:00</td>
-      <td> 14</td>
       <td> 60</td>
       <td> 55.000000</td>
-      <td> 14.000000</td>
       <td>  445.492065</td>
+      <td> 14.000000</td>
       <td> 31.820862</td>
     </tr>
     <tr>
       <th>37</th>
       <td>  150-423</td>
       <td> 1</td>
+      <td> 13</td>
+      <td> 0</td>
       <td> 06:23:00</td>
       <td> 18:25:00</td>
-      <td> 13</td>
       <td> 60</td>
       <td> 54.545455</td>
-      <td> 13.433333</td>
       <td>  420.176319</td>
+      <td> 13.433333</td>
       <td> 31.278634</td>
     </tr>
     <tr>
       <th>38</th>
       <td> 150E-423</td>
       <td> 0</td>
+      <td>  4</td>
+      <td> 0</td>
       <td> 19:25:00</td>
       <td> 23:32:00</td>
-      <td>  4</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  4.466667</td>
       <td>  151.121666</td>
+      <td>  4.466667</td>
       <td> 33.833209</td>
     </tr>
     <tr>
       <th>39</th>
       <td> 150E-423</td>
       <td> 1</td>
+      <td>  4</td>
+      <td> 0</td>
       <td> 18:15:00</td>
       <td> 22:22:00</td>
-      <td>  4</td>
       <td>NaN</td>
       <td>       NaN</td>
-      <td>  4.466667</td>
       <td>  153.695997</td>
+      <td>  4.466667</td>
       <td> 34.409551</td>
     </tr>
   </tbody>
@@ -3939,7 +4104,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Plot route headways</span>
@@ -3954,7 +4119,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[21]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[22]:</div>
 
 
 <div class="output_png output_subarea output_execute_result">
@@ -5058,7 +5223,7 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="prompt input_prompt">In&nbsp;[23]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get routes time series</span>
@@ -5075,7 +5240,7 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[22]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[23]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -5238,7 +5403,7 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">arts</span> <span class="o">=</span> <span class="n">agg_routes_time_series</span><span class="p">(</span><span class="n">rts</span><span class="p">)</span>
@@ -5253,7 +5418,7 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[23]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[24]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -5347,15 +5512,14 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get trip locations for every hour of the given date</span>
-<span class="n">linestring_by_shape</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_linestring_by_shape</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
 <span class="n">rng</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s">&#39;1/1/2000&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s">&#39;H&#39;</span><span class="p">)</span>
 <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%H:%M:%S&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">rng</span><span class="p">]</span>
-<span class="n">loc</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_trips_locations</span><span class="p">(</span><span class="n">linestring_by_shape</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
+<span class="n">loc</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_trips_locations</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
 <span class="n">loc</span>
 </pre></div>
 
@@ -5374,7 +5538,7 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 </div>
 </div>
 
-<div class="output_area"><div class="prompt output_prompt">Out[24]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[25]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -5382,12 +5546,9 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>route_id</th>
-      <th>service_id</th>
       <th>trip_id</th>
-      <th>trip_headsign</th>
+      <th>route_id</th>
       <th>direction_id</th>
-      <th>block_id</th>
       <th>shape_id</th>
       <th>rel_dist</th>
       <th>time</th>
@@ -5398,423 +5559,333 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
   <tbody>
     <tr>
       <th>0  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165878</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 06:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>1  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165879</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 07:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>2  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165880</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 07:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>3  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165881</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 08:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>4  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165882</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.202283</td>
       <td> 08:00:00</td>
-      <td> 358825.454562</td>
-      <td> 8145533.259992</td>
+      <td> 145.675422</td>
+      <td>-16.768954</td>
     </tr>
     <tr>
       <th>5  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165883</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 09:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>6  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165884</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 09:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>7  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165885</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 10:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>8  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165886</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 10:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>9  </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165887</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 11:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>10 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165888</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 11:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>11 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165889</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 12:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>12 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165890</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 12:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>13 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165891</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 13:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>14 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165892</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 13:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>15 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165893</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 14:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>16 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165894</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 14:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>17 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165895</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 15:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>18 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165896</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.202283</td>
       <td> 15:00:00</td>
-      <td> 358825.454562</td>
-      <td> 8145533.259992</td>
+      <td> 145.675422</td>
+      <td>-16.768954</td>
     </tr>
     <tr>
       <th>19 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165897</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 16:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>20 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165898</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.202283</td>
       <td> 16:00:00</td>
-      <td> 358825.454562</td>
-      <td> 8145533.259992</td>
+      <td> 145.675422</td>
+      <td>-16.768954</td>
     </tr>
     <tr>
       <th>21 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165899</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 17:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>22 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165900</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 17:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>23 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165901</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.720587</td>
       <td> 18:00:00</td>
-      <td> 364975.430686</td>
-      <td> 8134930.714646</td>
+      <td> 145.732413</td>
+      <td>-16.865060</td>
     </tr>
     <tr>
       <th>24 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165902</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.152945</td>
       <td> 18:00:00</td>
-      <td> 358185.343160</td>
-      <td> 8146202.888503</td>
+      <td> 145.669490</td>
+      <td>-16.762839</td>
     </tr>
     <tr>
       <th>25 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165903</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.957008</td>
       <td> 19:00:00</td>
-      <td> 369267.770193</td>
-      <td> 8129319.743291</td>
+      <td> 145.772471</td>
+      <td>-16.916084</td>
     </tr>
     <tr>
       <th>26 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165904</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.957008</td>
       <td> 20:00:00</td>
-      <td> 369267.770193</td>
-      <td> 8129319.743291</td>
+      <td> 145.772471</td>
+      <td>-16.916084</td>
     </tr>
     <tr>
       <th>27 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165905</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.957008</td>
       <td> 21:00:00</td>
-      <td> 369267.770193</td>
-      <td> 8129319.743291</td>
+      <td> 145.772471</td>
+      <td>-16.916084</td>
     </tr>
     <tr>
       <th>28 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165906</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.957008</td>
       <td> 22:00:00</td>
-      <td> 369267.770193</td>
-      <td> 8129319.743291</td>
+      <td> 145.772471</td>
+      <td>-16.916084</td>
     </tr>
     <tr>
       <th>29 </th>
-      <td>  110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165907</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  110-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1100023</td>
       <td> 0.957008</td>
       <td> 23:00:00</td>
-      <td> 369267.770193</td>
-      <td> 8129319.743291</td>
+      <td> 145.772471</td>
+      <td>-16.916084</td>
     </tr>
     <tr>
       <th>...</th>
@@ -5826,433 +5897,340 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
       <td>...</td>
       <td>...</td>
       <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
     </tr>
     <tr>
       <th>465</th>
-      <td> 143W-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180715</td>
-      <td>        Mt Sheridan Plaza</td>
+      <td> 143W-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td> 143W0013</td>
       <td> 1.000000</td>
       <td> 22:00:00</td>
-      <td> 365819.543056</td>
-      <td> 8121079.512190</td>
+      <td> 145.739567</td>
+      <td>-16.990365</td>
     </tr>
     <tr>
       <th>466</th>
-      <td> 143W-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180716</td>
-      <td>        Mt Sheridan Plaza</td>
+      <td> 143W-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td> 143W0013</td>
       <td> 1.000000</td>
       <td> 23:00:00</td>
-      <td> 365819.543056</td>
-      <td> 8121079.512190</td>
+      <td> 145.739567</td>
+      <td>-16.990365</td>
     </tr>
     <tr>
       <th>467</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180805</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 07:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>468</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180806</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 08:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>469</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180807</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.000000</td>
       <td> 08:00:00</td>
-      <td> 368760.841118</td>
-      <td> 8110353.432372</td>
+      <td> 145.766556</td>
+      <td>-17.087470</td>
     </tr>
     <tr>
       <th>470</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180807</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 1.000000</td>
       <td> 09:00:00</td>
-      <td> 370001.935860</td>
-      <td> 8128806.985694</td>
+      <td> 145.779299</td>
+      <td>-16.920767</td>
     </tr>
     <tr>
       <th>471</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180808</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 09:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>472</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180809</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 10:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>473</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180810</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 11:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>474</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180811</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 12:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>475</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180812</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 13:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>476</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180813</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 14:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>477</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180814</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 15:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>478</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180815</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 16:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>479</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180816</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 17:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>480</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180817</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 18:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>481</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180818</td>
-      <td> The Pier Cairns Terminus</td>
+      <td>  150-423</td>
       <td> 0</td>
-      <td>NaN</td>
       <td>  1500020</td>
       <td> 0.639135</td>
       <td> 19:00:00</td>
-      <td> 366018.314389</td>
-      <td> 8121401.088933</td>
+      <td> 145.741618</td>
+      <td>-16.987487</td>
     </tr>
     <tr>
       <th>482</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180819</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 07:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>483</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180820</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 08:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>484</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180821</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 09:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>485</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180822</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 10:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>486</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180823</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 11:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>487</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180824</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 12:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>488</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180825</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 13:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>489</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180826</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 14:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>490</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180827</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 15:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>491</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180828</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 16:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>492</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180829</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 17:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
     <tr>
       <th>493</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180830</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.073328</td>
       <td> 17:00:00</td>
-      <td> 368695.384039</td>
-      <td> 8128499.164987</td>
+      <td> 145.767106</td>
+      <td>-16.923407</td>
     </tr>
     <tr>
       <th>494</th>
-      <td>  150-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4180831</td>
-      <td>  Gordonvale (Dempsey St)</td>
+      <td>  150-423</td>
       <td> 1</td>
-      <td>NaN</td>
       <td>  1500022</td>
       <td> 0.425955</td>
       <td> 18:00:00</td>
-      <td> 365788.665058</td>
-      <td> 8120329.161047</td>
+      <td> 145.739412</td>
+      <td>-16.997005</td>
     </tr>
   </tbody>
 </table>
-<p>495 rows × 11 columns</p>
+<p>495 rows × 8 columns</p>
 </div>
 </div>
 
