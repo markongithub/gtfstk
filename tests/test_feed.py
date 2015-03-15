@@ -294,10 +294,9 @@ class TestFeed(unittest.TestCase):
         feed = copy(cairns)
         trips_stats = feed.get_trips_stats()
         feed.add_dist_to_stop_times(trips_stats)
-        linestring_by_shape = feed.get_linestring_by_shape(use_utm=False)
         date = feed.get_dates()[0]
         timestrs = ['08:00:00']
-        f = feed.get_trips_locations(linestring_by_shape, date, timestrs)
+        f = feed.get_trips_locations(date, timestrs)
         g = feed.get_trips(date, timestrs[0])
         # Should be a data frame
         self.assertIsInstance(f, pd.core.frame.DataFrame)
@@ -334,13 +333,14 @@ class TestFeed(unittest.TestCase):
           'direction_id',
           'route_id',
           'shape_id',
+          'num_stops',
           'start_time', 
           'end_time',
-          'duration',
           'start_stop_id',
           'end_stop_id',
-          'num_stops',
           'distance',
+          'duration',
+          'speed',
           ])
         self.assertEqual(set(trips_stats.columns), expect_cols)
         
