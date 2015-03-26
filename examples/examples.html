@@ -174,7 +174,7 @@ div#notebook {
 
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="prompt input_prompt">In&nbsp;[51]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
@@ -187,14 +187,14 @@ div#notebook {
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
+<span class="n">gtfs_tk_dir</span> <span class="o">=</span> <span class="s">&#39;../../gtfs-tk/&#39;</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gtfs_tk_dir</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">gtfs_tk.feed</span> <span class="k">as</span> <span class="nn">gf</span>
+<span class="kn">import</span> <span class="nn">gtfs_tk.utils</span> <span class="k">as</span> <span class="nn">gu</span>
+
 <span class="o">%</span><span class="k">load_ext</span> autoreload
 <span class="o">%</span><span class="k">autoreload</span> 2
 <span class="o">%</span><span class="k">matplotlib</span> inline  
-
-<span class="c"># Set your gtfs_tk path here</span>
-<span class="n">gtfs_tk_dir</span> <span class="o">=</span> <span class="s">&#39;../../gtfs-tk/&#39;</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gtfs_tk_dir</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">gtfs_tk.feed</span> <span class="k">import</span> <span class="o">*</span>
 </pre></div>
 
 </div>
@@ -219,21 +219,41 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="prompt input_prompt">In&nbsp;[52]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Import a feed</span>
-<span class="n">feed</span> <span class="o">=</span> <span class="n">Feed</span><span class="p">(</span><span class="n">gtfs_tk_dir</span> <span class="o">+</span> <span class="s">&#39;data/cairns_gtfs.zip&#39;</span><span class="p">)</span>
+<span class="n">feed</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">Feed</span><span class="p">(</span><span class="n">gtfs_tk_dir</span> <span class="o">+</span> <span class="s">&#39;data/cairns_gtfs.zip&#39;</span><span class="p">)</span>
+
+<span class="c"># Set study date</span>
+<span class="n">date</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_busiest_date</span><span class="p">(</span><span class="n">feed</span><span class="o">.</span><span class="n">get_first_week</span><span class="p">())</span>
+<span class="n">date</span>
 </pre></div>
 
 </div>
 </div>
 </div>
 
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[52]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&apos;20140530&apos;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="prompt input_prompt">In&nbsp;[53]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get trips stats</span>
@@ -249,7 +269,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[16]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[53]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -1263,7 +1283,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="prompt input_prompt">In&nbsp;[54]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Add shape distance traveled field to stop times</span>
@@ -1279,7 +1299,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[17]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[54]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -1983,12 +2003,10 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="prompt input_prompt">In&nbsp;[55]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="c"># Get trips for the busiest day of the first week of the feed</span>
-<span class="n">date</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_busiest_date_of_first_week</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span class="c"># Get trips</span>
 <span class="n">feed</span><span class="o">.</span><span class="n">get_trips</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
 </pre></div>
 
@@ -2000,14 +2018,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>20140530
-</pre>
-</div>
-</div>
-
-<div class="output_area"><div class="prompt output_prompt">Out[18]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[55]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -2649,7 +2660,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[56]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get stops stats for that date</span>
@@ -2665,7 +2676,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[19]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[56]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -3307,7 +3318,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[57]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">sts</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_stops_time_series</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">split_directions</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
@@ -3323,7 +3334,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[20]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[57]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -3493,7 +3504,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="prompt input_prompt">In&nbsp;[58]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get routes stats for that date</span>
@@ -3509,7 +3520,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[21]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[58]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -3518,6 +3529,7 @@ div#notebook {
     <tr style="text-align: right;">
       <th></th>
       <th>route_id</th>
+      <th>is_bidirectional</th>
       <th>direction_id</th>
       <th>num_trips</th>
       <th>is_loop</th>
@@ -3525,15 +3537,21 @@ div#notebook {
       <th>end_time</th>
       <th>max_headway</th>
       <th>mean_headway</th>
+      <th>peak_num_trips</th>
+      <th>peak_start_time</th>
+      <th>peak_end_time</th>
       <th>service_distance</th>
       <th>service_duration</th>
       <th>service_speed</th>
+      <th>mean_trip_distance</th>
+      <th>mean_trip_duration</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0 </th>
       <td>  110-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 30</td>
       <td> 0</td>
@@ -3541,13 +3559,19 @@ div#notebook {
       <td> 23:05:00</td>
       <td> 35</td>
       <td> 29.909091</td>
+      <td> 3</td>
+      <td> 18:13:00</td>
+      <td> 18:20:00</td>
       <td>  975.213639</td>
       <td> 29.916667</td>
       <td> 32.597670</td>
+      <td> 32.507121</td>
+      <td> 0.997222</td>
     </tr>
     <tr>
       <th>1 </th>
       <td>  110-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 29</td>
       <td> 0</td>
@@ -3555,13 +3579,19 @@ div#notebook {
       <td> 24:02:00</td>
       <td> 30</td>
       <td> 30.000000</td>
+      <td> 2</td>
+      <td> 07:40:00</td>
+      <td> 08:08:00</td>
       <td>  919.009424</td>
       <td> 27.433333</td>
       <td> 33.499736</td>
+      <td> 31.689980</td>
+      <td> 0.945977</td>
     </tr>
     <tr>
       <th>2 </th>
       <td> 110N-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td>  4</td>
       <td> 0</td>
@@ -3569,13 +3599,19 @@ div#notebook {
       <td> 28:35:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 1</td>
+      <td> 24:50:00</td>
+      <td> 25:35:00</td>
       <td>  177.781479</td>
       <td>  3.000000</td>
       <td> 59.260493</td>
+      <td> 44.445370</td>
+      <td> 0.750000</td>
     </tr>
     <tr>
       <th>3 </th>
       <td> 110N-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td>  5</td>
       <td> 0</td>
@@ -3583,13 +3619,19 @@ div#notebook {
       <td> 29:39:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 1</td>
+      <td> 24:40:00</td>
+      <td> 25:39:00</td>
       <td>  221.727299</td>
       <td>  4.916667</td>
       <td> 45.097078</td>
+      <td> 44.345460</td>
+      <td> 0.983333</td>
     </tr>
     <tr>
       <th>4 </th>
       <td>  111-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 29</td>
       <td> 0</td>
@@ -3597,13 +3639,19 @@ div#notebook {
       <td> 23:35:00</td>
       <td> 67</td>
       <td> 32.000000</td>
+      <td> 3</td>
+      <td> 07:57:00</td>
+      <td> 08:05:00</td>
       <td> 1005.368216</td>
       <td> 30.366667</td>
       <td> 33.107625</td>
+      <td> 34.667870</td>
+      <td> 1.047126</td>
     </tr>
     <tr>
       <th>5 </th>
       <td>  111-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 29</td>
       <td> 0</td>
@@ -3611,13 +3659,19 @@ div#notebook {
       <td> 24:36:00</td>
       <td> 30</td>
       <td> 30.000000</td>
+      <td> 3</td>
+      <td> 08:25:00</td>
+      <td> 08:26:00</td>
       <td>  997.309407</td>
       <td> 28.983333</td>
       <td> 34.409755</td>
+      <td> 34.389980</td>
+      <td> 0.999425</td>
     </tr>
     <tr>
       <th>6 </th>
       <td>  112-423</td>
+      <td> 0</td>
       <td> 0</td>
       <td> 15</td>
       <td> 1</td>
@@ -3625,13 +3679,19 @@ div#notebook {
       <td> 22:31:00</td>
       <td> 60</td>
       <td> 60.000000</td>
+      <td> 1</td>
+      <td> 07:55:00</td>
+      <td> 08:31:00</td>
       <td>  317.421880</td>
       <td>  9.000000</td>
       <td> 35.269098</td>
+      <td> 21.161459</td>
+      <td> 0.600000</td>
     </tr>
     <tr>
       <th>7 </th>
       <td>  113-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td>  3</td>
       <td> 0</td>
@@ -3639,13 +3699,19 @@ div#notebook {
       <td> 08:10:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 2</td>
+      <td> 06:35:00</td>
+      <td> 06:45:00</td>
       <td>   74.298371</td>
       <td>  2.083333</td>
       <td> 35.663218</td>
+      <td> 24.766124</td>
+      <td> 0.694444</td>
     </tr>
     <tr>
       <th>8 </th>
       <td>  113-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td>  3</td>
       <td> 0</td>
@@ -3653,13 +3719,19 @@ div#notebook {
       <td> 18:42:00</td>
       <td> 60</td>
       <td> 60.000000</td>
+      <td> 1</td>
+      <td> 18:05:00</td>
+      <td> 18:42:00</td>
       <td>   73.303194</td>
       <td>  1.850000</td>
       <td> 39.623348</td>
+      <td> 24.434398</td>
+      <td> 0.616667</td>
     </tr>
     <tr>
       <th>9 </th>
       <td>  120-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 17</td>
       <td> 0</td>
@@ -3667,13 +3739,19 @@ div#notebook {
       <td> 22:23:00</td>
       <td> 60</td>
       <td> 60.000000</td>
+      <td> 1</td>
+      <td> 07:34:00</td>
+      <td> 08:23:00</td>
       <td>  470.550755</td>
       <td> 13.883333</td>
       <td> 33.893212</td>
+      <td> 27.679456</td>
+      <td> 0.816667</td>
     </tr>
     <tr>
       <th>10</th>
       <td>  120-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 15</td>
       <td> 0</td>
@@ -3681,13 +3759,19 @@ div#notebook {
       <td> 21:51:00</td>
       <td> 60</td>
       <td> 60.000000</td>
+      <td> 1</td>
+      <td> 08:00:00</td>
+      <td> 08:51:00</td>
       <td>  428.504391</td>
       <td> 12.750000</td>
       <td> 33.608188</td>
+      <td> 28.566959</td>
+      <td> 0.850000</td>
     </tr>
     <tr>
       <th>11</th>
       <td> 120N-423</td>
+      <td> 0</td>
       <td> 1</td>
       <td>  2</td>
       <td> 0</td>
@@ -3695,13 +3779,19 @@ div#notebook {
       <td> 23:51:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 1</td>
+      <td> 22:00:00</td>
+      <td> 22:51:00</td>
       <td>   81.004241</td>
       <td>  1.700000</td>
       <td> 47.649553</td>
+      <td> 40.502120</td>
+      <td> 0.850000</td>
     </tr>
     <tr>
       <th>12</th>
       <td>  121-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 17</td>
       <td> 0</td>
@@ -3709,13 +3799,19 @@ div#notebook {
       <td> 20:48:00</td>
       <td> 60</td>
       <td> 50.769231</td>
+      <td> 2</td>
+      <td> 07:16:00</td>
+      <td> 07:18:00</td>
       <td>  285.795933</td>
       <td>  9.066667</td>
       <td> 31.521610</td>
+      <td> 16.811525</td>
+      <td> 0.533333</td>
     </tr>
     <tr>
       <th>13</th>
       <td>  121-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 17</td>
       <td> 0</td>
@@ -3723,13 +3819,19 @@ div#notebook {
       <td> 22:00:00</td>
       <td> 60</td>
       <td> 55.000000</td>
+      <td> 2</td>
+      <td> 16:58:00</td>
+      <td> 17:00:00</td>
       <td>  300.263053</td>
       <td>  9.066667</td>
       <td> 33.117249</td>
+      <td> 17.662533</td>
+      <td> 0.533333</td>
     </tr>
     <tr>
       <th>14</th>
       <td>  122-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 16</td>
       <td> 0</td>
@@ -3737,13 +3839,19 @@ div#notebook {
       <td> 21:30:00</td>
       <td> 60</td>
       <td> 55.000000</td>
+      <td> 1</td>
+      <td> 08:02:00</td>
+      <td> 08:30:00</td>
       <td>  253.731365</td>
       <td>  7.466667</td>
       <td> 33.981879</td>
+      <td> 15.858210</td>
+      <td> 0.466667</td>
     </tr>
     <tr>
       <th>15</th>
       <td>  122-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 17</td>
       <td> 0</td>
@@ -3751,13 +3859,19 @@ div#notebook {
       <td> 20:14:00</td>
       <td> 60</td>
       <td> 53.076923</td>
+      <td> 1</td>
+      <td> 07:46:00</td>
+      <td> 08:14:00</td>
       <td>  288.144018</td>
       <td>  7.933333</td>
       <td> 36.320674</td>
+      <td> 16.949648</td>
+      <td> 0.466667</td>
     </tr>
     <tr>
       <th>16</th>
       <td>  123-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 30</td>
       <td> 0</td>
@@ -3765,13 +3879,19 @@ div#notebook {
       <td> 22:50:00</td>
       <td> 50</td>
       <td> 29.130435</td>
+      <td> 2</td>
+      <td> 18:33:00</td>
+      <td> 18:53:00</td>
       <td>  589.881282</td>
       <td> 20.350000</td>
       <td> 28.986795</td>
+      <td> 19.662709</td>
+      <td> 0.678333</td>
     </tr>
     <tr>
       <th>17</th>
       <td>  123-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 30</td>
       <td> 0</td>
@@ -3779,13 +3899,19 @@ div#notebook {
       <td> 24:15:00</td>
       <td> 30</td>
       <td> 30.000000</td>
+      <td> 2</td>
+      <td> 07:10:00</td>
+      <td> 07:31:00</td>
       <td>  537.988296</td>
       <td> 20.116667</td>
       <td> 26.743412</td>
+      <td> 17.932943</td>
+      <td> 0.670556</td>
     </tr>
     <tr>
       <th>18</th>
       <td>  130-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 16</td>
       <td> 0</td>
@@ -3793,13 +3919,19 @@ div#notebook {
       <td> 21:35:00</td>
       <td> 60</td>
       <td> 60.000000</td>
+      <td> 1</td>
+      <td> 08:04:00</td>
+      <td> 08:35:00</td>
       <td>  174.739915</td>
       <td>  8.266667</td>
       <td> 21.137893</td>
+      <td> 10.921245</td>
+      <td> 0.516667</td>
     </tr>
     <tr>
       <th>19</th>
       <td>  130-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 17</td>
       <td> 0</td>
@@ -3807,13 +3939,19 @@ div#notebook {
       <td> 23:01:00</td>
       <td> 60</td>
       <td> 60.000000</td>
+      <td> 1</td>
+      <td> 08:30:00</td>
+      <td> 09:01:00</td>
       <td>  186.310006</td>
       <td>  8.783333</td>
       <td> 21.211765</td>
+      <td> 10.959412</td>
+      <td> 0.516667</td>
     </tr>
     <tr>
       <th>20</th>
       <td>  131-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 16</td>
       <td> 0</td>
@@ -3821,13 +3959,19 @@ div#notebook {
       <td> 22:05:00</td>
       <td> 60</td>
       <td> 60.000000</td>
+      <td> 1</td>
+      <td> 14:34:00</td>
+      <td> 15:05:00</td>
       <td>  198.688841</td>
       <td>  8.266667</td>
       <td> 24.034940</td>
+      <td> 12.418053</td>
+      <td> 0.516667</td>
     </tr>
     <tr>
       <th>21</th>
       <td>  131-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 16</td>
       <td> 0</td>
@@ -3835,13 +3979,19 @@ div#notebook {
       <td> 22:31:00</td>
       <td> 60</td>
       <td> 60.000000</td>
+      <td> 1</td>
+      <td> 08:00:00</td>
+      <td> 08:31:00</td>
       <td>  198.956956</td>
       <td>  8.266667</td>
       <td> 24.067374</td>
+      <td> 12.434810</td>
+      <td> 0.516667</td>
     </tr>
     <tr>
       <th>22</th>
       <td> 131N-423</td>
+      <td> 0</td>
       <td> 1</td>
       <td>  1</td>
       <td> 0</td>
@@ -3849,13 +3999,19 @@ div#notebook {
       <td> 23:31:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 1</td>
+      <td> 23:00:00</td>
+      <td> 23:31:00</td>
       <td>   12.434810</td>
       <td>  0.516667</td>
       <td> 24.067374</td>
+      <td> 12.434810</td>
+      <td> 0.516667</td>
     </tr>
     <tr>
       <th>23</th>
       <td>  133-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 18</td>
       <td> 0</td>
@@ -3863,13 +4019,19 @@ div#notebook {
       <td> 23:50:00</td>
       <td> 60</td>
       <td> 60.000000</td>
+      <td> 1</td>
+      <td> 14:20:00</td>
+      <td> 14:59:00</td>
       <td>  283.728382</td>
       <td> 11.250000</td>
       <td> 25.220301</td>
+      <td> 15.762688</td>
+      <td> 0.625000</td>
     </tr>
     <tr>
       <th>24</th>
       <td>  133-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 18</td>
       <td> 0</td>
@@ -3877,13 +4039,19 @@ div#notebook {
       <td> 24:12:00</td>
       <td> 62</td>
       <td> 57.916667</td>
+      <td> 1</td>
+      <td> 07:36:00</td>
+      <td> 08:16:00</td>
       <td>  292.853794</td>
       <td> 10.950000</td>
       <td> 26.744639</td>
+      <td> 16.269655</td>
+      <td> 0.608333</td>
     </tr>
     <tr>
       <th>25</th>
       <td>  140-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 21</td>
       <td> 0</td>
@@ -3891,13 +4059,19 @@ div#notebook {
       <td> 19:36:00</td>
       <td> 60</td>
       <td> 40.588235</td>
+      <td> 2</td>
+      <td> 07:43:00</td>
+      <td> 08:06:00</td>
       <td>  476.703908</td>
       <td> 18.550000</td>
       <td> 25.698324</td>
+      <td> 22.700186</td>
+      <td> 0.883333</td>
     </tr>
     <tr>
       <th>26</th>
       <td>  140-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 19</td>
       <td> 0</td>
@@ -3905,13 +4079,19 @@ div#notebook {
       <td> 24:04:00</td>
       <td> 60</td>
       <td> 39.375000</td>
+      <td> 2</td>
+      <td> 07:43:00</td>
+      <td> 08:08:00</td>
       <td>  444.173697</td>
       <td> 17.216667</td>
       <td> 25.799053</td>
+      <td> 23.377563</td>
+      <td> 0.906140</td>
     </tr>
     <tr>
       <th>27</th>
       <td> 140N-423</td>
+      <td> 0</td>
       <td> 1</td>
       <td>  5</td>
       <td> 0</td>
@@ -3919,13 +4099,19 @@ div#notebook {
       <td> 28:45:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 1</td>
+      <td> 25:15:00</td>
+      <td> 25:45:00</td>
       <td>  116.887815</td>
       <td>  2.500000</td>
       <td> 46.755126</td>
+      <td> 23.377563</td>
+      <td> 0.500000</td>
     </tr>
     <tr>
       <th>28</th>
       <td>  141-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 24</td>
       <td> 0</td>
@@ -3933,13 +4119,19 @@ div#notebook {
       <td> 19:03:00</td>
       <td> 30</td>
       <td> 30.000000</td>
+      <td> 2</td>
+      <td> 14:55:00</td>
+      <td> 15:03:00</td>
       <td>  321.622691</td>
       <td> 15.200000</td>
       <td> 21.159388</td>
+      <td> 13.400945</td>
+      <td> 0.633333</td>
     </tr>
     <tr>
       <th>29</th>
       <td>  141-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 23</td>
       <td> 0</td>
@@ -3947,13 +4139,19 @@ div#notebook {
       <td> 18:20:00</td>
       <td> 30</td>
       <td> 30.000000</td>
+      <td> 2</td>
+      <td> 07:10:00</td>
+      <td> 07:20:00</td>
       <td>  313.982447</td>
       <td> 15.333333</td>
       <td> 20.477116</td>
+      <td> 13.651411</td>
+      <td> 0.666667</td>
     </tr>
     <tr>
       <th>30</th>
       <td>  142-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 21</td>
       <td> 0</td>
@@ -3961,13 +4159,19 @@ div#notebook {
       <td> 20:36:00</td>
       <td> 60</td>
       <td> 40.882353</td>
+      <td> 2</td>
+      <td> 07:53:00</td>
+      <td> 08:21:00</td>
       <td>  495.784503</td>
       <td> 18.800000</td>
       <td> 26.371516</td>
+      <td> 23.608786</td>
+      <td> 0.895238</td>
     </tr>
     <tr>
       <th>31</th>
       <td>  142-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 21</td>
       <td> 0</td>
@@ -3975,13 +4179,19 @@ div#notebook {
       <td> 22:38:00</td>
       <td> 60</td>
       <td> 39.705882</td>
+      <td> 2</td>
+      <td> 07:58:00</td>
+      <td> 08:23:00</td>
       <td>  503.958136</td>
       <td> 19.250000</td>
       <td> 26.179643</td>
+      <td> 23.998006</td>
+      <td> 0.916667</td>
     </tr>
     <tr>
       <th>32</th>
       <td>  143-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 25</td>
       <td> 0</td>
@@ -3989,13 +4199,19 @@ div#notebook {
       <td> 19:22:00</td>
       <td> 30</td>
       <td> 30.000000</td>
+      <td> 2</td>
+      <td> 08:04:00</td>
+      <td> 08:22:00</td>
       <td>  467.041105</td>
       <td> 20.000000</td>
       <td> 23.352055</td>
+      <td> 18.681644</td>
+      <td> 0.800000</td>
     </tr>
     <tr>
       <th>33</th>
       <td>  143-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 23</td>
       <td> 0</td>
@@ -4003,13 +4219,19 @@ div#notebook {
       <td> 18:30:00</td>
       <td> 30</td>
       <td> 30.000000</td>
+      <td> 2</td>
+      <td> 14:46:00</td>
+      <td> 15:00:00</td>
       <td>  430.038811</td>
       <td> 16.866667</td>
       <td> 25.496372</td>
+      <td> 18.697340</td>
+      <td> 0.733333</td>
     </tr>
     <tr>
       <th>34</th>
       <td> 143W-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td>  4</td>
       <td> 0</td>
@@ -4017,13 +4239,19 @@ div#notebook {
       <td> 22:50:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 1</td>
+      <td> 19:05:00</td>
+      <td> 19:50:00</td>
       <td>   92.722582</td>
       <td>  3.000000</td>
       <td> 30.907527</td>
+      <td> 23.180646</td>
+      <td> 0.750000</td>
     </tr>
     <tr>
       <th>35</th>
       <td> 143W-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td>  5</td>
       <td> 0</td>
@@ -4031,13 +4259,19 @@ div#notebook {
       <td> 23:00:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 1</td>
+      <td> 18:15:00</td>
+      <td> 19:00:00</td>
       <td>  112.013139</td>
       <td>  3.750000</td>
       <td> 29.870170</td>
+      <td> 22.402628</td>
+      <td> 0.750000</td>
     </tr>
     <tr>
       <th>36</th>
       <td>  150-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td> 14</td>
       <td> 0</td>
@@ -4045,13 +4279,19 @@ div#notebook {
       <td> 19:30:00</td>
       <td> 60</td>
       <td> 55.000000</td>
+      <td> 2</td>
+      <td> 08:00:00</td>
+      <td> 09:00:00</td>
       <td>  445.492065</td>
       <td> 14.000000</td>
       <td> 31.820862</td>
+      <td> 31.820862</td>
+      <td> 1.000000</td>
     </tr>
     <tr>
       <th>37</th>
       <td>  150-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td> 13</td>
       <td> 0</td>
@@ -4059,13 +4299,19 @@ div#notebook {
       <td> 18:25:00</td>
       <td> 60</td>
       <td> 54.545455</td>
+      <td> 3</td>
+      <td> 17:23:00</td>
+      <td> 17:25:00</td>
       <td>  420.176319</td>
       <td> 13.433333</td>
       <td> 31.278634</td>
+      <td> 32.321255</td>
+      <td> 1.033333</td>
     </tr>
     <tr>
       <th>38</th>
       <td> 150E-423</td>
+      <td> 1</td>
       <td> 0</td>
       <td>  4</td>
       <td> 0</td>
@@ -4073,13 +4319,19 @@ div#notebook {
       <td> 23:32:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 2</td>
+      <td> 20:25:00</td>
+      <td> 20:32:00</td>
       <td>  151.121666</td>
       <td>  4.466667</td>
       <td> 33.833209</td>
+      <td> 37.780417</td>
+      <td> 1.116667</td>
     </tr>
     <tr>
       <th>39</th>
       <td> 150E-423</td>
+      <td> 1</td>
       <td> 1</td>
       <td>  4</td>
       <td> 0</td>
@@ -4087,9 +4339,14 @@ div#notebook {
       <td> 22:22:00</td>
       <td>NaN</td>
       <td>       NaN</td>
+      <td> 2</td>
+      <td> 19:15:00</td>
+      <td> 19:22:00</td>
       <td>  153.695997</td>
       <td>  4.466667</td>
       <td> 34.409551</td>
+      <td> 38.423999</td>
+      <td> 1.116667</td>
     </tr>
   </tbody>
 </table>
@@ -4104,7 +4361,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="prompt input_prompt">In&nbsp;[59]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Plot route headways</span>
@@ -4119,7 +4376,7 @@ div#notebook {
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[22]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[59]:</div>
 
 
 <div class="output_png output_subarea output_execute_result">
@@ -5223,7 +5480,7 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="prompt input_prompt">In&nbsp;[60]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get routes time series</span>
@@ -5240,7 +5497,7 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[23]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[60]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -5403,11 +5660,11 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="prompt input_prompt">In&nbsp;[61]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="n">arts</span> <span class="o">=</span> <span class="n">agg_routes_time_series</span><span class="p">(</span><span class="n">rts</span><span class="p">)</span>
-<span class="n">arts</span>
+<div class=" highlight hl-ipython3"><pre><span class="n">f</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_feed_time_series</span><span class="p">(</span><span class="n">trips_stats</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s">&#39;1H&#39;</span><span class="p">)</span>
+<span class="n">downsample</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s">&#39;4H&#39;</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -5418,86 +5675,69 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[24]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[61]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
 <table border="1" class="dataframe">
   <thead>
-    <tr>
-      <th>indicator</th>
-      <th colspan="2" halign="left">num_trip_starts</th>
-      <th colspan="2" halign="left">num_trips</th>
-      <th colspan="2" halign="left">service_distance</th>
-      <th colspan="2" halign="left">service_duration</th>
-      <th colspan="2" halign="left">service_speed</th>
-    </tr>
-    <tr>
-      <th>direction_id</th>
-      <th>0</th>
-      <th>1</th>
-      <th>0</th>
-      <th>1</th>
-      <th>0</th>
-      <th>1</th>
-      <th>0</th>
-      <th>1</th>
-      <th>0</th>
-      <th>1</th>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>num_trip_starts</th>
+      <th>service_distance</th>
+      <th>service_duration</th>
+      <th>num_trips</th>
+      <th>service_speed</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>2014-05-30 00:00:00</th>
-      <td>   7</td>
-      <td>  10</td>
-      <td>  0.647222</td>
-      <td>  1.427778</td>
-      <td>  205.167583</td>
-      <td>  377.411417</td>
-      <td>  3.883333</td>
-      <td>  8.566667</td>
-      <td> 52.832854</td>
-      <td> 44.055807</td>
+      <td>  12</td>
+      <td>  423.588152</td>
+      <td>   8.850000</td>
+      <td>  2.212500</td>
+      <td> 47.863068</td>
     </tr>
     <tr>
-      <th>2014-05-30 06:00:00</th>
-      <td> 130</td>
-      <td> 110</td>
-      <td> 16.122222</td>
-      <td> 12.844444</td>
-      <td> 2759.368645</td>
-      <td> 2194.856284</td>
-      <td> 96.733333</td>
-      <td> 77.066667</td>
-      <td> 28.525520</td>
-      <td> 28.479969</td>
+      <th>2014-05-30 04:00:00</th>
+      <td>  81</td>
+      <td> 1463.148646</td>
+      <td>  49.183333</td>
+      <td> 12.295833</td>
+      <td> 29.748871</td>
+    </tr>
+    <tr>
+      <th>2014-05-30 08:00:00</th>
+      <td> 164</td>
+      <td> 3650.067131</td>
+      <td> 128.216667</td>
+      <td> 32.054167</td>
+      <td> 28.467962</td>
     </tr>
     <tr>
       <th>2014-05-30 12:00:00</th>
-      <td> 127</td>
-      <td> 126</td>
-      <td> 16.108333</td>
-      <td> 16.094444</td>
-      <td> 2746.697023</td>
-      <td> 2758.639065</td>
-      <td> 96.650000</td>
-      <td> 96.566667</td>
-      <td> 28.419007</td>
-      <td> 28.567198</td>
+      <td> 162</td>
+      <td> 3507.673152</td>
+      <td> 123.350000</td>
+      <td> 30.837500</td>
+      <td> 28.436750</td>
     </tr>
     <tr>
-      <th>2014-05-30 18:00:00</th>
-      <td>  60</td>
-      <td>  66</td>
-      <td>  8.277778</td>
-      <td>  8.980556</td>
-      <td> 1546.455325</td>
-      <td> 1701.828485</td>
-      <td> 49.666667</td>
-      <td> 53.883333</td>
-      <td> 31.136684</td>
-      <td> 31.583578</td>
+      <th>2014-05-30 16:00:00</th>
+      <td> 149</td>
+      <td> 3511.544548</td>
+      <td> 119.900000</td>
+      <td> 29.975000</td>
+      <td> 29.287277</td>
+    </tr>
+    <tr>
+      <th>2014-05-30 20:00:00</th>
+      <td>  68</td>
+      <td> 1734.402199</td>
+      <td>  53.516667</td>
+      <td> 13.379167</td>
+      <td> 32.408637</td>
     </tr>
   </tbody>
 </table>
@@ -5512,11 +5752,10 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="prompt input_prompt">In&nbsp;[62]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get trip locations for every hour of the given date</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
 <span class="n">rng</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s">&#39;1/1/2000&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s">&#39;H&#39;</span><span class="p">)</span>
 <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%H:%M:%S&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">rng</span><span class="p">]</span>
 <span class="n">loc</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_trips_locations</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
@@ -5531,14 +5770,7 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 <div class="output">
 
 
-<div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>20140530
-</pre>
-</div>
-</div>
-
-<div class="output_area"><div class="prompt output_prompt">Out[25]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[62]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -6242,721 +6474,11 @@ DAIAAJQxJoMAAABl7P8DQo/apYlMYjsAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[26]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="c"># Create and dump all stats to CSV</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">dump_all_stats</span><span class="p">(</span><span class="n">gtfs_tk_dir</span> <span class="o">+</span> <span class="s">&#39;examples/stats/&#39;</span><span class="p">,</span> <span class="n">split_directions</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="n">date</span><span class="p">)</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt"></div>
-
-
-<div class="output_png output_subarea ">
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjcAAALICAYAAACD7NFiAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
-AAALEgAACxIB0t1+/AAAIABJREFUeJzs3X1YVGX+P/D3zPAwIjCkLgaSIZppgaZukmbwJWkly8Ry
-/YZsWr+1rV3dNevCrDbTHqzV7MGrlnVrN831i1uu4VO5CRYroqJSRhqp4UOJgIIMIMPDDOf3B9ec
-ZXAGzsA5zDkz79d1eV1zzpz5nHvOPc58uO/73LdOEAQBRERERF5C7+kCEBEREcmJyQ0RERF5FSY3
-RERE5FWY3BAREZFXYXJDREREXoXJDREREXkVJjdEpFrLly/H+vXrPV0MItIYJjdEGrd582ZMmDAB
-ixcvFve98847mDJlCubMmYOWlpZeL9MzzzwjS5xf/OIXGD9+vCyxuuvgwYPYtm2b4uf55z//iaNH
-jyp+HiJf4OfpAhBRz8ycORPHjh1DdXU1vv32W8TGxmLBggUICQnByJEj4e/v3+tlqqmpkSXOhAkT
-ZInTExaLBRaLRfHzNDY2orGxUfHzEPkCJjdEXuLJJ5/EsmXL8MEHH4j77BOQb968GatXr8bWrVsR
-Hh6OwsJCZGVlobGxEZmZmdi+fTuWLl2Km2++GaGhobjmmmtQXl4Of39/TJw4EXPmzJFUBnvcgoIC
-LFq0CABgMBiwdOlShIaGAgBOnTqFP//5zzh//jyWLl2KN954A3379oXJZMJLL70EADhz5gzWrFmD
-CxcuICUlBXPnzhXP8eOPP2L58uXo27cvamtr4e/vD39/fxiNRixbtgwhISGSr1lpaSleffVVBAcH
-w9/fH01NTYiNjcWjjz4KAPi///s/fPLJJ2hoaMCBAwcAANdeey2efvppMca3336Lv/3tb9DpdNDr
-9dDr9XjppZcQGBgoHrN8+XLs2rULWVlZeP/991FdXY3Gxka8+OKLiIqKwjvvvIPt27ejX79+uPba
-awEAN910k1gOALh06RKWLl0Kf39/BAYGQqfTISgoCC+88ILk90vkMwQi0rxly5YJ5eXlwmeffSas
-W7dOEARBWLdunXDgwIGrjmnv8ccfFx/PmjVLqKmpEQRBEO69916htrZWEARBeOyxx9wuT/u4rkyc
-OFFYuHChYLFYXB5z4MAB8f20d+bMGSEsLEw4ceKEuO/kyZPCvHnz3CrnokWLhKqqKnH71KlTwq5d
-uxyO+fLLL4VNmzZJjvnVV18Ja9euvWr/smXLhKlTpwrFxcVOX7du3Trh4MGDLuO+9dZbQlFRkbhd
-U1MjbNy4UXK5iHwJW26IvEhKSgp+97vf4b777nP7tf369YPJZAIAREVFiS0gOp1O1jLa3XjjjXjr
-rbe69VpBEDB37lzccMMN4r5hw4YhJCQEtbW1YitRV+bPn48VK1agT58+GDhwIBISEjBlyhS3ynLh
-wgW88847qK+vh8FgwOXLlzFixAinx/7lL3/Bdddd1+n7cmX27Nl4/fXX8a9//QsDBgxAfHw8Zs+e
-7VZZiXwFkxsiL/Pss89ixYoViI2N9XRROtW+28ZdOp3OaSKg0+kQEBAgOc7QoUPx+uuvA2hLUrZu
-3Yq9e/di/vz5kl7f2tqKJ598EqtXr0ZkZCQA4OzZs9i0aZPT490pW0c/+9nP8Kc//QlAWxdVTk4O
-du3aheXLl3c7JpG34t1SRF4mKioKERERKCwsdNjfr18/XLx4Udz+/PPPFStDxzu0qqqquhXHVUuG
-IAj4+OOPcerUKXHfyZMn0dTUBKPRKDn+H/7wB/FxREQE0tLSUFxc7HBMaGjoVeW/dOkSAKC+vh6R
-kZFiYgMAO3fulHx+qecB2sZUtba2AgAGDBiA+++/H2fOnOnWuYi8nU7orB2UiFTvu+++w69//WvE
-xcVh1qxZmDx5MqxWK8aNG4f33ntPvJXabDbjiSeeQP/+/WGxWHDzzTfjr3/9K/7617+ioqICf/zj
-H7FkyRKkpaXhgQcewP/+7/9i1qxZeOCBBzBz5kykpaVJLtOGDRtw8OBBAIDNZsO1116L559/Hnq9
-Hps3b8a+ffuwZ88e3HnnnQCA8ePHO8RftWoVysrKUF5ejurqatx0000IDAzEK6+8AoPBgLNnz+Lv
-f/876uvr0dDQAKPRiICAALzwwgsICgqSXM4HHngAN954IwRBQGNjIywWC/74xz8iKirK4bjnn38e
-9fX1aGpqAgBMnDgRv/rVrwAAf/7zn1FSUgKj0Yi6ujoMGzYM2dnZWLx4MaZNm4Zz587hrbfewv79
-+zFq1CgEBQUhICAAL7/8ssOdbM3NzcjIyIDBYBDvzrrvvvtw9913AwD+3//7f4iIiBDLWldXh4UL
-F6q+hY7IE5jcEJHm2Lt+2t+1RERkp4oxN9u3b4fNZgPQ1gceFxcHACgvL0dubi4MBgMSExMRERHh
-yWISkUrwbzIi6owqkhuj0Yi77rrrqv2FhYVIT08HAGRnZyM1NbW3i0ZEKnPu3Dm8/PLL+P7771FR
-UYGnnnoKgwYN8nSxiEhFVJHc2Gw2bNmyBYIgYMiQIRg7diwAOPSd9+QuAyLyHoMHD8b777/v6WIQ
-kYqpIrlJSUkRH3/22Wfi4/ZNz51NIf/555/DYDAoUzgiIiJSnbCwMIwbN87pc6pIbtprn8TYx+EA
-nU8kZjAYxNYeIiIi8n5FRUUun1PFPDdnz54VH7dfOM5+O6QgCIouXJeZmSlrvPz8fFnj+XpMuesH
-0MZ710IZAd+tH63EZP2oP6YW6kgr19JOFS03Z8+eFSccu+WWW8T98fHxyMrKgiAISE5O9lTxiIiI
-SEO8Yp6b3NxcdksRERH5kKKiIkyePNnpc6roliIiIiKSiyq6pZRUVVUlTpnuSllZmcPaMD1lNpvF
-1ZW1HHPAgAFu34Kfn5+PSZMm9bRoDjIzM/Hb3/5W1phKlFPumFooI+C79aOVmKwf9cfUQh1p5Vra
-eXVyU19fDwBdJi5yJjZKxPNEzNbWVpw/fx4DBw706TmGaqquoNbc2PWBAEx9I3GutOsFIkNNRoT1
-79vTohERkQtePebm/PnziIyM7PQ2cnKttbUV5eXliiRWWnGutAofvX9I1piz5t2KwTH9ZY1JRORr
-Ohtz49UtNzqdjolND+j1HJJF5EvcaamUii2V5AlendxQ7/PV/mglaKWPWyv146sx3amfWnOjIi2V
-UpIbLVxLpWJq4f+QVq6lHZMbol6m1+skjc2ROoYH4F/HpF78vJMnePWYG7nvgvJFvn4NlRhzMz19
-DLZu/ErWmBzHQ3Lg5520hPPcuFBdXY05c+aI21lZWdi3b58i5zp48KDDMhPtKXneruJ3vAZERERa
-59PJTb9+/XDnnXeK2ykpKRg9erQi57JarWhubnb6nJLn7Sp+x2vQU7667opW+HL9+GpMJepHK7RQ
-P4A2/g9p5Vra+eSYm/Xr1+PixYtobm5GQ0MDACAvLw85OTlISUnB7bffLh67YcMGVFRUwM/PDy0t
-LUhOTsaYMWOwadMmXLhwAa2trRg7diySkpIAAIcOHUJBQQH0ej1++uknPPLII7jmmmuwefNmBAcH
-Y8CAARg1apR4vKvz5uTk4OjRo9Dr9YiOjsaMGTNw+vRpLF++HDExMQgLC0NsbGyXiYmr+M6uARER
-kTfwueTm5MmTGDhwIObOnQsAYpdMYmIiIiMjUVlZ6XD8Qw89hLlz52L16tUYMGAAAKCkpARGoxGL
-Fi0CAKxbtw4NDQ0ICgpCUVERFi5cCAA4fvw4QkNDMXDgQMycORPh4eG44YYbHOI7O29tbS3Kysrw
-1FNPAQB27tyJ0tJSxMTE4KabbsLixYvF83bFWXxX10AOSox8l/suAkCZcmqBL9ePr8ZUon60Qgv1
-A2jj/5BWrqWdzyU3xcXFDq0d8fHxXb4mKSlJTGwA4MSJEzh+/Lg4hqa+vh4VFRUIDQ1FVFSUeNxN
-N93UrTL+8MMPDt1IEyZMQH5+PmJiYhAeHt6tmO115xoQUfcpMX9MoNEPTY1WWWNaW1pljUfkKapJ
-biwWC9566y3MnTtXvDunvLwcubm5MBgMSExMRERERI/PExsbi/379+Puu+8GABw4cADz588HAEi9
-cWzMmDHw8/PD1KlTxdcJggC9Xo9z586Jx9XX1+PSpUuIjo6Gn58frFbnX0Qdzzt06FBkZ2eLCc7+
-/fsRFxfn3hvtJH5n16CnfHUOCK3w5frxZEwl5o9R4i6k6eljZI3naVr5HGnh/5BWrqWdapKbvLw8
-TJkyxWFfYWEh0tPTAQDZ2dlITU3t8XmGDx+OgoICrFq1ClarFQMHDsTmzZtRUVGB8vJy1NfX48iR
-I3j00UcBAO+99x4OHz4Ms9mMMWPGICEhAddddx2OHTuGNWvWAADq6uqwYMECmEwmjB49Gq+//ro4
-O7I9zqhRo/Dmm29i9+7daGpqwuzZszFo0CC8++67V503NDQUgwYNwurVq6HX6zF48GAMGTIER48e
-xZ49e5CQkACTyYQ9e/Zg0qRJGDZsmMv36yy+q2swc+bMHl9fIiIiT1PFPDeXL19GcXExBgwYgLCw
-MLHlJicnB8nJyQCATz/9VGwp6Yjz3CjH16+hVub9ePA349HaKu9/ZU6UJh+tfI60EpPz3BCggbWl
-8vPzcc8996CkpMRhf/u8y9/fv7eLRaQZlistivyAMLkhIi1SRXJTUVGBbdu2obKyEtHR0WJLgc1m
-E4/pagHM9n139nvnY2JiFCqxuqxduxaNjY6DFY1GIx577DFZ4tuvZ8fr62y7/bwFUo6Xsp2RkYHp
-06fLFi8/Px/FxcViH3dXx8vNapN3EKhSMe3UXj9St+375Irnzufd1Nd3Wz+V+GyazWYAbS03vf19
-lJmZibi4OFk/71u3bsWqVatki9f+Pas1nlz144oquqXsjh8/7tAt9cknn2DGjBkQBAE7duzAtGnT
-nL6O3VLKcfcaettgO1/uTpDa9K+FwZCejunLnyNPfja18jnSwv8hNV5L1XdLAW3LAOTn5zu03MTH
-xyMrKwuCIIhjb0jdfHUOCG8kdcHDe6bMkrzgodTblwdHjpQU053boT0Zk7dYe4ZW5mbRwnecVq6l
-nWqSm379+uE3v/mNw77IyEikpaV5qEREvk2JcTxy/xWvlZYGb7vFmkjtfHptKZKfr667QkTqo5X1
-kLTwHaeVa2mnmpYbrbhQ24TKeucLYMohPDgAEaGBisUnIiLydkxu3FRZ34yMT08pFn/V1GGaTm58
-tT+aiNRHK+NEtPAdp5VracfkRqMEQcDKlSvh5+eH+vp6zJ8/32H9KyIiIl/FMTcatWPHDiQlJeGp
-p57Ck08+ibVr13q6SAB8tz+aiNRHK+NEtPAdp5VracfkRqNKSkowfvx4AEBISIiHS0NERKQeTG40
-qrXVcd4Mo9HooZI48tX+aCJSH62ME9HCd5xWrqUdkxuNslodJxnrankKIiIiX8HkRqNiY2Oxf/9+
-AEBdXR1aWlo8XKI2vtofTUTqo5VxIlr4jtPKtbTj3VJuCg8OwKqpwxSNL8X06dOxcuVKFBQUoLa2
-FosWLVKsTERERFrC5MZNEaGBqpmHZvHixZ4uwlV8tT+aiNRHK+NEtPAdp5VracfkhoiINEXqoq5S
-hZqMCOvfV7Z45HlMbkhWPV3C3pnMzEzZ/7JRopxE1DvkXtR11rxbJSc3vvodp8T7VvJ7mAOKiYiI
-yKuopuWmoKAAFRUVAIDBgwdj3LhxKC8vR25uLgwGAxITExEREeHhUlJXfLU/moh8g69+x3HMTTdN
-nDhRfPz5558DAAoLC5Geng4AyM7ORmpqqkfKRkRERNqhqm6pM2fOYPXq1Rg2rO1W66CgIPG5gABp
-t0iTZ/nqHBBE5Bt89TuO89z0QHR0NObPn4+tW7ciJiYGgiCIz/n7+3f62vYDk+wXLCYmRvYy1lRd
-Qa25Ufa4dmoctW+/nh2vb29tl5aWOq3fnmwXFxdLPl5uVpu164NUENNXsX7kpYXraTabAfQH0PX3
-QXFxcafPd2e7tLRULItc359qjyfXtis6oX0GoRKffvoppk6dil27diElJQUAkJOTg+TkZKfH5+bm
-YuzYsVftLysrQ2RkpKxlO1dahY/ePyRrzPZmzbsVg2P6KxbfXUpcQy1Ror6np4+R9U4PX46phTIy
-pvpjqu17l6QpKirC5MmTnT6nmpab6upq9OvXDwDEFhuLxSJu2x+TI4vFgj59+ni6GKqgRKuataW1
-64OIiEhVVJPc7Nu3D01NTQCAn//85wCA+Ph4ZGVlQRAEl602vuqLL77A4cOHUVxcjA8//NDTxRF5
-cg6IWnOjIq0sRER2nOdGPkrOc6Oa5GbatGlX7YuMjERaWpoHSqN+SUlJSEpKwp/+9CdPF4WIiEhV
-VHW3FGmfVuaAICLqDq18x/n6PDdMboiIiMirMLkhWWllDggiou7Qynecr89zw+SGiIiIvIpqBhRr
-RajJiFnzblU0vhR79+5FUVERDhw4gLfffhvh4eGqGHytlf5oIqLu0Mp3nK+PuWFy46aw/n1VMYPw
-HXfcgTvuuAMLFy70dFGIiIhUhckNyUorc0AQEdnp9TqcK62SdKzZbIbJZOryOHeW0uE8N/JjckNE
-RD7NcqVF9iUiZs27VRWt/L6KyQ3JSiv90VIF9PHDPQ9dvW5ZT+h0soYjIo3jmBv5eXVyYzAY0NDQ
-gKCgIE8XRXMEQUB1dTUCAwM9XRSPamiyYeG+87LGfPv2QbLGIyIiR16d3ISHh6OyshI1NTWdHif3
-ytdS+2TVHFMQBJhMJgQHB7sVk2NuuhYYEiipNchqs8LPIO2/KFuDSK2ktn562+fdnXE8Un+D3BnH
-wzE3Xkyn02HgwIFdHrd161ZZfzxLS0sxcuRI2eJpKSZ17YJVwHK2BpGP8NXWT/fH8XR9jTiORzqv
-Tm6kkrtVQCt9k1qJ6U2tNkqR2hrkDi38dUzyUmKMmV/fAFnj+TJ3WoMGR46UdKzU1iCt/F7YqSa5
-OXbsGL7//nu0trbitttuQ1RUFMrLy5GbmwuDwYDExERERER4uphEqsTWIJKDEq0sLyQPkTWeL+Nd
-XdKpJrmpqqrC/fffDwD49NNPERUVhcLCQqSnpwMAsrOzkZqaqsi55R7ToZW+Sa3ElFo/fkEBkv/q
-lNq/z786SQ7utIhI/Wz2CZb2eW9qbkZggLTPMT/v5IpWfi/sVJPcJCQkXLWv/V1OARL/c5LvutgK
-ZPCvTlIhpVpE5G6t4+edvIVqkhu73bt3Y/z48QDa7tix8/f37/R17TNA+0qjUrfj4uJ69PqO2z0t
-j6vt9rHliKfE9qRJk2SPL7V+QmJGQwusVqsmYtrH8VhtbbHtrQk92e4THIAps0epNh4ABAb5Ycrs
-UbLFs9qs0PUxOLnCvkGRz7tN3phyx9MSs9mM/PzvNPt74YpOaJ9BeFheXh6uv/56REdHAwB27dqF
-lJQUAEBOTg6Sk5Odvi43Nxdjx8o7CI6052hZHTI+PSVrzBeSh2B5zmnGVGlMLZSRMeWP+fbtg7Bz
-Q5Fs8aanj5F9LItWYs6adysGx/SXNWZvKSoqwuTJk50+p+/lsri0d+9eDBw4UExsAMBisQBoa8Gx
-P1ZCZmamrPE6trQwZs/IXT9EROQerfxe2KmiW6qyshL79u3DiBEjUFJSgrq6Ojz00EOIj49HVlYW
-BEFw2WpDRERE1J4qkpvw8HAsWbLkqv2RkZFIS0tT/Pyc50bdMTnPDRGRZ2nl98JONd1SRERERHJg
-cgOOuVF7TI65ISLyLK38XtipoluKiIhIKrkXn+VSI96HyQ045kbtMTnmhojak3u5ES410jWt/F7Y
-sVuKiIiIvAqTG3DMjdpjcswNEZFnaeX3wo7dUkRERD5Kr9fhXGlVl8eZ+kZKOg4AQk1Gj680zuQG
-HHOj9pgcc0NEpAzLlRZFlnSQktxwzA0RERGRRExuwDE3ao/JMTdERN6HY26IiIgUInXeHIBz52gF
-kxtwzI3aY3LMDREpSe55cwDOnSOFT4y5aW1thc1m83QxiIiISONU0XKza9culJaWIjU1FZGRkQCA
-8vJy5ObmwmAwIDExEREREYqdPzMzU9bWgfz8fNkzUl+OKXf9EBEpzZ2urqbmZgQGBHR5nLd1dSnx
-e2GniuQmJSUFx48fd9hXWFiI9PR0AEB2djZSU1M9UTQiIiK3savLs1SR3DgTFBQkPg6QkNH2BMfc
-qDsmW22IiNxrDZLKk61BSo65UW1yIwiC+Njf39+DJSEiIvI8tgZJp5oBxR21H1ysk5Batr9fPj8/
-363tjIyMHr2+43ZmZqas8fLz8x3mepEjXvt9csVzFluO+O7Wj9pZrVZNxPRVrB95aeF6+nT92OR/
-72azWXys9O+FK6ptubFYLADaWnDsjzvTvnmrY1NXV9sxMTE9en3H7bi4OFnjKbVt/4CopTyutqXW
-z9GyOmiBn5/8/+2UiOmrWD/y0sL19On6kTBnj7tMJpP4WOnfB1dUUaM5OTkoLS2F0WhEdHQ0EhIS
-EB8fj6ysLAiCgOTkZEXPzzE36o7JMTdERN7H68fcOEteIiMjkZaW5oHSEBERkZapIrnxNM5zo+6Y
-nOeGiEg79HodzpVWdXmc2Wx26MLqTKjJKGmlcTsmN0RERCQby5UWbN34lawxZ8271a3kRrV3S/Um
-jrlRd0y22hARkTuY3BAREZFXYbcUOOZG7TE55oaISBlSZz222qySbxtXwxpYTG6IiIh8lLfOesxu
-KXDMjdpjstWGiIjcweSGiIiIvAqTG8Bh3SY5KLHOkS/HlLt+iIjIuzG5ISIiIq/C5AYcc6P2mBxz
-Q0RE7vDau6Vqqq6g1twoa8xAox+aGuVdHl4rMd2d+rorF2qbUFnfLFs8AGi2tcoaj4iItMlrk5ta
-cyM+ev+QrDGnp4+RfUpprcSUOvW11HluKuubkfHpKTmKJnoheYis8YiISJu8NrkheUldCM3UN1LS
-ccH+/OgREZEyVP0LU15ejtzcXBgMBiQmJiIiIsLTRfJZci+EJmVGTCIiou5QdXJTWFiI9PR0AEB2
-djZSU1Mlv9YvKED2H9A+wb4bUw3TaRMRkfpJXdLBHX5BAe4dL+vZZRYUFCQ+Dghw741dbAUyZJ5S
-+oXkIbJPU62VmGqYTpuIiNRPiSUdVk0dhkg3jtcJgiDIWgIZ7d69G3fddddVjzs6cuQIampqerNo
-RERE5EFhYWEYN26c0+dU3XJjs9nEx7pO+kVcvTkiIiLyPaqexM9isQAABEEQHxMRERF1RtXdUmVl
-ZcjLy4MgCEhOTkZ4eLini0REREQqp+rkhoiIiMhdqu6WIiIiInIXkxsiIiLyKkxuiIiIyKswuSEi
-IiKvwuSGiIiIvAqTGyIiIvIqTG6IiIjIqzC5ISIiIq/C5IaIiIi8CpMbIiIi8ipMboiIiMirMLkh
-Ip+2fPlyrF+/3tPFICIZMbkhoi5t3rwZEyZMwOLFi8V977zzDqZMmYI5c+agpaWl18v0zDPPyBLn
-F7/4BcaPHy9LLCJSBz9PF4CI1G/mzJk4duwYqqur8e233yI2NhYLFixASEgIRo4cCX9//14vU01N
-jSxxJkyYIEscIlIPJjdEJNmTTz6JZcuW4YMPPhD3CYIAoK11Z/Xq1di6dSvCw8NRWFiIrKwsNDY2
-IjMzE9u3b8fSpUtx8803IzQ0FNdccw3Ky8vh7++PiRMnYs6cOZLKYI9bUFCARYsWAQAMBgOWLl2K
-0NBQAMCpU6fw5z//GefPn8fSpUvxxhtvoG/fvjCZTHjppZcAAGfOnMGaNWtw4cIFpKSkYO7cueI5
-fvzxRyxfvhx9+/ZFbW0t/P394e/vD6PRiGXLliEkJER87y+88AIuX76MwMBA6HQ6XLp0yeH6EJEH
-CEREEixbtkwoLy8XPvvsM2HdunWCIAjCunXrhAMHDlx1THuPP/64+HjWrFlCTU2NIAiCcO+99wq1
-tbWCIAjCY4895nZ52sd1ZeLEicLChQsFi8Xi8pgDBw6I76e9M2fOCGFhYcKJEyfEfSdPnhTmzZsn
-bn/99dfCG2+84fC6d999V0rxiUhBHHNDRG5JSUnBwYMHcfnyZbdf269fP5hMJgBAVFSU2AKi0+lk
-LaPdjTfeiLfeegtGo9Ht1wqCgLlz5+KGG24Q9w0bNgwhISGora0FAMTFxaGhoQHPPfccXnvtNWzf
-vh2/+c1vZCs/EXUPu6WIyG3PPvssVqxYgdjYWE8XpVOBgYHdfq1OpxO73DruDwgIAADo9Xo899xz
-AIArV67gyJEjmDdvHv7+979Dr+ffjkSewv99ROS2qKgoREREoLCw0GF/v379cPHiRXH7888/V6wM
-He/Qqqqq6lYcZwmMff/HH3+MU6dOiftOnjyJpqYmsSVo1apVKCsrAwD07dsXCQkJCAgIQENDQ7fK
-QkTyYMsNEXXpu+++w7///W+UlZVh1qxZmDx5Mv7whz9g3LhxDgNx58yZgyeeeAL9+/eHxWLBzTff
-jP3796OwsBAVFRUoKChAVlYW0tLSUFlZiY8++gizZs1CZWWluF+qxMRELFiwAABgs9lw7bXX4vnn
-n4der8fmzZuxb98+h0HH48ePd4hvT0zKy8tRXV2Nr7/+GoGBgXjllVdgMBig0+nw6KOPIjMzEw0N
-DTAajQgICMDKlSvFGLW1tfjb3/4Gi8WCpqYmXLlyBSkpKQgODu7pJSeiHtAJrv5sISLyYWfPnsWm
-TZvw9NNPe7ooROQm1XRLWSwWvPrqq2ITLwCUl5dj48aN2LRpEy5cuODB0hGRr+HffUTapZrkJi8v
-D1OmTHHYV1hYiPT0dDz44IM4ePCgh0pGRL7m3LlzePnll7Fjxw48+eSTOH/+vKeLRERuUMWYm8uX
-LyMoKOiq2zWDgoLEx/a7E4iIlDZ48GC8//77ni4GEXWTKpKb/Px83HPPPSgpKXHY375ZuLPp3T//
-/HMYDAbFykdERETqEhYWhnHjxjl9ThXJTUVFBbZt24bKykpER0cjMjISQNsdEHadTfJlMBgwduxY
-xctJREStUSY/AAAgAElEQVRE6lBUVOTyOVWMuZk3bx5SU1MxadIkh0nBLBYLgLYWHPtjJWRmZsoa
-Lz8/X9Z4vh5T7voBtPHetVBGwHfrRysxWT/qj6mFOtLKtbRTRcsNAFRXVyM/P9+h5SY+Ph5ZWVkQ
-BAHJyckeLiERERFpgVfMc5Obm8tuKSIiIh9SVFSEyZMnO31OFd1SRERERHJRTbeUJ2VmZuK3v/2t
-bPHy8/MxadIk2eL5eky56wfQxnvXQhkB360frcRk/Xg+ZnNzMy5duuTy+bKyMnE4hlzMZjNMJpNq
-40mNGRgYiP79+7sdm8kNERGRQpqbm1FRUYFBgwa5XCle7sRGiZieKmNVVRXq6+vdXq+NY26IiIgU
-UlZWhmuvvdZlYkOdEwQBZWVlGDRo0FXPccwNERGRhzCx6T6dTtfpPHeuqOaKFxQU4JNPPsEnn3yC
-I0eOAAC2b9+O7OxsZGdno7i4WLFzc54bdcfUwhwQSsTUQhkB360frcRk/ag/JslPNWNuJk6cKD7+
-/PPPAQBGoxF33XWXp4pEREQ9VFN1BbXmxi6PM/WNxLnSKkkxQ01GhPXv29OikRdT1ZibM2fO4F//
-+hdmzJiBmJgY7Nq1Cw0NDRAEAUOGDHE5roZjbkhLpH7Zu4Nf9qRW50qr8NH7h2SNOWverRgc4/4d
-NJ6gxJ1QvsbVNexszI1qWm4AIDo6GvPnz8fWrVsRExODlJQU8bnPPvvMgyUjkk+tuVGRL3smN0Ta
-U11djSeeeAIffvghACArKwuDBw/G7bffLvu5Dh48iGuvvRbXX3/9Vc8ped6u4ne8BnJQzZgbO6PR
-iJCQkKv2d7YqOODYD5qfn+/WdkZGRo9e33E7MzNT1nj5+fkO/eZyxGu/T654zmLLEV/u+vH09TSb
-zZBb+5isH21/3uX+/vB0/Xjb593d+unq/ffr1w933nmnuJ2SkoLRo0d3+pruslqtaG5udvqckuft
-Kn7Ha9BRZ/Xtimq6paqrq9GvXz8AwM6dO3HPPffg7NmzYoa5Y8cO3HvvvU5f29NuKU7ip+6Y3jYJ
-mSeb6Vk/vhfT0/XjbZ93d2O66lJZv349Ll68iObmZjQ0NODll19GXl4ecnJykJKS4tDCsWHDBlRU
-VMDPzw8tLS1ITk7GmDFjsGnTJly4cAGtra0YO3YskpKSAACHDh1CQUEB9Ho9fvrpJzzyyCO45ppr
-8NprryE4OBgDBgzAqFGjxONdnTcnJwdHjx6FXq9HdHQ0ZsyYgdOnT2P58uWIiYlBWFgYYmNjO01M
-Oovv7Bq4cw0765ZSTXKzfft2NDU1AQB+/vOfIzo6Gv/5z39QUVEBALjllltwww03OH0tx9yQlvj6
-GARSLyXGg1lbWrFl/RFZY2rp8+7sh/nkyZP44YcfxKEXc+bMEbtkTp48icrKyqu6b+bOnYvVq1dj
-wIABAICSkhKUlJQgNTUVALBu3TrMmjULQUFBWLt2LR577DEAwPHjxxEWFobIyEjs27cP4eHhTn9L
-O563trYW2dnZmDNnDoC2RoeRI0ciJiYGK1euxOLFi8XzPvzww11eh47xO7sGUq4hoJExN9OmTbtq
-X0JCggdKQkTkm5QYDzY9fYys8bxBcXGxQ2tHfHx8l69JSkoSExsAOHHiBI4fP46zZ88CAOrr61FR
-UYHQ0FBERUWJx910003dKuMPP/zg0I00YcIE5OfnIyYmBuHh4d2K2V53roE7VDfmxhM4z426Y/ry
-PB1yY/34Xkwl6kcr1Fo/sbGx2L9/v7h94MAB8bHUzpQxY8bglltuwcKFC7Fw4UI8++yzuP7669G/
-f3+cO3dOPK6+vh5nzpwBAPj5+cFqtTqN1/G8Q4cOxdGjR8Xt/fv3Iy4uTlLZpMTv7BrIQTUtN0RE
-JJ3ULqQxcZMkzx9jbWntabFIguHDh6OgoACrVq2C1WrFwIEDsXnzZlRUVKC8vBz19fU4cuQIHn30
-UQDAe++9h8OHD8NsNmPMmDFISEjAddddh2PHjmHNmjUAgLq6OixYsAAmkwmjR4/G66+/Ls7ua48z
-atQovPnmm9i9ezeampowe/ZsDBo0CO++++5V5w0NDcWgQYOwevVq6PV6DB48GEOGDMHRo0exZ88e
-JCQkwGQyYc+ePZg0aRKGDRvm8v06i+/qGsycOVOWa6yaMTc9wTE3pCVKjLl58Dfj0doq739lzp2j
-bkp8jqanj8HWjV+pPqbWx9yQezQ95oaIus9ypUWRHxAmN0SkRRxzA465UXtMXx7ToQW+XD9aiemr
-WD+9Z+3atXj77bcd/q1du9Zj5VFNy01BQYF42/fgwYMxbtw4lJeXIzc3FwaDAYmJiYiIiPBwKYmI
-iKgj+63naqGa5MbZwpmFhYVIT08HAGRnZ4v388tN7gmu5J40ytdjyl0/gHbeuxb4cv1IjenO/DGD
-I0dKGgDMwb9d08rniOSnmuQGcFw4EwCCgoLE5wICAjxVLPJhSk1qRr6F88cQ9S5VJTcdF85sfyNX
-V2tL9QSXX1B3TE9OH+/LP0p6vU5SC4I7d4NIvQNLK59NJWKSfFjnvktVyQ3guHCmzWYT9+t0uk5f
-1/4DZx/wJXW7tLS0R6/vuF1cXNyj1zvbLi4uljVex2snd3nl3Ja7fty9nnKz2pxPoqW2mO7dgXVe
-0lGz5t2Kb79ri+lLn3dTX9+9FViJz2bbQoptt4L3dn26+/1uNptlvxX8Qm0TKuudL4Aph/DgAESE
-BioW313tr6HU72fVzHPjbOHMTz75BDNmzIAgCNixY4fTJRoAznNDyvHluUSUiCn3fDyBRj80Ncr7
-46lETCXWV9JKnXOeG/nnuTlaVoeMT0/JGrO9VVOHYXRkiGLx3aXpeW727dvnsHAm0LbWRFZWFgRB
-QHJysieLR0QykHs+Hq38GGulK5LIHYIgYOXKlfDz80N9fT3mz5/vsP6VJ6kmuXHWKhMZGYm0tDTF
-z80xN+qO6ckxN0SkPlLHg5nNZphMpi6Pc2c2bn53/NeOHTuQlJSE8ePHo66uDmvWrMFzzz3n6WIB
-UFFyQ0REJIXcLYCcjbt7SkpKxIYJ+1hZteAMxeA8N2qPqZV5VIjI+/G7479aWx2ntTAajR4qydWY
-3BAREZHbrFbHgfdd3dXcm5jcgGtLqT2mVtYuIiLvx++O/4qNjcX+/fsBAHV1dWhpafFwif6LY26I
-iIg0JDw4AKumDlM0vhTTp0/HypUrUVBQgNraWixatEixMrmLyQ045kbtMTnmhojUQg3fHRGhgaqZ
-ZG/x4sWeLoJTqklujh07hu+//x6tra247bbbEBUVhe3bt4uzFA8dOhRxcXEeLiURERGpnWrG3FRV
-VeH+++/HzJkz8c033wBoG3mdmpqK1NRURRMbjrlRd0yOuSEiteB3hzaopuUmISHhqn02mw1btmyB
-IAgYMmQIl1ggIiKiLqmm5cZu9+7dGD9+PAAgJSUF999/Px544AFUVFR0+rr22XR+fr5b23FxcT16
-fcftnpbH2XbH2HLEb7/Qm1zlnTRpkqzxAPnrx93rKTetLJzpq1g/8tLC9WxbiLON3N/v7WNT93RW
-P66oZuFMAMjLy8P111+P6Ojoq57Lyclxub4UF84kpXDhTHXH1EIZGVP9MZVciFOJhTN9TXcWzlRN
-y83evXsxcOBAh8Tm7Nmz4uPGxkbFzs0xN+qOyTE3RKQW/O7QBlWMuamsrMS+ffswYsQIlJSUoK6u
-Dg899BDOnj2LwsJCAMAtt9zi4VISERF5Xk3VFdSalfuD352FRNVKFclNeHg4lixZctV+Z4OMlcB5
-btQdk/PcEJFaqOG7o9bcKHt3eXvuLiRqsVjQp08fxcrTHapIboiIiEhbvvjiCxw+fBjFxcX48MMP
-PV0cB6oZc+NJHHOj7pgcc0NEasHvjv9KSkpCRkYGbr75Zk8X5SpMboiIiMirMLkBx9yoPSbH3BCR
-WvC7QxuY3BAREZFXUU1yc+zYMWzZsgWbN2/GTz/9BAAoLy/Hxo0bsWnTJly4cEGxc3PMjbpjcswN
-EakFvzu0QTV3S9kXzgSATz/9FFFRUSgsLER6ejoAIDs7G6mpqZ4sIhEReSG9XodzpVWSjjX1jZR0
-rJJzxYSajJg171ZFYtvjS7F3714UFRXhwIEDePvttxEeHo60tDTFyuUO1SQ3zua0CQoKEh8HBAQo
-dm6OuVF3TI65ISIlWa60yL5EhLtzxbgjrH9fVUyyd8cdd+COO+7AwoULPV2Uq6imW8qu/cKZ7Ze9
-8vf391SRiIiISENUldzk5eXhhhtuwIABAwAANptNfE6n03X62p6sEp2RkSHrqtOZmZmyr2LdftyJ
-XKtu2/fJuYp3x9hyxJe7fty9nnLTwirJvoz1Iy8tXE8l64ergvdcd1YFV023lLOFMy0WC4C2Fhz7
-Y1fadzN07HLoajsmJqZHr++4HRcXJ2s8pbbtHxC1lMfVttz14+623PwM8v+3UyKmr2L9yEsL11PJ
-+jGZTIrF9hXtr6HU72dV/I9ztXBmfHw8srKyIAgCkpOTFTs/x9yoOybH3BARkTtUkdy4WjgzMjJS
-NSOvieQS0McP9zw0VtaYXfTaEpGHBAYGoqqqCv369etyeAVdraGhAQaDwe3XqSK58bTMzExZWwfy
-8/Nlbxnw5Zhy1w8gvZx+QQGSExGrzSqpebvZz4CFe85JiinV27cPkjUeEcmjf//+qK+vR1lZmcvk
-pqysDJGRkbKe12w2y9olJnc8qTENBgPCw8Pdjs3khqgTF1uBjH3nZY35QvIQWeMRkboFBwcjODjY
-5fNbt26V/Q+40tJSjBw5UrXxlIppx+QGHHOj9pgcc0NEWuPOxID3TJkl+8SAcn/HaeX3wo7JDZEX
-CAwJ5DgeUiVfHWOmtYkBvY1qkpvW1lYIgtCtgUM9xTE36o7pyTE3WnHBKmC5zN1nHMfje6QmIlLH
-lwEcY+Ypcn/HaeX3wk4Vyc2uXbtQWlqK1NRUcVDV9u3bxUn8hg4diri4OE8WkYhIVaQmIk3NzQiU
-uHyNEokIx5iRJ6giuUlJScHx48cd9hmNRtx11129cn6OuVF3TI65IbpaQ5MNCznYnVzgmBuVstls
-2LJlCwRBwJAhQzB2rLx9tkTUOY7jIVIXdwYpS6Xk6uWepNrkJiUlRXz82WefKXoujrlRd0yOufEM
-juORjzuDaqWOZ/HrK62ribyHJwcpa+X3wk61yU17UlYEb3+ROq6Z1NV2aWlpj17fcbu4uLhHr3e2
-XVxcLGu8jtdO7vLKuS13/bh7PeVmtSqwkKACMZUQGBKIKbNHAfjvej72RQvbb9tsreI4EWfP27f7
-BAdIimfnZ/DrNB4ABAb5YcrsUV3Gax+rq/Nb9PDZLiRFPu8aWjhT7cxmM/Lzv9Ps74UrOkEQhK7e
-fG84fvw4wsLCxAHFZ8+exfXXXw8A2LFjB+69916Xr83NzWW3FaGm6gpqzY2yxmzx98Nv/10qa8wX
-kodgec5pxlRhPMbURsy3bx+EnRuKZIs3PX2M7C0iWok5a96tGBzTX9aYvaWoqAiTJ092+pwqWm5y
-cnJQWloKo9GI6OhoJCQk4OzZsygsLAQA3HLLLR4uIWlBrbkRH71/SNaYco85IaKek3s8GMeCeR9V
-JDfOVvxOSEjotfNzzI26Yyox5oaItEvu8WC+OhbMHVr5vbDTKxKViIiIyENU0XLjaZznRt0x2WpD
-RKQMqbeXD44cKfk2dKm3l/vkPDdERESkLG9dA4vdUmgb0yGnjrfOMWbPyF0/RETkeUr8XtgxuSEi
-IiKvoppuKU+uCs4xN+qOKbV+/IICZL91m7PAEhEpw+vH3DhbFby8vBy5ubkwGAxITExERESEh0tJ
-anexFcjw0VlgiYjov1SR3DhbFbywsBDp6ekAgOzsbKSmpip2fs5zo+6YnOeGiJTkzqSAUtf+4sSA
-XfPJtaWCgoLExwEB7BogIiJlcJFY76PaAcXtl7ySunBm+8fubMfFxfXo9R23e1oeZ9sdY8sRv/1C
-ZHKVd9KkSbLGA9yvH7Xz5YUztYD1Iy8tXE+frh8FFg01m83iY6V/L1xRbcuNzWYTH+sktO+1b9rq
-2MzFbd/YPlpWBy3w85P/v50SMX0V60deWriePl0/ErrY3GUymcTHSn//u6LaGrVYLADaWnDsj5XC
-MTfqjskxN0SkNe6M42lqbkaghOEX3jaOx+vH3DhbFTw+Ph5ZWVkQBMHpwppERERqxXE8nqWK5MZZ
-8hIZGYm0tLReOT/nuVF3TLbaEBF5HyXnuVHtgGIiIiKi7mByA64tpfaYXFuKiMj7KHmXqyq6pYiI
-iKhznGxQOiY34JgbtcfkmBsiIu8bpOz1a0sRERGRd9DrdThXWiVrzFCTEWH9+0o+XtXJzfbt28XJ
-/IYOHYq4uDhFzsN5btQdk/PcEBFph+VKC7Zu/ErWmLPm3eo9yY3RaMRdd93l6WIQERGRhqg6ubHZ
-bNiyZQsEQcCQIUMwdqy0gVTu4pgbdcdkqw0RkTLcGaQslRoGKas6uUlJSREff/bZZx4sCRERkffx
-tkHKdpqZ56arlcF7sqpoRkaGrKtYZ2Zmyr4qePu5XuRaddu+T85VvDvGliO+u/WjdlpYJdmXsX7k
-pYXryfqROaYCK43baX5VcAA4e/Ysrr/+egBAY2Njp8f2ZFXwmJgYWVcVj4uL08Qq5e2XnVdDeVxt
-S60frgpOcmD9yEsL15P1I3NMBVYat9P8quBAW3JTWFgIALjlllsUOw/H3Kg7JsfcEBGRO1Sd3CQk
-JHi6CERERKQxmhlzoySuLaXumFxbioiI3MHkhoiIiLwKkxtwzI3aY3LMDRERuUPVY256oqbqCmrN
-nd9h5a5Aox+aGuW9xU0rMd1d14OIiMhTvDa5qTU34qP3D8kac3r6GNnXy9BKzAd/M15Ssmg2m2Ey
-mbo8zp1kiWtLERFph9RZj602q+Tbxv2CAtwqg9cmNyQvuRdCk5osAcCYuEmSVpgN9ufHmYjI05SY
-9XjV1GGIdON4Vf8alJeXIzc3FwaDAYmJiYiIiPB0kUgm7idLXf9HkXt9FCIi0iZVJzeFhYVIT08H
-AGRnZyM1NdWj5Qno4yf7D2if4ABNxJR7ITQlrqVfX/eaLYmIyDupOrkJCgoSHwcEeP6Hq6HJhoUy
-N7W9kDxE9uY7JWL+JSVG1j7UZj8DFu45J0fRRC8kD5E1HhERaZNOEATB04VwZffu3bjrrruuetzR
-kSNHUFNT05tFIyIiIg8KCwvDuHHjnD6n6pYbm80mPtZ10i/i6s0RERGR71H1JH4WiwUAIAiC+JiI
-iIioM6ruliorK0NeXh4EQUBycjLCw8M9XSQiIiJSOVUnN0RERETuUnW3FBEREZG7mNwQERGRV2Fy
-Q0RERF6FyQ0RERF5FSY3RERE5FWY3BAREZFXYXJDREREXoXJDREREXkVJjdERETkVZjcEBERkVdh
-ckNERERehckNEfVYUlISzp075+liiHJycnDXXXfh4MGDVz33yCOPIC8vzwOlIqLe4ufpAhCR+1av
-Xo3Tp0/DaDTCarXiwoUL+Oc//+mx8vzud7/DNddc47Hzd5ScnIzz5887fS4tLQ1Dhw7tduxnnnkG
-r776ardfT0TKY3JDpDHbt2/HwIED8dRTTwEAWltbMWXKFI+W6Ze//KVHz++OX/ziFz16fU1NjUwl
-ISKlMLkh0pjLly8jKipK3Nbr9diyZYvDMd988w0+/PBD6HQ6AIDBYMCSJUsQFhYGAKiqqsKKFSvw
-zTff4O9//ztWrFgBPz8/tLa24t1338U///lPvPLKK0hKSsKSJUsQERGBVatWYf369Zg6dSpeffVV
-GAwG5OTkYOfOnTh8+DD+8Y9/4Prrr7+qvPn5+fjoo4/g7+8PnU6Ha665Bs3NzVi+fDkA4MyZM8jM
-zATQlqhZrVY89dRTDu+xK1euXMHy5ctRX18PvV6Pvn37YvDgwQ7HFBUVYcOGDThx4gQWL16MxMTE
-q+Js2LABBQUF6NOnD/z8/PDtt99i8+bNCAoKQktLC5577jkUFBRg0aJF4mvuu+8+JCUlidsffPAB
-iouLAQCCIODWW2/F7Nmzxeffeust7N69G4MGDYLRaERjYyPuvPNOPPjgg+IxNpsNb731FsrKyqDT
-6WCz2VBbW4vFixfjxhtvBABs3boVe/fuBQBYrVZER0fjiSeekHzNiLyaQESaYrVahRdffFF48cUX
-haysLOH77793eP7HH38UVqxY4bCvsrJS+MMf/nBVrNTUVOGRRx4Rqqurr3pu27ZtwscffyxuNzY2
-Co899pjTMr322mvCmTNnrtp/7Ngx4emnn3bY9/XXXwtLliwRBEEQ6urqhGeffVaw2Wzi8/X19cLj
-jz8uWK1Wp+dy5ne/+53Ddfjxxx+FESNGCAcPHrzq2E2bNglffvml0zhz5sxx2H7//feFpqYmh32P
-P/645HIJgiA89dRTwpUrVxz2jRo1Srh06ZK4PW/ePMFisYjbL774onDgwAGH1zz55JPC8ePHBUEQ
-hJ07dwo7duxweP7QoUPCG2+84VbZiLwVW26INMZgMOD555+HIAj4/vvvsW/fPqxZswbvvPMOAGDb
-tm04efKkQ+sCAJSVlaGxsRFGo1Hc169fP/ztb39zep5p06bh4YcfxsyZMwEA//jHP/DQQw+5Vdas
-rCwsWbLEYd/o0aMxevRoAMB//vMffP/992IXm11tbS1+/PFHREdHd3mOuro6BAYGYvjw4eK+qKgo
-zJkzB4IguFXeKVOm4JlnnkGfPn0wdOhQzJgxAwEBAW7F+OKLL7BlyxYYDAbodDoUFBSgrq4OQUFB
-4jETJ05E//79HcprNpvFuikvL0d8fLxD3NWrV4uPN2/eDJPJhJycHIdj3H2/RN6KyQ2Rxpw5cwbR
-0dHQ6XQYMWIERowYgaamJnz11VcYM2YMDAYDZsyYgWnTpnUZq6sf7vj4eBw8eBDx8fHYv38/fv3r
-X7tVVqvVKnaNOWMwGJCYmIjf//73bsWVojs/9PbuI6vViu+++w5LlizBs88+KynJAtqStS+//BJv
-vvkm/Pzavl7t3W/usNlsnT7f0tKCpUuXqmoQN5Ga8FZwIo2ZP38+zp49K24LgoBDhw6JP8CzZs3C
-mjVrUFVV5fC6f//732hqanLrXA8//DDWr1+PvLw83HnnnW6XdebMmXjttdcc9l2+fBlvvvkmAGDy
-5MnYvn07Tp8+7XDM/v37cfHiRUnnCAkJQWNjI06dOiXuO3/+PNauXev0eFdJz5dffons7GwAgJ+f
-H+Li4jBp0iSUlJQ4HNenTx/U1dWJ2y0tLTCbzQDaxjrdf//9YmJjNpuxb98+Se+jvX79+uHw4cMO
-+/bu3Yvdu3cDAB5//HEsWrQIVqtVfN5qtWLnzp1un4vIG+kEhdoxW1tbIQgCDAaDEuGJfFZGRgbC
-wsJQV1eH5uZm1NXVYc6cObjjjjvEY3788Ue89tprCAgIQGNjI6xWKxITE/GrX/0KALBnzx5s374d
-e/bsEZOWYcOGYf78+Vedb9myZTh06BC2bdvm8P+5vr4ey5cvh9VqxeHDhzF8+HCEhoZi+PDh+O1v
-fyset2vXLmzZsgV9+/ZFS0sLQkNDsWDBAkRGRgIAqqur8corr6C1tRXNzc1obm7GqFGjMH/+fOj1
-0v7+unLlCpYtW4YrV64AaPuhHzJkCL755hssXboUI0eOxHPPPYeGhgacOHECQUFBiIqKwoABA/Dc
-c8+J5dy2bRvCwsLQ3NyMxsZGDBo0CM8884zDuU6fPo0VK1YgODgYjY2NMBgM+P3vf48bb7wRdXV1
-ePrpp9GnTx8YDAY0Nzfj0qVLCA4OxgsvvIBrr70WzzzzDHbt2oWXXnoJ06ZNw3fffYdf//rXSExM
-FG8xb25uxooVK3D58mXodDq0tLRg1KhRePTRR8Vrsm/fPnzwwQcICQnBlStXoNfr8fDDD+O2226T
-dM2IvJkiyc2uXbtQWlqK1NRU8Qvs2LFj+P7779Ha2orbbrtNvBOivLwcubm5YvN0REREp/uJiIiI
-OqPImJuUlBQcP37cYV9VVRXuv/9+AMCnn34qJjeFhYVIT08HAGRnZyM1NbXT/URERESd6bUxNwkJ
-CU73t7+DoP3gRlf7iYiIiDrT6wOKd+/ejfHjx4vb7XvF/P39u9xPRERE1JlevRU8Ly8PN9xwAwYM
-GCDua3/LY/tbRl3td+bzzz/nwGUiIiIfEhYWhnHjxjl9rteSm71792LgwIFXzRdhsVgAtLXU2B93
-tt8Zg8GAsWPHyltgIiIiUq2ioiKXzynSLZWTk4P8/Hzk5OTgP//5DyorK7Fv3z6UlJQgOzsbGzZs
-EI+Nj49HVlYWsrKyHGbkdLVfCfZ1beSSn58vazxfjyl3/QDaeO9aKCPgu/WjlZisH/XH1EIdaeVa
-2inScpOcnHzVvo5TsNtFRkYiLS1N8n4iIiKizig2iV9vys3NZbcUERGRDykqKsLkyZOdPsflF4iI
-iMirePXCmYIgoLKysstF6MrKysSZlOVgNpthMplki+eJmIIgwGQyITg42K2Y+fn5mDRpkhzFE2Vm
-ZjpM5y8HJcopd0wtlBHw3frRSkzWj/pjaqGOtHIt7bw6uamsrERISIjDhIDOyJnYKBHPEzEFQUB1
-dTWamprQv39/2c9NRESkFK8ecyN3i4wv4jUkIiI14pgbIiIi8hlMbkhWvjoHhBIxtVBGwHfrRysx
-WT/qj6mFOtLKtbRjckNERERehWNuqFO8hkREpEYeGXPT2tra5S3YnlZdXY05c+aI21lZWdi3b58i
-5zp48CDOnj3r9Dklz9tV/I7XgIiISOsUSW527dqFv/zlL6ioqBD3lZeXY+PGjdi0aRMuXLjQ7f1y
-6tevH+68805xOyUlBaNHj1bkXFarFc3NzU6fU/K8XcXveA16ylf7o5WIqYUyAr5bP1qJyfpRf0wt
-1MtnqPcAACAASURBVJFWrqWdIvPcpKSk4Pjx4w77CgsLkZ6eDgDIzs5Gampqt/bLYf369bh48SKa
-m5vR0NAAAMjLy0NOTg5SUlJw++23i8du2LABFRUV8PPzQ0tLC5KTkzFmzBgx6WptbcXYsWORlJQE
-ADh06BAKCgqg1+vx008/4ZFHHsE111yDzZs3Izg4GAMGDMCoUaPE412dNycnB0ePHoVer0d0dDRm
-zJiB06dPY/ny5YiJiUFYWBhiY2O7TExcxXd2DYiI5FZTdQW15sYujzP1jcS50ipJMUNNRoT179vT
-opEX67VJ/NpPpBcQENDt/T118uRJDBw4EHPnzgUAsUsmMTERkZGRqKysdDj+oYcewty5c7F69WoM
-GDAAAFBSUgKj0YhFixYBANatW4eGhgYEBQWhqKgICxcuBAAcP34coaGhGDhwIGbOnInw8HDccMMN
-DvGdnbe2thZlZWV46qmnAAA7d+5EaWkpYmJicNNNN2Hx4sXiebviLL6rayAHJWablHvmTkCZcsod
-UwtlBHy3frQS09P1U2tuxEfvH5L1/LPm3SopudFC/QCeryNPxFMqpl2vJTftxy37+/t3e39PFRcX
-O7R2xMfHd/mapKQkMbEBgBMnTuD48ePiGJr6+npUVFQgNDQUUVFR4nE33XRTt8r4ww8/OHQjTZgw
-Afn5+YiJiUF4eHi3YrbXnWtA8pH6l6w7+JcsEdF/9Vpy035wsU6n6/Z+V9qvUWHvx4uJibnquNjY
-WOzfvx933303AODAgQOYP38+AMeEqjNjxoyBn58fpk6dKr5OEATo9XqcO3dOPK6+vh6XLl1CdHQ0
-/Pz8YLVancbreN6hQ4ciOztbTHD279+PuLg4SWWTEr+za+CM/Xp2vL7Ottv3oUo5Xsp2RkYGpk+f
-Llu8/Px8FBcXi38tyRGv/Xvu6vgfz1Xg3x+fgJym/HI4wvrHdFle1k/X9ePpz3tmZibi4uK8pn7M
-ZjPk1hazf5fn10L95OfnY+vWrVi1apVs8dq/Z7XGk6t+XFHsVvDjx48jLCxMvI34k08+wYwZMyAI
-Anbs2IFp06Z1a78z7t4Kvm7dOly8eBFWqxVVVVW47bbbUFFRgfLyctTX12PIkCF49NFHAQDvvfce
-Dh8+jHHjxmHMmDFISEgA0DZo+sSJth+ouro6LFiwACaTCQUFBSgoKIBOp4NOp8Ojjz6KkJAQWCwW
-vPnmmwgODkZTUxNmz56NQYMG4d13373qvH369EFubi6+/vpr6PV6DB48GA888ACOHj2K1atXY9my
-ZTCZTFi0aBGWLl2KYcOGubw2ruI7uwYzZ86UfA1d8dVF5dyJea60SpFm+sExXa8BxvrxvZierh9v
-+7z76v8hNV7Lzm4FVyS5ycnJQWlpKYxGI6Kjo5GQkICysjLk5eVBEAQkJyeL3Svu7neG89woh9dQ
-fp78sifqbfy8k1I6S24U6ZZKTk6+al9kZCTS0tJ6vJ+IiJShxHgwa0urrPGIpOi1MTeknLVr16Kx
-0fELyWg04rHHHuv1svhqk61SMeXG+vG9mO7UjxJ3Nk1PHyNrPHdooX4Abfwf0sq1tGNy4wU8kcQQ
-ERGpFdeWok7xGsqPYxBIrZT4bE5PH4OtG7+SNSY/7wR4YMwNEfUuvV4neXZXqTh3jrpxfAyRa0xu
-SFa+2h+tVEypLFdaFPnrWEpy48v148mY3jY+RglaqXMt/B/SyrW0Y3Ljpgu1Taisd74AphzCgwMQ
-ERqoWHwiIiJvx+TGTZX1zcj49JRi8VdNHabp5EaJLFwL664oFVMLfLl+pMZ0pwtpcORISV2M7ELq
-mlY+R1r4P6SVa2nH5EajBEHAypUr4efnh/r6esyfP99h/SsiUg92IRH1LiY3GrVjxw4kJSVh/Pjx
-qKurw5o1a/Dcc895ulhe1x/tzl/cZrMZJpOpy+O08he31EHK7txRJ3WQslb697Uwt5Ev00qdc8yN
-/JjcaFRJSYm43lZISIiHS+O9fPkvbvcGKZ+XdNSDvxkvKVk09Y2UlFgFGv3Q1GiVdG5PxtRKQqsV
-UhNvqfXDOwO9T68mN6dPn8aRI0fQ2tqKCRMm4LrrrkN5eTlyc3NhMBiQmJiIiIgIAHC5n9q0tjp+
-WRqNRg+VxJGv9keTNHLf1aXEHCpKxST5yP05knpnIOC733FaG3OjVyyyEyUlJZg5cyZmzZqF4uJi
-AEBhYSHS09Px4IMP4uDBg+KxrvZTG6vV8S9LnU7noZIQERGpS68mNzabDa2trbDZbLBPjBwUFCQ+
-HxAQID52tZ/axMbGYv/+/QCAuro6tLS0eLhEbfLz82WPmZmZKXtMJcpJRN7PV7/jlHjfSn4P92q3
-VGxsLFatWgUAeOihhwAA7Vd/8Pf3Fx+72u9p4cEBWDV1mKLxpZg+fTpWrlyJgoIC1NbWYtGiRYqV
-iYiISEt6Nbk5evQonn76abS2tmLHjh247777YLPZxOfbd6242u9K+1HX9mwwJiZGrqKLIkIDVTMP
-zeLFi3vlPPbr2fH6OtueNGmSW8dL2Y6Li3Navz3dlvr+5Ga1SRus6umYvor1Iy8tXE+z2Qygba0q
-Kd8Hcn8fxcXFOcTuaTytbMvxe+FKryY39u4lvV4vtsZYLBYAbS019sed7Xel/Ru1Py4rK5On4D6u
-44fI17bl5meQ/7+dEjF9FetHXlq4nu2ncPD09w235fl+7tUxN0OGDMGWLVuwZcsWsVUlPj4eWVlZ
-yMrKQnx8vHisq/2kbr7aH01EvsFXv+M45qYTI0aMwIgRIxz2RUZGIi0t7apjXe0nIiIi6kyvttyQ
-9/PVOSCIyDf46ncc57khIiIi8iAmNyQrX+2PJiLf4KvfcRxz4+XcWUixO7jGCRERUc8wuXGTEgsp
-tufOGidA2y3zffr0Uaw87vLV/mgi8g2++h2ntTE3TG406osvvsDhw4dRXFyMDz/80NPFISIiUg2O
-udGopKQkZGRk4Oabb/Z0URz4an80EfkGX/2O09qYGyY3RERE5FXYLUWy8tX+aCLSLr1eh3OlVZKO
-HRw5UtKx7twcooXvOK8fc1NRUYGBAwcqURYiIqJeZ7nSgq0bv5I1prs3h5C8uuyWOnz4MD766CN8
-/PHH+Pjjj7Fx48YenbC0tBQff/wxtm3bhubmZpSXl2Pjxo3YtGkTLly4IB7naj+pm6/2RxMRdZcW
-vuO0Nuamy5abEydOYPbs2bKcrKamBhcuXMAvf/lLcV9hYSHS09MBANnZ2UhNTe10v6eFmoyYNe9W
-ReNLsXfvXhQVFeHAgQN4++23ER4ezrW4iIiIICG5aW1tRVlZGfz9/QG0teTcfffd3TrZ119/jbCw
-MGzZsgWxsbEYPnw4goKCxOcDAgLEx672e1pY/76qaGq84447cMcdd2DhwoWeLooDjrkhInKPFr7j
-vG7MTWNjI06cOAGDwQAACA4O7vbJKisrAQD3338/du7ciWHDhkEQBPF5ewIFwOV+IiIios50mdwE
-Bwfjf/7nf8Rte4LSXQkJCQCAQYMGobq6GjabTXxOp9OJj13tdyU/P1/MAu39eDExMT0qK7WxX8+O
-19fZdvs+VCnHS9nOyMjA9OnTZYuXn5+P4uJi8a+lro6Xm9Vm1URMX8X6kZcWrqeS9SPl+2jr1q1Y
-tWqV5OOlbNv3qTWeXL8XrnSZ3HzzzTew2Wxi11BJSQmef/75rl7m1PDhw1FaWophw4bh8uXLuPnm
-m2GxWAC0tdTYHwNwud+V9m/U/risrKxb5SRHHT9Evb0dExPjtH57a1tufgb5Z2BQIqavYv3ISwvX
-U8n6kfJ9U1xc7NbxUrZdJQFqiSfXtitd1mhycjLuvPNOcTsvL09SYGduueUWbN68GcXFxfjZz34G
-f39/xMfHIysrC4IgIDk5WTzW1X5SN465ISJyjxa+47xuzM2PP/4oPq6pqcGuXbuQmJjY7RPOnDnT
-YTsyMtLpXT6u9rvDYDCgoaHBYXAySSMIAqqrqxEYGOjpohARaY47EwNK5c7EgL6uy+SmsrISR48e
-xXXXXYedO3diwYIFvVEuWYSHh6OyshI1NTWdHldWVobIyEjZzms2m2EymWSL54mYgiDAZDK5PYC8
-/dgnuWRmZsr+l40S5SQisvP0xIByf8cp8Z2p5Pdwl8lNRkYGtm3bhqKiIsyZM0e8a0oLdDqdpNmU
-t27dKuuPZ2lpKUaOHClbPC3FJCIi8jSXyc369evF7hxBEFBWVoYtW7bAYrFgzpw5vVbA3iB3q4BW
-+ia1ElML/dHuCOjjh3seGvv/27v38CjKu2/g383mZAJJJBjMQiGJHCJyCiixFZNGgqYoNVik0gji
-U6pVbCn1waJ9fSr2Ebmk1MpVHx5abIvoGwWEmICgJLSBABIgHAJpEA0ENCdIQkjIcbPz/sGbcTfZ
-ZGeTmew9O9/PdXm5Mzv7nd/u7GZv7rl3blUzFfygkIgMhGNuuhEdHS3/bNvevn37NCuGSDS+Qf6q
-N0Rafc1Ysveiqplv3TNU1TwiIj3rtnHjrGHT03o9U3tMh17OTeol05Njbi7bgGUHvlF1379LjlY1
-j4iMwZ1BykrHaSodpKyX74sOxr34ApEXCRgYoKiHydpuVXxND57qIjUoPQ3L96Zrnh6krCds3IBj
-bkTP9LYxN1oot0pYoXIPE091GY8W48F4GtY76OX7ogMbN0REBABobGnHEp6GJS/Axg045kb0TF7n
-hqgrpb0sLa2tCPj/0+e44husbDsyHr18X3Rg44aInFI6jsedL0+jjpXQAntZiLrX742bpqYm/OlP
-f8ITTzwhXxW4oqICOTk5MJvNSExMRGRkZI/r1cYxN2JnKj0+V6uv41pds6Jth1tuV/SrgwF+xm3/
-azGO539TYlQd03HTAPV/qq+XTPaykBqU/gJL6d9MQPkvsLxqzE1ubi4eeOABh3X5+flIS0sDAGRk
-ZCA1NbXH9UTOXKtrxuYNR1TNVPsLyejUbjD9Ljla9QaYnjKJ+spbf4HVr42b2tpaBAUFITAw0GG9
-/cSW/nbd292tVxvH3IidqcWYGyLSL7UvfcDTpZ7hNWNu8vLy8OCDD6K4uNhhvSRJ8m0/Pz+X67vL
-7niR8vLyAEDxcklJSZ8e33m5sLCwT493tlxYWKhqXufXTu161VxWenyGW/QxT5bVatVFplHx+KhL
-i+d+qbkNr6nYE7bmbtdzEHora7v6x6eurg5AOADtvx+606+Nm8rKSmRmZqKqqgpRUVHymJv29nZ5
-G5NdE7q79c7YP9HOT9rV8urVq93a3tVy516GvuZNmzatT8+vP5edveH6mq/0+Cg9H+xpvr7qf+y0
-yDQqHh916eH1VHrxQG+kxXO3vzKy1t8X3enXI7po0SIAQFFREcLCwuT1TU1NAG701HTc7mk9ERER
-UXd8+nuHNTU1yMvLw+nTp+V18fHxSE9PR3p6OuLj412uV9u6detUzet82oeZfaP28SEiIs/T4vui
-Q7/3xQ0aNAhPPfWUwzqLxYJ58+Z12ba79URERETd6feeGxHxOjdiZ/KXUkRE3serrnNDpBXfIF4o
-jYjcp/Sn5e7gz8s9i40b8Do3omcqPT6XbcAyXiiNiNykxdW4OXO5a1pe54anpYiIiMirsHEDjrkR
-PZNjboiIvA/H3BAREekIx/F4Fhs34Jgb0TM5txQR6Q3H8bjGMTdERERECrFxA465ET2TvTZERN6H
-Y26IiIgMjuN4lOv3xs2ZM2dw9uxZ2Gw23H333Rg2bBgqKiqQk5MDs9mMxMREREZGAkC369XGMTdi
-Z3LMDRGRfsbx+PiYcLGk2uV2dXV1DjOI9yQkNBBh4cGKa+j3xk11dTUeeeQRAMAnn3yCYcOGIT8/
-H2lpaQCAjIwMpKamAkC364mIiEhMTdfb8PH7x1XNnLvoLrcaN/0+5iYhIaHLuqCgIPm2v7+/y/Vq
-45gbsTPZa0NERO7w2IDiPXv2YOrUqQAASZLk9X5+fvLt7tY7Yz91el5eHpcNvCw6q9Wqi0yj4vFR
-lx5eT0Mfn3YNjo8GmR2U/r33yIDi3NxcjBo1CoMHDwYAtLe3y/eZ7EY3dbfeGfseg869B66WCwsL
-HXoH3H28s96KvtTjbNn+YKqRB3w7PkatPPtMtfIA5cfnZFk99MDXV/2PnRaZRsXjoy49vJ5GPj7B
-YcGKBilb263wNSt7nfw0HKSs9OxAvx/R/fv3Y8iQIYiKipLXNTU1AbjRU9Nxu6f1RERE1Hd6GaTs
-rn5t3FRVVeHAgQOIjY1FcXEx6uvrMX/+fMTHxyM9PR2SJCE5OVnevrv1auOYG7EzOeaGiIjc0a+N
-m4iICCxfvrzLeovFgnnz5ileT0RERNQdXqEYN66joiYtBrcaOVPt40NERN6NjRsiIiLyKmzcgGNu
-RM/kmBsiInKHcX//1gtXq6/jWl2zqpkBgb5oaVb3mgBaZLp76WsiIiJPYeMGyucuulbXjM0bjqi6
-74fT4lS/TLUWmY89NVVRw07pXCHuNJY4txQREbnDaxs37vSyxI2fpmiSL2ubra9l6Zbac4W4O08I
-ERGRUl7buHG/l8X1RYweTovrfUHUa+y1ISIid3BAMREREXkVr+25IbH5+JgUnQoEgLKyMlgsFpfb
-DfDj25mIyNMCBgaoPl+Vb5C/WzUI/W1QUVGBnJwcmM1mJCYmIjIy0qP1+N/kq/oBu2mAvy4yXcxb
-6jb3x/C4Pm2o5DkTEZG2tJivavXMkXD9T9xvCd24yc/PR1paGgAgIyMDqampHq2nsaUdS1Q+YL9L
-jlb9TaBF5v+mxKjaeFC7sURERNRB6MZNUFCQfNvf370uKVKX2i1xtRtLAOAbzPcIEREJ3riRJEm+
-7efn59ZjfYOUnZoBgJbWVgQoaDzxy1M9WnRb/i45WtU8IiLSJ5Nk34IQzO7du5GSkgIAyM7ORnJy
-stPtjh07hqtXr/ZnaURERORBYWFhmDJlitP7hO65aWpqAnCjB6fjtjPdPTkiIiIyHqF7bsrKypCb
-mwtJkpCcnIyIiAhPl0RERESCE7pxQ0REROQuXqGYiIiIvAobN0RERORV2LghIiIir8LGDREREXkV
-Nm6IiIjIq7BxQ0RERF6FjRsiIiLyKmzcEBERkVdh44aIiIi8Chs3RERE5FXYuCEiIiKvwsYNERER
-eRU2boioz5KSknDx4kVPlyHLzs7GjBkzcPjwYU+X0q0LFy4gKSnJ02UQeSVfTxdARO5bs2YNzp8/
-j8DAQFitVpSXl+PDDz/0WD3PPvssbr75Zo/tv7Pk5GR88803Htv/iy++iNdff73HbcLDw/Hss8/2
-U0VExsLGDZHOZGVlYciQIXj++ecBADabDQ888IBHa3r00Uc9un/RXL161eU2AwcO5OtGpBE2boh0
-pra2FsOGDZOXfXx8sG3bNodtTp06hXfffRcmkwkAYDabsXz5coSFhQEAqqursXLlSpw6dQp/+9vf
-sHLlSvj6+sJms+Htt9/Ghx9+iNdeew1JSUlYvnw5IiMjsXr1amzcuBEzZ87E66+/DrPZjOzsbOzc
-uRNHjx7Fe++9hxEjRnSpNy8vD5s3b4afnx9MJhNuvvlmtLa2YsWKFQBunJ5Zt24dgBsNNavViuef
-f97hObpy/fp1rFixAg0NDfDx8UFwcDCGDx8u379161asWbMGH3/8MSIiIpCfn4/09HQ0NzfL+3b1
-mgDA6dOn8c4778BkMsHHxwc+Pj74/e9/j4CAAACQcw8ePIilS5fKr/1//dd/ISQkRK5n5cqVuHz5
-Mi5evIiPPvqoy/O5evUqXn/9dbS1tcnrXnzxRdxyyy0AbjRw33jjDXzve99DY2MjJEnCoEGD8Oqr
-ryp+zYi8mkREumK1WqVXX31VevXVV6X09HTp7NmzDvdfunRJWrlypcO6qqoq6Ze//GWXrNTUVOnJ
-J5+UampqutyXmZkpbdmyRV5ubm6Wnn76aac1rVq1Srpw4UKX9WfOnJF+85vfOKw7ceKEtHz5ckmS
-JKm+vl566aWXpPb2dvn+hoYG6ec//7lktVqd7suZZ5991uF1uHTpkhQbGysdPnxYXvfKK69IFRUV
-Do/7+c9/3iWrp9eks+PHj0vr16/vst5ZrjPOtrPZbNLChQulb775Rl535coV6fHHH5fa2trkdbNm
-zZKOHj0qL//lL3+RcnNzFe2XyNux54ZIZ8xmM15++WVIkoSzZ8/iwIEDWLt2Lf785z8DADIzM3Hu
-3Dm556BDWVkZmpubERgYKK8bNGgQ3nnnHaf7mTVrFhYuXIg5c+YAAN577z3Mnz/frVrT09OxfPly
-h3UTJ07ExIkTAQD79u3D2bNn5VNsHa5du4ZLly4hKirK5T7q6+sREBCA0aNHy+uGDRuGBQsWQJIk
-t+oFen5NysvL8ec//xkNDQ0wm82ora1FbGys2/voyVdffYXx48fDYrHI68LDw/GDH/wAhw8fxj33
-3AMAGDp0KKZMmSJvM3r0aJSXl6taC5FesXFDpDMXLlxAVFQUTCYTYmNjERsbi5aWFhw/fhxxcXEw
-m82YPXs2Zs2a5TLL39+/x/vj4+Nx+PBhxMfH49ChQ/jpT3/qVq1Wq1U+NeaM2WxGYmIifvGLX7iV
-q0RvGjZA96+JzWbDr3/9a6xZs0ZueJSWluKDDz7odY3u6u1zIjIa/hScSGcWL16M0tJSeVmSJBw5
-ckTu5Zg7dy7Wrl2L6upqh8d9+umnaGlpcWtfCxcuxMaNG5Gbm4v77rvP7VrnzJmDVatWOayrra3F
-m2++CQCYPn06srKycP78eYdtDh06hMuXLyvax8CBA9Hc3Iwvv/xSXvfNN99g/fr1DtsNGjTIIfOz
-zz5z67k0NDTAYrE49Kjs3LnT6bb2Y2UAdDkWPRk5ciROnTrl8Guvmpoa7Nq1C3fffXe3j2PDh+hb
-JomfCCJdWbZsGcLCwlBfX4/W1lbU19djwYIFuPfee+VtLl26hFWrVsHf3x/Nzc2wWq1ITEzE448/
-DgDYu3cvsrKysHfvXrnRMnLkSCxevLjL/l555RUcOXIEmZmZMJvN8vqGhgasWLECVqsVR48exejR
-oxESEoLRo0fjmWeekbfbvXs3tm3bhuDgYLS1tSEkJATPPfec3EioqanBa6+9BpvNhtbWVrS2tmLC
-hAlYvHgxfHyU/fvr+vXreOWVV3D9+nUAN3qMoqOjcerUKbz88ssYO3Ys6urq8Ktf/Qrh4eFoamrC
-HXfcgfXr12PDhg246667FL0m//M//4Pi4mIEBgaivr4eI0eOREZGBl544QWHnrJNmzbJ19hpb2/H
-rbfeipdffhk+Pj7Izc1FRkaGfBw69vX444/Lp5muXr2K1157Te75kiQJL774IiIiIgAAf/nLX/D2
-229j4cKFWLp0KZqbm/Ef//EfaGhowN///neEh4cret2IvJUwjZumpib86U9/whNPPCH/0auoqEBO
-To7cdR0ZGenhKomIiEh0wpyWys3N7XKtjvz8fKSlpeGxxx4T+kqjREREJA4hGje1tbUICgpy+BUH
-AAQFBcm3XQ18JCIiIgIEadzk5eVh2rRpXdbbnzHz8/Prz5KIiIhIp4T4KXhlZSUyMzNRVVWFqKgo
-ecxNe3u7vE1PPyf97LPPHAY6EhERkXcLCwtzuNaTPSEaN4sWLQIAFBUVyZeHB24MMgZu9OB03HbG
-bDZj8uTJ2hZJREREwigoKOj2PiFOSwE3fg6al5eH06dPy+vi4+ORnp6O9PR0xMfHa7bvjrll1JKX
-l6dqntEz1T4+gD6eux5qBIx7fPSSyeMjfqYejpFeXssOQvTcADcusPXUU085rLNYLJg3b56HKiIi
-IiI9EuY6N32Rk5PD01JEREQGUlBQgOnTpzu9T5jTUkRERERqEOa0lCetW7fO4XLxfdXdT9uZ2Ttq
-Hx9AH89dDzUCxj0+esnk8fF8ZkNDA+rq6rr91W9ZWZnDnGVqqKurQ2hoqLB5SjPNZjMiIiJ6/MW0
-M2zcEBERaaRj0lSLxdLtF7TaDRstMj1VY2NjI6qqqjBkyBC3sjnmhoiISCNa9MoYTXevIcfcEBER
-kWEI07g5ePAgtm/fju3bt+PYsWMAgKysLGRkZCAjIwOFhYWa7ZvXuRE7Uw/XgNAiUw81AsY9PnrJ
-5PERP5PUJ8yYm+9973vy7c8++wwAEBgYiBkzZniqJCIi6qOr1ddxra7Z5XahwRZcLKlWlBkSGoiw
-8OC+lkZeTKgxNxcuXMBHH32E2bNnIyYmBrt370ZjYyMkSUJ0dHS342o45ob0ROkfe3fwjz2J6mJJ
-NTZvOKJq5txFd2F4TLiqmVrhmJu+682YG2F6bgAgKioKixcvxscff4yYmBikpKTI9+3atavHx9r/
-PK+j25DLXBZx+dLFSny65Quo6YFHRyMsPEaI58dlLtsv19XVQW03MsM98nx68/x7atzU1NTgV7/6
-Fd59910AQHp6OoYPH4577rlH6cuh2OHDh3HrrbdixIgRXe7Tcr+u8ju/Bp3Zv4adX9/uCNVz0+GT
-Tz7BzJkzHdZlZ2cjOTnZ6fZ97bnhdW7EzvS263R48l+yPD7Gy/T08fG297u7mUp6bv7xj39g4cKF
-AIDa2lr4+flhwIABfSnTqQMHDiAiIgKjRo3qcp+W+1WSb/8adKbrnpuamhoMGjQIwI1ZwAGgtLRU
-bmE2N6vbjU9EROQpGzduxOXLl9Ha2orGxkYAQG5uLrKzs5GSkuLQw7Fp0yZUVlbC19cXbW1tSE5O
-RlxcHD744AOUl5fDZrNh8uTJSEpKAgAcOXIEBw8ehI+PD77++ms8+eSTuPnmm7F161YMGDAAgwcP
-xoQJE+Ttu9tvdnY2Tp48CR8fH0RFRWH27Nk4f/48VqxYgZiYGISFhWHcuHG47777enyu3eU7ew3U
-IkzPTVZWFlpaWgAAd955J6KiorBv3z5UVlYCACZNmuS0tQlwzA3pi9HHIJC4tBgPZm2zYdvG9ht0
-NQAAIABJREFUY6pm6un97qzX4dy5c/jqq6/koRcLFiyQT8mcO3cOVVVVXU7fPPHEE1izZg0GDx4M
-ACguLkZxcTFSU1MB3Oj5mDt3LoKCgrB+/Xo8/fTTAICioiKEhYXBYrH02HPTeb/Xrl1DRkYGFixY
-AADYuXMnbr/9dsTExOCNN97ACy+8IO+3ux6XnvJ7eg2UvIaATnpuZs2a1WVdQkKCByohIjKma3XN
-qje8H06LUzXPGxQWFjr0dsTHx7t8TFJSktywAYAvvvgCRUVFKC0tBXBjiofKykqEhIRg2LBh8nZj
-x47tVY1fffUVJk6cKC9/97vfRV5eHmJiYhAREdGrTHu9eQ3cIcx1bjyJ17kRO9PI1+lQG4+P8TK1
-OD56IerxGTduHA4dOiQvf/755/JtpSdT4uLiMGnSJCxZsgRLlizBSy+9hBEjRiA8PBwXL16Ut2to
-aMCFCxcAAL6+vrBarU7zOu/3tttuw8mTJ+XlQ4cOYfz48YpqU5Lf02ugBmF6boiISDmlp5Dixk9T
-fP0Ya5utr2WRAqNHj8bBgwexevVqWK1WDBkyBFu3bkVlZSUqKirQ0NCAY8eO4Wc/+xkA4K9//SuO
-Hj2Kuro6xMXFISEhAd/5zndw5swZrF27FgBQX1+P5557DqGhoZg4cSL+8Ic/wGQywWQyyTkTJkzA
-m2++iT179qClpQU/+clPMHToULz99ttd9hsSEoKhQ4dizZo18PHxwfDhwxEdHY2TJ09i7969SEhI
-QGhoKPbu3Ytp06Zh5MiR3T5fZ/ndvQZz5sxR5TUWZsxNX3DMDemJFmNuHntqKmw2dT/KvHaO2LR4
-Hz2cFoeP3z8ufKbex9yQe3Q95oaIeq/pepsmXyBs3BCRHnHMDTjmRvRMI4/p0AMjHx+9ZBoVj0//
-Wb9+Pd566y2H/9avX++xeoTpuTl48KD8s+/hw4djypQpqKioQE5ODsxmMxITExEZGenhKomIiKiz
-jp+ei0KYxo2ziTPz8/ORlpYGAMjIyJB/z682ta/eqfYVMY2eqfbxAZTX6c51P4Zbblc0cNPbBm16
-8vjoJZPvI8/Qy/uI1CdM4wZwnDgTAIKCguT7/P39PVUWGRiv+0Fq4PuIqH8J1bjpPHGm/Q+5/Pz8
-NNsv55YSO9PTc+MYlY+PSVEPgju/BlH6Cyy9vDf5PhKbtx7z8mstqGpo1Sw/YoA/IkMCNMvvD0I1
-bgAgMDAQAwcOBAC0t7fL600mU4+Ps3/DuTtra0lJSZ8e33m5sLCwT493tlxYWKj6rLX2r53a9aq5
-rPbxcff1VJu13flFtETLdO8XWN8o2uqxp6bi0sUbY+tCQ0MBfDtrtP2yL0LlhpWz+zuWAwJ9UVVZ
-7TIPAEKDLbhYUt1jHgDYpDbUX2t0nRcaitBgCwqPl7jcv5+vvr8o+kKL96YnZwV39++7q1nBe6Oq
-oRXLPvlS1Ux7q2eOFKpxo+tZwe0nzty5cycefPBBbN++HbNnz4YkSdixY4fTKRoAXueGtGPka4no
-IVMPNTKT17lRu3Fzsqxe88bNRMtAzfLdpevr3Bw4cMBh4kzgxlwT6enpkCQJycnJniyPiIiI7EiS
-hDfeeAO+vr5oaGjA4sWLHea/8iRhGjfOemUsFgvmzZun+b455kbsTI65ISJ7SseD1dXVyacHe+LO
-1bj5t+NbO3bsQFJSEqZOnYr6+nqsXbsWv/3tbz1dFgCBGjdERERKqH1Fbl6Nu3eKi4vljomOsbKi
-4BWKwevciJ6pl+uoEJH349+Ob9lsjtdaCgwM9FAlXbFxQ0RERG6zWh1/CefqV839iY0bcG4p0TP1
-MncREXk//u341rhx43Do0CEAQH19Pdra2jxc0bc45oaIiEhHIgb4Y/XMkZrmK/Hwww/jjTfewMGD
-B3Ht2jUsXbpUs5rcJUzj5syZMzh79ixsNhvuvvtuDBs2DFlZWfKF/G677TaMHz9ek31zzI3YmRxz
-Q0SiEOFvR2RIgDAX2XvhhRc8XYJTwjRuqqur8cgjjwAAPvnkEwwbNgyBgYGYMWOGhysjIiIiPRFm
-zE1CQkKXde3t7di2bRs++ugjFBQUaLZvjrkRO5NjbohIFPzboQ/C9Nx02LNnD6ZOnQoASElJkdfv
-2rXLUyURERGRjgjTcwMAubm5GDVqlNPLN7uaFdy+NZ2Xl+fW8vjx4/v0+M7Lfa3H2XLnbDXy7Sd6
-U6veadOmqZoHqH983H091aaXiTONisdHXXp4PTsmOwXU//tun02909Px6Y4wE2fu378ft9xyC2Jj
-Y+V1paWlGDFiBIAbl3l+6KGHnD6WE2eSVjhxptiZeqiRmeJnajkRpxYTZxpNbybOFKLnpqqqCgcO
-HEBxcTEyMjKwadMmADcaN1u2bMGWLVswZswYzfbPMTdiZ3LMDRGJgn879EGIMTcRERFYvnx5l/XO
-BhkTEREZ2dXq67hW16xZvjsTiYpKiMaNp/E6N2Jn8jo3RCQKEf52XKtrVv10uT13JxJtamrCTTfd
-pFk9vcHGDREREbntn//8J44ePYrCwkK8++67ni7HgRBjbjyNY27EzuSYGyISBf92fCspKQnLli3D
-HXfc4elSumDjhoiIiLwKGzfgmBvRMznmhohEwb8d+sDGDREREXkVYQYUO5sVvKKiAjk5OTCbzUhM
-TERkZKQm+163bp2qvQP2V/9lZt+pfXwAbeokIn3y8THhYkm1om3r6uoQGhrqcjtv+Dm1nmneuCkq
-KsLYsWNdbudsVvD8/HykpaUBADIyMpCamqpprUREZDxN19tUv4qyuz+ndkdIaCDmLrpLk+yOfCX2
-79+PgoICfP7553jrrbcQERGBefPmaVaXO1Rv3Hz55Zc4fvw4zGYzAODf//63osaNswv2BQUFybf9
-/f3VK7ITjrkRO5NjboiIvhUWHixEr9C9996Le++9F0uWLPF0KV2o3rg5ceIEHn30UXn59OnTbj3e
-flZw+2mvlEycaT8RJAAuc1mVZbXpYSJBI+PxUZceXk8tj09dXR3nluoj+9dQ6d9n1Rs3gYGO3Vnj
-xo1T/NjOs4K3t7fL95lMph4fa/9EOz9pV8uFhYUOvQPuPt7Zi9yXepwt219bQY084NsGoVp59plq
-5QHqHx93X0+1+ZrVPxusRaZR8fioSw+vp5bHR8n4HOqZ/Wuo9O+z6r+WkiQJ5eXl8vK+ffsUPW7/
-/v0YMmQIoqKi5HVNTU1yZsdtIiIiop6o1lz9/e9/j9jYWACOV3AsLi52OQFmx6zgsbGxKC4uRn19
-PebPn4/4+Hikp6dDkiQkJyerVWoXHHMjdibH3BARkTtUa9w8/vjjiI6O7rK+oqLC5WO7mxXcYrEI
-M/KaSC3+N/niwfmTVc10cdaWiDwkICAA1dXVGDRokMvhFdRVY2Oj/AMld6jWuHHWsAGAW2+9Va1d
-aIbXuRE705PXufEN8lfcELG2WxWdu2/1NWPJ3ouKMpV6656hquYRkTrCw8PR0NCAsrKybhs3ZWVl
-qg86Vno9Hk/lKc00m82IiIhwO9u4o9yIFLhsA5Yd+EbVzN8lO/+HABF5pwEDBmDAgAHd3v/xxx+r
-/g+4kpIS3H777cLmaZXZgY0bcMyN6Jkcc0OkX0Y9DevOVY8ffGCuom3dueqx2n/j9PJ90YGNGyIv
-EDAwwJBfICS+xpZ2LFG591MPp2H1dtVjbyNM48Zms0GSpF4NHOorjrkRO5NzS7lWbpWwwoBfIKQu
-pb0sSseXAYBvsHZXl6fuqf03Ti/fFx2EaNzs3r0bJSUlSE1NlQdVZWVlyRfxu+222zB+/HhPlkhE
-JBSlDZGW1lYEKJy+RovB7hxjRp4gROMmJSUFRUVFDusCAwMxY8aMftk/x9yInckxN57BU11i0+J0
-DxsiYnNnHM9wy+2qjuPRy/dFByEaN860t7dj27ZtkCQJ0dHRmDxZ3T+yRNQznuoiEgvH8SgnbOMm
-JSVFvr1r1y5N98UxN2JncsyN91DaG6R0TMdNA9S/DpFeMjmWhfqTXr4vOgjbuLHnakZwoG+zgpeU
-lKg6q3hhYWGfHu9subCwUPVZr+1fO7XrVXNZ6fEZd3scrtU1o66uDsC3k605W/ZFqNxl29P2A/zU
-/4hYrRrMkqxBphbU7g36XXK06r1Lv/3+d/CaDjL1cgpJk/e7jmYFF11dXR3y8v6t2++L7pgkSZJc
-Pfn+UFRUhLCwMHlAcWlpKUaMGAEA2LFjBx566KFuH5uTk8PTVoSLJdXYvOGIqpkPzp+sybiGFdnn
-mSlgHjP1kfm/KTFoqW9RLc/PBGS8W6BaHgA8nBan+ikkLTLnLroLw2PCVc3sLwUFBZg+fbrT+4To
-ucnOzkZJSQkCAwMRFRWFhIQElJaWIj8/HwAwadIkD1dIRESiULsHkGPBvI+PpwsAgOTkZDz11FNY
-sGCBPIN4QkICHn30UTz66KMYNWqUpvtft26dqnmdu/GY2TdqHx8iInKPXr4vOgjRuCEiIiJSixCn
-pTyN17kRO1OL69wQEZHya+covW4O4Nlr53Rg44aIiMigvPXaOTwtBY65ET2TY26IiLwPx9wQERER
-KSTMaSlPzgrOMTdiZyo9Pr5Byq8CqxSvAktEpA2vH3PjbFbwiooK5OTkwGw2IzExEZGRkR6ukkR3
-2QYsM+hVYImI6FtCNG6czQqen5+PtLQ0AEBGRgZSU1M12z/nlhI7U4u5pYiIOiid8wxQPveXydTX
-qryfIeeWCgoKkm/7+/PUABERaUPtKx4DvOqxpwk7oNh+yiulE2fa33Znefz48X16fOflvtbjbLlz
-thr59hORqVXvtGnTVM0D3D8+ojPyxJl6wOOjLj28noY+PhpMGtox+TCg/fdFd4TtuWlvb5dvmxT0
-79l3bXXu5uKyMZZPltVDD3x91f/YaZFpVDw+6tLD62no46PgFJu7QkND5dta//3vjrBHtKmpCcCN
-HpyO21rhmBuxMznmhoj0xp1xPC2trQhQMPzC28bxeP2YG2ezgsfHxyM9PR2SJCE5OdnTJRIRESnG
-cTyeJUTjxlnjxWKxYN68ef2yf17nRuxM9toQEXkfLa9zI+yAYiIiIqLeEKLnxtM45kbsTI65ISLy
-vuvxeP2YGyIiIuoZx/Eox8YNOOZG9Ez22hAR6YePjwkXS6pdbjfccrui7QAgJDQQYeHBimtg44aI
-iIhU03S9DR+/f1zVzLmL7nKrcSP0gOKsrCxkZGQgIyMDhYWFmu1n3bp1quZpcbVcI2eqfXyIiMi7
-Cd1zExgYiBkzZni6DCIiIq+kdJCy0gHKgBgXGxS6cdPe3o5t27ZBkiRER0dj8mRlo8TdxTE3Ymdy
-zA0RkTa8dZCy0I2blJQU+fauXbs8WAkRERHphdBjbuy5mhm8L7OKLlu2TNVZrNetW6f6rOD2407U
-mnW7Y52as3h3zlYj393jIzo9zJJsZDw+6tLD68njo3KmBjONd9D9rOAAUFpaihEjRgAAmpube9y2
-L7OCx8TEqDqr+Pjx43UxS7n9tPMi1NPdstLjw1nBSQ08PurSw+vJ46NypgYzjXfQ/azgwI3GTX5+
-PgBg0qRJmu2HY27EzuSYGyIicofQjZuEhARPl0BEREQ6o5sxN1ridW7EzuR1boiIyB1s3BAREZFX
-YeMGHHMjeibH3BARkTuEHnPTF1err+NaXc+/sHJXQKAvWprV/YmbUTPdnQSNiIhIKa9t3Fyra8bm
-DUdUzXw4LU71ycCMmunOJGjr1q1j7w0RkU5oMaWDb5C/WzUI3bipqKhATk4OzGYzEhMTERkZ6emS
-SCU+PibFU93HjZ+maNsBfkK/nYmIDEGLKR1WzxwJixvbC/1tkJ+fj7S0NABARkYGUlNTPVwRqaXp
-epubPUGuPyhK/qVARETeT+jGTVBQkHzb39+9Likt+N/kq/oX6E0D/A2ZqUWNvsGef48QEZHnCd24
-kSRJvu1qbqnOfIOUf3m2tLYiQEHjqdXXjCV7L7pVhyu/S45WvftOD5la1UhERGSS7FsQgtm9e7c8
-M3h2djaSk5Odbnfs2DFcvXq1P0sjIiIiDwoLC8OUKVOc3id0z01TUxOAGz04Hbed6e7JERERkfEI
-3XNTVlaG3NxcSJKE5ORkREREeLokIiIiEpzQjRsiIiIid3H6BSIiIvIqbNwQERGRV2HjhoiIiLwK
-GzdERETkVdi4ISIiIq/Cxg0RERF5FTZuiIiIyKuwcUNERERehY0bIiIi8ips3BAREZFXYeOGiIiI
-vAobN0RERORV2LghIo9ISkrCxYsXPV2GcCRJwrJly/DjH//Y06UQ6Zavpwsgov6xZs0anD9/HoGB
-gbBarSgvL8eHH37osXqeffZZ3HzzzR7bv6hMJhNWr16NZ555xtOlEOkWGzdEBpCVlYUhQ4bg+eef
-BwDYbDY88MADHq3p0Ucf9ej+ich7sXFDZAC1tbUYNmyYvOzj44Nt27Y5bHPq1Cm8++67MJlMAACz
-2Yzly5cjLCwMAFBdXY2VK1fi1KlT+Nvf/oaVK1fC19cXNpsNb7/9Nj788EO89tprSEpKwvLlyxEZ
-GYnVq1dj48aNmDlzJl5//XWYzWZkZ2dj586dOHr0KN577z2MGDGiS715eXnYvHkz/Pz8YDKZcPPN
-N6O1tRUrVqwAAFy4cAHr1q0DcKOhZrVa8fzzzzs8R1ckScLvfvc71NbWIiAgACaTCVeuXMHf//53
-SJKEl156CWfPnsWYMWNQXl6OgQMHorm5GcuWLcPo0aPlnL///e8oKiqCJElobW3FnXfeiQULFsj3
-X7lyBX/6059gtVphtVrR0tKCZ599Frfffru8zZ49e5Ceno7g4GC0tLSw4UfUVxIReT2r1Sq9+uqr
-0quvviqlp6dLZ8+edbj/0qVL0sqVKx3WVVVVSb/85S+7ZKWmpkpPPvmkVFNT0+W+zMxMacuWLfJy
-c3Oz9PTTTzutadWqVdKFCxe6rD9z5oz0m9/8xmHdiRMnpOXLl0uSJEn19fXSSy+9JLW3t8v3NzQ0
-SD//+c8lq9XqdF/OnDhxQvrjH//osO7tt992WI6OjpY+/PBDh/3MmTNHampqkiRJkt555x3p2LFj
-Do/JzMyU0tPTJUmSpPb2duk3v/mN1NjYKN9vtVqlX/7yl/LrV1hYKC1dutQh4/e//700e/Zsxc+F
-iByx54bIAMxmM15++WVIkoSzZ8/iwIEDWLt2Lf785z8DADIzM3Hu3DksXbrU4XFlZWVobm5GYGCg
-vG7QoEF45513nO5n1qxZWLhwIebMmQMAeO+99zB//ny3ak1PT8fy5csd1k2cOBETJ04EAOzbtw9n
-z56VT7F1uHbtGi5duoSoqChF+xk/fjx27NiB3/72txg4cCDuuOMOPPXUUw7bTJgwAXPnzpWXg4OD
-kZaWhuzsbDz00EPIzMxEYWEhNm3a5PC4jrFExcXFKCgowEsvveRwf319Pc6ePYu7774b7777Lv7r
-v/7L4f4XX3zRYb9E5B42bogM4MKFC4iKioLJZEJsbCxiY2PR0tKC48ePIy4uDmazGbNnz8asWbNc
-Zvn7+/d4f3x8PA4fPoz4+HgcOnQIP/3pT92q1Wq1yqfGnDGbzUhMTMQvfvELt3I78/HxwW9/+1sA
-wPXr13Hs2DEsWrQIf/vb3+Djc+OHpJIkdXmczWaTG3s2mw1//OMfu63XbDZj/PjxWLNmTY+1dN6P
-s/0SkXL8KTiRASxevBilpaXysiRJOHLkiNzLMXfuXKxduxbV1dUOj/v000/R0tLi1r4WLlyIjRs3
-Ijc3F/fdd5/btc6ZMwerVq1yWFdbW4s333wTADB9+nRkZWXh/PnzDtscOnQIly9fVryf1atXo6ys
-DMCNHpmEhAT4+/ujsbFR3ubcuXPYsmWLvNzQ0IBt27Zh2rRpAIC0tDS8+OKLDrmNjY3Ys2cPAGDM
-mDG4cOECjh496rDNmTNn8OWXXwIA5s+fj9dee83h/v/+7/92+3Unom+ZJP4TgcjrLVu2DGFhYaiv
-r0drayvq6+uxYMEC3HvvvfI2ly5dwqpVq+Dv74/m5mZYrVYkJibi8ccfBwDs3bsXWVlZ2Lt3r9xo
-GTlyJBYvXtxlf6+88gqOHDmCzMxMmM1meX1DQwNWrFgBq9WKo0ePYvTo0QgJCcHo0aMdfvq8e/du
-bNu2DcHBwWhra0NISAiee+45WCwWAEBNTQ1ee+012Gw2tLa2orW1FRMmTMDixYvlXhdXXn75Zfj7
-+6OpqQktLS24fv067r//fjzyyCPyNs888wzGjBmDoqIiebDvCy+84HDqKysrC5mZmQgODsb169fh
-7++PX/ziF4iNjQUANDU14fXXX0ddXR1sNhuam5sRFRWF//zP/0RAQAAAIDs7G+np6QgKCsK1a9eQ
-lJSEjRs34oc//GGXU4VE5JowjZuSkhIcO3YMAQEBSElJQU1NDXJycuQu6MjISE+XSEQG88wzz8i/
-yiIi/RBizM3Vq1dRXl7u8PPH/Px8pKWlAQAyMjKQmprqqfKIiIhIR4QYc3PixAkEBwdj27Zt+OKL
-LwAAQUFB8v2uBjASEalJkiQsX74cBw8exNKlS7Fv3z5Pl0REbhCi56aqqgoA8Mgjj2Dnzp0YOXKk
-w68F/Pz8PFUaERmQyWTCqlWrugxsJiJ9EKJxAwAJCQkAgKFDh6Kmpgbt7e3yfT39LBQAPvvsM4dB
-i0REROTdwsLCMGXKFKf3CdG4GT16NEpKSjBy5EjU1tbijjvuQFNTE4Ab3cMdt7tjNpsxefJkh3Xl
-11pQ1dCqaP8RA/wRGRLgcjulmUrzjJ5JRETUWwUFBd3eJ0TjZtKkSdi6dSsKCwtxyy23wM/PD/Hx
-8UhPT4ckSUhOTnY7s6qhFcs++VLRtv/nnlsQGeJ6ThqlmUrzjJ6pVF5ennxdESNl6qFGZoqfqYca
-mSl+ph5qtCdE4waAfLn2DhaLBfPmzfNQNURERKRXQvxaytNCQ0OFzjN6phYtez1k6qFGZoqfqYca
-mSl+ph5qtMfGDREREXkVYU5LeVJdXR1gGShsntEz9XKu16jnuJkpdqYeavT2zIaGBtTV1XX7y9+6
-ujrVe73VzvRUjWazGRERES5/Nd0ZGzdEREQa6ZiM1mKxdPsF3TFnmprUzvRUjY2NjaiqqsKQIUPc
-yuZpKXDMjeiZejnXa9Rz3MwUO1MPNXpzZktLC8LDw93ueaAbgoKCHK57pxQbN0RERORV2LjB/x8n
-InCe0TPz8vIMmamHGpkpfqYeajR6JqmPjRsiIiLyKmzcgGNuRM8U4by5JzL1UCMzxc/UQ41Gzqyp
-qcGCBQvk5fT0dBw4cEDVfXQ4fPgwSktLnd6n5X5d5Xd+DdTAX0sRERF5yKBBg3DffffJyykpKfDz
-89NkX1arFa2tzucI1HK/rvI7vwZqEKJxk5WVJY+Gvu222zB+/HgAQEVFBXJycmA2m5GYmIjIyEhN
-9s/r3IidKcq1Kvo7Uw81MlP8TD3UaMTMjRs34vLly2htbUVjYyMAIDc3F9nZ2UhJScE999wjb7tp
-0yZUVlbC19cXbW1tSE5ORlxcHD744AOUl5fDZrNh8uTJSEpKAgAcOXIEBw8ehI+PD77++ms8+eST
-uPnmm7F161YMGDAAgwcPxoQJE+Ttu9tvdnY2Tp48CR8fH0RFRWH27Nk4f/48VqxYgZiYGISFhWHc
-uHEuGybd5Tt7DdQiROMmMDAQM2bM6LI+Pz8faWlpAICMjAykpqb2d2lERESqOnfuHIYMGYInnngC
-AORTMomJibBYLKiqqnLYfv78+XjiiSewZs0aDB48GABQXFyMwMBALF26FADwj3/8A42NjQgKCkJB
-QQGWLFkCACgqKkJISAiGDBmCOXPmICIiAqNGjXLId7bfa9euoaysDM8//zwAYOfOnSgpKUFMTAzG
-jh2LF154Qd6vK87yu3sN1CJE46a9vR3btm2DJEmIjo7G5MmTAdz4fXsHf39/zfbPMTdiZ+rhvLkW
-mXqokZniZ+qhRqNlFhYWOvR2xMfHu3xMUlKS3LABgC+++AJFRUXyGJqGhgZUVlYiJCQEw4YNk7cb
-O3Zsr2r86quvMHHiRHn5u9/9LvLy8hATE4OIiIheZdrrzWvgDiEaNykpKfLtXbt2ybclSZJva3ku
-kIiIqL+MGzcOhw4dwg9+8AMAwOeff47FixcDcPze60lcXBx8fX0xc+ZM+XGSJMHHxwcXL16Ut2to
-aMCVK1cQFRUFX19fWK1Wp3md93vbbbchIyNDbuAcOnRIHjLSG53ze3oN1CBE48aefSPG/qqErq7u
-aH8eNC8vD7bwKMX7LCsrQ33JZYfHA+iyPDBmovOAXua58y+AsrIyTLSMUZSn9FozHeNjXOW583rW
-1dUhr+Skyzx3ltetW4fx48erlpeXl4fCwkI888wzquV1mDZtmrB59llq5QHGPT56eT15fKBaXm9e
-z7q6ui7TDIwePRoHDx7E6tWrYbVaMWTIEGzduhWVlZWoqKhAQ0MDjh07hp/97GcAgL/+9a84evQo
-6urqEBcXh4SEBHznO9/BmTNnsHbtWgBAfX09nnvuOYSGhmLixIn4wx/+AJPJBJPJJOdMmDABb775
-Jvbs2YOWlhb85Cc/wdChQ/H222932W9ISAiGDh2KNWvWwMfHB8OHD0d0dDROnjyJvXv3IiEhAaGh
-odi7dy+mTZuGkSNHojvO8rt7DebMmdPl8favodLvT5OktJmoodLSUowYMQIAsGPHDjz00EMAgO3b
-t2P27NmQJAk7duzArFmznD4+JydHPpXV4WRZPZZ98qWi/f+fe25Bwu3DXG6nNFNpntEzlRJ5UKCW
-mXqokZniZ+qhRm/OLCsr02ReJiPp7jUsKCjA9OnTnT5GiJ6b0tJS5OfnAwAmTZokr4+Pj0d6ejok
-SUJycrJm++eYG7EzRT1vrnWmHmpkpviZeqjR6JmkPiEaNwkJCU7XWywWzJs3r5+rISIgaZfhAAAW
-TklEQVQiInesX78ezc3NDusCAwPx9NNPe6QeXqEYnFtK9Ey9zA/DOYGYKWKmHmo0eqY3ePrpp7Fk
-yRKH/zzVsAHYuCEiIiIvw8YNOOZG9Ey9nDfnWAlmipiphxqNnknqE2LMjbcZ0G7DxZJqZdv6KTsE
-3pYZEhqIsPBgRZlERETuYOMG6s+H1Fh3HZ/+31OKtn1w/mTXG3lh5txFdylu3BQXlSAo0HWPkDsN
-JhF+Itrfecw0ZqYeajR6prvKr7WgqsH5BJhqiBjgj8iQAM3y+wMbNyS8thZg83tHXG7nToOJiEiv
-qhpaFV/HrTdWzxyp+8YNx9xA/XEivmb124xGzjTqOB491MhM8TP1UKPRM0l97LkhIiIit0mShDfe
-eAO+vr5oaGjA4sWLHSb39CT23ED9a7NY262q5hk906jXztFDjcwUP1MPNRo9U6927NiBpKQkPP/8
-8/j1r3+N9evXe7okGRs3RERE5Lbi4mJMnToVADBwoHo/ylGDMI2bpqYmvP766ygrK5PXVVRU4P33
-38cHH3yA8vJyzfbNMTdiZ3LMDTOZKU4eMznmpoPNZnNYDgwM9FAlXQnTuMnNzcUDDzzgsC4/Px9p
-aWl47LHHcPjwYQ9VRkRERJ1ZrY7DEEwmk4cq6UqIxk1tbS2CgoK6tPqCgoLk2/7+/prtn2NuxM7k
-mBtmMlOcPGZyzE2HcePG4dChQwCA+vp6tLW1ebiibwnxa6m8vDw8+OCDKC4udlgvSZJ828/Pz2VG
-R3dhXl4ebOFRivd//fr1Lo8H0GV5YMxERXnt7TbXG7nJnUw9NFpuNFjCAXT/encsX79+3a1sV3l5
-eXkoLCx0ebzdXXZn/57I02q5sLBQ9Xw9HB+9vJ48Pp49PnV1dbBYLFBTxAB/rJ45UtXMzvlKPPzw
-w3jjjTdw8OBBXLt2DUuXLtWkHvvXsPPr2x2TZN+C8JANGzZg8ODBqKqqQlRUFO6//34AwO7du5GS
-kgIAyM7ORnJystPH5+TkYPJkxyvoniyrV3yRo9UzR2KigisUK818656h2LmpQNG+H5w/GUsOfGO4
-zLmL7sLwmHBF+75YUo3NG5RdxE9pJhFRfygrK1O9cWM03b2GBQUFmD59utPHCNFzs2jRIgBAUVER
-wsLC5PVNTU0AbvTgdNzWgtL5kJTOr0RERESeI8SYGwCoqalBXl4eTp8+La+Lj49Heno60tPTER8f
-r9m+G+uuY/OGIy7/a21oUZSnh9NCesrkmBtmMlOcPGZyzI0eCNMVMWjQIDz11FMO6ywWC+bNm+eh
-ioiIiEiPhOm58SS1r82il+vH6CWT17lhJjPFyWMmr3OjB2zcEBERkVdh4wbqjxPRy1gWvWRyzA0z
-mSlOHjM55kYPhBlzQ0RERK5drb6Oa3XNmuWHhAYiLDxYs/z+wMYNOOZG9EyOuWEmM8XJY6bnx9xc
-q2tWdO2v3pq76C63GjdNTU246aabNKunNzRv3FitVvj6sg1FRETkTf75z3/i6NGjKCwsxLvvvqvZ
-flqa23C1+rpbDS5Nxtx8+eWXKCoqQlFREf7xj39osQtVccyN2Jkcc8NMZoqTx0yOuemQlJSEZcuW
-4Y477tB0P5fL690+Dad64yYjIwP19fXw8fGBj4+PULOEEhERkfdT/XyRr68v4uLi5OWRI7Wb3Est
-HHMjdibH3DCTmeLkMdPzY27INdV7bpqbHbuOampq1N4FERERUbdUa9xs2bIFW7ZsQWlpKd566y15
-+S9/+Yuixx88eBDbt2/H9u3bcezYMQBARUUF3n//fXzwwQcoLy9Xq9QuOOZG7EyOuWEmM8XJM3pm
-cVEJLpZUu/yvrKIeJ8vq0dDarnoN5Jpq5xAGDhyIlJSULuv/9a9/KXr89773Pfn2Z599BgDIz89H
-WloagBtjeVJTU/teKAmh1SrhZFm9om39/AI1roaISJm2FmDze65/hv3g/MlYduAb/HpyMEZHqVtD
-SGgg5i66S93QTvlK7N+/HwUFBfj888/x1ltvISIiQpj5IFVr3Dhr2ADA97//fcUZFy5cwEcffYTZ
-s2cDAIKCguT7/P39+1RfTzjmpv8z29ptWPbJl4q2feueoX0pySk9nIvXQ43MFD9TDzV6OrP8Wguq
-GloVbRscHNKXklQRFh4sxEX27r33Xtx7771YsmSJp0vpQvVvN6vVit27d6O5uRnBwcG4//77YTab
-FT02KioKixcvxscff4yYmBhIkiTf5+fn1+Nj8/Ly5DdyXl4ebOFRymv2stNSnt6/2nnu7rujK9r+
-/cBlLnPZeMtXq6/j0sVKAN/+MKHjNLf9sm/IACz75zdQYs3dQxRtR9rofLy7Y5LsWxAq2Lx5M6ZP
-n47w8HBcuXIFubm5+NGPfuRWxieffIKZM2di9+7dco9QdnY2kpOTnW6fk5ODyZMnO6w7WVavuGdg
-zd1D8On/PeVyuwfnT8aSA64/AErzjJypNM+dzNSFd+L6gABFmbaGGsSNHqFoW6XsG9gi5jHTmJl6
-qFGrzMLjJfh0yxcut9Pi71FH5q8nByNl8mhF2eRc/oHTuDUyEsNjwh3WFxQUYPr06U4fo8lPwcPD
-bxQwePBgxb02NTU1GDRoEADIPTZNTU3ycsdtou64daoraSgullS73M4b5lgh0oPBgyyKPpMA4Bvk
-j8s219uJMF7Ppm7/gSH1pg9G9cZN5yJaW2+cxywpKUFMTEy3jztw4ABaWloAAHfeeScAID4+Hunp
-6ZAkqdteGzVwzI3xMtEKbN7kelCgO3OsjLs9TtUGk9I8QPkf+5iRE70qU2meN2Zq8T7y5Hsz2DdE
-8XxJHYN1XdFivJ67f48aWtphs9ng46PJhABeT5IktPbiF2eqf2sEBATg888/x6RJk3Dq1ClEREQA
-AE6dOtVj42bWrFld1lksFmFGXpMxufOrruCGFmT846jL7VIX3onSFtd/7ZXmAe79sd+5qcBrMpXm
-eWOmFu8jT783vdHWc82wDPgK3xt3Gxs4vfD1xXJ8WViLEVHfcetxqjdujh8/jtjYWFy6dElet2XL
-FhQXFwv7U25vG1DMTPUy3TnVpXSgodJMLQYuetvxMXKmFu8jvjfVz7zaZsLa4/UoayjGgAAzfJxM
-SXTbQH/UVjW4zBo0ZCC+vNaiaL9qZyrNUzPTZpNQ8XUDqiuVPWd7qjdu0tLSHHpocnNzkZiYiPPn
-z6u9KyIiIuFdbTNhQ1H3X9Br7h6AfTu/dpnz4PzJ+GOBsqv+q52pNE+rTHep3kdmf0XIq1evYvfu
-3QCA6OhotXelGo65YaaImXqokZniZ+qhRmaKn6mHGu2p3riprKzEyZMnUVNTg6ysLDz33HNq74KI
-iIioW6o3m5YtW4bMzEwUFBRgwYIFin8K7kkcc8NMETP1UCMzxc/UQ43MFD9TDzXaU61xs3HjRnm6
-BEmSUFZWhm3btqGpqQkLFixQazdEREREPVKtcRMdHY2EhIQu6/ft26fWLjRj1HOTzBQ7Uw81MlP8
-TD3UyEzxM/VQoz3Vxtw4a9j0tJ6IiIhIC7yiEIx7bpKZYmfqoUZmip+phxqZKX6mHmq0x8YNERER
-eRXtTni56cyZMzh79ixsNhvuvvtuDBs2DBUVFcjJyYHZbEZiYiIiIyM12bdRz00yU+xMPdTITPEz
-9VAjM8XP1EONDtmaJbupuroajzzyCADgk08+wbBhw5Cfn4+0tDQAQEZGhrDTNxAREZE4hDkt5Wzg
-ccdPywHA399fs30b9dwkM8XO1EONzBQ/Uw81MlP8TD3UaE+Yxk2HPXv2YOrUqQBuXC+ng5+fX4+P
-s5/2IS8vD3V1dYr32d7uehZcd6id526mHt6E7uR5+vVUmx6Ojzt4fNTN5N+j/s/k3yPxMzvk5eU5
-fN93R5jTUsCNSTZHjRqFwYMHAwDa29vl+0xOZlK1N23aNIfbJ8vqAVxWtN8AlXuF1M5zN1PpeUx3
-zneqnenOvj39eirlyddIi0yljHp8tMrk36P+z+TfI/W20yqzg/13fU+E6bnZv38/hgwZgqioKHld
-U1MTgBs9OB23iYiIiHoiRM9NVVUVDhw4gNjYWBQXF6O+vh7z589HfHw80tPTIUkSkpOTNdu/Uc9N
-MlPsTD3UyEzxM/VQIzPFz9RDjfaEaNxERERg+fLlXdZbLBbMmzfPAxURERGRXglzWsqTjHo9AGaK
-namHGpkpfqYeamSm+Jl6qNEeGzdERETkVdi4gXHPTTJT7Ew91MhM8TP1UCMzxc/UQ4322LghIiIi
-r8LGDYx7bpKZYmfqoUZmip+phxqZKX6mHmq0x8YNEREReRU2bmDcc5PMFDtTDzUyU/xMPdTITPEz
-9VCjPTZuiIiIyKsI07ix2WwOc0n1J6Oem2Sm2Jl6qJGZ4mfqoUZmip+phxodsjVLdsPu3btRUlKC
-1NRUWCwWAEBFRQVycnJgNpuRmJiIyMhID1dJREREeiBE4yYlJQVFRUUO6/Lz85GWlgYAyMjIQGpq
-qmb7N+q5SWaKnamHGpkpfqYeamSm+Jl6qNGeMKelOgsKCpJv+2swHTwRERF5J2EbN5Ikybf9/Pw0
-3ZdRz00yU+xMPdTITPEz9VAjM8XP1EON9oRt3NgPLjaZTC63z8vLc7hdV1eneF/e1n3n6f2rnaeH
-5+PpffP5iL1vT77fve35aJHpbc/H0/vW8vnk5eU5fN93R4gxN840NTUBuNGD03G7J9OmTXO4fbKs
-HsBlrcoTmtLWsDtvQLUztWyxe4raz92Tx8cbafHeNPL7XSk9vN+98fh4698j++/6HmtwO1kD2dnZ
-KCkpQWBgIKKiopCQkID4+Hikp6dDkiQkJyd7ukQiIiLSCSEaN84aLxaLBfPmzeuX/Rv13CQzxc7U
-Q43MFD9TDzUyU/xMPdRoT9gxN0RERES9wcYNvG8AHzO9I1MPNTJT/Ew91MhM8TP1UKM9Nm6IiIjI
-q7BxA+Oem2Sm2Jl6qJGZ4mfqoUZmip+phxrtsXFDREREXoWNGxj33CQzxc7UQ43MFD9TDzUyU/xM
-PdRoj40bIiIi8ips3MC45yaZKXamHmpkpviZeqiRmeJn6qFGe2zcEBERkVdh4wbGPTfJTLEz9VAj
-M8XP1EONzBQ/Uw812hNi+oXuVFRUICcnB2azGYmJiYiMjPR0SURERCQ4oXtu8vPzkZaWhsceewyH
-Dx/WbD9GPTfJTLEz9VAjM8XP1EONzBQ/Uw812hO6cRMUFCTf9vf392AlREREpBdCN24kSZJv+/n5
-abYfo56bZKbYmXqokZniZ+qhRmaKn6mHGu2ZJPsWhGB2796NlJQUAEB2djaSk5Odbnfs2DFcvXq1
-P0sjIiIiDwoLC8OUKVOc3if0gOKmpiYAN3pwOm47092TIyIiIuMRuuemrKwMubm5kCQJycnJiIiI
-8HRJREREJDihGzdERERE7hJ6QDERERGRu9i4ISIiIq/Cxg0RERF5FTZuiIiIyKsI/VNwtZWXl+Pw
-4cPw9/eHn58fTCYTmpqaEB8f3+tfYjFTvUw91MhM8TP1UCMzxc/UQ41Gz+yRZCDp6eld1tlsNun9
-999npgCZeqiRmeJn6qFGZoqfqYcajZ7ZE0Odlmpvb++yzmQywWQyMVOATD3UyEzxM/VQIzPFz9RD
-jUbP7ImhrnNTUVGB/Px8BAUFQZIktLe3y91iFouFmR7O1EONzBQ/Uw81MlP8TD3UaPTMnhiqcUNE
-RETez1CnpYiIiMj78ddSAo4AN2qmHmpkpviZeqiRmeJn6qFGo2f2SJNhyoLSywhwo2bqoUZmip+p
-hxqZKX6mHmo0emZPDHVaSi8jwI2aqYcamSl+ph5qZKb4mXqo0eiZPTHUgGK9jAA3aqYeamSm+Jl6
-qJGZ4mfqoUajZ/bEUI0bIiIi8n6GOi1FRERE3o+NGyIiIvIqhmzcbNiwAf/+978BAEVFRdiwYQMz
-BcrUQ43MFD9TDzUyU/xMPdRo9ExnDNm4sdlssNls8m01hh0xU71MPdTITPEz9VAjM8XP1EONRs90
-hgOKiYiIyKsYsueGiIiIvBcbN+TVWltb5ds2mw1XrlxBW1ubByvqf62traitrXV4LYiUMvpniJ8f
-fTLUaan+nNti3759SEhI6NVjv/76a5w6dQoAMHXqVAwePBgAsGnTJsyfP79XmceOHUN1dTVGjhyJ
-I0eOYODAgZAkCXfccQeioqJ6lVlWVuawfPr0aYwbNw6nT5/G/fff73ZeYWEhxo8fj4KCAlRWVsLP
-zw/Nzc0YM2YMRo0a1asaMzMz8cMf/hBffPEFzp07h6FDh6K2thZ+fn6YNm1arzI3bNiAYcOGISIi
-AmPHjkVgYGCvcuxdunQJhYWFkCQJcXFxOHr0KPz8/BATE4MxY8b0KrOkpARlZWU4ceIERo8ejcbG
-RjQ0NGDu3Lnw9/fvVaYePkNG/fwA/Ayp+Rky6ucH0M9nqEeqTOKgE2rPbWG1WqVvvvnG6X8bN27s
-dZ1btmyRb3/22WfS+fPnJUmSpO3bt/c6c9u2bZIkSdIf/vAHqampyem+3LVy5Urp2LFj0pkzZ6Qz
-Z85I69evl//fGx3Pb+vWrQ7rN2/e3OsaOx770UcfOazveD16o6POyspK6Z///Ke0a9cu6dNPP5W+
-+uqrXmd++OGHkiTdeE+tWrVKam9vlySpa93uyMjIkDM7cmpra+V99YYePkNG/fxIEj9DkqTeZ8io
-nx9J0s9nqCeGmhVc7bktTCYTMjIy8P3vf7/Lfc3Nzb3KBAAfn2/PFs6YMQO5ubl9yrP3ox/9SJV/
-JQHAr371K+Tm5iIoKAjTpk3DF198gbFjx+LWW2/tU66ac41MmTIFBw4cQExMDP71r38hISEBJSUl
-Tt8L7oqIiJD/tWWz2XDx4sVeZ3Uc847nbv8e6K2mpiYAN7rVO/6lGRYWJtT8MFp8hoz++QH4GbJf
-7i2jfn4A/XyGemKoxs306dORmZnZZW6LxMTEXuX5+PggJiYGY8eO7XJf5y5nd4wZM8ahSzExMRH7
-9+9HcXFxrzOHDBkCAA7dfzU1NQgICOh15k033YSUlBTU1NRg586duHLlCgBg0KBBvcozm83Ys2cP
-goKC5HWlpaVy7b0RExODQYMG4cSJE6iqqsLWrVsxevRozJkzp9eZ586dQ3Nzs8MH1MfHp09dq1Om
-TMGuXbvQ3t6OH//4x/j444/h7+/v9L2l1H333YdPP/0UAQEBSElJkdfHxsb2OlMPnyG9fX5qa2tV
-+fwA/Ayp+Rky6ucH0M9nqCeGGnOjd1VVVaqflyUyCn5+iPpGT58hQ/XcaDGYq78ze0sPz10PNRo9
-szt9GbzYX5nFxcWGfN7MVDdTtIG6/Zn56aefClVnTwzVuMnNzcVjjz3msE6SJKSnp+MnP/kJMz2c
-qYcajZzZ3t6OyspKp/dduHChV3/w1c7UQ43MFD9TixoB4PPPP5dP5+3ZswejRo1CVFQUBg4c2Ks8
-o2f2xFCNG7UHczFT3Uw91GjkTC0GL6qdqYcamSl+pp4G6ho5syeGatyoPZiLmepm6qFGI2dqMXhR
-7Uw91MhM8TP1NFDXyJk94YBiIiIiD9JioK6RMwE2boiIiMjLcG4pIiIi8ips3BAREZFXYeOGiIiI
-vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
-"
->
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[27]:</div>
+<div class="prompt input_prompt">In&nbsp;[63]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get a route timetable</span>
 <span class="n">route</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">routes</span><span class="p">[</span><span class="s">&#39;route_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">date</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_dates</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">feed</span><span class="o">.</span><span class="n">get_route_timetable</span><span class="p">(</span><span class="n">route</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
 </pre></div>
 
@@ -6968,7 +6490,7 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[27]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[63]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -8044,12 +7566,11 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[28]:</div>
+<div class="prompt input_prompt">In&nbsp;[64]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="c"># Get a stop time table</span>
 <span class="n">stop</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">stops</span><span class="p">[</span><span class="s">&#39;stop_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">date</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_dates</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">feed</span><span class="o">.</span><span class="n">get_stop_timetable</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
 </pre></div>
 
@@ -8061,7 +7582,7 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[28]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[64]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div style="max-height:1000px;max-width:1500px;overflow:auto;">
@@ -8088,13 +7609,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
   <tbody>
     <tr>
       <th>1   </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165878</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 05:50:00</td>
       <td> 05:50:00</td>
       <td> 750000</td>
@@ -8105,13 +7626,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>36  </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165879</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 06:20:00</td>
       <td> 06:20:00</td>
       <td> 750000</td>
@@ -8122,13 +7643,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>71  </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165880</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 06:50:00</td>
       <td> 06:50:00</td>
       <td> 750000</td>
@@ -8139,13 +7660,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>106 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165881</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 07:16:00</td>
       <td> 07:16:00</td>
       <td> 750000</td>
@@ -8156,13 +7677,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>141 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165882</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 07:46:00</td>
       <td> 07:46:00</td>
       <td> 750000</td>
@@ -8173,13 +7694,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>176 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165883</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 08:16:00</td>
       <td> 08:16:00</td>
       <td> 750000</td>
@@ -8190,13 +7711,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>211 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165884</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 08:50:00</td>
       <td> 08:50:00</td>
       <td> 750000</td>
@@ -8207,13 +7728,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>246 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165885</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 09:20:00</td>
       <td> 09:20:00</td>
       <td> 750000</td>
@@ -8224,13 +7745,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>281 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165886</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 09:50:00</td>
       <td> 09:50:00</td>
       <td> 750000</td>
@@ -8241,13 +7762,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>316 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165887</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 10:20:00</td>
       <td> 10:20:00</td>
       <td> 750000</td>
@@ -8258,13 +7779,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>351 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165888</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 10:50:00</td>
       <td> 10:50:00</td>
       <td> 750000</td>
@@ -8275,13 +7796,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>386 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165889</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 11:20:00</td>
       <td> 11:20:00</td>
       <td> 750000</td>
@@ -8292,13 +7813,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>421 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165890</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 11:50:00</td>
       <td> 11:50:00</td>
       <td> 750000</td>
@@ -8309,13 +7830,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>456 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165891</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 12:20:00</td>
       <td> 12:20:00</td>
       <td> 750000</td>
@@ -8326,13 +7847,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>491 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165892</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 12:50:00</td>
       <td> 12:50:00</td>
       <td> 750000</td>
@@ -8343,13 +7864,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>526 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165893</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 13:20:00</td>
       <td> 13:20:00</td>
       <td> 750000</td>
@@ -8360,13 +7881,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>561 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165894</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 13:50:00</td>
       <td> 13:50:00</td>
       <td> 750000</td>
@@ -8377,13 +7898,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>596 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165895</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 14:16:00</td>
       <td> 14:16:00</td>
       <td> 750000</td>
@@ -8394,13 +7915,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>631 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165896</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 14:46:00</td>
       <td> 14:46:00</td>
       <td> 750000</td>
@@ -8411,13 +7932,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>666 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165897</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 15:16:00</td>
       <td> 15:16:00</td>
       <td> 750000</td>
@@ -8428,13 +7949,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>701 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165898</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 15:46:00</td>
       <td> 15:46:00</td>
       <td> 750000</td>
@@ -8445,13 +7966,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>736 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165899</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 16:20:00</td>
       <td> 16:20:00</td>
       <td> 750000</td>
@@ -8462,13 +7983,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>771 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165900</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 16:50:00</td>
       <td> 16:50:00</td>
       <td> 750000</td>
@@ -8479,13 +8000,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>806 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165901</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 17:20:00</td>
       <td> 17:20:00</td>
       <td> 750000</td>
@@ -8496,13 +8017,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>841 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165902</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 17:50:00</td>
       <td> 17:50:00</td>
       <td> 750000</td>
@@ -8513,13 +8034,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>876 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165903</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 18:13:00</td>
       <td> 18:13:00</td>
       <td> 750000</td>
@@ -8530,13 +8051,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>911 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165904</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 19:13:00</td>
       <td> 19:13:00</td>
       <td> 750000</td>
@@ -8547,13 +8068,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>946 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165905</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 20:13:00</td>
       <td> 20:13:00</td>
       <td> 750000</td>
@@ -8564,13 +8085,13 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>981 </th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165906</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 21:13:00</td>
       <td> 21:13:00</td>
       <td> 750000</td>
@@ -8581,19 +8102,87 @@ vAobN0RERORV/h92d0eAmU5zYQAAAABJRU5ErkJggg==
     </tr>
     <tr>
       <th>1016</th>
-      <td> 110-423</td>
-      <td> CNS2014-CNS_MUL-Weekday-00</td>
+      <td>  110-423</td>
+      <td>         CNS2014-CNS_MUL-Weekday-00</td>
       <td> CNS2014-CNS_MUL-Weekday-00-4165907</td>
       <td> The Pier Cairns Terminus</td>
       <td> 0</td>
       <td>NaN</td>
-      <td> 1100023</td>
+      <td>  1100023</td>
       <td> 22:13:00</td>
       <td> 22:13:00</td>
       <td> 750000</td>
       <td> 2</td>
       <td> 0</td>
       <td> 0</td>
+      <td> 0.46864</td>
+    </tr>
+    <tr>
+      <th>2234</th>
+      <td> 110N-423</td>
+      <td> CNS2014-CNS_MUL-Weekday-00-0000100</td>
+      <td> CNS2014-CNS_MUL-Weekday-00-4166108</td>
+      <td> The Pier Cairns Terminus</td>
+      <td> 0</td>
+      <td>NaN</td>
+      <td> 110N0010</td>
+      <td> 24:50:00</td>
+      <td> 24:50:00</td>
+      <td> 750000</td>
+      <td> 2</td>
+      <td> 1</td>
+      <td> 1</td>
+      <td> 0.46864</td>
+    </tr>
+    <tr>
+      <th>2286</th>
+      <td> 110N-423</td>
+      <td> CNS2014-CNS_MUL-Weekday-00-0000100</td>
+      <td> CNS2014-CNS_MUL-Weekday-00-4166109</td>
+      <td> The Pier Cairns Terminus</td>
+      <td> 0</td>
+      <td>NaN</td>
+      <td> 110N0010</td>
+      <td> 25:50:00</td>
+      <td> 25:50:00</td>
+      <td> 750000</td>
+      <td> 2</td>
+      <td> 1</td>
+      <td> 1</td>
+      <td> 0.46864</td>
+    </tr>
+    <tr>
+      <th>2338</th>
+      <td> 110N-423</td>
+      <td> CNS2014-CNS_MUL-Weekday-00-0000100</td>
+      <td> CNS2014-CNS_MUL-Weekday-00-4166110</td>
+      <td> The Pier Cairns Terminus</td>
+      <td> 0</td>
+      <td>NaN</td>
+      <td> 110N0010</td>
+      <td> 26:50:00</td>
+      <td> 26:50:00</td>
+      <td> 750000</td>
+      <td> 2</td>
+      <td> 1</td>
+      <td> 1</td>
+      <td> 0.46864</td>
+    </tr>
+    <tr>
+      <th>2390</th>
+      <td> 110N-423</td>
+      <td> CNS2014-CNS_MUL-Weekday-00-0000100</td>
+      <td> CNS2014-CNS_MUL-Weekday-00-4166111</td>
+      <td> The Pier Cairns Terminus</td>
+      <td> 0</td>
+      <td>NaN</td>
+      <td> 110N0010</td>
+      <td> 27:50:00</td>
+      <td> 27:50:00</td>
+      <td> 750000</td>
+      <td> 2</td>
+      <td> 1</td>
+      <td> 1</td>
       <td> 0.46864</td>
     </tr>
   </tbody>

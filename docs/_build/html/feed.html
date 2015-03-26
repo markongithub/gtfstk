@@ -212,13 +212,13 @@ Do not take times modulo 24.</p>
 
 <dl class="method">
 <dt id="gtfs_tk.feed.Feed.get_routes_stats">
-<code class="descname">get_routes_stats</code><span class="sig-paren">(</span><em>trips_stats</em>, <em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_routes_stats</code><span class="sig-paren">(</span><em>trips_stats</em>, <em>date</em>, <em>split_directions=False</em>, <em>headway_start_time='07:00:00'</em>, <em>headway_end_time='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Take <code class="docutils literal"><span class="pre">trips_stats</span></code>, which is the output of 
 <code class="docutils literal"><span class="pre">self.get_trips_stats()</span></code>, cut it down to the subset <code class="docutils literal"><span class="pre">S</span></code> of trips
 that are active on the given date, and then call
 <code class="docutils literal"><span class="pre">get_routes_stats()</span></code> with <code class="docutils literal"><span class="pre">S</span></code> and the keyword arguments
-<code class="docutils literal"><span class="pre">split_directions</span></code>, <code class="docutils literal"><span class="pre">headway_start_timestr</span></code>, and 
-<code class="docutils literal"><span class="pre">headway_end_timestr</span></code>.</p>
+<code class="docutils literal"><span class="pre">split_directions</span></code>, <code class="docutils literal"><span class="pre">headway_start_time</span></code>, and 
+<code class="docutils literal"><span class="pre">headway_end_time</span></code>.</p>
 <p>See <code class="docutils literal"><span class="pre">get_routes_stats()</span></code> for a description of the output.</p>
 <p>NOTES:</p>
 <p>This is a more user-friendly version of <code class="docutils literal"><span class="pre">get_routes_stats()</span></code>.
@@ -254,7 +254,7 @@ namely WGS84.</p>
 
 <dl class="method">
 <dt id="gtfs_tk.feed.Feed.get_stations_stats">
-<code class="descname">get_stations_stats</code><span class="sig-paren">(</span><em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stations_stats" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_stations_stats</code><span class="sig-paren">(</span><em>date</em>, <em>split_directions=False</em>, <em>headway_start_time='07:00:00'</em>, <em>headway_end_time='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stations_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this feed has station data, that is, &#8216;location_type&#8217; and
 &#8216;parent_station&#8217; columns in <code class="docutils literal"><span class="pre">self.stops</span></code>, then compute
 the same stats that <code class="docutils literal"><span class="pre">self.get_stops_stats()</span></code> does, but for
@@ -317,11 +317,11 @@ Otherwise, return <code class="docutils literal"><span class="pre">None</span></
 
 <dl class="method">
 <dt id="gtfs_tk.feed.Feed.get_stops_stats">
-<code class="descname">get_stops_stats</code><span class="sig-paren">(</span><em>date</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_stops_stats</code><span class="sig-paren">(</span><em>date</em>, <em>split_directions=False</em>, <em>headway_start_time='07:00:00'</em>, <em>headway_end_time='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all the stop times <code class="docutils literal"><span class="pre">S</span></code> that have trips active on the given
 date and call <code class="docutils literal"><span class="pre">get_stops_stats()</span></code> with <code class="docutils literal"><span class="pre">S</span></code> and the keyword 
-arguments <code class="docutils literal"><span class="pre">split_directions</span></code>, <code class="docutils literal"><span class="pre">headway_start_timestr</span></code>, and 
-<code class="docutils literal"><span class="pre">headway_end_timestr</span></code>.</p>
+arguments <code class="docutils literal"><span class="pre">split_directions</span></code>, <code class="docutils literal"><span class="pre">headway_start_time</span></code>, and 
+<code class="docutils literal"><span class="pre">headway_end_time</span></code>.</p>
 <p>See <code class="docutils literal"><span class="pre">get_stops_stats()</span></code> for a description of the output.</p>
 <p>NOTES:</p>
 <p>This is a more user-friendly version of <code class="docutils literal"><span class="pre">get_stops_stats()</span></code>.
@@ -467,8 +467,8 @@ input across all routes</li>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.feed.agg_routes_time_series">
-<code class="descclassname">gtfs_tk.feed.</code><code class="descname">agg_routes_time_series</code><span class="sig-paren">(</span><em>routes_time_series</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.agg_routes_time_series" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.get_feed_time_series">
+<code class="descclassname">gtfs_tk.feed.</code><code class="descname">get_feed_time_series</code><span class="sig-paren">(</span><em>routes_time_series</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.get_feed_time_series" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -497,7 +497,7 @@ time series are generated with one-minute frequency.</p>
 
 <dl class="function">
 <dt id="gtfs_tk.feed.get_routes_stats">
-<code class="descclassname">gtfs_tk.feed.</code><code class="descname">get_routes_stats</code><span class="sig-paren">(</span><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfs_tk.feed.</code><code class="descname">get_routes_stats</code><span class="sig-paren">(</span><em>trips_stats_subset</em>, <em>split_directions=False</em>, <em>headway_start_time='07:00:00'</em>, <em>headway_end_time='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.get_routes_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a subset of the output of <code class="docutils literal"><span class="pre">Feed.get_trips_stats()</span></code>, 
 calculate stats for the routes in that subset.</p>
 <p>Return a Pandas data frame with the following columns:</p>
@@ -511,11 +511,11 @@ calculate stats for the routes in that subset.</p>
 the route</li>
 <li>end_time: end time of latest trip on the route</li>
 <li>max_headway: maximum of the durations (in minutes) between 
-trip starts on the route between <code class="docutils literal"><span class="pre">headway_start_timestr</span></code> and 
-<code class="docutils literal"><span class="pre">headway_end_timestr</span></code> on the given dates</li>
+trip starts on the route between <code class="docutils literal"><span class="pre">headway_start_time</span></code> and 
+<code class="docutils literal"><span class="pre">headway_end_time</span></code> on the given dates</li>
 <li>mean_headway: mean of the durations (in minutes) between 
-trip starts on the route between <code class="docutils literal"><span class="pre">headway_start_timestr</span></code> and 
-<code class="docutils literal"><span class="pre">headway_end_timestr</span></code> on the given dates</li>
+trip starts on the route between <code class="docutils literal"><span class="pre">headway_start_time</span></code> and 
+<code class="docutils literal"><span class="pre">headway_end_time</span></code> on the given dates</li>
 <li>service_duration: total of the duration of each trip on 
 the route in the given subset of trips; measured in hours</li>
 <li>service_distance: total of the distance traveled by each trip on 
@@ -583,7 +583,7 @@ time series f, do <code class="docutils literal"><span class="pre">f.index</span
 
 <dl class="function">
 <dt id="gtfs_tk.feed.get_stops_stats">
-<code class="descclassname">gtfs_tk.feed.</code><code class="descname">get_stops_stats</code><span class="sig-paren">(</span><em>stop_times_subset</em>, <em>split_directions=False</em>, <em>headway_start_timestr='07:00:00'</em>, <em>headway_end_timestr='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfs_tk.feed.</code><code class="descname">get_stops_stats</code><span class="sig-paren">(</span><em>stop_times_subset</em>, <em>split_directions=False</em>, <em>headway_start_time='07:00:00'</em>, <em>headway_end_time='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.get_stops_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a subset of <code class="docutils literal"><span class="pre">Feed.stop_times</span></code>,
 return a Pandas data frame that provides summary stats about
 the stops in that subset.
@@ -596,11 +596,11 @@ direction of each trip.</p>
 <li>direction_id: present iff <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">True</span></code></li>
 <li>num_trips: number of trips visiting stop</li>
 <li>max_headway: durations (in minutes) between 
-trip departures at the stop between <code class="docutils literal"><span class="pre">headway_start_timestr</span></code> and 
-<code class="docutils literal"><span class="pre">headway_end_timestr</span></code> on the given date</li>
+trip departures at the stop between <code class="docutils literal"><span class="pre">headway_start_time</span></code> and 
+<code class="docutils literal"><span class="pre">headway_end_time</span></code> on the given date</li>
 <li>mean_headway: durations (in minutes) between 
-trip departures at the stop between <code class="docutils literal"><span class="pre">headway_start_timestr</span></code> and 
-<code class="docutils literal"><span class="pre">headway_end_timestr</span></code> on the given date</li>
+trip departures at the stop between <code class="docutils literal"><span class="pre">headway_start_time</span></code> and 
+<code class="docutils literal"><span class="pre">headway_end_time</span></code> on the given date</li>
 <li>start_time: earliest departure time of a trip from this stop
 on the given date</li>
 <li>end_time: latest departure time of a trip from this stop
