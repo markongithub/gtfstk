@@ -1,7 +1,7 @@
 GTFS-TK
 ============
 This is a Python 3.4 toolkit for processing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
-It's mostly for computing network-level statistics, such as daily service distance per route and daily number of trips per stop.
+It's mostly for computing statistics, such as daily service distance per route and daily number of trips per stop.
 It uses Pandas and Shapely to do the heavy lifting.
 
 Warning
@@ -23,4 +23,4 @@ Documentation is in ``docs/`` and also `here <https://rawgit.com/araichev/gtfs-t
 
 Comments
 ------------
-Constructive comments are welcome and are best filed in this repositoriy's issue section with an appropriate label, e.g. 'enhancement'.
+Constructive comments are welcome and are best filed in this repository's issue section with an appropriate label, e.g. 'enhancement'.

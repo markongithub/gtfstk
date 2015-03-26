@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.11.6 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.11.7 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.6',
+        VERSION:     '0.11.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.6 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.7 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body role="document">
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.6 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.7 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -53,10 +53,11 @@
 <span id="the-feed-module"></span><h1>The feed Module<a class="headerlink" href="#module-gtfs_tk.feed" title="Permalink to this headline">¶</a></h1>
 <p>Tools for computing some stats from a GTFS feed, assuming the feed
 is valid.</p>
-<p>TODO:</p>
-<ul class="simple">
-<li>Possibly add the option in <code class="docutils literal"><span class="pre">export()</span></code> to convert back to original distance units.</li>
-</ul>
+<p>CONVENTIONS:</p>
+<p>In conformance with GTFS and unless specified otherwise, 
+dates are encoded as date strings of 
+the form &#8216;%Y%m%d&#8217; and times are encoded as time strings of the form &#8216;%H:%M:%S&#8217;
+with the possibility that the hour is greater than 24.</p>
 <dl class="class">
 <dt id="gtfs_tk.feed.Feed">
 <em class="property">class </em><code class="descclassname">gtfs_tk.feed.</code><code class="descname">Feed</code><span class="sig-paren">(</span><em>path</em>, <em>original_units='km'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed" title="Permalink to this definition">¶</a></dt>
@@ -104,24 +105,6 @@ This is the case for several trips in the Portland feed, for example.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_tk.feed.Feed.dump_all_stats">
-<code class="descname">dump_all_stats</code><span class="sig-paren">(</span><em>directory</em>, <em>date=None</em>, <em>freq='1H'</em>, <em>split_directions=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.dump_all_stats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Into the given directory, dump to separate CSV files the outputs of</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">self.get_stops_stats(date)</span></code></li>
-<li><code class="docutils literal"><span class="pre">self.get_stops_time_series(date)</span></code></li>
-<li><code class="docutils literal"><span class="pre">trips_stats</span> <span class="pre">=</span> <span class="pre">self.get_trips_stats()</span></code></li>
-<li><code class="docutils literal"><span class="pre">self.get_routes_stats(trips_stats,</span> <span class="pre">date)</span></code></li>
-<li><code class="docutils literal"><span class="pre">self.get_routes_time_series(date)</span></code></li>
-</ul>
-<p>where each time series is resampled to the given frequency.
-Also include a <code class="docutils literal"><span class="pre">README.txt</span></code> file that contains a few notes
-on units and include some useful charts.</p>
-<p>If no date (string of the form &#8216;%Y%m%d&#8217;) is given, 
-then use the busiest day of the first week of the feed.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="gtfs_tk.feed.Feed.export">
 <code class="descname">export</code><span class="sig-paren">(</span><em>path</em>, <em>ndigits=5</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.export" title="Permalink to this definition">¶</a></dt>
 <dd><p>Export this feed to a zip archive located at <code class="docutils literal"><span class="pre">path</span></code>.
@@ -137,25 +120,66 @@ All distances will be displayed in kilometers.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_tk.feed.Feed.get_busiest_date_of_first_week">
-<code class="descname">get_busiest_date_of_first_week</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_busiest_date_of_first_week" title="Permalink to this definition">¶</a></dt>
-<dd><p>Consider the dates in <code class="docutils literal"><span class="pre">self.get_first_week()</span></code> and 
-return the first date that has the maximum number of active trips.</p>
+<dt id="gtfs_tk.feed.Feed.get_busiest_date">
+<code class="descname">get_busiest_date</code><span class="sig-paren">(</span><em>dates</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_busiest_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of dates, return the first date that has the 
+maximum number of active trips.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfs_tk.feed.Feed.get_dates">
 <code class="descname">get_dates</code><span class="sig-paren">(</span><em>as_date_obj=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_dates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a chronologically ordered list of date strings
-in the form &#8216;%Y%m%d&#8217; for which this feed is valid.
+<dd><p>Return a chronologically ordered list of dates
+for which this feed is valid.
 If <code class="docutils literal"><span class="pre">as_date_obj</span> <span class="pre">==</span> <span class="pre">True</span></code>, then return the dates as
 as <code class="docutils literal"><span class="pre">datetime.date</span></code> objects.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gtfs_tk.feed.Feed.get_feed_stats">
+<code class="descname">get_feed_stats</code><span class="sig-paren">(</span><em>trips_stats</em>, <em>date</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_feed_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given <code class="docutils literal"><span class="pre">trips_stats</span></code>, which is the output of 
+<code class="docutils literal"><span class="pre">self.get_trips_stats()</span></code> and a date,
+return a Pandas data frame including the following feed
+stats for the date.</p>
+<ul class="simple">
+<li>num_trips: number of trips active on the given date</li>
+<li>num_routes: number of routes active on the given date</li>
+<li>num_stops: number of stops active on the given date</li>
+<li>peak_num_trips: maximum number of simultaneous trips in service</li>
+<li>peak_start_time: start time of first longest period during which
+the peak number of trips occurs</li>
+<li>peak_end_time: end time of first longest period during which
+the peak number of trips occurs</li>
+<li>service_distance: sum of the service distances for the active routes</li>
+<li>service_duration: sum of the service durations for the active routes</li>
+<li>service_speed: service_distance/service_duration</li>
+</ul>
+<p>Return <code class="docutils literal"><span class="pre">None</span></code> if the date does not lie in this feed&#8217;s date range.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfs_tk.feed.Feed.get_feed_time_series">
+<code class="descname">get_feed_time_series</code><span class="sig-paren">(</span><em>trips_stats</em>, <em>date</em>, <em>freq='5Min'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_feed_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given trips stats (output of <code class="docutils literal"><span class="pre">self.get_trips_stats()</span></code>),
+a date, and a Pandas frequency string,
+return a time series of stats for this feed on the given date
+at the given frequency with the following columns</p>
+<ul class="simple">
+<li>num_trip_starts: number of trips starting at this time</li>
+<li>num_trips: number of trips in service during this time period</li>
+<li>service_distance: distance traveled by all active trips during
+this time period</li>
+<li>service_duration: duration traveled by all active trips during this
+time period</li>
+<li>service_speed: service_distance/service_duration</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
 <dt id="gtfs_tk.feed.Feed.get_first_week">
 <code class="descname">get_first_week</code><span class="sig-paren">(</span><em>as_date_obj=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_first_week" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a list of date strings in the form &#8216;%Y%m%d&#8217; corresponding
+<dd><p>Return a list of date corresponding
 to the first Monday&#8211;Sunday week for which this feed is valid.
 In the unlikely event that this feed does not cover a full 
 Monday&#8211;Sunday week, then return whatever initial segment of the 
@@ -202,10 +226,9 @@ sorting the groups by their first departure time.</p>
 <dt id="gtfs_tk.feed.Feed.get_routes">
 <code class="descname">get_routes</code><span class="sig-paren">(</span><em>date=None</em>, <em>time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_routes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the section of <code class="docutils literal"><span class="pre">self.routes</span></code> that contains
-only routes active on the given date (string of the form &#8216;%Y%m%d&#8217;).
+only routes active on the given date.
 If <code class="docutils literal"><span class="pre">date</span> <span class="pre">is</span> <span class="pre">None</span></code>, then return all routes.
-If a date and time are given, where the time is in the form of a GTFS 
-time string %H:%M:%S, then return only those routes with
+If a date and time are given, then return only those routes with
 trips active at that date and time.
 Do not take times modulo 24.</p>
 </dd></dl>
@@ -223,6 +246,7 @@ that are active on the given date, and then call
 <p>NOTES:</p>
 <p>This is a more user-friendly version of <code class="docutils literal"><span class="pre">get_routes_stats()</span></code>.
 The latter function works without a feed, though.</p>
+<p>Return <code class="docutils literal"><span class="pre">None</span></code> if the date does not lie in this feed&#8217;s date range.</p>
 </dd></dl>
 
 <dl class="method">
@@ -334,8 +358,7 @@ The latter function works without a feed, though.</p>
 <dd><p>Get all the stop times <code class="docutils literal"><span class="pre">S</span></code> that have trips active on the given
 date and call <code class="docutils literal"><span class="pre">get_stops_stats()</span></code> with <code class="docutils literal"><span class="pre">S</span></code> and the keyword 
 arguments <code class="docutils literal"><span class="pre">split_directions</span></code> and <code class="docutils literal"><span class="pre">freq</span></code> and with 
-<code class="docutils literal"><span class="pre">date_label</span></code> equal to <code class="docutils literal"><span class="pre">date</span></code> 
-(a date string of the form &#8216;%Y%m%d&#8217;).
+<code class="docutils literal"><span class="pre">date_label</span></code> equal to <code class="docutils literal"><span class="pre">date</span></code>.
 See <code class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></code> for a description of the output.</p>
 <p>If there are no active stop times on the date, then return <code class="docutils literal"><span class="pre">None</span></code>.</p>
 <p>NOTES:</p>
@@ -349,9 +372,8 @@ The latter function works without a feed, though.</p>
 <dd><p>Return the section of <code class="docutils literal"><span class="pre">self.trips</span></code> that contains
 only trips active on the given date (string of the form &#8216;%Y%m%d&#8217;).
 If <code class="docutils literal"><span class="pre">date</span> <span class="pre">is</span> <span class="pre">None</span></code>, then return all trips.
-If a date and time are given, where the time is in the form of a GTFS 
-time string %H:%M:%S, then return only those trips active at that 
-date and time.
+If a date and time are given, 
+then return only those trips active at that date and time.
 Do not take times modulo 24.</p>
 </dd></dl>
 
@@ -376,8 +398,7 @@ Dates are strings of the form &#8216;%Y%m%d&#8217;.</p>
 <dt id="gtfs_tk.feed.Feed.get_trips_locations">
 <code class="descname">get_trips_locations</code><span class="sig-paren">(</span><em>date</em>, <em>times</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_trips_locations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Pandas data frame of the positions of all trips
-active on the given date (date string of the form &#8216;%Y%m%d&#8217;)
-and times (time strings of the form &#8216;%H:%M:%S&#8217;).
+active on the given date and times 
 Include the columns:</p>
 <ul class="simple">
 <li>trip_id</li>
@@ -445,33 +466,6 @@ so the method needs to be fast.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.feed.agg_routes_stats">
-<code class="descclassname">gtfs_tk.feed.</code><code class="descname">agg_routes_stats</code><span class="sig-paren">(</span><em>routes_stats</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.agg_routes_stats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given <code class="docutils literal"><span class="pre">route_stats</span></code> which is the output of <code class="docutils literal"><span class="pre">get_routes_stats()</span></code>,
-return a Pandas data frame with the following columns:</p>
-<ul class="simple">
-<li>direction_id</li>
-<li>num_trips: the sum of the corresponding column in the
-input across all routes</li>
-<li>start_time: the minimum of the corresponding column of the input
-across all routes</li>
-<li>end_time: the maximum of the corresponding column of the input
-across all routes</li>
-<li>service_duration: the sum of the corresponding column in the
-input across all routes</li>
-<li>service_distance: the sum of the corresponding column in the
-input across all routes</li>
-<li>service_speed: service_distance/service_distance</li>
-</ul>
-<p>If the input has no direction id, then the output won&#8217;t.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfs_tk.feed.get_feed_time_series">
-<code class="descclassname">gtfs_tk.feed.</code><code class="descname">get_feed_time_series</code><span class="sig-paren">(</span><em>routes_time_series</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.get_feed_time_series" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="gtfs_tk.feed.combine_time_series">
 <code class="descclassname">gtfs_tk.feed.</code><code class="descname">combine_time_series</code><span class="sig-paren">(</span><em>time_series_dict</em>, <em>kind</em>, <em>split_directions=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.combine_time_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a dictionary of time series data frames, combine the time series
@@ -486,13 +480,29 @@ no &#8216;direction_id&#8217; column.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="gtfs_tk.feed.count_active_trips">
+<code class="descclassname">gtfs_tk.feed.</code><code class="descname">count_active_trips</code><span class="sig-paren">(</span><em>trips</em>, <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.count_active_trips" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a Pandas data frame containing the rows</p>
+<ul class="simple">
+<li>trip_id</li>
+<li>start_time: start time of the trip in seconds past midnight</li>
+<li>end_time: end time of the trip in seconds past midnight</li>
+</ul>
+<p>and a time in seconds past midnight, return the number of 
+trips in the data frame that are active at the given time.
+A trip is a considered active at time t if 
+start_time &lt;= t &lt; end_time.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfs_tk.feed.downsample">
 <code class="descclassname">gtfs_tk.feed.</code><code class="descname">downsample</code><span class="sig-paren">(</span><em>time_series</em>, <em>freq</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.downsample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Downsample the given route or stop time series, which is the output of 
-<code class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></code> or <code class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></code>, 
-to the given Pandas-style frequency.
-Can&#8217;t downsample to frequencies less one minute (&#8216;1Min&#8217;), because the
-time series are generated with one-minute frequency.</p>
+<dd><p>Downsample the given route, stop, or feed time series, 
+(outputs of <code class="docutils literal"><span class="pre">Feed.get_routes_time_series()</span></code>, 
+<code class="docutils literal"><span class="pre">Feed.get_stops_time_series()</span></code>, or <code class="docutils literal"><span class="pre">Feed.get_feed_time_series()</span></code>,
+respectively) to the given Pandas frequency.
+Return the given time series unchanged if the given frequency is 
+shorter than the original frequency.</p>
 </dd></dl>
 
 <dl class="function">
@@ -506,7 +516,9 @@ calculate stats for the routes in that subset.</p>
 <li>direction_id</li>
 <li>num_trips: number of trips</li>
 <li>is_loop: 1 if at least one of the trips on the route has its
-<code class="docutils literal"><span class="pre">is_loop</span></code> field equal to 1, and 0 otherwise</li>
+<code class="docutils literal"><span class="pre">is_loop</span></code> field equal to 1; 0 otherwise</li>
+<li>is_bidirectional: 1 if the route has trips in both directions;
+0 otherwise</li>
 <li>start_time: start time of the earliest trip on 
 the route</li>
 <li>end_time: end time of latest trip on the route</li>
@@ -516,6 +528,13 @@ trip starts on the route between <code class="docutils literal"><span class="pre
 <li>mean_headway: mean of the durations (in minutes) between 
 trip starts on the route between <code class="docutils literal"><span class="pre">headway_start_time</span></code> and 
 <code class="docutils literal"><span class="pre">headway_end_time</span></code> on the given dates</li>
+<li>peak_num_trips: maximum number of simultaneous trips in service
+(for the given direction, or for both directions when 
+<code class="docutils literal"><span class="pre">split_directions==False</span></code>)</li>
+<li>peak_start_time: start time of first longest period during which
+the peak number of trips occurs</li>
+<li>peak_end_time: end time of first longest period during which
+the peak number of trips occurs</li>
 <li>service_duration: total of the duration of each trip on 
 the route in the given subset of trips; measured in hours</li>
 <li>service_distance: total of the distance traveled by each trip on 
@@ -524,6 +543,8 @@ measured in kilometers;
 contains all <code class="docutils literal"><span class="pre">np.nan</span></code> entries if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
 <li>service_speed: service_distance/service_duration;
 measured in kilometers per hour</li>
+<li>mean_trip_distance: service_distance/num_trips</li>
+<li>mean_trip_duration: service_duration/num_trips</li>
 </ul>
 <p>If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then remove the direction_id column
 and compute each route&#8217;s stats, except for headways, using its trips
@@ -715,7 +736,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.6 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.7 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

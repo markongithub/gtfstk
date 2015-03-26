@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Index &mdash; GTFS Toolkit 0.11.6 documentation</title>
+    <title>Index &mdash; GTFS Toolkit 0.11.7 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.6',
+        VERSION:     '0.11.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.6 documentation" href="index.html" /> 
+    <link rel="top" title="GTFS Toolkit 0.11.7 documentation" href="index.html" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.6 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.7 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -69,18 +69,10 @@
   <dt><a href="feed.html#gtfs_tk.feed.Feed.add_dist_to_shapes">add_dist_to_shapes() (gtfs_tk.feed.Feed method)</a>
   </dt>
 
-      
-  <dt><a href="feed.html#gtfs_tk.feed.Feed.add_dist_to_stop_times">add_dist_to_stop_times() (gtfs_tk.feed.Feed method)</a>
-  </dt>
-
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="feed.html#gtfs_tk.feed.agg_routes_stats">agg_routes_stats() (in module gtfs_tk.feed)</a>
-  </dt>
-
-      
-  <dt><a href="feed.html#gtfs_tk.feed.get_feed_time_series">get_feed_time_series() (in module gtfs_tk.feed)</a>
+  <dt><a href="feed.html#gtfs_tk.feed.Feed.add_dist_to_stop_times">add_dist_to_stop_times() (gtfs_tk.feed.Feed method)</a>
   </dt>
 
   </dl></td>
@@ -94,6 +86,12 @@
   </dt>
 
   </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="feed.html#gtfs_tk.feed.count_active_trips">count_active_trips() (in module gtfs_tk.feed)</a>
+  </dt>
+
+  </dl></td>
 </tr></table>
 
 <h2 id="D">D</h2>
@@ -103,14 +101,10 @@
   <dt><a href="utils.html#gtfs_tk.utils.datestr_to_date">datestr_to_date() (in module gtfs_tk.utils)</a>
   </dt>
 
-      
-  <dt><a href="feed.html#gtfs_tk.feed.downsample">downsample() (in module gtfs_tk.feed)</a>
-  </dt>
-
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="feed.html#gtfs_tk.feed.Feed.dump_all_stats">dump_all_stats() (gtfs_tk.feed.Feed method)</a>
+  <dt><a href="feed.html#gtfs_tk.feed.downsample">downsample() (in module gtfs_tk.feed)</a>
   </dt>
 
   </dl></td>
@@ -146,11 +140,19 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="feed.html#gtfs_tk.feed.Feed.get_busiest_date_of_first_week">get_busiest_date_of_first_week() (gtfs_tk.feed.Feed method)</a>
+  <dt><a href="feed.html#gtfs_tk.feed.Feed.get_busiest_date">get_busiest_date() (gtfs_tk.feed.Feed method)</a>
   </dt>
 
       
   <dt><a href="feed.html#gtfs_tk.feed.Feed.get_dates">get_dates() (gtfs_tk.feed.Feed method)</a>
+  </dt>
+
+      
+  <dt><a href="feed.html#gtfs_tk.feed.Feed.get_feed_stats">get_feed_stats() (gtfs_tk.feed.Feed method)</a>
+  </dt>
+
+      
+  <dt><a href="feed.html#gtfs_tk.feed.Feed.get_feed_time_series">get_feed_time_series() (gtfs_tk.feed.Feed method)</a>
   </dt>
 
       
@@ -159,6 +161,10 @@
 
       
   <dt><a href="feed.html#gtfs_tk.feed.Feed.get_linestring_by_shape">get_linestring_by_shape() (gtfs_tk.feed.Feed method)</a>
+  </dt>
+
+      
+  <dt><a href="utils.html#gtfs_tk.utils.get_longest_max_run">get_longest_max_run() (in module gtfs_tk.utils)</a>
   </dt>
 
       
@@ -201,6 +207,8 @@
   <dt><a href="feed.html#gtfs_tk.feed.Feed.get_shapes_geojson">get_shapes_geojson() (gtfs_tk.feed.Feed method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="feed.html#gtfs_tk.feed.Feed.get_stations_stats">get_stations_stats() (gtfs_tk.feed.Feed method)</a>
   </dt>
@@ -209,8 +217,6 @@
   <dt><a href="feed.html#gtfs_tk.feed.Feed.get_stop_times">get_stop_times() (gtfs_tk.feed.Feed method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="feed.html#gtfs_tk.feed.Feed.get_stop_timetable">get_stop_timetable() (gtfs_tk.feed.Feed method)</a>
   </dt>
@@ -370,7 +376,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.6 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.7 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

@@ -55,13 +55,6 @@ examples/examples.ipynb
 examples/.ipynb_checkpoints/Untitled0-checkpoint.ipynb
 examples/.ipynb_checkpoints/examples-checkpoint.ipynb
 examples/.ipynb_checkpoints/gtfs_toolkit_examples-checkpoint.ipynb
-examples/stats/notes.rst
-examples/stats/routes_stats.csv
-examples/stats/routes_time_series_1H.csv
-examples/stats/routes_time_series_agg.pdf
-examples/stats/stops_stats.csv
-examples/stats/stops_time_series_1H.csv
-examples/stats/trips_stats.csv
 gtfs_tk/__init__.py
 gtfs_tk/feed.py
 gtfs_tk/utils.py
