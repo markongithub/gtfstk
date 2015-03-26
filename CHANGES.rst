@@ -1,6 +1,14 @@
 Changes
 ========
 
+v0.11.7 (2015-03-27)
+---------------------
+- Added more columns to ``get_routes_stats()``
+- Added ``get_feed_stats()`` and ``get_feed_time_series()`` and removed
+  removed the similar ``agg_routes_stats()`` and ``agg_routes_time_series()`` 
+- Removed ``dump_all_stats()``, because it wasn't very useful
+- Replaced ``get_busiest_date_of_first_week()`` with ``get_busiest_date()``
+
 v0.11.6 (2015-03-16)
 ---------------------
 - Cleaned code slightly
@@ -65,7 +73,7 @@ v0.7 (2014-10-08)
 
 v0.6 (2014-10-08)
 ----------------------
-- Changed ``seconds_to_timestr()`` to ``timestr_to_seconds().``.  Added ``get_busiest_date_of_first_week()``. 
+- Changed ``seconds_to_time()`` to ``timestr_to_seconds().``.  Added ``get_busiest_date_of_first_week()``. 
 
 v0.5 (2014-10-02)
 ----------------------

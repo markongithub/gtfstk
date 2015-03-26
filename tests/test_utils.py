@@ -17,7 +17,7 @@ cairns_shapeless.shapes = None
 
 class TestFeed(unittest.TestCase):
     # Test utils functions
-    def test_timestr_to_seconds(self):
+    def test_time_to_seconds(self):
         timestr1 = '01:01:01'
         seconds1 = 3600 + 60 + 1
         timestr2 = '25:01:01'
@@ -32,7 +32,7 @@ class TestFeed(unittest.TestCase):
         self.assertTrue(np.isnan(timestr_to_seconds(seconds1)))
         self.assertTrue(np.isnan(timestr_to_seconds(timestr1, inverse=True)))
 
-    def test_timestr_mod24(self):
+    def test_time_mod24(self):
         timestr1 = '01:01:01'
         self.assertEqual(timestr_mod24(timestr1), timestr1)
         timestr2 = '25:01:01'
@@ -56,6 +56,13 @@ class TestFeed(unittest.TestCase):
         self.assertAlmostEqual(get_segment_length(s, p, q), 1/6)
         p = Point((0, 1/2))
         self.assertEqual(get_segment_length(s, p), 0)
+
+    def test_get_longest_max_run(self):
+        x = [7, 1, 2, 7, 7, 1, 2]
+        self.assertEqual(get_longest_max_run(x), (3, 5))
+        x = []
+        self.assertIsNone(get_longest_max_run(x))
+
 
 if __name__ == '__main__':
     unittest.main()

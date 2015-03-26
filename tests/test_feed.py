@@ -31,7 +31,6 @@ class TestFeed(unittest.TestCase):
           if f not in ['calendar_dates', 'shapes']]:
             self.assertIsNone(getattr(feed, f))
 
-
     # Test route methods
     # ----------------------------------
     def test_get_routes_stats_outer(self):
@@ -54,14 +53,20 @@ class TestFeed(unittest.TestCase):
             expect_cols = set([
               'route_id',
               'num_trips',
+              'is_bidirectional',
               'is_loop',
               'start_time',
               'end_time',
               'max_headway',
               'mean_headway', 
+              'peak_num_trips',
+              'peak_start_time',
+              'peak_end_time',
               'service_duration', 
               'service_distance',
               'service_speed',              
+              'mean_trip_distance',
+              'mean_trip_duration',
               ])
             if split_directions:
                 expect_cols.add('direction_id')
@@ -150,18 +155,28 @@ class TestFeed(unittest.TestCase):
             expect_cols = set([
               'route_id',
               'num_trips',
+              'is_bidirectional',
               'is_loop',
               'start_time',
               'end_time',
               'max_headway',
               'mean_headway', 
+              'peak_num_trips',
+              'peak_start_time',
+              'peak_end_time',
               'service_duration', 
               'service_distance',
               'service_speed',              
+              'mean_trip_distance',
+              'mean_trip_duration',
               ])
             if split_directions:
                 expect_cols.add('direction_id')
             self.assertEqual(set(rs.columns), expect_cols)
+
+        # Test out of bounds date
+        f = feed.get_routes_stats(trips_stats, '20010101')
+        self.assertIsNone(f)
 
     def test_get_routes_time_series(self):
         feed = copy(cairns)
@@ -200,27 +215,6 @@ class TestFeed(unittest.TestCase):
           split_directions=split_directions, freq='1H')
         self.assertIsNone(rts)
 
-    def test_agg_routes_time_series(self):
-        feed = copy(cairns)
-        date = feed.get_dates()[0]
-        trips_stats = feed.get_trips_stats()
-        for split_directions in [True, False]:
-            rts = feed.get_routes_time_series(trips_stats, date, 
-              split_directions=split_directions, freq='1H')
-            arts = agg_routes_time_series(rts)
-            if split_directions:
-                num_cols = 2*len(rts.columns.levels[0])
-                col_names = ['indicator', 'direction_id']
-            else:
-                num_cols = len(rts.columns.levels[0])
-                col_names = [None]
-            # Should be a data frame of the correct shape
-            self.assertIsInstance(arts, pd.core.frame.DataFrame)
-            self.assertEqual(arts.shape[0], 24)
-            self.assertEqual(arts.shape[1], num_cols)
-            # Should have correct column names
-            self.assertEqual(arts.columns.names, col_names)   
-
     def test_fill_nan_route_short_names(self):
         feed = copy(cairns) # Has all non-nan route short names
         
@@ -258,6 +252,9 @@ class TestFeed(unittest.TestCase):
 
     # Test trip methods
     # ----------------------------------
+    def test_count_active_trips(self):
+        pass
+
     def test_is_active(self):
         feed = copy(cairns)
         trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
@@ -483,6 +480,10 @@ class TestFeed(unittest.TestCase):
         f = feed.get_stops(date)
         expect_stops = set(f['stop_id'].values)
         self.assertEqual(get_stops, expect_stops)
+        
+        # Test out of bounds date
+        f = feed.get_stops_stats('20010101')
+        self.assertIsNone(f)
 
     def test_get_stops_time_series(self):
         feed = copy(cairns)
@@ -612,7 +613,7 @@ class TestFeed(unittest.TestCase):
             print('trip', trip, sdt)
             self.assertEqual(sdt, sorted(sdt))
 
-    # Test other methods
+    # Test feed methods
     # ----------------------------------
     def test_get_dates(self):
         feed = copy(cairns)
@@ -636,10 +637,60 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(dates[-1], d2)
         self.assertEqual(len(dates), 7)
 
-    def test_get_busiest_date_of_first_week(self):
+    def test_get_feed_stats(self):
         feed = copy(cairns)
-        dates = feed.get_first_week()
-        date = feed.get_busiest_date_of_first_week()
+        date = feed.get_dates()[0]
+        trips_stats = feed.get_trips_stats()
+        f = feed.get_feed_stats(trips_stats, date)
+        # Should be a data frame
+        self.assertIsInstance(f, pd.core.frame.DataFrame)
+        # Should have the correct number of rows
+        self.assertEqual(f.shape[0], 1)
+        # Should contain the correct columns
+        expect_cols = set([
+          'num_trips',
+          'num_routes',
+          'num_stops',
+          'peak_num_trips',
+          'peak_start_time',
+          'peak_end_time',
+          'service_duration', 
+          'service_distance',
+          'service_speed',              
+          ])
+        self.assertEqual(set(f.columns), expect_cols)
+
+        # Test out of bounds date
+        f = feed.get_feed_stats(trips_stats, '20010101')
+        self.assertIsNone(f)
+
+    def test_get_feed_time_series(self):
+        feed = copy(cairns)
+        date = feed.get_dates()[0]
+        trips_stats = feed.get_trips_stats()
+        f = feed.get_feed_time_series(trips_stats, date, freq='1H')
+        # Should be a data frame 
+        self.assertIsInstance(f, pd.core.frame.DataFrame)
+        # Should have the correct number of rows
+        self.assertEqual(f.shape[0], 24)
+        # Should have the correct columns
+        expect_cols = set([
+          'num_trip_starts',
+          'num_trips',
+          'service_distance',
+          'service_duration',
+          'service_speed',
+          ])
+        self.assertEqual(set(f.columns), expect_cols)
+
+        # Test out of bounds date
+        f = feed.get_feed_time_series(trips_stats, '20010101')
+        self.assertIsNone(f)
+
+    def test_get_busiest_date(self):
+        feed = copy(cairns)
+        dates = feed.get_first_week() + ['19000101']
+        date = feed.get_busiest_date(dates)
         # Busiest day should lie in first week
         self.assertTrue(date in dates)
     
@@ -659,6 +710,11 @@ class TestFeed(unittest.TestCase):
                 assert_frame_equal(attr1, attr2)
             else:
                 self.assertIsNone(attr2)
+
+    # Test other methods
+    # ----------------------------------
+    def test_downsample(self):
+        pass
 
 
 if __name__ == '__main__':

@@ -127,3 +127,34 @@ def get_segment_length(linestring, p, q=None):
     else:
         d = d_p
     return d
+
+def get_longest_max_run(x):
+    """
+    Given a list of numbers, find the longest run of its max value
+    and return the start and end + 1 indices of that run.
+
+    EXAMPLES::
+    
+        >>> get_longest_max_run([7, 1, 2, 7, 7, 1, 2])
+        >>> (3, 5)
+    
+    If x is empty, then return ``None``.
+    Recipe from 
+    `here <http://mail.scipy.org/pipermail/numpy-discussion/2011-May/056413.html>`_
+    """
+    # Get 0-1 array where 1 marks the max values of x
+    x = np.array(x)
+    if not x.size:
+        return
+    m = np.max(x)
+    y = (x == m)*1
+    # Bound y by zeros to detect runs properly
+    bounded = np.hstack(([0], y, [0]))
+    # Get 1 at run starts and -1 at run ends
+    diffs = np.diff(bounded)
+    run_starts = np.where(diffs > 0)[0]
+    run_ends = np.where(diffs < 0)[0]
+    # Get lengths of runs and find index of longest
+    idx = np.argmax(run_ends - run_starts)
+    return run_starts[idx], run_ends[idx] 
+

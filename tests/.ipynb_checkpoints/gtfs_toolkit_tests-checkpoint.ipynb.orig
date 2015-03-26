@@ -6106,7 +6106,7 @@
      "cell_type": "code",
      "collapsed": false,
      "input": [
-      "f = utils.agg_routes_time_series(rts)\n",
+      "f = utils.get_feed_time_series(rts)\n",
       "f\n",
       "# peak = f['mean_daily_num_vehicles'].argmax()\n",
       "# f['mean_daily_num_vehicles'][peak]\n"
@@ -6713,7 +6713,7 @@
      "cell_type": "code",
      "collapsed": false,
      "input": [
-      "f = utils.agg_routes_time_series(rts)\n",
+      "f = utils.get_feed_time_series(rts)\n",
       "f\n",
       "# peak = f['mean_daily_num_vehicles'].argmax()\n",
       "# f['mean_daily_num_vehicles'][peak]\n"
