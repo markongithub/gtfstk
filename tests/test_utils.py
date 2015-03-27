@@ -4,6 +4,7 @@ from copy import copy
 import pandas as pd 
 import numpy as np
 from pandas.util.testing import assert_frame_equal, assert_series_equal
+from numpy.testing import assert_array_equal
 from shapely.geometry import Point, LineString, mapping
 from shapely.geometry import shape as sh_shape
 
@@ -57,12 +58,18 @@ class TestFeed(unittest.TestCase):
         p = Point((0, 1/2))
         self.assertEqual(get_segment_length(s, p), 0)
 
-    def test_get_longest_max_run(self):
+    def test_get_max_runs(self):
         x = [7, 1, 2, 7, 7, 1, 2]
-        self.assertEqual(get_longest_max_run(x), (3, 5))
-        x = []
-        self.assertIsNone(get_longest_max_run(x))
+        get = get_max_runs(x)
+        expect = np.array([[0, 1], [3, 5]])
+        assert_array_equal(get, expect)
 
+    def test_get_peak_indices(self):
+        times = [0, 10, 20, 30, 31, 32, 40]
+        counts = [7, 1, 2, 7, 7, 1, 2]
+        get = get_peak_indices(times, counts)
+        expect = [0, 1]
+        assert_array_equal(get, expect)
 
 if __name__ == '__main__':
     unittest.main()

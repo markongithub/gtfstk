@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The utils Module &mdash; GTFS Toolkit 0.11.7 documentation</title>
+    <title>The utils Module &mdash; GTFS Toolkit 0.11.8 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.7',
+        VERSION:     '0.11.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.7 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.8 documentation" href="index.html" />
     <link rel="next" title="The feed Module" href="feed.html" />
     <link rel="prev" title="GTFS Toolkit" href="introduction.html" /> 
   </head>
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.7 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.8 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -65,18 +65,28 @@ and return its corresponding string in the given format.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.utils.get_longest_max_run">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">get_longest_max_run</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.get_longest_max_run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a list of numbers, find the longest run of its max value
-and return the start and end + 1 indices of that run.</p>
+<dt id="gtfs_tk.utils.get_max_runs">
+<code class="descclassname">gtfs_tk.utils.</code><code class="descname">get_max_runs</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.get_max_runs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of numbers, return a NumPy array of pairs
+(start index, end index + 1) of the runs of max value.</p>
 <p>EXAMPLES:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">get_longest_max_run</span><span class="p">([</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">get_max_runs</span><span class="p">([</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]]</span>
 </pre></div>
 </div>
-<p>If x is empty, then return <code class="docutils literal"><span class="pre">None</span></code>.
+<p>Assume x is not empty.
 Recipe from 
-<a class="reference external" href="http://mail.scipy.org/pipermail/numpy-discussion/2011-May/056413.html">here</a></p>
+<a class="reference external" href="http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array">here</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfs_tk.utils.get_peak_indices">
+<code class="descclassname">gtfs_tk.utils.</code><code class="descname">get_peak_indices</code><span class="sig-paren">(</span><em>times</em>, <em>counts</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.get_peak_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an increasing list of times as seconds past midnight and a list of
+trip counts at those times, return a pair of indices i, j
+such that times[i] to times[j] is the first longest time period 
+such that for all i &lt;= x &lt; j, counts[x] is the max of counts.
+Assume times and counts have the same nonzero length.</p>
 </dd></dl>
 
 <dl class="function">
@@ -183,7 +193,7 @@ If <code class="docutils literal"><span class="pre">inverse</span> <span class="
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.7 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.8 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

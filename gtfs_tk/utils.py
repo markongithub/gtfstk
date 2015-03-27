@@ -128,24 +128,22 @@ def get_segment_length(linestring, p, q=None):
         d = d_p
     return d
 
-def get_longest_max_run(x):
+def get_max_runs(x):
     """
-    Given a list of numbers, find the longest run of its max value
-    and return the start and end + 1 indices of that run.
+    Given a list of numbers, return a NumPy array of pairs
+    (start index, end index + 1) of the runs of max value.
 
     EXAMPLES::
     
-        >>> get_longest_max_run([7, 1, 2, 7, 7, 1, 2])
-        >>> (3, 5)
+        >>> get_max_runs([7, 1, 2, 7, 7, 1, 2])
+        >>> [[1, 2], [3, 5]]
     
-    If x is empty, then return ``None``.
+    Assume x is not empty.
     Recipe from 
-    `here <http://mail.scipy.org/pipermail/numpy-discussion/2011-May/056413.html>`_
+    `here <http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array>`_
     """
     # Get 0-1 array where 1 marks the max values of x
     x = np.array(x)
-    if not x.size:
-        return
     m = np.max(x)
     y = (x == m)*1
     # Bound y by zeros to detect runs properly
@@ -154,7 +152,23 @@ def get_longest_max_run(x):
     diffs = np.diff(bounded)
     run_starts = np.where(diffs > 0)[0]
     run_ends = np.where(diffs < 0)[0]
-    # Get lengths of runs and find index of longest
-    idx = np.argmax(run_ends - run_starts)
-    return run_starts[idx], run_ends[idx] 
+    return np.array([run_starts, run_ends]).T
+    # # Get lengths of runs and find index of longest
+    # idx = np.argmax(run_ends - run_starts)
+    # return run_starts[idx], run_ends[idx] 
 
+def get_peak_indices(times, counts):
+    """
+    Given an increasing list of times as seconds past midnight and a list of
+    trip counts at those times, return a pair of indices i, j
+    such that times[i] to times[j] is the first longest time period 
+    such that for all i <= x < j, counts[x] is the max of counts.
+    Assume times and counts have the same nonzero length.
+    """
+    max_runs = get_max_runs(counts)  
+
+    def get_duration(a):
+        return times[a[1]] - times[a[0]]
+
+    index = np.argmax(np.apply_along_axis(get_duration, 1, max_runs))
+    return max_runs[index]

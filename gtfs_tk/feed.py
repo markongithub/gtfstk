@@ -144,9 +144,9 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
             d['mean_headway'] = np.nan
 
         # Compute peak num trips
-        times = np.unique(f[['start_time', 'end_time']].values)
+        times = np.unique(group[['start_time', 'end_time']].values)
         counts = [count_active_trips(group, t) for t in times]
-        start, end = utils.get_longest_max_run(counts)
+        start, end = utils.get_peak_indices(times, counts)
         d['peak_num_trips'] = counts[start]
         d['peak_start_time'] = times[start]
         d['peak_end_time'] = times[end]
@@ -179,9 +179,9 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
             d['mean_headway'] = np.nan
 
         # Compute peak num trips
-        times = np.unique(f[['start_time', 'end_time']].values)
+        times = np.unique(group[['start_time', 'end_time']].values)
         counts = [count_active_trips(group, t) for t in times]
-        start, end = utils.get_longest_max_run(counts)
+        start, end = utils.get_peak_indices(times, counts)
         d['peak_num_trips'] = counts[start]
         d['peak_start_time'] = times[start]
         d['peak_end_time'] = times[end]
@@ -1748,13 +1748,17 @@ class Feed(object):
 
         # Compute peak stats
         f = pd.merge(trips, trips_stats)
+        f[['start_time', 'end_time']] =\
+          f[['start_time', 'end_time']].applymap(utils.timestr_to_seconds)
 
         times = np.unique(f[['start_time', 'end_time']].values)
         counts = [count_active_trips(f, t) for t in times]
-        start, end = utils.get_longest_max_run(counts)
+        start, end = utils.get_peak_indices(times, counts)
         d['peak_num_trips'] = counts[start]
-        d['peak_start_time'] = times[start]
-        d['peak_end_time'] = times[end]
+        d['peak_start_time'] =\
+          utils.timestr_to_seconds(times[start], inverse=True)
+        d['peak_end_time'] =\
+          utils.timestr_to_seconds(times[end], inverse=True)
 
         # Compute remaining stats
         d['service_distance'] = trips_stats['distance'].sum()

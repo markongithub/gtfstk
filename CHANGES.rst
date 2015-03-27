@@ -1,11 +1,14 @@
 Changes
 ========
 
+v0.11.8 (2015-03-27)
+---------------------
+- Fixed a bug in the computation of the ``peak_start_time`` and ``peak_end_time`` columns of routes stats and feed stats
+
 v0.11.7 (2015-03-27)
 ---------------------
 - Added more columns to ``get_routes_stats()``
-- Added ``get_feed_stats()`` and ``get_feed_time_series()`` and removed
-  removed the similar ``agg_routes_stats()`` and ``agg_routes_time_series()`` 
+- Added ``get_feed_stats()`` and ``get_feed_time_series()`` and removed the similar ``agg_routes_stats()`` and ``agg_routes_time_series()`` 
 - Removed ``dump_all_stats()``, because it wasn't very useful
 - Replaced ``get_busiest_date_of_first_week()`` with ``get_busiest_date()``
 
