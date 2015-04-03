@@ -1,6 +1,10 @@
 Changes
 ========
 
+v0.11.10 (2015-04-03)
+---------------------
+- Reduced number of columns in ``get_trips_activity``
+
 v0.11.9 (2015-04-03)
 ---------------------
 - Fixed a bug in the computation of the ``service_distance`` and ``service_duration`` columns of feed stats
