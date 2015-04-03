@@ -265,10 +265,7 @@ def get_routes_time_series(trips_stats_subset,
     if trips_stats_subset is None or trips_stats_subset.empty:
         return None
 
-    # Merge trips_stats with trips activity, get trip weights,
-    # and drop 0-weight trips
     tss = trips_stats_subset.copy()
-
     if split_directions:
         # Alter route IDs to encode direction: 
         # <route ID>-0 and <route ID>-1
@@ -914,15 +911,12 @@ class Feed(object):
         Return a Pandas data frame with the columns
 
         - trip_id
-        - route_id
-        - direction_id
-        - dates[0]: a series of ones and zeros indicating if a 
-          trip is active (1) on the given date or inactive (0)
+        - dates[0]: 1 if the trip is active on the given date; 0 otherwise
+        - dates[1]: ditto
         - etc.
         - dates[-1]: ditto
 
         If ``dates is None``, then return ``None``.
-        Dates are strings of the form '%Y%m%d'.
         """
         if not dates:
             return
@@ -931,7 +925,7 @@ class Feed(object):
         for date in dates:
             f[date] = f['trip_id'].map(lambda trip: 
               int(self.is_active_trip(trip, date)))
-        return f[['trip_id', 'direction_id', 'route_id'] + dates]
+        return f[['trip_id'] + dates]
 
     def get_trips_stats(self, get_dist_from_shapes=False):
         """

@@ -330,7 +330,7 @@ class TestFeed(unittest.TestCase):
         self.assertIsInstance(trips_activity, pd.core.frame.DataFrame)
         # Should have the correct shape
         self.assertEqual(trips_activity.shape[0], feed.trips.shape[0])
-        self.assertEqual(trips_activity.shape[1], len(dates) + 3)
+        self.assertEqual(trips_activity.shape[1], 1 + len(dates))
         # Date columns should contain only zeros and ones
         self.assertEqual(set(trips_activity[dates].values.flatten()), {0, 1})
 
