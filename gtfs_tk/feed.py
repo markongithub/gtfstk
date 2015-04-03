@@ -1207,16 +1207,6 @@ class Feed(object):
           split_directions=split_directions, freq=freq, 
           date_label=date)
 
-    def fill_nan_route_short_names(self, base_name='NoName'):
-        """
-        Replace NaN route short names in ``self.routes`` with 
-        ``base_name + '00'``, ``base_name + '01'``, ``base_name + '02'``, etc.
-        """
-        nan_indices = np.where(self.routes['route_short_name'].isnull())[0]
-        fills = {index: '{!s}{:02d}'.format(base_name, i)
-          for i, index in enumerate(nan_indices)}
-        self.routes['route_short_name'].fillna(fills, inplace=True)     
-
     def get_route_timetable(self, route_id, date):
         """
         Return a Pandas data frame encoding the timetable
