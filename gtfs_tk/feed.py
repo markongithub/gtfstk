@@ -1051,9 +1051,6 @@ class Feed(object):
                 d = d2 - d1
                 if d > 0:
                     return d/1000
-                # num_stops = group.shape[0]
-                # if d/num_stops >= 200:
-                #     return (d2 - d1)/1000
                 else:
                     # Something is probably wrong, so just
                     # return the length of the linestring
@@ -1761,8 +1758,8 @@ class Feed(object):
           utils.timestr_to_seconds(times[end], inverse=True)
 
         # Compute remaining stats
-        d['service_distance'] = trips_stats['distance'].sum()
-        d['service_duration'] = trips_stats['duration'].sum()
+        d['service_distance'] = f['distance'].sum()
+        d['service_duration'] = f['duration'].sum()
         d['service_speed'] = d['service_distance']/d['service_duration']
 
         return pd.DataFrame(d, index=[0])

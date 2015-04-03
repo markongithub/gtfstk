@@ -1,6 +1,10 @@
 Changes
 ========
 
+v0.11.9 (2015-04-03)
+---------------------
+- Fixed a bug in the computation of the ``service_distance`` and ``service_duration`` columns of feed stats
+
 v0.11.8 (2015-03-27)
 ---------------------
 - Fixed a bug in the computation of the ``peak_start_time`` and ``peak_end_time`` columns of routes stats and feed stats
