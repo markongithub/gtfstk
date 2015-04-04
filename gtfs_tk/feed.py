@@ -265,10 +265,7 @@ def get_routes_time_series(trips_stats_subset,
     if trips_stats_subset is None or trips_stats_subset.empty:
         return None
 
-    # Merge trips_stats with trips activity, get trip weights,
-    # and drop 0-weight trips
     tss = trips_stats_subset.copy()
-
     if split_directions:
         # Alter route IDs to encode direction: 
         # <route ID>-0 and <route ID>-1
@@ -914,15 +911,12 @@ class Feed(object):
         Return a Pandas data frame with the columns
 
         - trip_id
-        - route_id
-        - direction_id
-        - dates[0]: a series of ones and zeros indicating if a 
-          trip is active (1) on the given date or inactive (0)
+        - dates[0]: 1 if the trip is active on the given date; 0 otherwise
+        - dates[1]: ditto
         - etc.
         - dates[-1]: ditto
 
         If ``dates is None``, then return ``None``.
-        Dates are strings of the form '%Y%m%d'.
         """
         if not dates:
             return
@@ -931,7 +925,7 @@ class Feed(object):
         for date in dates:
             f[date] = f['trip_id'].map(lambda trip: 
               int(self.is_active_trip(trip, date)))
-        return f[['trip_id', 'direction_id', 'route_id'] + dates]
+        return f[['trip_id'] + dates]
 
     def get_trips_stats(self, get_dist_from_shapes=False):
         """
@@ -1212,16 +1206,6 @@ class Feed(object):
         return get_routes_time_series(trips_stats_subset, 
           split_directions=split_directions, freq=freq, 
           date_label=date)
-
-    def fill_nan_route_short_names(self, base_name='NoName'):
-        """
-        Replace NaN route short names in ``self.routes`` with 
-        ``base_name + '00'``, ``base_name + '01'``, ``base_name + '02'``, etc.
-        """
-        nan_indices = np.where(self.routes['route_short_name'].isnull())[0]
-        fills = {index: '{!s}{:02d}'.format(base_name, i)
-          for i, index in enumerate(nan_indices)}
-        self.routes['route_short_name'].fillna(fills, inplace=True)     
 
     def get_route_timetable(self, route_id, date):
         """

@@ -49,6 +49,26 @@ class TestFeed(unittest.TestCase):
         units = 'mi'
         self.assertEqual(to_km(1, units), 1.6093)
 
+    def test_clean_series(self):
+        feed = copy(cairns) # Has all non-NaN route short names
+        
+        # Set some route short names to NaN
+        s = feed.routes['route_short_name'].copy()
+        s[s.str.endswith('1')] = 'bang'
+        s[s.str.endswith('N')] = np.nan
+        dups = s[s == 'bang']
+        nans = s[s.isnull()]
+        
+        t = clean_series(s, 'zing')
+        # Duplicates replacement should work
+        assert_array_equal(dups.index, t[t.str.startswith('bang')].index)
+        # NaNs replacement should work
+        assert_array_equal(nans.index, t[t.str.startswith('zing')].index)
+
+        # Should contain no NaNs or duplicates
+        self.assertTrue(t[t.duplicated()].empty)
+        self.assertTrue(t[t.isnull()].empty)
+
     def test_get_segment_length(self):
         s = LineString([(0, 0), (1, 0)])
         p = Point((1/2, 0))

@@ -110,6 +110,33 @@ def to_km(x, units='km'):
     if units == 'ft':
         return x*0.00030480
 
+def clean_series(series, nan_prefix='n/a', mark='-'):
+    """
+    Given a series of items, replace NaN entries
+    with ``nan_prefix + '-0'``, ``nan_prefix + '-1'``, 
+    ``nan_prefix + '-2'``, etc.
+    Replace duplicate items x1, x2, x3, etc. with 
+    x1 + '-0', x2 + '-1', x3 + '-2', etc.
+    Return the resulting series.
+    If can change the dashes to another string by setting
+    the ``mark`` parameter.
+
+    I use this for cleaning route short names.
+    """
+    # Replace NaNs
+    s = series.copy()
+    nans = s[s.isnull()]
+    fill_nans = ['{!s}{!s}{!s}'.format(nan_prefix, mark, i)
+      for i in range(nans.shape[0])]
+    s.iloc[nans.index] = fill_nans
+
+    # Replace duplicates
+    dups = s[s.duplicated()]
+    fill_dups = [x + '{!s}{!s}'.format(mark, i) 
+      for i, x in enumerate(dups.values)]
+    s.iloc[dups.index] = fill_dups
+    return s
+
 def get_segment_length(linestring, p, q=None):
     """
     Given a Shapely linestring and two Shapely points,
