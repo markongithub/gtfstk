@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The utils Module &mdash; GTFS Toolkit 0.11.9 documentation</title>
+    <title>The utils Module &mdash; GTFS Toolkit 0.11.10 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.9',
+        VERSION:     '0.11.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.9 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.10 documentation" href="index.html" />
     <link rel="next" title="The feed Module" href="feed.html" />
     <link rel="prev" title="GTFS Toolkit" href="introduction.html" /> 
   </head>
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.9 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.10 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -55,6 +55,20 @@
             
   <div class="section" id="module-gtfs_tk.utils">
 <span id="the-utils-module"></span><h1>The utils Module<a class="headerlink" href="#module-gtfs_tk.utils" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="gtfs_tk.utils.clean_series">
+<code class="descclassname">gtfs_tk.utils.</code><code class="descname">clean_series</code><span class="sig-paren">(</span><em>series</em>, <em>nan_prefix='n/a'</em>, <em>mark='-'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.clean_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a series of items, replace NaN entries
+with <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-0'</span></code>, <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-1'</span></code>, 
+<code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-2'</span></code>, etc.
+Replace duplicate items x1, x2, x3, etc. with 
+x1 + &#8216;-0&#8217;, x2 + &#8216;-1&#8217;, x3 + &#8216;-2&#8217;, etc.
+Return the resulting series.
+If can change the dashes to another string by setting
+the <code class="docutils literal"><span class="pre">mark</span></code> parameter.</p>
+<p>I use this for cleaning route short names.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="gtfs_tk.utils.datestr_to_date">
 <code class="descclassname">gtfs_tk.utils.</code><code class="descname">datestr_to_date</code><span class="sig-paren">(</span><em>x</em>, <em>format_str='%Y%m%d'</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.datestr_to_date" title="Permalink to this definition">¶</a></dt>
@@ -193,7 +207,7 @@ If <code class="docutils literal"><span class="pre">inverse</span> <span class="
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.9 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.10 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
