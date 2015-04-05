@@ -2,8 +2,9 @@ import unittest
 from copy import copy
 
 import pandas as pd 
-import numpy as np
 from pandas.util.testing import assert_frame_equal, assert_series_equal
+import numpy as np
+from numpy.testing import assert_array_equal
 from shapely.geometry import Point, LineString, mapping
 from shapely.geometry import shape as sh_shape
 
@@ -16,6 +17,72 @@ cairns_shapeless = Feed('data/cairns_gtfs.zip')
 cairns_shapeless.shapes = None
 
 class TestFeed(unittest.TestCase):
+
+    def test_geometrize_stops(self):
+        stops = {}
+        stops['stop_id'] = 'A'
+        stops['stop_lon'] = 0
+        stops['stop_lat'] = 0
+        stops['extra'] = 'yoji'
+        stops = pd.DataFrame(stops, index=[0])
+        get = Feed.geometrize_stops(stops)
+        # Should be a data frame
+        self.assertIsInstance(get, pd.core.frame.DataFrame)
+        # Should contain the correct columns
+        self.assertEqual(set(get.columns), 
+          set(['stop_id', 'extra', 'geometry']))
+        # Should contain the correct rows
+        self.assertEqual(get.shape[0], 1)
+        get_lonlat = list(get['geometry'].iat[0].coords)
+        assert_array_equal(get_lonlat, 
+          stops[['stop_lon', 'stop_lat']].values)
+
+    def test_ungeometrize_stops(self):
+        stops = {}
+        stops['stop_id'] = 'A'
+        stops['stop_lat'] = 0
+        stops['stop_lon'] = 0
+        stops['extra'] = 'yoji'
+        stops = pd.DataFrame(stops, index=[0])
+        stops_geo = Feed.geometrize_stops(stops)
+        get = Feed.ungeometrize_stops(stops_geo)
+        # Should be a data frame with the correct values
+        self.assertIsInstance(get, pd.core.frame.DataFrame)
+        self.assertEqual(get.to_dict(), stops.to_dict())
+
+    def test_geometrize_shapes(self):
+        shapes = {}
+        shapes['shape_id'] = ['A', 'A']
+        shapes['shape_pt_sequence'] = [0, 1]
+        shapes['shape_pt_lon'] = [0.0, 1.0]
+        shapes['shape_pt_lat'] = [0.0, 1.0]
+        shapes['extra'] = ['yoji', 'goji']
+        shapes = pd.DataFrame(shapes)
+        get = Feed.geometrize_shapes(shapes)
+        # Should be a data frame
+        self.assertIsInstance(get, pd.core.frame.DataFrame)
+        # Should contain the correct columns
+        self.assertEqual(set(get.columns), 
+          set(['shape_id', 'geometry']))
+        # Should contain the correct rows
+        self.assertEqual(get.shape[0], 1)
+        get_coords =  list(get['geometry'].iat[0].coords)
+        expect_coords = shapes[['shape_pt_lon', 'shape_pt_lat']].values
+        assert_array_equal(get_coords, expect_coords) 
+
+    def test_ungeometrize_shapes(self):
+        shapes = {}
+        shapes['shape_id'] = ['A', 'A']
+        shapes['shape_pt_sequence'] = [0, 1]
+        shapes['shape_pt_lon'] = [0.0, 1.0]
+        shapes['shape_pt_lat'] = [0.0, 1.0]
+        shapes['extra'] = ['yoji', 'goji']
+        shapes = pd.DataFrame(shapes)
+        shapes_geo = Feed.geometrize_shapes(shapes)
+        get = Feed.ungeometrize_shapes(shapes_geo)
+        # Should be a data frame with the correct values
+        self.assertIsInstance(get, pd.core.frame.DataFrame)
+        self.assertEqual(get.to_dict(), shapes.drop(['extra'], axis=1).to_dict())
 
     def test_init(self):
         # Test distance units check

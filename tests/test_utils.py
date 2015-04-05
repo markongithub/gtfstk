@@ -91,5 +91,14 @@ class TestFeed(unittest.TestCase):
         expect = [0, 1]
         assert_array_equal(get, expect)
 
+    def test_get_utm_crs(self):
+        # Test point from
+        # https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system#Locating_a_position_using_UTM_coordinates
+        d = get_utm_crs(-79.387139, 43.642567)
+        expect = {'proj': 'utm', 'units': 'm', 'ellps': 'WGS84',
+          'zone': '17T'}
+        self.assertEqual(d, expect)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -791,7 +791,7 @@ class Feed(object):
             F.extend([[row['shape_id'], i, x, y] for 
             i, (x, y) in enumerate(row['geometry'].coords)])
         return pd.DataFrame(F, 
-          columns=['shape_id', 'shape_pt_sequenece', 
+          columns=['shape_id', 'shape_pt_sequence', 
           'shape_pt_lon', 'shape_pt_lat'])
 
     def __init__(self, path, original_units='km'):
