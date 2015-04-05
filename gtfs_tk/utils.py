@@ -5,6 +5,11 @@ from functools import wraps
 import pandas as pd
 import numpy as np
 from shapely.geometry import Point
+import utm
+
+# WGS84 coordinate reference system for use with GeoPandas
+CRS_WGS84 = {'no_defs': True, 'ellps': 'WGS84', 'datum': 
+  'WGS84', 'proj': 'longlat'}
 
 def time_it(f):
     def wrap(*args, **kwargs):
@@ -199,3 +204,13 @@ def get_peak_indices(times, counts):
 
     index = np.argmax(np.apply_along_axis(get_duration, 1, max_runs))
     return max_runs[index]
+
+def get_utm_crs(lon, lat):
+    """
+    Given a WGS84 longitude and latitude, return a coordinate
+    reference system dictionary indicating the Universal Transverse Mercator
+    projection appropriate to that longitude and latitude.
+    """
+    a, b, number, letter = utm.from_latlon(lat, lon)
+    return {'proj': 'utm', 'units': 'm', 'ellps': 'WGS84',
+      'zone': '{!s}{!s}'.format(number, letter)}

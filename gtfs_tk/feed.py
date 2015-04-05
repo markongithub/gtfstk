@@ -22,6 +22,7 @@ import pandas as pd
 import numpy as np
 from shapely.geometry import Point, LineString, mapping
 import utm
+import geopandas as gpd
 
 import gtfs_tk.utils as utils
 
@@ -709,6 +710,13 @@ def plot_routes_time_series(routes_time_series):
 
     return fig
 
+def stops_to_geom(stops):
+    """
+    Given a data frame of subrows of 'stops.txt', return a Pandas data frame
+    with all the same columns, minus 'stop_lon' and 'stop_lat',
+    plus 'geom'.
+    The geom column holds
+    """
 
 class Feed(object):
     """
@@ -716,7 +724,76 @@ class Feed(object):
     as Pandas data frames.  
     Make sure you have enough memory!  
     The stop times object can be big.
-    """
+    """    
+    @staticmethod
+    def geometrize_stops(stops):
+        """
+        Replace the given Pandas data frame representing ``stops.txt``
+        with a GeoPandas data frame and return the result.
+        The result has a 'geometry' column of WGS84 points 
+        instead of 'stop_lon' and 'stop_lat' columns.
+        """
+        f = stops.copy()
+        s = gpd.GeoSeries([Point(p) for p in 
+          stops[['stop_lon', 'stop_lat']].values])
+        f['geometry'] = s 
+        f.drop(['stop_lon', 'stop_lat'], axis=1, inplace=True)
+        f = gpd.GeoDataFrame(f, crs=utils.CRS_WGS84)
+        return f 
+
+    @staticmethod
+    def ungeometrize_stops(stops):
+        """
+        The inverse of ``geometrize_stops()``
+        """
+        f = stops.copy()
+        f['stop_lon'] = f['geometry'].map(
+          lambda p: p.x)
+        f['stop_lat'] = f['geometry'].map(
+          lambda p: p.y)
+        del f['geometry']
+        return f
+
+    @staticmethod
+    def geometrize_shapes(shapes):
+        """
+        Replace the given Pandas data frame representing ``shapes.txt``
+        with a GeoPandas data frame and return the result.
+        The result has a 'geometry' column of WGS84 line strings
+        instead of 'shape_pt_sequence', 'shape_pt_lon', 'shape_pt_lat',  
+        and 'shape_dist_traveled' columns.
+        """
+        f = shapes.copy().sort(['shape_id', 'shape_pt_sequence'])
+        
+        def my_agg(group):
+            d = {}
+            d['geometry'] =\
+              LineString(group[['shape_pt_lon', 'shape_pt_lat']].values)
+            return pd.Series(d)
+
+        g = f.groupby('shape_id').apply(my_agg).reset_index()
+        g = gpd.GeoDataFrame(g, crs=utils.CRS_WGS84)
+        return g 
+
+    @staticmethod
+    def ungeometrize_shapes(shapes):
+        """
+        The inverse of ``geometrize_shapes()``.
+        Produces the columns:
+
+        - shape_id
+        - shape_pt_sequence
+        - shape_pt_lon
+        - shape_pt_lat
+        """
+        F = []
+        for index, row in shapes.iterrows():
+            F.extend([[row['shape_id'], i, x, y] for 
+            i, (x, y) in enumerate(row['geometry'].coords)])
+        return pd.DataFrame(F, 
+          columns=['shape_id', 'shape_pt_sequenece', 
+          'shape_pt_lon', 'shape_pt_lat'])
+
     def __init__(self, path, original_units='km'):
         """
         Read in all the relevant GTFS text files within the directory or 
@@ -754,8 +831,9 @@ class Feed(object):
 
         # Get required GTFS files
         self.agency = pd.read_csv(path + 'agency.txt')
-        self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str, 
+        stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str, 
           'stop_code': str})
+        self.stops = Feed.geometrize_stops(stops)
         self.routes = pd.read_csv(path + 'routes.txt', dtype={'route_id': str,
           'route_short_name': str})
         self.trips = pd.read_csv(path + 'trips.txt', dtype={'route_id': str,
@@ -804,12 +882,7 @@ class Feed(object):
         if os.path.isfile(path + 'shapes.txt'):
             shapes = pd.read_csv(path + 'shapes.txt', 
               dtype={'shape_id': str})
-            # Convert distances to kilometers
-            if 'shape_dist_traveled' in shapes.columns:
-                shapes['shape_dist_traveled'] =\
-                  shapes['shape_dist_traveled'].map(
-                  lambda x: utils.to_km(x, original_units))
-            self.shapes = shapes
+            self.shapes = Feed.geometrize_shapes(shapes)
         else:
             self.shapes = None
 
@@ -821,6 +894,10 @@ class Feed(object):
                 setattr(self, f, pd.read_csv(p))
             else:
                 setattr(self, f, None)
+
+        # Get appropriate UTM CRSS
+        self.utm_crs = utils.get_utm_crs(
+          *stops.iloc[0][['stop_lon', 'stop_lat']].values)
 
         # Clean up
         if zipped:
