@@ -1049,7 +1049,7 @@ class Feed(object):
         
         # Compute all trips stats except distance, 
         # which is possibly more involved
-        point_by_stop = self.get_point_by_stop(use_utm=True)
+        geometry_by_stop = self.get_geometry_by_stop(use_utm=True)
         g = f.groupby('trip_id')
 
         def my_agg(group):
@@ -1062,8 +1062,8 @@ class Feed(object):
             d['end_time'] = group['departure_time'].iat[-1]
             d['start_stop_id'] = group['stop_id'].iat[0]
             d['end_stop_id'] = group['stop_id'].iat[-1]
-            dist = point_by_stop[d['start_stop_id']].distance(
-              point_by_stop[d['end_stop_id']])
+            dist = geometry_by_stop[d['start_stop_id']].distance(
+              geometry_by_stop[d['end_stop_id']])
             d['is_loop'] = int(dist < 400)
             d['duration'] = (d['end_time'] - d['start_time'])/3600
             return pd.Series(d)
@@ -1080,8 +1080,8 @@ class Feed(object):
               lambda group: group['shape_dist_traveled'].max())
         elif self.shapes is not None:
             # Compute distances using the shapes and Shapely
-            linestring_by_shape = self.get_linestring_by_shape()
-            point_by_stop = self.get_point_by_stop()
+            geometry_by_shape = self.get_geometry_by_shape()
+            geometry_by_stop = self.get_geometry_by_stop()
 
             def get_dist(group):
                 """
@@ -1094,7 +1094,7 @@ class Feed(object):
                 shape = group['shape_id'].iat[0]
                 try:
                     # Get the linestring for this trip
-                    linestring = linestring_by_shape[shape]
+                    linestring = geometry_by_shape[shape]
                 except KeyError:
                     # Shape ID is NaN or doesn't exist in shapes.
                     # No can do.
@@ -1111,8 +1111,8 @@ class Feed(object):
                 start_stop = group['stop_id'].iat[0]
                 end_stop = group['stop_id'].iat[-1]
                 try:
-                    start_point = point_by_stop[start_stop]
-                    end_point = point_by_stop[end_stop]
+                    start_point = geometry_by_stop[start_stop]
+                    end_point = geometry_by_stop[end_stop]
                 except KeyError:
                     # One of the two stop IDs is NaN, so just
                     # return the length of the linestring
@@ -1171,7 +1171,7 @@ class Feed(object):
         # at the given time times.
         # Use linear interpolation based on stop departure times and
         # shape distance traveled.
-        linestring_by_shape = self.get_linestring_by_shape(use_utm=False)
+        geometry_by_shape = self.get_geometry_by_shape(use_utm=False)
         sample_times = np.array([utils.timestr_to_seconds(s) 
           for s in times])
         
@@ -1207,7 +1207,7 @@ class Feed(object):
 
         def get_lonlat(group):
             shape = group['shape_id'].iat[0]
-            linestring = linestring_by_shape[shape]
+            linestring = geometry_by_shape[shape]
             lonlats = [linestring.interpolate(d, normalized=True).coords[0]
               for d in group['rel_dist'].values]
             group['lon'], group['lat'] = zip(*lonlats)
@@ -1320,7 +1320,7 @@ class Feed(object):
         S = stop_times['stop_id'].unique()
         return self.stops[self.stops['stop_id'].isin(S)]
 
-    def get_point_by_stop(self, use_utm=True):
+    def get_geometry_by_stop(self, use_utm=True):
         """
         Return a dictionary with structure
         stop_id -> Shapely point object.
@@ -1494,7 +1494,7 @@ class Feed(object):
 
     # Shape methods
     # ----------------------------------
-    def get_linestring_by_shape(self, use_utm=True):
+    def get_geometry_by_shape(self, use_utm=True):
         """
         Return a dictionary with structure
         shape_id -> Shapely linestring of shape.
@@ -1616,8 +1616,8 @@ class Feed(object):
         (so shape_dist_traveled != 0).
         This is the case for several trips in the Portland feed, for example. 
         """
-        linestring_by_shape = self.get_linestring_by_shape()
-        point_by_stop = self.get_point_by_stop()
+        geometry_by_shape = self.get_geometry_by_shape()
+        geometry_by_stop = self.get_geometry_by_stop()
 
         # Initialize data frame
         f = pd.merge(trips_stats[['trip_id', 'shape_id', 'distance', 
@@ -1625,7 +1625,7 @@ class Feed(object):
 
         # Convert departure times to seconds past midnight to ease calculations
         f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
-        dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
+        dist_by_stop_by_shape = {shape: {} for shape in geometry_by_shape}
 
         def get_dist(group):
             # Compute the distances of the stops along this trip
@@ -1638,14 +1638,14 @@ class Feed(object):
             elif np.isnan(group['distance'].iat[0]):
                 group['shape_dist_traveled'] = np.nan 
                 return group
-            linestring = linestring_by_shape[shape]
+            linestring = geometry_by_shape[shape]
             distances = []
             for stop in group['stop_id'].values:
                 if stop in dist_by_stop_by_shape[shape]:
                     d = dist_by_stop_by_shape[shape][stop]
                 else:
                     d = utils.get_segment_length(linestring, 
-                      point_by_stop[stop])
+                      geometry_by_stop[stop])
                     dist_by_stop_by_shape[shape][stop] = d
                 # Convert from meters to kilometers
                 d /= 1000

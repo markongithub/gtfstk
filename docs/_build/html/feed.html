@@ -182,8 +182,8 @@ as <code class="docutils literal"><span class="pre">datetime.date</span></code> 
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_tk.feed.Feed.get_linestring_by_shape">
-<code class="descname">get_linestring_by_shape</code><span class="sig-paren">(</span><em>use_utm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_linestring_by_shape" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_geometry_by_shape">
+<code class="descname">get_geometry_by_shape</code><span class="sig-paren">(</span><em>use_utm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_geometry_by_shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dictionary with structure
 shape_id -&gt; Shapely linestring of shape.
 If <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code>, then return <code class="docutils literal"><span class="pre">None</span></code>.
@@ -194,8 +194,8 @@ coordinates.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_tk.feed.Feed.get_point_by_stop">
-<code class="descname">get_point_by_stop</code><span class="sig-paren">(</span><em>use_utm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_point_by_stop" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_geometry_by_stop">
+<code class="descname">get_geometry_by_stop</code><span class="sig-paren">(</span><em>use_utm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_geometry_by_stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dictionary with structure
 stop_id -&gt; Shapely point object.
 If <code class="docutils literal"><span class="pre">use_utm</span> <span class="pre">==</span> <span class="pre">True</span></code>, then return each point in
