@@ -1329,16 +1329,12 @@ class Feed(object):
         Otherwise, return each point in WGS84 longitude-latitude
         coordinates.
         """
-        point_by_stop = {}
         if use_utm:
-            for stop, group in self.stops.groupby('stop_id'):
-                lat, lon = group[['stop_lat', 'stop_lon']].values[0]
-                point_by_stop[stop] = Point(utm.from_latlon(lat, lon)[:2]) 
+            return dict(self.stops.to_crs(self.utm_crs)[
+              ['stop_id', 'geometry']].values)
         else:
-            for stop, group in self.stops.groupby('stop_id'):
-                lat, lon = group[['stop_lat', 'stop_lon']].values[0]
-                point_by_stop[stop] = Point([lon, lat]) 
-        return point_by_stop
+            return dict(self.stops[
+              ['stop_id', 'geometry']].values)
 
     def get_stops_activity(self, dates):
         """
@@ -1510,26 +1506,10 @@ class Feed(object):
         """
         if self.shapes is None:
             return
-
-        # Note the output for conversion to UTM with the utm package:
-        # >>> u = utm.from_latlon(47.9941214, 7.8509671)
-        # >>> print u
-        # (414278, 5316285, 32, 'T')
-        linestring_by_shape = {}
         if use_utm:
-            for shape, group in self.shapes.groupby('shape_id'):
-                lons = group['shape_pt_lon'].values
-                lats = group['shape_pt_lat'].values
-                xys = [utm.from_latlon(lat, lon)[:2] 
-                  for lat, lon in zip(lats, lons)]
-                linestring_by_shape[shape] = LineString(xys)
+            return dict(self.shapes.to_crs(self.utm_crs).values)
         else:
-            for shape, group in self.shapes.groupby('shape_id'):
-                lons = group['shape_pt_lon'].values
-                lats = group['shape_pt_lat'].values
-                lonlats = zip(lons, lats)
-                linestring_by_shape[shape] = LineString(lonlats)
-        return linestring_by_shape
+            return dict(self.shapes.values)
 
     def get_shapes_geojson(self):
         """
@@ -1556,44 +1536,44 @@ class Feed(object):
           }
         return json.dumps(d)
 
-    def add_dist_to_shapes(self):
-        """
-        Add/overwrite the optional ``shape_dist_traveled`` GTFS field for
-        ``self.shapes``.
+    # def add_dist_to_shapes(self):
+    #     """
+    #     Add/overwrite the optional ``shape_dist_traveled`` GTFS field for
+    #     ``self.shapes``.
 
-        NOTE: 
+    #     NOTE: 
 
-        All of the calculated ``shape_dist_traveled`` values 
-        for the Portland feed differ by at most 0.016 km in absolute values
-        from of the original values. 
-        """
-        assert self.shapes is not None,\
-          "This method requires the feed to have a shapes.txt file"
+    #     All of the calculated ``shape_dist_traveled`` values 
+    #     for the Portland feed differ by at most 0.016 km in absolute values
+    #     from of the original values. 
+    #     """
+    #     assert self.shapes is not None,\
+    #       "This method requires the feed to have a shapes.txt file"
 
-        f = self.shapes
+    #     f = self.shapes
 
-        def get_dist(group):
-            # Compute the distances of the stops along this trip
-            group = group.sort('shape_pt_sequence')
-            shape = group['shape_id'].iat[0]
-            if not isinstance(shape, str):
-                print(trip, 'no shape_id:', shape)
-                group['shape_dist_traveled'] = np.nan 
-                return group
-            points = [Point(utm.from_latlon(lat, lon)[:2]) 
-              for lon, lat in group[['shape_pt_lon', 'shape_pt_lat']].values]
-            p_prev = points[0]
-            d = 0
-            distances = [0]
-            for  p in points[1:]:
-                d += p.distance(p_prev)/1000
-                distances.append(d)
-                p_prev = p
-            group['shape_dist_traveled'] = distances
-            return group
+    #     def get_dist(group):
+    #         # Compute the distances of the stops along this trip
+    #         group = group.sort('shape_pt_sequence')
+    #         shape = group['shape_id'].iat[0]
+    #         if not isinstance(shape, str):
+    #             print(trip, 'no shape_id:', shape)
+    #             group['shape_dist_traveled'] = np.nan 
+    #             return group
+    #         points = [Point(utm.from_latlon(lat, lon)[:2]) 
+    #           for lon, lat in group[['shape_pt_lon', 'shape_pt_lat']].values]
+    #         p_prev = points[0]
+    #         d = 0
+    #         distances = [0]
+    #         for  p in points[1:]:
+    #             d += p.distance(p_prev)/1000
+    #             distances.append(d)
+    #             p_prev = p
+    #         group['shape_dist_traveled'] = distances
+    #         return group
 
-        result = f.groupby('shape_id', group_keys=False).apply(get_dist)
-        self.shapes = result
+    #     result = f.groupby('shape_id', group_keys=False).apply(get_dist)
+    #     self.shapes = result
 
     # Stop time methods
     # ----------------------------------
@@ -1883,8 +1863,13 @@ class Feed(object):
         for name in names:
             if getattr(self, name) is None:
                 continue
+            f = getattr(self, name)
+            if name == 'stops':
+                f = self.ungeometrize_stops(f)
+            elif name == 'shapes':
+                f = self.ungeometrize_shapes(f)
             tmp_path = os.path.join(tmp_dir, name + '.txt')
-            getattr(self, name).to_csv(tmp_path, index=False, 
+            f.to_csv(tmp_path, index=False, 
               float_format='%.{!s}f'.format(ndigits))
 
         # Zip directory 
