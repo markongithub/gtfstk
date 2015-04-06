@@ -1520,19 +1520,17 @@ class Feed(object):
         The coordinates reference system is the default one for GeoJSON,
         namely WGS84.
         """
-
-        linestring_by_shape = self.get_linestring_by_shape(use_utm=False)
-        if linestring_by_shape is None:
+        if self.shapes is None:
             return
 
         d = {
           'type': 'FeatureCollection', 
           'features': [{
-            'properties': {'shape_id': shape},
+            'properties': {'shape_id': row['shape']},
             'type': 'Feature',
-            'geometry': mapping(linestring),
+            'geometry': mapping(row['geometry']),
             }
-            for shape, linestring in linestring_by_shape.items()]
+            for index, row in self.shapes.iterrows()]
           }
         return json.dumps(d)
 
@@ -1878,3 +1876,17 @@ class Feed(object):
         # Delete temporary directory
         shutil.rmtree(tmp_dir)
 
+    def get_trips_intersections(self, geom, date=None):
+        """
+        Given a Shapely geometry object, such as a LineString,
+        return the slice of ``self.trips`` of trips that 
+        intersect that object.
+        If a date is given, then restrict to trips active on that date.
+        Include also a column called 'intersection' that holds 
+        the Shapely intersection of each trip and the object.
+        """
+        f = self.shapes
+        f = f[f['geometry'].intersects(geom)].copy()
+        f['intersection'] = f['geometry'].intersection(geom)
+        g = self.get_trips(date=date)
+        return pd.merge(g, f[['shape_id', 'intersection']])
