@@ -43,12 +43,10 @@ class TestFeed(unittest.TestCase):
             # Should be a data frame of the correct shape
             self.assertIsInstance(rs, pd.core.frame.DataFrame)
             if split_directions:
-                f['tmp'] = f['route_id'] + '-' +\
-                  f['direction_id'].map(str)
+                max_num_routes = 2*feed.routes.shape[0]
             else:
-                f['tmp'] = f['route_id'].copy()
-            expect_num_routes = len(f['tmp'].unique())
-            self.assertEqual(rs.shape[0], expect_num_routes)
+                max_num_routes = feed.routes.shape[0]
+            self.assertTrue(rs.shape[0] <= max_num_routes)
 
             # Should contain the correct columns
             expect_cols = set([
@@ -145,12 +143,11 @@ class TestFeed(unittest.TestCase):
             # Should be a data frame of the correct shape
             self.assertIsInstance(rs, pd.core.frame.DataFrame)
             if split_directions:
-                f['tmp'] = f['route_id'] + '-' +\
-                  f['direction_id'].map(str)
+                max_num_routes = 2*feed.routes.shape[0]
             else:
-                f['tmp'] = f['route_id'].copy()
-            expect_num_routes = len(f['tmp'].unique())
-            self.assertEqual(rs.shape[0], expect_num_routes)
+                max_num_routes = feed.routes.shape[0]
+                
+            self.assertTrue(rs.shape[0] <= max_num_routes)
 
             # Should contain the correct columns
             expect_cols = set([
@@ -175,9 +172,9 @@ class TestFeed(unittest.TestCase):
                 expect_cols.add('direction_id')
             self.assertEqual(set(rs.columns), expect_cols)
 
-        # Test out of bounds date
+        # Empty check
         f = feed.get_routes_stats(trips_stats, '20010101')
-        self.assertIsNone(f)
+        self.assertTrue(f.empty)
 
     def test_get_routes_time_series(self):
         feed = copy(cairns)
@@ -210,11 +207,11 @@ class TestFeed(unittest.TestCase):
                     expect = atsg.get_group(route)['distance'].sum()
                     self.assertTrue(abs((get - expect)/expect) < 0.001)
 
-        # None check
+        # Empty check
         date = '19000101'
         rts = feed.get_routes_time_series(trips_stats, date, 
           split_directions=split_directions, freq='1H')
-        self.assertIsNone(rts)
+        self.assertTrue(rts.empty)
 
     def test_get_route_timetable(self):
         feed = copy(cairns)
@@ -463,9 +460,9 @@ class TestFeed(unittest.TestCase):
         expect_stops = set(f['stop_id'].values)
         self.assertEqual(get_stops, expect_stops)
         
-        # Test out of bounds date
+        # Empty check
         f = feed.get_stops_stats('20010101')
-        self.assertIsNone(f)
+        self.assertTrue(f.empty)
 
     def test_get_stops_time_series(self):
         feed = copy(cairns)
@@ -499,11 +496,11 @@ class TestFeed(unittest.TestCase):
                     expect = astg.get_group(stop)['departure_time'].count()
                     self.assertEqual(get, expect)
         
-        # None check
+        # Empty check
         date = '19000101'
         stops_ts = feed.get_stops_time_series(date, freq='1H',
           split_directions=split_directions) 
-        self.assertIsNone(stops_ts)
+        self.assertTrue(stops_ts.empty)
 
     def test_get_stop_timetable(self):
         feed = copy(cairns)
@@ -696,15 +693,14 @@ class TestFeed(unittest.TestCase):
         # To this end, put a NaN, 1.0, and 0.0 in the direction_id column 
         # of trips.txt, export it, and import the column as strings.
         # Should only get np.nan, '0', and '1' entries.
-        feed = copy(cairns)
-        f = feed.trips
+        feed3 = copy(cairns)
+        f = feed3.trips.copy()
         f['direction_id'] = f['direction_id'].astype(object)
         f.loc[0, 'direction_id'] = np.nan
         f.loc[1, 'direction_id'] = 1.0
         f.loc[2, 'direction_id'] = 0.0
-        feed.trips = f
-        path = 'data/test_gtfs.zip'
-        feed.export(path)
+        feed3.trips = f
+        feed3.export(path)
         archive = zipfile.ZipFile(path)
         dir_name = path.rstrip('.zip') + '/'
         archive.extractall(dir_name)

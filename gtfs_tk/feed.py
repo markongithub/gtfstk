@@ -273,8 +273,7 @@ def get_routes_time_series(trips_stats_subset,
     The columns of the data frame are hierarchical (multi-index) with
 
     - top level: name = 'indicator', values = ['service_distance',
-      'service_duration', 'num_trip_starts', 
-      'num_trips', 'service_speed']
+      'service_duration', 'num_trip_starts', 'num_trips', 'service_speed']
     - middle level: name = 'route_id', values = the active routes
     - bottom level: name = 'direction_id', values = 0s and 1s
 
@@ -304,7 +303,7 @@ def get_routes_time_series(trips_stats_subset,
           tss['direction_id'].map(str)
         
     routes = tss['route_id'].unique()
-    
+    print(routes)
     # Build a dictionary of time series and then merge them all
     # at the end
     # Assign a uniform generic date for the index
