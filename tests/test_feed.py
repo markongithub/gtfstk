@@ -1,5 +1,6 @@
 import unittest
 from copy import copy
+import shutil
 
 import pandas as pd 
 import numpy as np
@@ -684,13 +685,34 @@ class TestFeed(unittest.TestCase):
         feed2 = Feed(path)
         names = REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
         for name in names:
-            attr1 = getattr(feed1, name)
-            attr2 = getattr(feed2, name)
-            print(attr1)
-            if attr1 is not None:
-                assert_frame_equal(attr1, attr2)
+            f1 = getattr(feed1, name)
+            f2 = getattr(feed2, name)
+            if f1 is None:
+                self.assertIsNone(f2)
             else:
-                self.assertIsNone(attr2)
+                assert_frame_equal(f1, f2)
+
+        # Test that integer columns with NaNs get output properly.
+        # To this end, put a NaN, 1.0, and 0.0 in the direction_id column 
+        # of trips.txt, export it, and import the column as strings.
+        # Should only get np.nan, '0', and '1' entries.
+        feed = copy(cairns)
+        f = feed.trips
+        f['direction_id'] = f['direction_id'].astype(object)
+        f.loc[0, 'direction_id'] = np.nan
+        f.loc[1, 'direction_id'] = 1.0
+        f.loc[2, 'direction_id'] = 0.0
+        feed.trips = f
+        path = 'data/test_gtfs.zip'
+        feed.export(path)
+        archive = zipfile.ZipFile(path)
+        dir_name = path.rstrip('.zip') + '/'
+        archive.extractall(dir_name)
+        t = pd.read_csv(dir_name + 'trips.txt', dtype={'direction_id': str})
+        self.assertTrue(t[~t['direction_id'].isin([np.nan, '0', '1'])].empty)
+        # Remove extracted directory
+        shutil.rmtree(dir_name)
+
 
     # Test other methods
     # ----------------------------------

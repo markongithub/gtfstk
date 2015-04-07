@@ -1,0 +1,23 @@
+route_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
+110-423,110,City - Palm Cove,,3,,7BC142,0
+110N-423,110N,City - Palm Cove,,3,,7BC142,0
+111-423,111,City - Kewarra Beach,,3,,7BC142,0
+112-423,112,Yorkeys Knob - Smithfield via JCU,,3,,7BC142,0
+113-423,113,Sunbus Depot - Cairns City Mall,,3,,7BC142,0
+120-423,120,City Pier - Machans Beach - Smithfield,,3,,7BC142,0
+120N-423,120N,City - Smithfield via Machans Beach and Holloways,,3,,7BC142,0
+121-423,121,City - Redlynch,,3,,7BC142,0
+122-423,122,JCU - Redlynch,,3,,7BC142,0
+123-423,123,City - JCU via Raintrees,,3,,7BC142,0
+130-423,130,City - Raintrees via Edge Hill,,3,,7BC142,0
+131-423,131,City - Raintrees via Whitfield,,3,,7BC142,0
+131N-423,131N,City - Raintrees via Whitfield,,3,,7BC142,0
+133-423,133,City - Earlville via Mooroobool,,3,,7BC142,0
+140-423,140,City - Edmonton via Bentley Park,,3,,7BC142,0
+140N-423,140N,City - Edmonton via Bentley Park,,3,,7BC142,0
+141-423,141,City - Woree via Bayview Heights,,3,,7BC142,0
+142-423,142,City - Edmonton via Mt Sheridan/Timberlea,,3,,7BC142,0
+143-423,143,City - Mt Sheridan via White Rock,,3,,7BC142,0
+143W-423,143W,City - Mt Sheridan via White Rock,,3,,7BC142,0
+150-423,150,City - Gordonvale,,3,,7BC142,0
+150E-423,150E,City - Gordonvale,,3,,7BC142,0

@@ -1844,10 +1844,11 @@ class Feed(object):
             f = getattr(self, name)
             if f is None:
                 continue
+            f = f.copy()
             # Some columns need to be output as integers.
             # If there are integers and NaNs in any such column, 
             # then Pandas will format the column as float, which we don't want.
-            s = list(int_cols_set & set(f.columns)):
+            s = list(int_cols_set & set(f.columns))
             if s:
                 f[s] = f[s].fillna(-1).astype(int).astype(str).\
                   replace('-1', '')
