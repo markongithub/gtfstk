@@ -1,6 +1,11 @@
 Changes
 ========
 
+
+v0.11.11 (2015-04-08)
+---------------------
+- Changed most functions to return an empty data frame instead of ``None``
+
 v0.11.10 (2015-04-03)
 ---------------------
 - Reduced columns in ``get_trips_activity()``

@@ -72,10 +72,10 @@ class TestFeed(unittest.TestCase):
                 expect_cols.add('direction_id')
             self.assertEqual(set(rs.columns), expect_cols)
 
-        # None check
+        # Empty check
         rs = get_routes_stats(pd.DataFrame(), 
           split_directions=split_directions)    
-        self.assertIsNone(rs)
+        self.assertTrue(rs.empty)
 
     def test_get_routes_time_series_outer(self):
         feed = copy(cairns)
@@ -105,11 +105,11 @@ class TestFeed(unittest.TestCase):
                     expect = g.get_group(route)['distance'].sum()
                     self.assertTrue(abs((get - expect)/expect) < 0.001)
 
-        # None check
+        # Empty check
         rts = get_routes_time_series(pd.DataFrame(), 
           split_directions=split_directions, 
           freq='1H')    
-        self.assertIsNone(rts)
+        self.assertTrue(rts.empty)
 
     def test_get_routes(self):
         feed = copy(cairns)
@@ -376,6 +376,10 @@ class TestFeed(unittest.TestCase):
             get_stops = set(stops_stats['stop_id'].values)
             self.assertEqual(get_stops, expect_stops)
 
+        # Empty check
+        stats = get_stops_stats(pd.DataFrame())    
+        self.assertTrue(stats.empty)
+
     def test_get_stops_time_series_outer(self):
         feed = copy(cairns)
         st = pd.merge(feed.stop_times, 
@@ -407,10 +411,10 @@ class TestFeed(unittest.TestCase):
                     expect = stg.get_group(stop)['departure_time'].count()
                     self.assertEqual(get, expect)
         
-        # None check
+        # Empty check
         stops_ts = get_stops_time_series(pd.DataFrame(), freq='1H',
           split_directions=split_directions) 
-        self.assertIsNone(stops_ts)
+        self.assertTrue(stops_ts.empty)
 
     def test_get_stops(self):
         feed = copy(cairns)
@@ -637,9 +641,9 @@ class TestFeed(unittest.TestCase):
           ])
         self.assertEqual(set(f.columns), expect_cols)
 
-        # Test out of bounds date
+        # Empty check
         f = feed.get_feed_stats(trips_stats, '20010101')
-        self.assertIsNone(f)
+        self.assertTrue(f.empty)
 
     def test_get_feed_time_series(self):
         feed = copy(cairns)
@@ -660,9 +664,9 @@ class TestFeed(unittest.TestCase):
           ])
         self.assertEqual(set(f.columns), expect_cols)
 
-        # Test out of bounds date
+        # Empty check
         f = feed.get_feed_time_series(trips_stats, '20010101')
-        self.assertIsNone(f)
+        self.assertTrue(f.empty)
 
     def test_get_busiest_date(self):
         feed = copy(cairns)
