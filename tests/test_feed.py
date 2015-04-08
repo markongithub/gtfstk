@@ -1,5 +1,6 @@
 import unittest
 from copy import copy
+import shutil
 
 import pandas as pd 
 import numpy as np
@@ -42,12 +43,10 @@ class TestFeed(unittest.TestCase):
             # Should be a data frame of the correct shape
             self.assertIsInstance(rs, pd.core.frame.DataFrame)
             if split_directions:
-                f['tmp'] = f['route_id'] + '-' +\
-                  f['direction_id'].map(str)
+                max_num_routes = 2*feed.routes.shape[0]
             else:
-                f['tmp'] = f['route_id'].copy()
-            expect_num_routes = len(f['tmp'].unique())
-            self.assertEqual(rs.shape[0], expect_num_routes)
+                max_num_routes = feed.routes.shape[0]
+            self.assertTrue(rs.shape[0] <= max_num_routes)
 
             # Should contain the correct columns
             expect_cols = set([
@@ -72,10 +71,10 @@ class TestFeed(unittest.TestCase):
                 expect_cols.add('direction_id')
             self.assertEqual(set(rs.columns), expect_cols)
 
-        # None check
+        # Empty check
         rs = get_routes_stats(pd.DataFrame(), 
           split_directions=split_directions)    
-        self.assertIsNone(rs)
+        self.assertTrue(rs.empty)
 
     def test_get_routes_time_series_outer(self):
         feed = copy(cairns)
@@ -105,11 +104,11 @@ class TestFeed(unittest.TestCase):
                     expect = g.get_group(route)['distance'].sum()
                     self.assertTrue(abs((get - expect)/expect) < 0.001)
 
-        # None check
+        # Empty check
         rts = get_routes_time_series(pd.DataFrame(), 
           split_directions=split_directions, 
           freq='1H')    
-        self.assertIsNone(rts)
+        self.assertTrue(rts.empty)
 
     def test_get_routes(self):
         feed = copy(cairns)
@@ -144,12 +143,11 @@ class TestFeed(unittest.TestCase):
             # Should be a data frame of the correct shape
             self.assertIsInstance(rs, pd.core.frame.DataFrame)
             if split_directions:
-                f['tmp'] = f['route_id'] + '-' +\
-                  f['direction_id'].map(str)
+                max_num_routes = 2*feed.routes.shape[0]
             else:
-                f['tmp'] = f['route_id'].copy()
-            expect_num_routes = len(f['tmp'].unique())
-            self.assertEqual(rs.shape[0], expect_num_routes)
+                max_num_routes = feed.routes.shape[0]
+                
+            self.assertTrue(rs.shape[0] <= max_num_routes)
 
             # Should contain the correct columns
             expect_cols = set([
@@ -174,9 +172,9 @@ class TestFeed(unittest.TestCase):
                 expect_cols.add('direction_id')
             self.assertEqual(set(rs.columns), expect_cols)
 
-        # Test out of bounds date
+        # Empty check
         f = feed.get_routes_stats(trips_stats, '20010101')
-        self.assertIsNone(f)
+        self.assertTrue(f.empty)
 
     def test_get_routes_time_series(self):
         feed = copy(cairns)
@@ -209,11 +207,11 @@ class TestFeed(unittest.TestCase):
                     expect = atsg.get_group(route)['distance'].sum()
                     self.assertTrue(abs((get - expect)/expect) < 0.001)
 
-        # None check
+        # Empty check
         date = '19000101'
         rts = feed.get_routes_time_series(trips_stats, date, 
           split_directions=split_directions, freq='1H')
-        self.assertIsNone(rts)
+        self.assertTrue(rts.empty)
 
     def test_get_route_timetable(self):
         feed = copy(cairns)
@@ -376,6 +374,10 @@ class TestFeed(unittest.TestCase):
             get_stops = set(stops_stats['stop_id'].values)
             self.assertEqual(get_stops, expect_stops)
 
+        # Empty check
+        stats = get_stops_stats(pd.DataFrame())    
+        self.assertTrue(stats.empty)
+
     def test_get_stops_time_series_outer(self):
         feed = copy(cairns)
         st = pd.merge(feed.stop_times, 
@@ -407,10 +409,10 @@ class TestFeed(unittest.TestCase):
                     expect = stg.get_group(stop)['departure_time'].count()
                     self.assertEqual(get, expect)
         
-        # None check
+        # Empty check
         stops_ts = get_stops_time_series(pd.DataFrame(), freq='1H',
           split_directions=split_directions) 
-        self.assertIsNone(stops_ts)
+        self.assertTrue(stops_ts.empty)
 
     def test_get_stops(self):
         feed = copy(cairns)
@@ -458,9 +460,9 @@ class TestFeed(unittest.TestCase):
         expect_stops = set(f['stop_id'].values)
         self.assertEqual(get_stops, expect_stops)
         
-        # Test out of bounds date
+        # Empty check
         f = feed.get_stops_stats('20010101')
-        self.assertIsNone(f)
+        self.assertTrue(f.empty)
 
     def test_get_stops_time_series(self):
         feed = copy(cairns)
@@ -494,11 +496,11 @@ class TestFeed(unittest.TestCase):
                     expect = astg.get_group(stop)['departure_time'].count()
                     self.assertEqual(get, expect)
         
-        # None check
+        # Empty check
         date = '19000101'
         stops_ts = feed.get_stops_time_series(date, freq='1H',
           split_directions=split_directions) 
-        self.assertIsNone(stops_ts)
+        self.assertTrue(stops_ts.empty)
 
     def test_get_stop_timetable(self):
         feed = copy(cairns)
@@ -637,9 +639,9 @@ class TestFeed(unittest.TestCase):
           ])
         self.assertEqual(set(f.columns), expect_cols)
 
-        # Test out of bounds date
+        # Empty check
         f = feed.get_feed_stats(trips_stats, '20010101')
-        self.assertIsNone(f)
+        self.assertTrue(f.empty)
 
     def test_get_feed_time_series(self):
         feed = copy(cairns)
@@ -660,9 +662,9 @@ class TestFeed(unittest.TestCase):
           ])
         self.assertEqual(set(f.columns), expect_cols)
 
-        # Test out of bounds date
+        # Empty check
         f = feed.get_feed_time_series(trips_stats, '20010101')
-        self.assertIsNone(f)
+        self.assertTrue(f.empty)
 
     def test_get_busiest_date(self):
         feed = copy(cairns)
@@ -680,13 +682,33 @@ class TestFeed(unittest.TestCase):
         feed2 = Feed(path)
         names = REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
         for name in names:
-            attr1 = getattr(feed1, name)
-            attr2 = getattr(feed2, name)
-            print(attr1)
-            if attr1 is not None:
-                assert_frame_equal(attr1, attr2)
+            f1 = getattr(feed1, name)
+            f2 = getattr(feed2, name)
+            if f1 is None:
+                self.assertIsNone(f2)
             else:
-                self.assertIsNone(attr2)
+                assert_frame_equal(f1, f2)
+
+        # Test that integer columns with NaNs get output properly.
+        # To this end, put a NaN, 1.0, and 0.0 in the direction_id column 
+        # of trips.txt, export it, and import the column as strings.
+        # Should only get np.nan, '0', and '1' entries.
+        feed3 = copy(cairns)
+        f = feed3.trips.copy()
+        f['direction_id'] = f['direction_id'].astype(object)
+        f.loc[0, 'direction_id'] = np.nan
+        f.loc[1, 'direction_id'] = 1.0
+        f.loc[2, 'direction_id'] = 0.0
+        feed3.trips = f
+        feed3.export(path)
+        archive = zipfile.ZipFile(path)
+        dir_name = path.rstrip('.zip') + '/'
+        archive.extractall(dir_name)
+        t = pd.read_csv(dir_name + 'trips.txt', dtype={'direction_id': str})
+        self.assertTrue(t[~t['direction_id'].isin([np.nan, '0', '1'])].empty)
+        # Remove extracted directory
+        shutil.rmtree(dir_name)
+
 
     # Test other methods
     # ----------------------------------
