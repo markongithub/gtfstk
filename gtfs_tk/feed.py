@@ -537,7 +537,8 @@ def downsample(time_series, freq):
     shorter than the original frequency.
     """    
     # Can't downsample to a shorter frequency
-    if pd.tseries.frequencies.to_offset(freq) < time_series.index.freq:
+    if time_series.empty or\
+      pd.tseries.frequencies.to_offset(freq) < time_series.index.freq:
         return time_series
 
     result = None
