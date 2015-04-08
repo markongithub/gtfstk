@@ -9,6 +9,7 @@ docs/feed.rst
 docs/index.rst
 docs/introduction.rst
 docs/utils.rst
+docs/_build/.DS_Store
 docs/_build/doctrees/environment.pickle
 docs/_build/doctrees/feed.doctree
 docs/_build/doctrees/index.doctree
@@ -52,9 +53,14 @@ docs/_build/html/_static/up-pressed.png
 docs/_build/html/_static/up.png
 docs/_build/html/_static/websupport.js
 examples/examples.ipynb
-examples/.ipynb_checkpoints/Untitled0-checkpoint.ipynb
 examples/.ipynb_checkpoints/examples-checkpoint.ipynb
-examples/.ipynb_checkpoints/gtfs_toolkit_examples-checkpoint.ipynb
+examples/stats/notes.rst
+examples/stats/routes_stats.csv
+examples/stats/routes_time_series_1H.csv
+examples/stats/routes_time_series_agg.pdf
+examples/stats/stops_stats.csv
+examples/stats/stops_time_series_1H.csv
+examples/stats/trips_stats.csv
 gtfs_tk/__init__.py
 gtfs_tk/feed.py
 gtfs_tk/utils.py
