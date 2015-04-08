@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.11.10 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.11.11 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.10',
+        VERSION:     '0.11.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.10 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.11 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body role="document">
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.11 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -106,7 +106,7 @@ This is the case for several trips in the Portland feed, for example.</p>
 
 <dl class="method">
 <dt id="gtfs_tk.feed.Feed.export">
-<code class="descname">export</code><span class="sig-paren">(</span><em>path</em>, <em>ndigits=5</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.export" title="Permalink to this definition">¶</a></dt>
+<code class="descname">export</code><span class="sig-paren">(</span><em>path</em>, <em>ndigits=6</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.export" title="Permalink to this definition">¶</a></dt>
 <dd><p>Export this feed to a zip archive located at <code class="docutils literal"><span class="pre">path</span></code>.
 Round all decimals to <code class="docutils literal"><span class="pre">ndigits</span></code> decimal places.
 All distances will be displayed in kilometers.</p>
@@ -148,7 +148,7 @@ the peak number of trips occurs</li>
 <li>service_duration: sum of the service durations for the active routes</li>
 <li>service_speed: service_distance/service_duration</li>
 </ul>
-<p>Return <code class="docutils literal"><span class="pre">None</span></code> if the date does not lie in this feed&#8217;s date range.</p>
+<p>If there are no stats for the given date, return an empty data frame.</p>
 </dd></dl>
 
 <dl class="method">
@@ -167,6 +167,8 @@ this time period</li>
 time period</li>
 <li>service_speed: service_distance/service_duration</li>
 </ul>
+<p>If there is no time series for the given date, 
+return an empty data frame.</p>
 </dd></dl>
 
 <dl class="method">
@@ -543,6 +545,7 @@ In this case, (1) compute max headway by taking the max of the max
 headways in both directions; 
 (2) compute mean headway by taking the weighted mean of the mean
 headways in both directions.</p>
+<p>If <code class="docutils literal"><span class="pre">trips_stats_subset</span></code> is empty, return an empty data frame.</p>
 </dd></dl>
 
 <dl class="function">
@@ -565,13 +568,12 @@ The maximum allowable frequency is 1 minute.
 <p>The columns of the data frame are hierarchical (multi-index) with</p>
 <ul class="simple">
 <li>top level: name = &#8216;indicator&#8217;, values = [&#8216;service_distance&#8217;,
-&#8216;service_duration&#8217;, &#8216;num_trip_starts&#8217;, 
-&#8216;num_trips&#8217;, &#8216;service_speed&#8217;]</li>
+&#8216;service_duration&#8217;, &#8216;num_trip_starts&#8217;, &#8216;num_trips&#8217;, &#8216;service_speed&#8217;]</li>
 <li>middle level: name = &#8216;route_id&#8217;, values = the active routes</li>
 <li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
 </ul>
 <p>If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then don&#8217;t include the bottom level.</p>
-<p>If <code class="docutils literal"><span class="pre">trips_stats_subset</span></code> is <code class="docutils literal"><span class="pre">None</span></code> or empty, then return <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<p>If <code class="docutils literal"><span class="pre">trips_stats_subset</span></code> is empty, then return an empty data frame.</p>
 <p>NOTES:</p>
 <ul>
 <li><dl class="first docutils">
@@ -619,6 +621,7 @@ on the given date</li>
 </ul>
 <p>If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then compute each stop&#8217;s stats
 using trips visiting it from both directions.</p>
+<p>If <code class="docutils literal"><span class="pre">stop_times_subset</span></code> is empty, then return an empty data frame.</p>
 </dd></dl>
 
 <dl class="function">
@@ -642,7 +645,7 @@ a date string of the form &#8216;%Y%m%d&#8217;.</p>
 <li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
 </ul>
 <p>If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then don&#8217;t include the bottom level.</p>
-<p>If <code class="docutils literal"><span class="pre">stop_times_subset</span></code> is <code class="docutils literal"><span class="pre">None</span></code> or empty, then return <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<p>If <code class="docutils literal"><span class="pre">stop_times_subset</span></code> is empty, then return an empty data frame.</p>
 <p>NOTES:</p>
 <ul class="simple">
 <li>&#8216;num_trips&#8217; should be resampled with <code class="docutils literal"><span class="pre">how=np.sum</span></code></li>
@@ -726,7 +729,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.11 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
