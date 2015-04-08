@@ -43,6 +43,35 @@ OPTIONAL_GTFS_FILES = [
   'transfers',   
   'feed_info',
   ]
+# Columns that must be formatted as int/str in GTFS and not float;
+# useful in export().
+INT_COLS = [
+  'location_type',
+  'parent_station',
+  'wheelchair_boarding',
+  'route_type',
+  'direction_id',
+  'stop_sequence',
+  'wheelchair_accessible',
+  'bikes_allowed',
+  'pickup_type',
+  'dropoff_type',
+  'timepoint',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+  'exception_type',
+  'payment_method',
+  'transfers',
+  'shape_pt_sequence',
+  'exact_times',
+  'transfer_type',
+]
+
 DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
 
 def count_active_trips(trips, time):
@@ -110,9 +139,11 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     headways in both directions; 
     (2) compute mean headway by taking the weighted mean of the mean
     headways in both directions. 
+
+    If ``trips_stats_subset`` is empty, return an empty data frame.
     """        
-    if trips_stats_subset is None or trips_stats_subset.empty:
-        return None
+    if trips_stats_subset.empty:
+        return pd.DataFrame()
 
     # Convert trip start and end times to seconds to ease calculations below
     f = trips_stats_subset.copy()
@@ -242,14 +273,13 @@ def get_routes_time_series(trips_stats_subset,
     The columns of the data frame are hierarchical (multi-index) with
 
     - top level: name = 'indicator', values = ['service_distance',
-      'service_duration', 'num_trip_starts', 
-      'num_trips', 'service_speed']
+      'service_duration', 'num_trip_starts', 'num_trips', 'service_speed']
     - middle level: name = 'route_id', values = the active routes
     - bottom level: name = 'direction_id', values = 0s and 1s
 
     If ``split_directions == False``, then don't include the bottom level.
     
-    If ``trips_stats_subset`` is ``None`` or empty, then return ``None``.
+    If ``trips_stats_subset`` is empty, then return an empty data frame.
 
     NOTES:
 
@@ -262,8 +292,8 @@ def get_routes_time_series(trips_stats_subset,
       time series f, do ``f.index = [t.time().strftime('%H:%M') 
       for t in f.index.to_datetime()]``
     """  
-    if trips_stats_subset is None or trips_stats_subset.empty:
-        return None
+    if trips_stats_subset.empty:
+        return pd.DataFrame()
 
     tss = trips_stats_subset.copy()
     if split_directions:
@@ -273,7 +303,6 @@ def get_routes_time_series(trips_stats_subset,
           tss['direction_id'].map(str)
         
     routes = tss['route_id'].unique()
-    
     # Build a dictionary of time series and then merge them all
     # at the end
     # Assign a uniform generic date for the index
@@ -373,9 +402,11 @@ def get_stops_stats(stop_times_subset, split_directions=False,
 
     If ``split_directions == False``, then compute each stop's stats
     using trips visiting it from both directions.
+
+    If ``stop_times_subset`` is empty, then return an empty data frame.
     """
-    if stop_times_subset is None or stop_times_subset.empty:
-        return None
+    if stop_times_subset.empty:
+        return pd.DataFrame()
 
     f = stop_times_subset.copy()
 
@@ -443,7 +474,7 @@ def get_stops_time_series(stop_times_subset, split_directions=False,
 
     If ``split_directions == False``, then don't include the bottom level.
     
-    If ``stop_times_subset`` is ``None`` or empty, then return ``None``.
+    If ``stop_times_subset`` is empty, then return an empty data frame.
 
     NOTES:
 
@@ -452,8 +483,8 @@ def get_stops_time_series(stop_times_subset, split_directions=False,
       the time series f, do ``f.index = [t.time().strftime('%H:%M') 
       for t in f.index.to_datetime()]``
     """  
-    if stop_times_subset is None or stop_times_subset.empty:
-        return None
+    if stop_times_subset.empty:
+        return pd.DataFrame()
 
     f = stop_times_subset.copy()
 
@@ -506,7 +537,8 @@ def downsample(time_series, freq):
     shorter than the original frequency.
     """    
     # Can't downsample to a shorter frequency
-    if pd.tseries.frequencies.to_offset(freq) < time_series.index.freq:
+    if time_series.empty or\
+      pd.tseries.frequencies.to_offset(freq) < time_series.index.freq:
         return time_series
 
     result = None
@@ -1716,13 +1748,13 @@ class Feed(object):
         - service_duration: sum of the service durations for the active routes
         - service_speed: service_distance/service_duration
 
-        Return ``None`` if the date does not lie in this feed's date range.
+        If there are no stats for the given date, return an empty data frame.
         """
-        if date not in self.get_dates():
-            return
-
         d = OrderedDict()
         trips = self.get_trips(date)
+        if trips.empty:
+            return pd.DataFrame()
+
         d['num_trips'] = trips.shape[0]
         d['num_routes'] = self.get_routes(date).shape[0]
         d['num_stops'] = self.get_stops(date).shape[0]
@@ -1762,11 +1794,14 @@ class Feed(object):
         - service_duration: duration traveled by all active trips during this
           time period
         - service_speed: service_distance/service_duration
-        """
-        if date not in self.get_dates():
-            return
 
+        If there is no time series for the given date, 
+        return an empty data frame.
+        """
         rts = self.get_routes_time_series(trips_stats, date, freq=freq)
+        if rts.empty:
+            return pd.DataFrame()
+
         stats = rts.columns.levels[0].tolist()
         # split_directions = 'direction_id' in rts.columns.names
         # if split_directions:
@@ -1790,7 +1825,7 @@ class Feed(object):
         f['service_speed'] = f['service_distance']/f['service_duration']
         return f
 
-    def export(self, path, ndigits=5):
+    def export(self, path, ndigits=6):
         """
         Export this feed to a zip archive located at ``path``.
         Round all decimals to ``ndigits`` decimal places.
@@ -1803,11 +1838,21 @@ class Feed(object):
         # Write files to a temporary directory 
         tmp_dir = tempfile.mkdtemp()
         names = REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
+        int_cols_set = set(INT_COLS)
         for name in names:
-            if getattr(self, name) is None:
+            f = getattr(self, name)
+            if f is None:
                 continue
+            f = f.copy()
+            # Some columns need to be output as integers.
+            # If there are integers and NaNs in any such column, 
+            # then Pandas will format the column as float, which we don't want.
+            s = list(int_cols_set & set(f.columns))
+            if s:
+                f[s] = f[s].fillna(-1).astype(int).astype(str).\
+                  replace('-1', '')
             tmp_path = os.path.join(tmp_dir, name + '.txt')
-            getattr(self, name).to_csv(tmp_path, index=False, 
+            f.to_csv(tmp_path, index=False, 
               float_format='%.{!s}f'.format(ndigits))
 
         # Zip directory 

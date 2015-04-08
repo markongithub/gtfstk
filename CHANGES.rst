@@ -1,6 +1,11 @@
 Changes
 ========
 
+v0.11.11 (2015-04-08)
+---------------------
+- Changed most functions to return an empty data frame instead of ``None``
+- Fixed ``export()`` so that integer columns, such as 'bike_allowed', that have at least on NaN value no longer get formatted as floats in the output CSVs
+
 v0.11.10 (2015-04-03)
 ---------------------
 - Reduced columns in ``get_trips_activity()``
