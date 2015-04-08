@@ -303,7 +303,6 @@ def get_routes_time_series(trips_stats_subset,
           tss['direction_id'].map(str)
         
     routes = tss['route_id'].unique()
-    print(routes)
     # Build a dictionary of time series and then merge them all
     # at the end
     # Assign a uniform generic date for the index
