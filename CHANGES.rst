@@ -1,6 +1,10 @@
 Changes
 ========
 
+v0.11.12 (2015-04-13)
+---------------------
+- Now you can specify the output distance units
+
 v0.11.11 (2015-04-08)
 ---------------------
 - Changed most functions to return an empty data frame instead of ``None``

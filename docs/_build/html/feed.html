@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed Module &mdash; GTFS Toolkit 0.11.11 documentation</title>
+    <title>The feed Module &mdash; GTFS Toolkit 0.11.12 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.11',
+        VERSION:     '0.11.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.11 documentation" href="index.html" />
+    <link rel="top" title="GTFS Toolkit 0.11.12 documentation" href="index.html" />
     <link rel="prev" title="The utils Module" href="utils.html" /> 
   </head>
   <body role="document">
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.11 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.12 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -60,7 +60,7 @@ the form &#8216;%Y%m%d&#8217; and times are encoded as time strings of the form 
 with the possibility that the hour is greater than 24.</p>
 <dl class="class">
 <dt id="gtfs_tk.feed.Feed">
-<em class="property">class </em><code class="descclassname">gtfs_tk.feed.</code><code class="descname">Feed</code><span class="sig-paren">(</span><em>path</em>, <em>original_units='km'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gtfs_tk.feed.</code><code class="descname">Feed</code><span class="sig-paren">(</span><em>path</em>, <em>dist_units_in='km'</em>, <em>dist_units_out='km'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>A class to gather all the GTFS files for a feed and store them in memory 
 as Pandas data frames.  
@@ -109,7 +109,7 @@ This is the case for several trips in the Portland feed, for example.</p>
 <code class="descname">export</code><span class="sig-paren">(</span><em>path</em>, <em>ndigits=6</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.export" title="Permalink to this definition">¶</a></dt>
 <dd><p>Export this feed to a zip archive located at <code class="docutils literal"><span class="pre">path</span></code>.
 Round all decimals to <code class="docutils literal"><span class="pre">ndigits</span></code> decimal places.
-All distances will be displayed in kilometers.</p>
+All distances will be displayed in units <code class="docutils literal"><span class="pre">self.dist_units_out</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -422,15 +422,15 @@ column.</p>
 <li>end_stop_id: stop ID of the last stop of the trip</li>
 <li>is_loop: 1 if the start and end stop are less than 400m apart and
 0 otherwise</li>
-<li>distance: distance of the trip in kilometers; contains all <code class="docutils literal"><span class="pre">np.nan</span></code>
-entries if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
+<li>distance: distance of the trip in <code class="docutils literal"><span class="pre">self.dist_units_out</span></code>; 
+contains all <code class="docutils literal"><span class="pre">np.nan</span></code> entries if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
 <li>duration: duration of the trip in hours</li>
 <li>speed: distance/duration</li>
 </ul>
 <p>NOTES:</p>
 <p>If <code class="docutils literal"><span class="pre">self.stop_times</span></code> has a <code class="docutils literal"><span class="pre">shape_dist_traveled</span></code> column
 and <code class="docutils literal"><span class="pre">get_dist_from_shapes</span> <span class="pre">==</span> <span class="pre">False</span></code>,
-then use that column to compute the distance column (in km).
+then use that column to compute the distance column.
 Else if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code>, then compute the distance 
 column using the shapes and Shapely. 
 Otherwise, set the distances to <code class="docutils literal"><span class="pre">np.nan</span></code>.</p>
@@ -531,10 +531,11 @@ the peak number of trips occurs</li>
 the route in the given subset of trips; measured in hours</li>
 <li>service_distance: total of the distance traveled by each trip on 
 the route in the given subset of trips;
-measured in kilometers; 
+measured in wunits, that is, 
+whatever distance units are present in trips_stats_subset; 
 contains all <code class="docutils literal"><span class="pre">np.nan</span></code> entries if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
 <li>service_speed: service_distance/service_duration;
-measured in kilometers per hour</li>
+measured in wunits per hour</li>
 <li>mean_trip_distance: service_distance/num_trips</li>
 <li>mean_trip_duration: service_duration/num_trips</li>
 </ul>
@@ -729,7 +730,7 @@ for a nice-looking plot.</p>
         <li class="right" >
           <a href="utils.html" title="The utils Module"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.11 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.12 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

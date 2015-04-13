@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 from shapely.geometry import Point
 
+DISTANCE_UNITS = ['ft', 'mi', 'm', 'km']
+
 def time_it(f):
     def wrap(*args, **kwargs):
         t1 = dt.datetime.now()
@@ -96,20 +98,6 @@ def weekday_to_str(weekday, inverse=False):
         except:
             return
 
-def to_km(x, units='km'):
-    """
-    Given a distance ``x`` in units ``units``,
-    convert it to kilometers and return the result.
-    """
-    if units == 'km':
-        return x
-    if units == 'm':
-        return x/1000
-    if units == 'mi':
-        return x*1.6093
-    if units == 'ft':
-        return x*0.00030480
-
 def clean_series(series, nan_prefix='n/a', mark='-'):
     """
     Given a series of items, replace NaN entries
@@ -199,3 +187,23 @@ def get_peak_indices(times, counts):
 
     index = np.argmax(np.apply_along_axis(get_duration, 1, max_runs))
     return max_runs[index]
+
+def get_convert_dist(dist_units_in, dist_units_out):
+    """
+    Return a function of the form
+      distance in the units ``dist_units_in`` -> 
+      distance in the units ``dist_units_out``
+    Only supports distance units in ``DISTANCE_UNITS``.
+    """
+    di, do = dist_units_in, dist_units_out
+    DU = DISTANCE_UNITS
+    assert di in DU and do in DU,\
+      'Distance units must lie in {!s}'.format(DU)
+
+    d = {
+      'ft': {'ft': 1, 'm': 0.3048, 'mi': 1/5280, 'km': 0.0003048,},
+      'm':  {'ft': 1/0.3048, 'm': 1, 'mi': 1/1609.344, 'km': 1/1000,},
+      'mi': {'ft': 5280, 'm': 1609.344, 'mi': 1, 'km': 1.609344,},
+      'km': {'ft': 1/0.0003048, 'm': 1000, 'mi': 1/1.609344, 'km': 1,},
+      }
+    return lambda x: d[di][do]*x
