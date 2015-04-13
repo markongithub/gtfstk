@@ -47,7 +47,6 @@ OPTIONAL_GTFS_FILES = [
 # useful in export().
 INT_COLS = [
   'location_type',
-  'parent_station',
   'wheelchair_boarding',
   'route_type',
   'direction_id',

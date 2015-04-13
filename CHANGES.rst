@@ -1,6 +1,10 @@
 Changes
 ========
 
+v0.11.13 (2015-04-14)
+---------------------
+- Removed ``parent_station`` from ``INT_COLS``, which should have never been there in the first place
+
 v0.11.12 (2015-04-13)
 ---------------------
 - Now you can specify the output distance units
