@@ -797,7 +797,7 @@ class Feed(object):
           'route_short_name': str})
         self.trips = pd.read_csv(path + 'trips.txt', dtype={'route_id': str,
           'trip_id': str, 'service_id': str, 'shape_id': str, 'stop_id': str})
-        self.trips_t = self.trips.set_index('trip_id')
+        self.trips_i = self.trips.set_index('trip_id')
         st = pd.read_csv(path + 'stop_times.txt', dtype={'stop_id': str,
           'trip_id': str})
     
@@ -819,26 +819,36 @@ class Feed(object):
 
         # One of calendar.txt and calendar_dates.txt is
         # required by the GTFS.
-        if os.path.isfile(path + 'calendar.txt'):
-            self.calendar = pd.read_csv(path + 'calendar.txt', 
+        if os.path.isfile(path + 'calendar.txt') and\
+          not pd.read_csv(path + 'calendar.txt').empty:
+            calendar = pd.read_csv(path + 'calendar.txt', 
               dtype={'service_id': str, 'start_date': str, 'end_date': str})
+            self.calendar = calendar
             # Index by service ID to make self.is_active_trip() fast
-            self.calendar_s = self.calendar.set_index('service_id')
+            self.calendar_i = calendar.set_index('service_id')
         else:
             self.calendar = None
-            self.calendar_s = None
-        if os.path.isfile(path + 'calendar_dates.txt'):
-            self.calendar_dates = pd.read_csv(path + 'calendar_dates.txt', 
+            self.calendar_i = None
+
+        if os.path.isfile(path + 'calendar_dates.txt') and\
+          not pd.read_csv(path + 'calendar_dates.txt').empty:
+            calendar_dates = pd.read_csv(path + 'calendar_dates.txt', 
               dtype={'service_id': str, 'date': str})
-            # Group by service ID and date to make self.is_active_trip() fast
-            self.calendar_dates_g = self.calendar_dates.groupby(
+            self.calendar_dates = calendar_dates
+            # Group by service ID and date to make 
+            # self.is_active_trip() fast
+            self.calendar_dates_g = calendar_dates.groupby(
               ['service_id', 'date'])
         else:
             self.calendar_dates = None
             self.calendar_dates_g = None
 
+        assert self.calendar is not None or self.calendar_dates is not None,\
+          'One of calendar.txt or calendar_dates.txt must be non-empty'
+
         # Get optional GTFS files if they exist
-        if os.path.isfile(path + 'shapes.txt'):
+        if os.path.isfile(path + 'shapes.txt') and\
+          not pd.read_csv(path + 'shapes.txt').empty:
             shapes = pd.read_csv(path + 'shapes.txt', 
               dtype={'shape_id': str})
             # Convert distances
@@ -853,8 +863,9 @@ class Feed(object):
         for f in [f for f in OPTIONAL_GTFS_FILES 
           if f not in ['shapes', 'calendar_dates']]:
             p = path + f + '.txt'
-            if os.path.isfile(p):
-                setattr(self, f, pd.read_csv(p))
+            if os.path.isfile(p) and\
+              not pd.read_csv(p).empty:
+                    setattr(self, f, pd.read_csv(p))
             else:
                 setattr(self, f, None)
 
@@ -878,7 +889,7 @@ class Feed(object):
         etc. that are active on a given date, 
         so the method needs to be fast. 
         """
-        service = self.trips_t.at[trip, 'service_id']
+        service = self.trips_i.at[trip, 'service_id']
         # Check self.calendar_dates_g.
         caldg = self.calendar_dates_g
         if caldg is not None:
@@ -889,14 +900,14 @@ class Feed(object):
                 else:
                     # Exception type is 2
                     return False
-        # Check self.calendar_s
-        cals = self.calendar_s
-        if cals is not None:
-            if service in cals.index:
+        # Check self.calendar_i
+        cali = self.calendar_i
+        if cali is not None:
+            if service in cali.index:
                 weekday_str = utils.weekday_to_str(
                   utils.datestr_to_date(date).weekday())
-                if cals.at[service, 'start_date'] <= date <= cals.at[service,
-                  'end_date'] and cals.at[service, weekday_str] == 1:
+                if cali.at[service, 'start_date'] <= date <= cali.at[service,
+                  'end_date'] and cali.at[service, weekday_str] == 1:
                     return True
                 else:
                     return False
