@@ -3,7 +3,7 @@ Changes
 
 v0.11.14 (2015-04-14)
 ---------------------
-- Added data frame empty checks to ``Feed.__init__()``
+- Added data frame empty checks to ``Feed.__init__()``, because i was getting errors on feeds with empty ``calendar.txt`` files
 
 v0.11.13 (2015-04-14)
 ---------------------
