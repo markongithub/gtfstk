@@ -22,7 +22,7 @@ class TestFeed(unittest.TestCase):
         # Test distance units check
         self.assertRaises(AssertionError, Feed, 
           path='data/cairns_gtfs.zip', 
-          original_units='bingo')
+          dist_units_in='bingo')
         # Test file checks
         feed = Feed('data/cairns_gtfs.zip')
         for f in REQUIRED_GTFS_FILES + ['calendar_dates', 'shapes']:

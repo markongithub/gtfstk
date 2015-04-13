@@ -72,8 +72,6 @@ INT_COLS = [
   'transfer_type',
 ]
 
-DISTANCE_UNITS = ['km', 'm', 'mi', 'ft']
-
 def count_active_trips(trips, time):
     """
     Given a Pandas data frame containing the rows
@@ -125,10 +123,11 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
       the route in the given subset of trips; measured in hours
     - service_distance: total of the distance traveled by each trip on 
       the route in the given subset of trips;
-      measured in kilometers; 
+      measured in wunits, that is, 
+      whatever distance units are present in trips_stats_subset; 
       contains all ``np.nan`` entries if ``self.shapes is None``  
     - service_speed: service_distance/service_duration;
-      measured in kilometers per hour
+      measured in wunits per hour
     - mean_trip_distance: service_distance/num_trips
     - mean_trip_duration: service_duration/num_trips
 
@@ -749,15 +748,17 @@ class Feed(object):
     Make sure you have enough memory!  
     The stop times object can be big.
     """
-    def __init__(self, path, original_units='km'):
+    def __init__(self, path, dist_units_in='km', dist_units_out='km'):
         """
         Read in all the relevant GTFS text files within the directory or 
         ZIP file given by ``path`` and assign them to instance attributes.
         Assume the zip file unzips as a collection of GTFS text files
         rather than as a directory of GTFS text files.
-        Set the ``original_units`` to the original distance units of this 
-        feed; valid options are listed in ``DISTANCE_UNITS``.
-        All distance units will then be converted to kilometers.
+        Set ``dist_units_in`` to the original distance units of this 
+        feed.
+        They will all be converted to the distance units specified by 
+        ``dist_units_out`` in the methods below.
+        Supported distance units are listed in ``utils.DISTANCE_UNITS``.
         """
         zipped = False
         if zipfile.is_zipfile(path):
@@ -768,9 +769,14 @@ class Feed(object):
             archive.extractall(path)
 
         # Get distance units
-        assert original_units in DISTANCE_UNITS,\
-            'Units must be one of {!s}'.format(DISTANCE_UNITS)
-        self.original_units = original_units
+        di, do = dist_units_in, dist_units_out
+        DU = utils.DISTANCE_UNITS
+        assert di in DU and do in DU,\
+          'Distance units must lie in {!s}'.format(DU)
+        self.dist_units_in = di
+        self.dist_units_out = do
+        # Function that converts distances from di to do
+        self.convert_dist = utils.get_convert_dist(di, do)
 
         # Check that the required GTFS files exist
         for f in REQUIRED_GTFS_FILES:
@@ -806,10 +812,10 @@ class Feed(object):
 
         st[['arrival_time', 'departure_time']] =\
           st[['arrival_time', 'departure_time']].applymap(reformat_times)
-        # Convert distances to kilometers
+        # Convert distances
         if 'shape_dist_traveled' in st.columns:
             st['shape_dist_traveled'] = st['shape_dist_traveled'].map(
-              lambda x: utils.to_km(x, original_units))
+              self.convert_dist)
         self.stop_times = st
 
         # One of calendar.txt and calendar_dates.txt is
@@ -836,11 +842,10 @@ class Feed(object):
         if os.path.isfile(path + 'shapes.txt'):
             shapes = pd.read_csv(path + 'shapes.txt', 
               dtype={'shape_id': str})
-            # Convert distances to kilometers
+            # Convert distances
             if 'shape_dist_traveled' in shapes.columns:
                 shapes['shape_dist_traveled'] =\
-                  shapes['shape_dist_traveled'].map(
-                  lambda x: utils.to_km(x, original_units))
+                  shapes['shape_dist_traveled'].map(self.convert_dist)
             self.shapes = shapes
         else:
             self.shapes = None
@@ -974,8 +979,8 @@ class Feed(object):
         - end_stop_id: stop ID of the last stop of the trip
         - is_loop: 1 if the start and end stop are less than 400m apart and
           0 otherwise
-        - distance: distance of the trip in kilometers; contains all ``np.nan``
-          entries if ``self.shapes is None``
+        - distance: distance of the trip in ``self.dist_units_out``; 
+          contains all ``np.nan`` entries if ``self.shapes is None``
         - duration: duration of the trip in hours
         - speed: distance/duration
 
@@ -983,7 +988,7 @@ class Feed(object):
 
         If ``self.stop_times`` has a ``shape_dist_traveled`` column
         and ``get_dist_from_shapes == False``,
-        then use that column to compute the distance column (in km).
+        then use that column to compute the distance column.
         Else if ``self.shapes is not None``, then compute the distance 
         column using the shapes and Shapely. 
         Otherwise, set the distances to ``np.nan``.
@@ -1037,6 +1042,7 @@ class Feed(object):
             # Compute distances using the shapes and Shapely
             linestring_by_shape = self.get_linestring_by_shape()
             point_by_stop = self.get_point_by_stop()
+            m_to_dist = utils.get_convert_dist('m', self.dist_units_out)
 
             def get_dist(group):
                 """
@@ -1059,7 +1065,7 @@ class Feed(object):
                 # errors in the computation below, so just 
                 # return the length of the linestring as a good approximation
                 if not linestring.is_simple:
-                    return linestring.length/1000
+                    return linestring.length
 
                 # Otherwise, return the difference of the distances along
                 # the linestring of the first and last stop
@@ -1071,18 +1077,20 @@ class Feed(object):
                 except KeyError:
                     # One of the two stop IDs is NaN, so just
                     # return the length of the linestring
-                    return linestring.length/1000
+                    return linestring.length
                 d1 = linestring.project(start_point)
                 d2 = linestring.project(end_point)
                 d = d2 - d1
                 if d > 0:
-                    return d/1000
+                    return d
                 else:
                     # Something is probably wrong, so just
                     # return the length of the linestring
-                    return linestring.length/1000
+                    return linestring.length
 
             h['distance'] = g.apply(get_dist)
+            # Convert from meters
+            h['distance'] = h['distance'].map(m_to_dist)
         else:
             h['distance'] = np.nan
 
@@ -1526,6 +1534,7 @@ class Feed(object):
           "This method requires the feed to have a shapes.txt file"
 
         f = self.shapes
+        m_to_dist = utils.get_convert_dist('m', self.dist_units_out)
 
         def get_dist(group):
             # Compute the distances of the stops along this trip
@@ -1541,14 +1550,16 @@ class Feed(object):
             d = 0
             distances = [0]
             for  p in points[1:]:
-                d += p.distance(p_prev)/1000
+                d += p.distance(p_prev)
                 distances.append(d)
                 p_prev = p
             group['shape_dist_traveled'] = distances
             return group
 
-        result = f.groupby('shape_id', group_keys=False).apply(get_dist)
-        self.shapes = result
+        g = f.groupby('shape_id', group_keys=False).apply(get_dist)
+        # Convert from meters
+        g['shape_dist_traveled'] = g['shape_dist_traveled'].map(m_to_dist)
+        self.shapes = g
 
     # Stop time methods
     # ----------------------------------
@@ -1603,6 +1614,7 @@ class Feed(object):
         # Convert departure times to seconds past midnight to ease calculations
         f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
         dist_by_stop_by_shape = {shape: {} for shape in linestring_by_shape}
+        m_to_dist = utils.get_convert_dist('m', self.dist_units_out)
 
         def get_dist(group):
             # Compute the distances of the stops along this trip
@@ -1621,11 +1633,9 @@ class Feed(object):
                 if stop in dist_by_stop_by_shape[shape]:
                     d = dist_by_stop_by_shape[shape][stop]
                 else:
-                    d = utils.get_segment_length(linestring, 
-                      point_by_stop[stop])
+                    d = m_to_dist(utils.get_segment_length(linestring, 
+                      point_by_stop[stop]))
                     dist_by_stop_by_shape[shape][stop] = d
-                # Convert from meters to kilometers
-                d /= 1000
                 distances.append(d)
             s = sorted(distances)
             if s == distances:
@@ -1636,8 +1646,7 @@ class Feed(object):
                 # opposes the direction of the bus trip.
                 distances = distances[::-1]
             else:
-                # Totally redo using trip's average speed and 
-                # linear interpolation.
+                # Totally redo using trip lengths and linear interpolation.
                 dt = group['departure_time']
                 times = dt.values # seconds
                 t0, t1 = times[0], times[-1]                  
@@ -1829,7 +1838,7 @@ class Feed(object):
         """
         Export this feed to a zip archive located at ``path``.
         Round all decimals to ``ndigits`` decimal places.
-        All distances will be displayed in kilometers.
+        All distances will be displayed in units ``self.dist_units_out``.
         """
         # Remove '.zip' extension from path, because it gets added
         # automatically below

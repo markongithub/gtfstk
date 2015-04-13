@@ -45,9 +45,11 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(datestr_to_date(datestr), date)
         self.assertEqual(datestr_to_date(date, inverse=True), datestr)
 
-    def test_to_km(self):
-        units = 'mi'
-        self.assertEqual(to_km(1, units), 1.6093)
+    def test_get_convert_dist(self):
+        di = 'mi'
+        do = 'km'
+        f = get_convert_dist(di, do)
+        self.assertEqual(f(1), 1.609344)
 
     def test_clean_series(self):
         feed = copy(cairns) # Has all non-NaN route short names
