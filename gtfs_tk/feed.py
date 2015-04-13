@@ -819,33 +819,36 @@ class Feed(object):
 
         # One of calendar.txt and calendar_dates.txt is
         # required by the GTFS.
-        if os.path.isfile(path + 'calendar.txt'):
+        if os.path.isfile(path + 'calendar.txt') and\
+          not pd.read_csv(path + 'calendar.txt').empty:
             calendar = pd.read_csv(path + 'calendar.txt', 
               dtype={'service_id': str, 'start_date': str, 'end_date': str})
-            if not calendar.empty:
-                self.calendar = calendar
-                # Index by service ID to make self.is_active_trip() fast
-                self.calendar_i = calendar.set_index('service_id')
-            else:
-                self.calendar = None
-                self.calendar_i = None
-        if os.path.isfile(path + 'calendar_dates.txt'):
+            self.calendar = calendar
+            # Index by service ID to make self.is_active_trip() fast
+            self.calendar_i = calendar.set_index('service_id')
+        else:
+            self.calendar = None
+            self.calendar_i = None
+
+        if os.path.isfile(path + 'calendar_dates.txt') and\
+          not pd.read_csv(path + 'calendar_dates.txt').empty:
             calendar_dates = pd.read_csv(path + 'calendar_dates.txt', 
               dtype={'service_id': str, 'date': str})
-            if not calendar_dates.empty:
-                self.calendar_dates = calendar_dates
-                # Group by service ID and date to make 
-                # self.is_active_trip() fast
-                self.calendar_dates_g = calendar_dates.groupby(
-                  ['service_id', 'date'])
-            else:
-                self.calendar_dates = None
-                self.calendar_dates_g = None
+            self.calendar_dates = calendar_dates
+            # Group by service ID and date to make 
+            # self.is_active_trip() fast
+            self.calendar_dates_g = calendar_dates.groupby(
+              ['service_id', 'date'])
+        else:
+            self.calendar_dates = None
+            self.calendar_dates_g = None
+
         assert self.calendar is not None or self.calendar_dates is not None,\
           'One of calendar.txt or calendar_dates.txt must be non-empty'
-          
+
         # Get optional GTFS files if they exist
-        if os.path.isfile(path + 'shapes.txt'):
+        if os.path.isfile(path + 'shapes.txt') and\
+          not pd.read_csv(path + 'shapes.txt').empty:
             shapes = pd.read_csv(path + 'shapes.txt', 
               dtype={'shape_id': str})
             # Convert distances
@@ -860,8 +863,9 @@ class Feed(object):
         for f in [f for f in OPTIONAL_GTFS_FILES 
           if f not in ['shapes', 'calendar_dates']]:
             p = path + f + '.txt'
-            if os.path.isfile(p):
-                setattr(self, f, pd.read_csv(p))
+            if os.path.isfile(p) and\
+              not pd.read_csv(p).empty:
+                    setattr(self, f, pd.read_csv(p))
             else:
                 setattr(self, f, None)
 
