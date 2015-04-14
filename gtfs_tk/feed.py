@@ -1267,15 +1267,15 @@ class Feed(object):
         sorting the groups by their first departure time.
         """
         f = self.get_trips(date)
-        f = f[f['route_id'] == route_id]
+        f = f[f['route_id'] == route_id].copy()
         f = pd.merge(f, self.stop_times)
-        # Groupby trip ID and sort groups by their minimum departure time
-        g = f.groupby('trip_id')
-        new_index = g[['departure_time']].\
-          transform(min).\
-          sort('departure_time').index
-        f.ix[new_index]
-        return f
+        # Groupby trip ID and sort groups by their minimum departure time.
+        # For some reason NaN departure times mess up the transform below.
+        # So temporarily fill NaN departure times as a workaround.
+        f['dt'] = f['departure_time'].fillna(method='ffill')
+        f['min_dt'] = f.groupby('trip_id')['dt'].transform(min)
+        return f.sort(['min_dt', 'departure_time']).drop(['min_dt', 'dt'], 
+          axis=1)
 
     # Stop methods
     # ----------------------------------

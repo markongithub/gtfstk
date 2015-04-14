@@ -1,6 +1,10 @@
 Changes
 ========
 
+v0.11.15 (2015-04-14)
+---------------------
+- Fixed ``get_route_timetable()`` sort order
+
 v0.11.14 (2015-04-14)
 ---------------------
 - Added data frame empty checks to ``Feed.__init__()``, because i was getting errors on feeds with empty ``calendar.txt`` files
