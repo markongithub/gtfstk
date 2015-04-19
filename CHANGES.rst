@@ -1,6 +1,10 @@
 Changes
 ========
 
+v0.11.16 (2015-04-20)
+----------------------
+- Added ``min_transfer_time`` to ``INT_COLS``
+
 v0.11.15 (2015-04-14)
 ---------------------
 - Fixed ``get_route_timetable()`` sort order
