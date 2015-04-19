@@ -70,6 +70,7 @@ INT_COLS = [
   'shape_pt_sequence',
   'exact_times',
   'transfer_type',
+  'min_transfer_time',
 ]
 
 def count_active_trips(trips, time):
