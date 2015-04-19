@@ -1,6 +1,18 @@
 Changes
 ========
 
+v0.11.15 (2015-04-14)
+---------------------
+- Fixed ``get_route_timetable()`` sort order
+
+v0.11.14 (2015-04-14)
+---------------------
+- Added data frame empty checks to ``Feed.__init__()``, because i was getting errors on feeds with empty ``calendar.txt`` files
+
+v0.11.13 (2015-04-14)
+---------------------
+- Removed ``parent_station`` from ``INT_COLS``, which should have never been there in the first place
+
 v0.11.12 (2015-04-13)
 ---------------------
 - Now you can specify the output distance units
