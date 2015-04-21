@@ -426,15 +426,15 @@ class TestFeed(unittest.TestCase):
         # Should have correct columns
         self.assertEqual(set(f.columns), set(feed.stops.columns))
 
-    def test_get_point_by_stop(self):
+    def test_get_geometry_by_stop(self):
         feed = copy(cairns)
-        point_by_stop = feed.get_point_by_stop()
+        geometry_by_stop = feed.get_geometry_by_stop()
         # Should be a dictionary
-        self.assertIsInstance(point_by_stop, dict)
+        self.assertIsInstance(geometry_by_stop, dict)
         # The first element should be a Shapely point
-        self.assertIsInstance(list(point_by_stop.values())[0], Point)
+        self.assertIsInstance(list(geometry_by_stop.values())[0], Point)
         # Should include all stops
-        self.assertEqual(len(point_by_stop), feed.stops.shape[0])
+        self.assertEqual(len(geometry_by_stop), feed.stops.shape[0])
 
     def test_get_stops_activity(self):
         feed = copy(cairns)
@@ -516,20 +516,20 @@ class TestFeed(unittest.TestCase):
 
     # Test shape methods
     # ----------------------------------
-    def test_get_linestring_by_shape(self):
+    def test_get_geometry_by_shape(self):
         feed = copy(cairns)
-        linestring_by_shape = feed.get_linestring_by_shape()
+        geometry_by_shape = feed.get_geometry_by_shape()
         # Should be a dictionary
-        self.assertIsInstance(linestring_by_shape, dict)
+        self.assertIsInstance(geometry_by_shape, dict)
         # The first element should be a Shapely linestring
-        self.assertIsInstance(list(linestring_by_shape.values())[0], 
+        self.assertIsInstance(list(geometry_by_shape.values())[0], 
           LineString)
         # Should contain all shapes
-        self.assertEqual(len(linestring_by_shape), 
+        self.assertEqual(len(geometry_by_shape), 
           feed.shapes.groupby('shape_id').first().shape[0])
         # Should be None if feed.shapes is None
         feed2 = cairns_shapeless
-        self.assertIsNone(feed2.get_linestring_by_shape())
+        self.assertIsNone(feed2.get_geometry_by_shape())
 
     def test_add_dist_to_shapes(self):
         feed = copy(cairns)
@@ -551,11 +551,11 @@ class TestFeed(unittest.TestCase):
     def test_get_shapes_geojson(self):
         feed = copy(cairns)
         collection = json.loads(feed.get_shapes_geojson())
-        linestring_by_shape = feed.get_linestring_by_shape(use_utm=False)
+        geometry_by_shape = feed.get_geometry_by_shape(use_utm=False)
         for f in collection['features']:
             shape = f['properties']['shape_id']
             geom = sh_shape(f['geometry'])
-            self.assertTrue(geom.equals(linestring_by_shape[shape]))
+            self.assertTrue(geom.equals(geometry_by_shape[shape]))
 
     # Test stop time methods
     # ----------------------------------
