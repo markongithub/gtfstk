@@ -4,6 +4,7 @@ Changes
 v0.12.0 (2015-04-21)
 --------------------
 - Assembled ``feed.py`` and ``utils.py`` into a unified top-level package by tweaking ``__init__.py``
+- Renamed ``get_linestring_by_shape()`` and ``get_point_by_stop()`` to ``get_geometry_by_shape()`` and ``get_geometry_by_stop()``, respectively
 
 v0.11.16 (2015-04-20)
 ---------------------
