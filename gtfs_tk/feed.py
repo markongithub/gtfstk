@@ -23,7 +23,7 @@ import numpy as np
 from shapely.geometry import Point, LineString, mapping
 import utm
 
-import .utils as utils
+import gtfs_tk.utils as utils
 
 
 REQUIRED_GTFS_FILES = [
