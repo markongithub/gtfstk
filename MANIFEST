@@ -62,6 +62,4 @@ tests/__init__.py
 tests/test_feed.py
 tests/test_utils.py
 tests/tests.ipynb
-tests/.ipynb_checkpoints/Untitled0-checkpoint.ipynb
-tests/.ipynb_checkpoints/gtfs_toolkit_tests-checkpoint.ipynb
 tests/.ipynb_checkpoints/tests-checkpoint.ipynb

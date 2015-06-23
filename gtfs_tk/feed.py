@@ -6,7 +6,7 @@ CONVENTIONS:
 
 In conformance with GTFS and unless specified otherwise, 
 dates are encoded as date strings of 
-the form '%Y%m%d' and times are encoded as time strings of the form '%H:%M:%S'
+the form YYMMDD and times are encoded as time strings of the form HH:MM:SS
 with the possibility that the hour is greater than 24.
 """
 import datetime as dt
@@ -44,7 +44,7 @@ OPTIONAL_GTFS_FILES = [
   'feed_info',
   ]
 # Columns that must be formatted as int/str in GTFS and not float;
-# useful in export().
+# useful for export().
 INT_COLS = [
   'location_type',
   'wheelchair_boarding',
@@ -97,6 +97,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     Return a Pandas data frame with the following columns:
 
     - route_id
+    - route_short_name
     - direction_id
     - num_trips: number of trips
     - is_loop: 1 if at least one of the trips on the route has its
@@ -109,9 +110,8 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     - max_headway: maximum of the durations (in minutes) between 
       trip starts on the route between ``headway_start_time`` and 
       ``headway_end_time`` on the given dates
-    - mean_headway: mean of the durations (in minutes) between 
-      trip starts on the route between ``headway_start_time`` and 
-      ``headway_end_time`` on the given dates
+    - min_headway: minimum of the durations (in minutes) mentioned above
+    - mean_headway: mean of the durations (in minutes) mentioned above
     - peak_num_trips: maximum number of simultaneous trips in service
       (for the given direction, or for both directions when 
       ``split_directions==False``)
@@ -156,6 +156,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
         # Take this group of all trips stats for a single route
         # and compute route-level stats.
         d = OrderedDict()
+        d['route_short_name'] = group['route_short_name'].iat[0]
         d['num_trips'] = group.shape[0]
         d['is_loop'] = int(group['is_loop'].any())
         d['start_time'] = group['start_time'].min()
@@ -168,9 +169,11 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
         headways = np.diff(stimes)
         if headways.size:
             d['max_headway'] = np.max(headways)/60  # minutes 
+            d['min_headway'] = np.min(headways)/60  # minutes 
             d['mean_headway'] = np.mean(headways)/60  # minutes 
         else:
             d['max_headway'] = np.nan
+            d['min_headway'] = np.nan
             d['mean_headway'] = np.nan
 
         # Compute peak num trips
@@ -187,13 +190,14 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
 
     def get_route_stats(group):
         d = OrderedDict()
+        d['route_short_name'] = group['route_short_name'].iat[0]
         d['num_trips'] = group.shape[0]
         d['is_loop'] = int(group['is_loop'].any())
         d['is_bidirectional'] = int(group['direction_id'].unique().size > 1)
         d['start_time'] = group['start_time'].min()
         d['end_time'] = group['end_time'].max()
 
-        # Compute max and mean headway
+        # Compute headway stats
         headways = np.array([])
         for direction in [0, 1]:
             stimes = group[group['direction_id'] == direction][
@@ -203,9 +207,11 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
             headways = np.concatenate([headways, np.diff(stimes)])
         if headways.size:
             d['max_headway'] = np.max(headways)/60  # minutes 
+            d['min_headway'] = np.min(headways)/60  # minutes 
             d['mean_headway'] = np.mean(headways)/60  # minutes
         else:
             d['max_headway'] = np.nan
+            d['min_headway'] = np.nan
             d['mean_headway'] = np.nan
 
         # Compute peak num trips
@@ -233,7 +239,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
             return pd.Series(d)   
 
         gg = g.groupby('route_id').apply(is_bidirectional).reset_index()
-        g = pd.merge(gg, g)
+        g = g.merge(gg)
     else:
         g = f.groupby('route_id').apply(
           get_route_stats).reset_index()
@@ -388,12 +394,11 @@ def get_stops_stats(stop_times_subset, split_directions=False,
     - stop_id
     - direction_id: present iff ``split_directions == True``
     - num_trips: number of trips visiting stop 
-    - max_headway: durations (in minutes) between 
+    - max_headway: maximum of the durations (in minutes) between 
       trip departures at the stop between ``headway_start_time`` and 
       ``headway_end_time`` on the given date
-    - mean_headway: durations (in minutes) between 
-      trip departures at the stop between ``headway_start_time`` and 
-      ``headway_end_time`` on the given date
+    - min_headway: minimum of the durations (in minutes) mentioned above
+    - mean_headway: mean of the durations (in minutes) mentioned above
     - start_time: earliest departure time of a trip from this stop
       on the given date
     - end_time: latest departure time of a trip from this stop
@@ -429,9 +434,11 @@ def get_stops_stats(stop_times_subset, split_directions=False,
           for i in range(len(dtimes) - 1)])
         if headways:
             d['max_headway'] = np.max(headways)/60  # minutes
+            d['min_headway'] = np.min(headways)/60  # minutes
             d['mean_headway'] = np.mean(headways)/60  # minutes
         else:
             d['max_headway'] = np.nan
+            d['min_headway'] = np.nan
             d['mean_headway'] = np.nan
         return pd.Series(d)
 
@@ -748,17 +755,23 @@ class Feed(object):
     Make sure you have enough memory!  
     The stop times object can be big.
     """
-    def __init__(self, path, dist_units_in='km', dist_units_out='km'):
+    def __init__(self, path, dist_units_in=None, dist_units_out=None):
         """
         Read in all the relevant GTFS text files within the directory or 
         ZIP file given by ``path`` and assign them to instance attributes.
         Assume the zip file unzips as a collection of GTFS text files
         rather than as a directory of GTFS text files.
-        Set ``dist_units_in`` to the original distance units of this 
-        feed.
-        They will all be converted to the distance units specified by 
-        ``dist_units_out`` in the methods below.
+
+        If this feed has the optional ``shape_dist_traveled`` column 
+        in ``shapes.txt`` or ``stop_times.txt``,
+        then you must specify the distance units by setting ``dist_units_in``.
         Supported distance units are listed in ``utils.DISTANCE_UNITS``.
+        If the feed lacks distances, then ``dist_units_in`` is not required
+        and will be set to 'km'.
+        If ``dist_units_out`` is not specified, then it will be set to
+        ``dist_units_in``.
+        ``dist_units_out`` specifies the distance units for the outputs of 
+        the methods below, including ``export()``
         """
         zipped = False
         if zipfile.is_zipfile(path):
@@ -767,16 +780,6 @@ class Feed(object):
             archive = zipfile.ZipFile(path)
             path = path.rstrip('.zip') + '/'
             archive.extractall(path)
-
-        # Get distance units
-        di, do = dist_units_in, dist_units_out
-        DU = utils.DISTANCE_UNITS
-        assert di in DU and do in DU,\
-          'Distance units must lie in {!s}'.format(DU)
-        self.dist_units_in = di
-        self.dist_units_out = do
-        # Function that converts distances from di to do
-        self.convert_dist = utils.get_convert_dist(di, do)
 
         # Check that the required GTFS files exist
         for f in REQUIRED_GTFS_FILES:
@@ -792,32 +795,17 @@ class Feed(object):
 
         # Get required GTFS files
         self.agency = pd.read_csv(path + 'agency.txt')
-        self.stops = pd.read_csv(path + 'stops.txt', dtype={'stop_id': str, 
-          'stop_code': str})
-        self.routes = pd.read_csv(path + 'routes.txt', dtype={'route_id': str,
-          'route_short_name': str})
-        self.trips = pd.read_csv(path + 'trips.txt', dtype={'route_id': str,
-          'trip_id': str, 'service_id': str, 'shape_id': str, 'stop_id': str})
+        self.stops = pd.read_csv(path + 'stops.txt', 
+          dtype={'stop_id': str, 'stop_code': str})
+        self.routes = pd.read_csv(path + 'routes.txt', 
+          dtype={'route_id': str, 'route_short_name': str})
+        self.trips = pd.read_csv(path + 'trips.txt', 
+          dtype={'route_id': str, 'trip_id': str, 'service_id': str, 
+          'shape_id': str, 'stop_id': str})
         self.trips_i = self.trips.set_index('trip_id')
-        st = pd.read_csv(path + 'stop_times.txt', dtype={'stop_id': str,
-          'trip_id': str})
+        self.stop_times = pd.read_csv(path + 'stop_times.txt', 
+          dtype={'stop_id': str, 'trip_id': str})
     
-        # Prefix a 0 to arrival and departure times if necessary.
-        # This makes sorting by time work as expected.
-        def reformat_times(timestr):
-            result = timestr
-            if isinstance(result, str) and len(result) == 7:
-                result = '0' + result
-            return result
-
-        st[['arrival_time', 'departure_time']] =\
-          st[['arrival_time', 'departure_time']].applymap(reformat_times)
-        # Convert distances
-        if 'shape_dist_traveled' in st.columns:
-            st['shape_dist_traveled'] = st['shape_dist_traveled'].map(
-              self.convert_dist)
-        self.stop_times = st
-
         # One of calendar.txt and calendar_dates.txt is
         # required by the GTFS.
         if os.path.isfile(path + 'calendar.txt') and\
@@ -847,20 +835,16 @@ class Feed(object):
         assert self.calendar is not None or self.calendar_dates is not None,\
           'One of calendar.txt or calendar_dates.txt must be non-empty'
 
-        # Get optional GTFS files if they exist
+        # Get optional GTFS files if they exist.
+        # Get shapes.
         if os.path.isfile(path + 'shapes.txt') and\
           not pd.read_csv(path + 'shapes.txt').empty:
-            shapes = pd.read_csv(path + 'shapes.txt', 
+            self.shapes = pd.read_csv(path + 'shapes.txt', 
               dtype={'shape_id': str})
-            # Convert distances
-            if 'shape_dist_traveled' in shapes.columns:
-                shapes['shape_dist_traveled'] =\
-                  shapes['shape_dist_traveled'].map(self.convert_dist)
-            self.shapes = shapes
         else:
             self.shapes = None
 
-        # Load the rest of the optional GTFS files without special formatting
+        # Get rest.
         for f in [f for f in OPTIONAL_GTFS_FILES 
           if f not in ['shapes', 'calendar_dates']]:
             p = path + f + '.txt'
@@ -869,6 +853,51 @@ class Feed(object):
                     setattr(self, f, pd.read_csv(p))
             else:
                 setattr(self, f, None)
+
+        # Check for valid distance units
+        di, do = dist_units_in, dist_units_out
+        # Require dist_units_in if feed has distances
+        if 'shape_dist_traveled' in self.stop_times.columns or\
+          (self.shapes is not None and\
+          'shape_dist_traveled' in self.shapes.columns):
+            assert di is not None,\
+              'This feed has distances, so must specify dist_units_in'
+        # Set defaults
+        if di is None:
+            di = 'km'
+        if do is None:
+            do = di
+        DU = utils.DISTANCE_UNITS
+        assert di in DU and do in DU,\
+          'Distance units must lie in {!s}'.format(DU)
+        self.dist_units_in = di
+        self.dist_units_out = do
+        
+        # Set distance conversion function
+        self.convert_dist = utils.get_convert_dist(di, do)
+
+        # Reformat some.
+        # Prefix a 0 to arrival and departure times if necessary.
+        # This makes sorting by time work as expected.
+        def reformat_times(timestr):
+            result = timestr
+            if isinstance(result, str) and len(result) == 7:
+                result = '0' + result
+            return result
+
+        self.stop_times[['arrival_time', 'departure_time']] =\
+          self.stop_times[['arrival_time', 'departure_time']].\
+          applymap(reformat_times)
+
+        # Convert distances to dist_units_out if necessary
+        if 'shape_dist_traveled' in self.stop_times.columns:
+            self.stop_times['shape_dist_traveled'] =\
+              self.stop_times['shape_dist_traveled'].map(self.convert_dist)
+
+        if self.shapes is not None and\
+          'shape_dist_traveled' in self. shapes.columns:
+            self.shapes['shape_dist_traveled'] =\
+              self.shapes['shape_dist_traveled'].map(self.convert_dist)
 
         # Clean up
         if zipped:
@@ -935,7 +964,7 @@ class Feed(object):
 
         if time is not None:
             # Get trips active during given time
-            g = pd.merge(f, self.stop_times[['trip_id', 'departure_time']])
+            g = f.merge(self.stop_times[['trip_id', 'departure_time']])
           
             def F(group):
                 d = {}
@@ -949,7 +978,7 @@ class Feed(object):
                 return pd.Series(d)
 
             h = g.groupby('trip_id').apply(F).reset_index()
-            f = pd.merge(f, h[h['is_active']])
+            f = f.merge(h[h['is_active']])
             del f['is_active']
 
         return f
@@ -981,6 +1010,7 @@ class Feed(object):
 
         - trip_id
         - route_id
+        - route_short_name
         - direction_id
         - shape_id
         - num_stops: number of stops on trip
@@ -1015,7 +1045,8 @@ class Feed(object):
         # Convert departure times to seconds past midnight to 
         # compute durations.
         f = self.trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
-        f = pd.merge(f, self.stop_times).sort(['trip_id', 'stop_sequence'])
+        f = f.merge(self.routes[['route_id', 'route_short_name']])
+        f = f.merge(self.stop_times).sort(['trip_id', 'stop_sequence'])
         f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
         
         # Compute all trips stats except distance, 
@@ -1026,6 +1057,7 @@ class Feed(object):
         def my_agg(group):
             d = OrderedDict()
             d['route_id'] = group['route_id'].iat[0]
+            d['route_short_name'] = group['route_short_name'].iat[0]
             d['direction_id'] = group['direction_id'].iat[0]
             d['shape_id'] = group['shape_id'].iat[0]
             d['num_stops'] = group.shape[0]
@@ -1170,8 +1202,8 @@ class Feed(object):
 
         # Merge in more trip info and
         # compute longitude and latitude of trip from relative distance
-        h = pd.merge(self.trips[['trip_id', 'route_id', 'direction_id', 
-          'shape_id']], g)
+        h = g.merge(self.trips[['trip_id', 'route_id', 'direction_id', 
+          'shape_id']])
         if not h.shape[0]:
             # Return a data frame with the promised headers but no data.
             # Without this check, result below could be an empty data frame.
@@ -1228,7 +1260,7 @@ class Feed(object):
         """
         # Get the subset of trips_stats that contains only trips active
         # on the given date
-        trips_stats_subset = pd.merge(trips_stats, self.get_trips(date))
+        trips_stats_subset = trips_stats.merge(self.get_trips(date))
         return get_routes_stats(trips_stats_subset, 
           split_directions=split_directions,
           headway_start_time=headway_start_time, 
@@ -1253,7 +1285,7 @@ class Feed(object):
         This is a more user-friendly version of ``get_routes_time_series()``.
         The latter function works without a feed, though.
         """  
-        trips_stats_subset = pd.merge(trips_stats, self.get_trips(date))
+        trips_stats_subset = trips_stats.merge(self.get_trips(date))
         return get_routes_time_series(trips_stats_subset, 
           split_directions=split_directions, freq=freq, 
           date_label=date)
@@ -1269,7 +1301,7 @@ class Feed(object):
         """
         f = self.get_trips(date)
         f = f[f['route_id'] == route_id].copy()
-        f = pd.merge(f, self.stop_times)
+        f = f.merge(self.stop_times)
         # Groupby trip ID and sort groups by their minimum departure time.
         # For some reason NaN departure times mess up the transform below.
         # So temporarily fill NaN departure times as a workaround.
@@ -1331,7 +1363,7 @@ class Feed(object):
             return
 
         trips_activity = self.get_trips_activity(dates)
-        g = pd.merge(trips_activity, self.stop_times).groupby('stop_id')
+        g = trips_activity.merge(self.stop_times).groupby('stop_id')
         # Pandas won't allow me to simply return g[dates].max().reset_index().
         # I get ``TypeError: unorderable types: datetime.date() < str()``.
         # So here's a workaround.
@@ -1339,7 +1371,7 @@ class Feed(object):
             if i == 0:
                 f = g[date].max().reset_index()
             else:
-                f = pd.merge(f, g[date].max().reset_index())
+                f = f.merge(g[date].max().reset_index())
         return f
 
     def get_stops_stats(self, date, split_directions=False,
@@ -1358,7 +1390,7 @@ class Feed(object):
         The latter function works without a feed, though.
         """
         # Get stop times active on date and direction IDs
-        f = pd.merge(self.get_trips(date), self.stop_times)
+        f = self.get_trips(date).merge(self.stop_times)
 
         return get_stops_stats(f, split_directions=split_directions,
           headway_start_time=headway_start_time, 
@@ -1381,7 +1413,7 @@ class Feed(object):
         The latter function works without a feed, though.
         """  
         # Get active stop times for date and direction IDs
-        f = pd.merge(self.get_trips(date), self.stop_times)
+        f = self.get_trips(date).merge(self.stop_times)
         return get_stops_time_series(f, split_directions=split_directions,
             freq=freq, date_label=date)
 
@@ -1394,7 +1426,7 @@ class Feed(object):
         The result is sorted by departure time.
         """
         f = self.get_stop_times(date)
-        f = pd.merge(self.trips, f)
+        f = f.merge(self.trips)
         f = f[f['stop_id'] == stop_id]
         return f.sort('departure_time')
 
@@ -1428,7 +1460,7 @@ class Feed(object):
             return
 
         f = self.get_stop_times(date)
-        f = pd.merge(f, sis)
+        f = f.merge(sis)
 
         # Convert departure times to seconds to ease headway calculations
         f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
@@ -1619,8 +1651,9 @@ class Feed(object):
         geometry_by_stop = self.get_geometry_by_stop()
 
         # Initialize data frame
-        f = pd.merge(trips_stats[['trip_id', 'shape_id', 'distance', 
-          'duration' ]], self.stop_times).sort(['trip_id', 'stop_sequence'])
+        f = self.stop_times.merge(
+          trips_stats[['trip_id', 'shape_id', 'distance', 'duration']]).\
+          sort(['trip_id', 'stop_sequence'])
 
         # Convert departure times to seconds past midnight to ease calculations
         f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
@@ -1780,7 +1813,7 @@ class Feed(object):
         d['num_stops'] = self.get_stops(date).shape[0]
 
         # Compute peak stats
-        f = pd.merge(trips, trips_stats)
+        f = trips.merge(trips_stats)
         f[['start_time', 'end_time']] =\
           f[['start_time', 'end_time']].applymap(utils.timestr_to_seconds)
 

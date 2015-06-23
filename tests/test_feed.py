@@ -19,10 +19,15 @@ cairns_shapeless.shapes = None
 class TestFeed(unittest.TestCase):
 
     def test_init(self):
-        # Test distance units check
+        # Test distance units check.
+        # Bad dist_units_in:
         self.assertRaises(AssertionError, Feed, 
           path='data/cairns_gtfs.zip', 
           dist_units_in='bingo')
+        # Requires dist_units_in:
+        self.assertRaises(AssertionError, Feed,
+          path='data/portland_gtfs.zip')
+
         # Test file checks
         feed = Feed('data/cairns_gtfs.zip')
         for f in REQUIRED_GTFS_FILES + ['calendar_dates', 'shapes']:
@@ -51,12 +56,14 @@ class TestFeed(unittest.TestCase):
             # Should contain the correct columns
             expect_cols = set([
               'route_id',
+              'route_short_name',
               'num_trips',
               'is_bidirectional',
               'is_loop',
               'start_time',
               'end_time',
               'max_headway',
+              'min_headway',
               'mean_headway', 
               'peak_num_trips',
               'peak_start_time',
@@ -152,12 +159,14 @@ class TestFeed(unittest.TestCase):
             # Should contain the correct columns
             expect_cols = set([
               'route_id',
+              'route_short_name',
               'num_trips',
               'is_bidirectional',
               'is_loop',
               'start_time',
               'end_time',
               'max_headway',
+              'min_headway',
               'mean_headway', 
               'peak_num_trips',
               'peak_start_time',
@@ -244,7 +253,7 @@ class TestFeed(unittest.TestCase):
         self.assertTrue(feed.is_active_trip(trip, date1))
         self.assertFalse(feed.is_active_trip(trip, date2))
 
-        feed = Feed('data/portland_gtfs.zip')
+        feed = Feed('data/portland_gtfs.zip', dist_units_in='ft')
         trip = '4526377'
         date1 = '20140518'
         date2 = '20120517'
@@ -322,6 +331,7 @@ class TestFeed(unittest.TestCase):
           'trip_id',
           'direction_id',
           'route_id',
+          'route_short_name',
           'shape_id',
           'num_stops',
           'start_time', 
@@ -362,6 +372,7 @@ class TestFeed(unittest.TestCase):
               'stop_id',
               'num_trips',
               'max_headway',
+              'min_headway',
               'mean_headway',
               'start_time',
               'end_time',
