@@ -1,6 +1,11 @@
 Changes
 ========
 
+v0.12.1 (2015-06-24)
+--------------------
+- Added ``route_short_name`` and ``min_headway`` to trips stats and routes stats
+- Changed the default handling of distance units in ``Feed()``
+
 v0.12.0 (2015-04-21)
 --------------------
 - Assembled ``feed.py`` and ``utils.py`` into a unified top-level package by tweaking ``__init__.py``
