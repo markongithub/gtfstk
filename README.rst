@@ -15,7 +15,7 @@ Installation
 
 Examples
 --------
-Play with ``examples/gtfs_tk_examples.ipynb`` in an iPython notebook or view the notebook as HTML `here <https://rawgit.com/araichev/gtfs-tk/master/examples/examples.html>`_.
+You can play with ``examples/gtfs_tk_examples.ipynb`` in an iPython notebook
 
 Documentation
 --------------
