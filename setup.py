@@ -1,12 +1,12 @@
 from distutils.core import setup
 
 setup(
-    name='gtfs-tk',
+    name='gtfstk',
     version='0.12.1',
     author='Alexander Raichev',
     author_email='alex@raichev.net',
-    packages=['gtfs_tk', 'tests'],
-    url='https://github.com/araichev/gtfs-tk',
+    packages=['gtfstk', 'tests'],
+    url='https://github.com/araichev/gtfstk',
     license='LICENSE',
     description='A Python 3.4 toolkit for processing General Transit Feed Specification (GTFS) data',
     long_description=open('README.rst').read(),

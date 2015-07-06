@@ -1,6 +1,10 @@
 Changes
 ========
 
+v0.12.2 (2015-07-06)
+--------------------
+- Changed name to ``gtfstk``
+
 v0.12.1 (2015-06-24)
 --------------------
 - Added ``route_short_name`` and ``min_headway`` to trips stats and routes stats
