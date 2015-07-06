@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>GTFS Toolkit 0.12.0 documentation</title>
+    <title>GTFS Toolkit 0.11.10 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.12.0',
+        VERSION:     '0.11.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -30,7 +30,7 @@
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFS Toolkit 0.12.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFS Toolkit 0.11.10 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -67,15 +67,13 @@ Use at your own risk.</p>
 <span id="the-utils-module"></span><h2>The utils Module<a class="headerlink" href="#module-gtfs_tk.utils" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="gtfs_tk.utils.clean_series">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">clean_series</code><span class="sig-paren">(</span><em>series</em>, <em>nan_prefix='n/a'</em>, <em>mark='-'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.clean_series" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfs_tk.utils.</code><code class="descname">clean_series</code><span class="sig-paren">(</span><em>series</em>, <em>nan_prefix='n/a'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.clean_series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a series of items, replace NaN entries
-with <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-0'</span></code>, <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-1'</span></code>, 
-<code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-2'</span></code>, etc.
+with <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'#0'</span></code>, <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'#1'</span></code>, 
+<code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'#2'</span></code>, etc.
 Replace duplicate items x1, x2, x3, etc. with 
-x1 + &#8216;-0&#8217;, x2 + &#8216;-1&#8217;, x3 + &#8216;-2&#8217;, etc.
-Return the resulting series.
-If can change the dashes to another string by setting
-the <code class="docutils literal"><span class="pre">mark</span></code> parameter.</p>
+x1 + &#8216;#0&#8217;, x2 + &#8216;#1&#8217;, x3 + &#8216;#2&#8217;, etc.
+Return the resulting series.</p>
 <p>I use this for cleaning route short names.</p>
 </dd></dl>
 
@@ -86,17 +84,6 @@ the <code class="docutils literal"><span class="pre">mark</span></code> paramete
 convert it to a datetime.date object and return the result
 If <code class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></code>, then assume that <code class="docutils literal"><span class="pre">x</span></code> is a date object
 and return its corresponding string in the given format.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfs_tk.utils.get_convert_dist">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">get_convert_dist</code><span class="sig-paren">(</span><em>dist_units_in</em>, <em>dist_units_out</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.get_convert_dist" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Return a function of the form</dt>
-<dd>distance in the units <code class="docutils literal"><span class="pre">dist_units_in</span></code> -&gt; 
-distance in the units <code class="docutils literal"><span class="pre">dist_units_out</span></code></dd>
-</dl>
-<p>Only supports distance units in <code class="docutils literal"><span class="pre">DISTANCE_UNITS</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -160,6 +147,13 @@ seconds modulo <code class="docutils literal"><span class="pre">24*3600</span></
 </dd></dl>
 
 <dl class="function">
+<dt id="gtfs_tk.utils.to_km">
+<code class="descclassname">gtfs_tk.utils.</code><code class="descname">to_km</code><span class="sig-paren">(</span><em>x</em>, <em>units='km'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.to_km" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a distance <code class="docutils literal"><span class="pre">x</span></code> in units <code class="docutils literal"><span class="pre">units</span></code>,
+convert it to kilometers and return the result.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfs_tk.utils.weekday_to_str">
 <code class="descclassname">gtfs_tk.utils.</code><code class="descname">weekday_to_str</code><span class="sig-paren">(</span><em>weekday</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.weekday_to_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a weekday, that is, an integer in <code class="docutils literal"><span class="pre">range(7)</span></code>, return
@@ -176,11 +170,11 @@ is valid.</p>
 <p>CONVENTIONS:</p>
 <p>In conformance with GTFS and unless specified otherwise, 
 dates are encoded as date strings of 
-the form YYMMDD and times are encoded as time strings of the form HH:MM:SS
+the form &#8216;%Y%m%d&#8217; and times are encoded as time strings of the form &#8216;%H:%M:%S&#8217;
 with the possibility that the hour is greater than 24.</p>
 <dl class="class">
 <dt id="gtfs_tk.feed.Feed">
-<em class="property">class </em><code class="descclassname">gtfs_tk.feed.</code><code class="descname">Feed</code><span class="sig-paren">(</span><em>path</em>, <em>dist_units_in=None</em>, <em>dist_units_out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gtfs_tk.feed.</code><code class="descname">Feed</code><span class="sig-paren">(</span><em>path</em>, <em>original_units='km'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>A class to gather all the GTFS files for a feed and store them in memory 
 as Pandas data frames.  
@@ -226,10 +220,10 @@ This is the case for several trips in the Portland feed, for example.</p>
 
 <dl class="method">
 <dt id="gtfs_tk.feed.Feed.export">
-<code class="descname">export</code><span class="sig-paren">(</span><em>path</em>, <em>ndigits=6</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.export" title="Permalink to this definition">¶</a></dt>
+<code class="descname">export</code><span class="sig-paren">(</span><em>path</em>, <em>ndigits=5</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.export" title="Permalink to this definition">¶</a></dt>
 <dd><p>Export this feed to a zip archive located at <code class="docutils literal"><span class="pre">path</span></code>.
 Round all decimals to <code class="docutils literal"><span class="pre">ndigits</span></code> decimal places.
-All distances will be displayed in units <code class="docutils literal"><span class="pre">self.dist_units_out</span></code>.</p>
+All distances will be displayed in kilometers.</p>
 </dd></dl>
 
 <dl class="method">
@@ -268,7 +262,7 @@ the peak number of trips occurs</li>
 <li>service_duration: sum of the service durations for the active routes</li>
 <li>service_speed: service_distance/service_duration</li>
 </ul>
-<p>If there are no stats for the given date, return an empty data frame.</p>
+<p>Return <code class="docutils literal"><span class="pre">None</span></code> if the date does not lie in this feed&#8217;s date range.</p>
 </dd></dl>
 
 <dl class="method">
@@ -287,8 +281,6 @@ this time period</li>
 time period</li>
 <li>service_speed: service_distance/service_duration</li>
 </ul>
-<p>If there is no time series for the given date, 
-return an empty data frame.</p>
 </dd></dl>
 
 <dl class="method">
@@ -304,8 +296,8 @@ as <code class="docutils literal"><span class="pre">datetime.date</span></code> 
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_tk.feed.Feed.get_geometry_by_shape">
-<code class="descname">get_geometry_by_shape</code><span class="sig-paren">(</span><em>use_utm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_geometry_by_shape" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_linestring_by_shape">
+<code class="descname">get_linestring_by_shape</code><span class="sig-paren">(</span><em>use_utm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_linestring_by_shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dictionary with structure
 shape_id -&gt; Shapely linestring of shape.
 If <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code>, then return <code class="docutils literal"><span class="pre">None</span></code>.
@@ -316,8 +308,8 @@ coordinates.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfs_tk.feed.Feed.get_geometry_by_stop">
-<code class="descname">get_geometry_by_stop</code><span class="sig-paren">(</span><em>use_utm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_geometry_by_stop" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfs_tk.feed.Feed.get_point_by_stop">
+<code class="descname">get_point_by_stop</code><span class="sig-paren">(</span><em>use_utm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.feed.Feed.get_point_by_stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dictionary with structure
 stop_id -&gt; Shapely point object.
 If <code class="docutils literal"><span class="pre">use_utm</span> <span class="pre">==</span> <span class="pre">True</span></code>, then return each point in
@@ -533,7 +525,6 @@ column.</p>
 <ul class="simple">
 <li>trip_id</li>
 <li>route_id</li>
-<li>route_short_name</li>
 <li>direction_id</li>
 <li>shape_id</li>
 <li>num_stops: number of stops on trip</li>
@@ -543,15 +534,15 @@ column.</p>
 <li>end_stop_id: stop ID of the last stop of the trip</li>
 <li>is_loop: 1 if the start and end stop are less than 400m apart and
 0 otherwise</li>
-<li>distance: distance of the trip in <code class="docutils literal"><span class="pre">self.dist_units_out</span></code>; 
-contains all <code class="docutils literal"><span class="pre">np.nan</span></code> entries if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
+<li>distance: distance of the trip in kilometers; contains all <code class="docutils literal"><span class="pre">np.nan</span></code>
+entries if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
 <li>duration: duration of the trip in hours</li>
 <li>speed: distance/duration</li>
 </ul>
 <p>NOTES:</p>
 <p>If <code class="docutils literal"><span class="pre">self.stop_times</span></code> has a <code class="docutils literal"><span class="pre">shape_dist_traveled</span></code> column
 and <code class="docutils literal"><span class="pre">get_dist_from_shapes</span> <span class="pre">==</span> <span class="pre">False</span></code>,
-then use that column to compute the distance column.
+then use that column to compute the distance column (in km).
 Else if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code>, then compute the distance 
 column using the shapes and Shapely. 
 Otherwise, set the distances to <code class="docutils literal"><span class="pre">np.nan</span></code>.</p>
@@ -626,7 +617,6 @@ calculate stats for the routes in that subset.</p>
 <p>Return a Pandas data frame with the following columns:</p>
 <ul class="simple">
 <li>route_id</li>
-<li>route_short_name</li>
 <li>direction_id</li>
 <li>num_trips: number of trips</li>
 <li>is_loop: 1 if at least one of the trips on the route has its
@@ -639,8 +629,9 @@ the route</li>
 <li>max_headway: maximum of the durations (in minutes) between 
 trip starts on the route between <code class="docutils literal"><span class="pre">headway_start_time</span></code> and 
 <code class="docutils literal"><span class="pre">headway_end_time</span></code> on the given dates</li>
-<li>min_headway: minimum of the durations (in minutes) mentioned above</li>
-<li>mean_headway: mean of the durations (in minutes) mentioned above</li>
+<li>mean_headway: mean of the durations (in minutes) between 
+trip starts on the route between <code class="docutils literal"><span class="pre">headway_start_time</span></code> and 
+<code class="docutils literal"><span class="pre">headway_end_time</span></code> on the given dates</li>
 <li>peak_num_trips: maximum number of simultaneous trips in service
 (for the given direction, or for both directions when 
 <code class="docutils literal"><span class="pre">split_directions==False</span></code>)</li>
@@ -652,11 +643,10 @@ the peak number of trips occurs</li>
 the route in the given subset of trips; measured in hours</li>
 <li>service_distance: total of the distance traveled by each trip on 
 the route in the given subset of trips;
-measured in wunits, that is, 
-whatever distance units are present in trips_stats_subset; 
+measured in kilometers; 
 contains all <code class="docutils literal"><span class="pre">np.nan</span></code> entries if <code class="docutils literal"><span class="pre">self.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
 <li>service_speed: service_distance/service_duration;
-measured in wunits per hour</li>
+measured in kilometers per hour</li>
 <li>mean_trip_distance: service_distance/num_trips</li>
 <li>mean_trip_duration: service_duration/num_trips</li>
 </ul>
@@ -667,7 +657,6 @@ In this case, (1) compute max headway by taking the max of the max
 headways in both directions; 
 (2) compute mean headway by taking the weighted mean of the mean
 headways in both directions.</p>
-<p>If <code class="docutils literal"><span class="pre">trips_stats_subset</span></code> is empty, return an empty data frame.</p>
 </dd></dl>
 
 <dl class="function">
@@ -690,12 +679,13 @@ The maximum allowable frequency is 1 minute.
 <p>The columns of the data frame are hierarchical (multi-index) with</p>
 <ul class="simple">
 <li>top level: name = &#8216;indicator&#8217;, values = [&#8216;service_distance&#8217;,
-&#8216;service_duration&#8217;, &#8216;num_trip_starts&#8217;, &#8216;num_trips&#8217;, &#8216;service_speed&#8217;]</li>
+&#8216;service_duration&#8217;, &#8216;num_trip_starts&#8217;, 
+&#8216;num_trips&#8217;, &#8216;service_speed&#8217;]</li>
 <li>middle level: name = &#8216;route_id&#8217;, values = the active routes</li>
 <li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
 </ul>
 <p>If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then don&#8217;t include the bottom level.</p>
-<p>If <code class="docutils literal"><span class="pre">trips_stats_subset</span></code> is empty, then return an empty data frame.</p>
+<p>If <code class="docutils literal"><span class="pre">trips_stats_subset</span></code> is <code class="docutils literal"><span class="pre">None</span></code> or empty, then return <code class="docutils literal"><span class="pre">None</span></code>.</p>
 <p>NOTES:</p>
 <ul>
 <li><dl class="first docutils">
@@ -730,11 +720,12 @@ direction of each trip.</p>
 <li>stop_id</li>
 <li>direction_id: present iff <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">True</span></code></li>
 <li>num_trips: number of trips visiting stop</li>
-<li>max_headway: maximum of the durations (in minutes) between 
+<li>max_headway: durations (in minutes) between 
 trip departures at the stop between <code class="docutils literal"><span class="pre">headway_start_time</span></code> and 
 <code class="docutils literal"><span class="pre">headway_end_time</span></code> on the given date</li>
-<li>min_headway: minimum of the durations (in minutes) mentioned above</li>
-<li>mean_headway: mean of the durations (in minutes) mentioned above</li>
+<li>mean_headway: durations (in minutes) between 
+trip departures at the stop between <code class="docutils literal"><span class="pre">headway_start_time</span></code> and 
+<code class="docutils literal"><span class="pre">headway_end_time</span></code> on the given date</li>
 <li>start_time: earliest departure time of a trip from this stop
 on the given date</li>
 <li>end_time: latest departure time of a trip from this stop
@@ -742,7 +733,6 @@ on the given date</li>
 </ul>
 <p>If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then compute each stop&#8217;s stats
 using trips visiting it from both directions.</p>
-<p>If <code class="docutils literal"><span class="pre">stop_times_subset</span></code> is empty, then return an empty data frame.</p>
 </dd></dl>
 
 <dl class="function">
@@ -766,7 +756,7 @@ a date string of the form &#8216;%Y%m%d&#8217;.</p>
 <li>bottom level: name = &#8216;direction_id&#8217;, values = 0s and 1s</li>
 </ul>
 <p>If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then don&#8217;t include the bottom level.</p>
-<p>If <code class="docutils literal"><span class="pre">stop_times_subset</span></code> is empty, then return an empty data frame.</p>
+<p>If <code class="docutils literal"><span class="pre">stop_times_subset</span></code> is <code class="docutils literal"><span class="pre">None</span></code> or empty, then return <code class="docutils literal"><span class="pre">None</span></code>.</p>
 <p>NOTES:</p>
 <ul class="simple">
 <li>&#8216;num_trips&#8217; should be resampled with <code class="docutils literal"><span class="pre">how=np.sum</span></code></li>
@@ -840,11 +830,11 @@ for a nice-looking plot.</p>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFS Toolkit 0.12.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFS Toolkit 0.11.10 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright .
+        &copy; Copyright 2014, Alexander Raichev.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.
     </div>
   </body>
