@@ -12,8 +12,8 @@ Use at your own risk.
 
 Installation
 -------------
-``pip install gtfs-tk``
+``pip install gtfstk``
 
 Examples
 --------
-Play with ``examples/gtfs_tk_examples.ipynb`` in an iPython notebook
+Play with ``examples/examples.ipynb`` in an iPython notebook
