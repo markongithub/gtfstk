@@ -1,7 +1,7 @@
 The utils Module
 ===========================
 
-.. automodule:: gtfs_tk.utils
+.. automodule:: gtfstk.utils
     :members:
     :undoc-members:
     :show-inheritance:
