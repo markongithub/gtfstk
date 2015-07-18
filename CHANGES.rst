@@ -1,6 +1,13 @@
 Changes
 ========
 
+v0.12.3 (2015-07-18)
+--------------------
+- Changed to return empty data frames instead of ``None`` where appropriate
+- Added ``Feed.clean_route_short_names()``
+- Changed the inputs and outputs of ``get_stops_stats()`` and ``get_stops_time_series()``
+- Replaced ``assert`` statements with exceptions
+
 v0.12.2 (2015-07-06)
 --------------------
 - Changed name to ``gtfstk``
