@@ -106,7 +106,7 @@ def clean_series(series, nan_prefix='n/a', mark='-'):
     Replace duplicate items x1, x2, x3, etc. with 
     x1 + '-0', x2 + '-1', x3 + '-2', etc.
     Return the resulting series.
-    If can change the dashes to another string by setting
+    You can change the dashes to another string by setting
     the ``mark`` parameter.
 
     I use this for cleaning route short names.
@@ -191,14 +191,17 @@ def get_peak_indices(times, counts):
 def get_convert_dist(dist_units_in, dist_units_out):
     """
     Return a function of the form
+      
       distance in the units ``dist_units_in`` -> 
       distance in the units ``dist_units_out``
+    
     Only supports distance units in ``DISTANCE_UNITS``.
     """
     di, do = dist_units_in, dist_units_out
     DU = DISTANCE_UNITS
-    assert di in DU and do in DU,\
-      'Distance units must lie in {!s}'.format(DU)
+    if not (di in DU and do in DU):
+        raise ValueError(
+          'Distance units must lie in {!s}'.format(DU))
 
     d = {
       'ft': {'ft': 1, 'm': 0.3048, 'mi': 1/5280, 'km': 0.0003048,},
