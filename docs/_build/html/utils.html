@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The utils Module &mdash; GTFS Toolkit 0.11.9 documentation</title>
+    <title>The utils Module &mdash; GTFSTK 0.12.2 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.9',
+        VERSION:     '0.12.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,8 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="GTFS Toolkit 0.11.9 documentation" href="index.html" />
+    <link rel="top" title="GTFSTK 0.12.2 documentation" href="index.html" />
     <link rel="next" title="The feed Module" href="feed.html" />
     <link rel="prev" title="GTFS Toolkit" href="introduction.html" /> 
   </head>
@@ -44,7 +43,7 @@
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.9 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFSTK 0.12.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -53,11 +52,25 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-gtfs_tk.utils">
-<span id="the-utils-module"></span><h1>The utils Module<a class="headerlink" href="#module-gtfs_tk.utils" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-gtfstk.utils">
+<span id="the-utils-module"></span><h1>The utils Module<a class="headerlink" href="#module-gtfstk.utils" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="gtfs_tk.utils.datestr_to_date">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">datestr_to_date</code><span class="sig-paren">(</span><em>x</em>, <em>format_str='%Y%m%d'</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.datestr_to_date" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.utils.clean_series">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">clean_series</code><span class="sig-paren">(</span><em>series</em>, <em>nan_prefix='n/a'</em>, <em>mark='-'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.clean_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a series of items, replace NaN entries
+with <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-0'</span></code>, <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-1'</span></code>, 
+<code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-2'</span></code>, etc.
+Replace duplicate items x1, x2, x3, etc. with 
+x1 + &#8216;-0&#8217;, x2 + &#8216;-1&#8217;, x3 + &#8216;-2&#8217;, etc.
+Return the resulting series.
+If can change the dashes to another string by setting
+the <code class="docutils literal"><span class="pre">mark</span></code> parameter.</p>
+<p>I use this for cleaning route short names.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.utils.datestr_to_date">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">datestr_to_date</code><span class="sig-paren">(</span><em>x</em>, <em>format_str='%Y%m%d'</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.datestr_to_date" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a string object <code class="docutils literal"><span class="pre">x</span></code> representing a date in the given format,
 convert it to a datetime.date object and return the result
 If <code class="docutils literal"><span class="pre">inverse</span> <span class="pre">==</span> <span class="pre">True</span></code>, then assume that <code class="docutils literal"><span class="pre">x</span></code> is a date object
@@ -65,8 +78,19 @@ and return its corresponding string in the given format.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.utils.get_max_runs">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">get_max_runs</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.get_max_runs" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.utils.get_convert_dist">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">get_convert_dist</code><span class="sig-paren">(</span><em>dist_units_in</em>, <em>dist_units_out</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.get_convert_dist" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Return a function of the form</dt>
+<dd>distance in the units <code class="docutils literal"><span class="pre">dist_units_in</span></code> -&gt; 
+distance in the units <code class="docutils literal"><span class="pre">dist_units_out</span></code></dd>
+</dl>
+<p>Only supports distance units in <code class="docutils literal"><span class="pre">DISTANCE_UNITS</span></code>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.utils.get_max_runs">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">get_max_runs</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.get_max_runs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a list of numbers, return a NumPy array of pairs
 (start index, end index + 1) of the runs of max value.</p>
 <p>EXAMPLES:</p>
@@ -80,8 +104,8 @@ Recipe from
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.utils.get_peak_indices">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">get_peak_indices</code><span class="sig-paren">(</span><em>times</em>, <em>counts</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.get_peak_indices" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.utils.get_peak_indices">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">get_peak_indices</code><span class="sig-paren">(</span><em>times</em>, <em>counts</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.get_peak_indices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given an increasing list of times as seconds past midnight and a list of
 trip counts at those times, return a pair of indices i, j
 such that times[i] to times[j] is the first longest time period 
@@ -90,8 +114,8 @@ Assume times and counts have the same nonzero length.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.utils.get_segment_length">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">get_segment_length</code><span class="sig-paren">(</span><em>linestring</em>, <em>p</em>, <em>q=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.get_segment_length" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.utils.get_segment_length">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">get_segment_length</code><span class="sig-paren">(</span><em>linestring</em>, <em>p</em>, <em>q=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.get_segment_length" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a Shapely linestring and two Shapely points,
 project the points onto the linestring, and return the distance along
 the linestring between the two points.
@@ -101,20 +125,20 @@ The distance is measured in the native coordinates of the linestring.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.utils.time_it">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">time_it</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.time_it" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.utils.time_it">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">time_it</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.time_it" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.utils.timestr_mod24">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">timestr_mod24</code><span class="sig-paren">(</span><em>timestr</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.timestr_mod24" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.utils.timestr_mod24">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">timestr_mod24</code><span class="sig-paren">(</span><em>timestr</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.timestr_mod24" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a GTFS time string in the format %H:%M:%S, return a timestring
 in the same format but with the hours taken modulo 24.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.utils.timestr_to_seconds">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">timestr_to_seconds</code><span class="sig-paren">(</span><em>x</em>, <em>inverse=False</em>, <em>mod24=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.timestr_to_seconds" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.utils.timestr_to_seconds">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">timestr_to_seconds</code><span class="sig-paren">(</span><em>x</em>, <em>inverse=False</em>, <em>mod24=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.timestr_to_seconds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a time string of the form &#8216;%H:%M:%S&#8217;, return the number of seconds
 past midnight that it represents.
 In keeping with GTFS standards, the hours entry may be greater than 23.
@@ -125,15 +149,8 @@ seconds modulo <code class="docutils literal"><span class="pre">24*3600</span></
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfs_tk.utils.to_km">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">to_km</code><span class="sig-paren">(</span><em>x</em>, <em>units='km'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.to_km" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a distance <code class="docutils literal"><span class="pre">x</span></code> in units <code class="docutils literal"><span class="pre">units</span></code>,
-convert it to kilometers and return the result.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfs_tk.utils.weekday_to_str">
-<code class="descclassname">gtfs_tk.utils.</code><code class="descname">weekday_to_str</code><span class="sig-paren">(</span><em>weekday</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfs_tk.utils.weekday_to_str" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.utils.weekday_to_str">
+<code class="descclassname">gtfstk.utils.</code><code class="descname">weekday_to_str</code><span class="sig-paren">(</span><em>weekday</em>, <em>inverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utils.weekday_to_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a weekday, that is, an integer in <code class="docutils literal"><span class="pre">range(7)</span></code>, return
 it&#8217;s corresponding weekday name as a lowercase string.
 Here 0 -&gt; &#8216;monday&#8217;, 1 -&gt; &#8216;tuesday&#8217;, and so on.
@@ -193,11 +210,11 @@ If <code class="docutils literal"><span class="pre">inverse</span> <span class="
         <li class="right" >
           <a href="introduction.html" title="GTFS Toolkit"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GTFS Toolkit 0.11.9 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GTFSTK 0.12.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2014, Alexander Raichev.
+        &copy; Copyright .
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.
     </div>
   </body>

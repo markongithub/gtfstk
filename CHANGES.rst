@@ -1,13 +1,53 @@
 Changes
 ========
 
+v0.12.2 (2015-07-06)
+--------------------
+- Changed name to ``gtfstk``
+
+v0.12.1 (2015-06-24)
+--------------------
+- Added ``route_short_name`` and ``min_headway`` to trips stats and routes stats
+- Changed the default handling of distance units in ``Feed()``
+
+v0.12.0 (2015-04-21)
+--------------------
+- Assembled ``feed.py`` and ``utils.py`` into a unified top-level package by tweaking ``__init__.py``
+- Renamed ``get_linestring_by_shape()`` and ``get_point_by_stop()`` to ``get_geometry_by_shape()`` and ``get_geometry_by_stop()``, respectively
+
+v0.11.16 (2015-04-20)
+---------------------
+- Added ``min_transfer_time`` to ``INT_COLS``
+
+v0.11.15 (2015-04-14)
+---------------------
+- Fixed ``get_route_timetable()`` sort order
+
+v0.11.14 (2015-04-14)
+---------------------
+- Added data frame empty checks to ``Feed.__init__()``, because i was getting errors on feeds with empty ``calendar.txt`` files
+
+v0.11.13 (2015-04-14)
+---------------------
+- Removed ``parent_station`` from ``INT_COLS``, which should have never been there in the first place
+
+v0.11.12 (2015-04-13)
+---------------------
+- Now you can specify the output distance units
+
+v0.11.11 (2015-04-08)
+---------------------
+- Changed most functions to return an empty data frame instead of ``None``
+- Fixed ``export()`` so that integer columns, such as 'bike_allowed', that have at least on NaN value no longer get formatted as floats in the output CSVs
+
 v0.11.10 (2015-04-03)
 ---------------------
-- Reduced number of columns in ``get_trips_activity``
+- Reduced columns in ``get_trips_activity()``
+- Added ``clean_series()``
 
 v0.11.9 (2015-04-03)
 ---------------------
-- Fixed a bug in the computation of the ``service_distance`` and ``service_duration`` columns of feed stats
+- Fixed a bug/typo in the computation of the ``service_distance`` and ``service_duration`` columns of feed stats
 
 v0.11.8 (2015-03-27)
 ---------------------
