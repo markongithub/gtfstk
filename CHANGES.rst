@@ -1,6 +1,10 @@
 Changes
 ========
 
+v0.12.4 (2015-07-28)
+---------------------
+- Bug fix. In ``INT_COLS`` changed ``'dropoff_type'`` to ``'drop_off_type'``.
+
 v0.12.3 (2015-07-18)
 --------------------
 - Changed to return empty data frames instead of ``None`` where appropriate

@@ -57,7 +57,7 @@ INT_COLS = [
   'wheelchair_accessible',
   'bikes_allowed',
   'pickup_type',
-  'dropoff_type',
+  'drop_off_type',
   'timepoint',
   'monday',
   'tuesday',
