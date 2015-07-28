@@ -8,6 +8,9 @@ In conformance with GTFS and unless specified otherwise,
 dates are encoded as date strings of 
 the form YYMMDD and times are encoded as time strings of the form HH:MM:SS
 with the possibility that the hour is greater than 24.
+
+Unless specified otherwise, 'data frame' and 'series' refer to
+Pandas data frames and series, respectively.
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -74,7 +77,7 @@ INT_COLS = [
 
 def count_active_trips(trips, time):
     """
-    Given a Pandas data frame containing the rows
+    Given a data frame containing the rows
 
     - trip_id
     - start_time: start time of the trip in seconds past midnight
@@ -94,7 +97,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     Given a subset of the output of ``Feed.get_trips_stats()``, 
     calculate stats for the routes in that subset.
     
-    Return a Pandas data frame with the following columns:
+    Return a data frame with the following columns:
 
     - route_id
     - route_short_name
@@ -139,10 +142,35 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     (2) compute mean headway by taking the weighted mean of the mean
     headways in both directions. 
 
-    If ``trips_stats_subset`` is empty, return an empty data frame.
+    If ``trips_stats_subset`` is empty, return an empty data frame with
+    the columns specified above.
     """        
+    cols = [
+      'route_id',
+      'route_short_name',
+      'num_trips',
+      'is_loop',
+      'is_bidirectional',
+      'start_time',
+      'end_time',
+      'max_headway',
+      'min_headway',
+      'mean_headway',
+      'peak_num_trips',
+      'peak_start_time',
+      'peak_end_time',
+      'service_duration',
+      'service_distance',
+      'service_speed',
+      'mean_trip_distance',
+      'mean_trip_duration',
+      ]
+
+    if split_directions:
+        cols.append('direction_id')
+
     if trips_stats_subset.empty:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=cols)
 
     # Convert trip start and end times to seconds to ease calculations below
     f = trips_stats_subset.copy()
@@ -270,7 +298,7 @@ def get_routes_time_series(trips_stats_subset,
     - service distance in kilometers by route ID
     - service speed in kilometers per hour
 
-    The time series is a Pandas data frame with a timestamp index 
+    The time series is a data frame with a timestamp index 
     for a 24-hour period sampled at the given frequency.
     The maximum allowable frequency is 1 minute.
     ``date_label`` is used as the date for the timestamp index.
@@ -284,7 +312,8 @@ def get_routes_time_series(trips_stats_subset,
 
     If ``split_directions == False``, then don't include the bottom level.
     
-    If ``trips_stats_subset`` is empty, then return an empty data frame.
+    If ``trips_stats_subset`` is empty, then return an empty data frame
+    with the indicator columns.
 
     NOTES:
 
@@ -297,8 +326,15 @@ def get_routes_time_series(trips_stats_subset,
       time series f, do ``f.index = [t.time().strftime('%H:%M') 
       for t in f.index.to_datetime()]``
     """  
+    cols = [
+      'service_distance',
+      'service_duration', 
+      'num_trip_starts', 
+      'num_trips', 
+      'service_speed',
+      ]
     if trips_stats_subset.empty:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=cols)
 
     tss = trips_stats_subset.copy()
     if split_directions:
@@ -379,21 +415,19 @@ def get_routes_time_series(trips_stats_subset,
       split_directions=split_directions)
     return downsample(g, freq=freq)
 
-def get_stops_stats(stop_times_subset, split_directions=False,
+def get_stops_stats(stop_times, trips_subset, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Given a subset of ``Feed.stop_times``,
-    return a Pandas data frame that provides summary stats about
-    the stops in that subset.
-    If ``split_directions == True``, then the stop times subset
-    must be augmented by a ``direction_id`` column indicating the 
-    direction of each trip.
-    
-    The columns of the returned data frame are:
+    Given a stop times data frame and a subset of a trips data frame,
+    return a data frame that provides summary stats about
+    the stops in the (inner) join of the two data frames.
+
+    The columns of the output data frame are:
 
     - stop_id
     - direction_id: present iff ``split_directions == True``
-    - num_trips: number of trips visiting stop 
+    - num_routes: number of routes visiting stop (in the given direction)
+    - num_trips: number of trips visiting stop (in the givin direction)
     - max_headway: maximum of the durations (in minutes) between 
       trip departures at the stop between ``headway_start_time`` and 
       ``headway_end_time`` on the given date
@@ -407,12 +441,27 @@ def get_stops_stats(stop_times_subset, split_directions=False,
     If ``split_directions == False``, then compute each stop's stats
     using trips visiting it from both directions.
 
-    If ``stop_times_subset`` is empty, then return an empty data frame.
+    If ``trips_subset`` is empty, then return an empty data frame
+    with the columns specified above.
     """
-    if stop_times_subset.empty:
-        return pd.DataFrame()
+    cols = [
+      'stop_id',
+      'num_routes',
+      'num_trips',
+      'max_headway',
+      'min_headway',
+      'mean_headway',
+      'start_time',
+      'end_time',
+      ]
 
-    f = stop_times_subset.copy()
+    if split_directions:
+        cols.append('direction_id')
+
+    if trips_subset.empty:
+        return pd.DataFrame(columns=cols)
+
+    f = stop_times.merge(trips_subset)
 
     # Convert departure times to seconds to ease headway calculations
     f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
@@ -424,6 +473,7 @@ def get_stops_stats(stop_times_subset, split_directions=False,
     def get_stop_stats(group):
         # Operate on the group of all stop times for an individual stop
         d = OrderedDict()
+        d['num_routes'] = group['route_id'].unique().size
         d['num_trips'] = group.shape[0]
         d['start_time'] = group['departure_time'].min()
         d['end_time'] = group['departure_time'].max()
@@ -456,17 +506,14 @@ def get_stops_stats(stop_times_subset, split_directions=False,
 
     return result
 
-def get_stops_time_series(stop_times_subset, split_directions=False,
+def get_stops_time_series(stop_times, trips_subset, split_directions=False,
   freq='5Min', date_label='20010101'):
     """
-    Given a subset of ``Feed.stop_times``, 
-    return a time series that describes the number of trips by stop ID
-    in that subset.
-    If ``split_directions == True``, then the stop times subset
-    must be augmented by a ``direction_id`` column indicating the 
-    direction of each trip.
+    Given a stop times data frame and a subset of a trips data frame,
+    return a data frame that provides summary stats about
+    the stops in the (inner) join of the two data frames.
 
-    The time series is a Pandas data frame with a timestamp index 
+    The time series is a data frame with a timestamp index 
     for a 24-hour period sampled at the given frequency.
     The maximum allowable frequency is 1 minute.
     The timestamp includes the date given by ``date_label``,
@@ -480,7 +527,8 @@ def get_stops_time_series(stop_times_subset, split_directions=False,
 
     If ``split_directions == False``, then don't include the bottom level.
     
-    If ``stop_times_subset`` is empty, then return an empty data frame.
+    If ``trips_subset`` is empty, then return an empty data frame
+    with the indicator columns.
 
     NOTES:
 
@@ -489,10 +537,11 @@ def get_stops_time_series(stop_times_subset, split_directions=False,
       the time series f, do ``f.index = [t.time().strftime('%H:%M') 
       for t in f.index.to_datetime()]``
     """  
-    if stop_times_subset.empty:
-        return pd.DataFrame()
+    cols = ['num_trips']
+    if trips_subset.empty:
+        return pd.DataFrame(columns=cols)
 
-    f = stop_times_subset.copy()
+    f = stop_times.merge(trips_subset)
 
     if split_directions:
         # Alter stop IDs to encode trip direction: 
@@ -605,8 +654,9 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
     If ``split_directions == False``, then there is no third column level,
     no 'direction_id' column.
     """
-    assert kind in ['stop', 'route'],\
-      "kind must be 'stop' or 'route'"
+    if kind not in ['stop', 'route']:
+        raise ValueError(
+          "kind must be 'stop' or 'route'")
 
     subcolumns = ['indicator']
     if kind == 'stop':
@@ -751,7 +801,7 @@ def plot_routes_time_series(routes_time_series):
 class Feed(object):
     """
     A class to gather all the GTFS files for a feed and store them in memory 
-    as Pandas data frames.  
+    as  data frames.  
     Make sure you have enough memory!  
     The stop times object can be big.
     """
@@ -785,13 +835,15 @@ class Feed(object):
         for f in REQUIRED_GTFS_FILES:
             ff = f + '.txt'
             if ff == 'calendar.txt':
-                assert os.path.exists(path + ff) or\
-                  os.path.exists(path + 'calendar_dates.txt'),\
-                  "File calendar.txt or calendar_dates.txt"\
-                  " is required in GTFS feeds"
+                if not (os.path.exists(path + ff) or\
+                  os.path.exists(path + 'calendar_dates.txt')):
+                    raise ValueError(
+                      "File calendar.txt or calendar_dates.txt"\
+                      " is required in GTFS feeds")
             else:
-                assert os.path.exists(path + ff),\
-                  "File {!s} is required in GTFS feeds".format(ff)
+                if not os.path.exists(path + ff):
+                    raise ValueError(
+                      "File {!s} is required in GTFS feeds".format(ff))
 
         # Get required GTFS files
         self.agency = pd.read_csv(path + 'agency.txt')
@@ -832,8 +884,9 @@ class Feed(object):
             self.calendar_dates = None
             self.calendar_dates_g = None
 
-        assert self.calendar is not None or self.calendar_dates is not None,\
-          'One of calendar.txt or calendar_dates.txt must be non-empty'
+        if self.calendar is None and self.calendar_dates is None:
+            raise ValueError(
+              'One of calendar.txt or calendar_dates.txt must be non-empty')
 
         # Get optional GTFS files if they exist.
         # Get shapes.
@@ -860,16 +913,18 @@ class Feed(object):
         if 'shape_dist_traveled' in self.stop_times.columns or\
           (self.shapes is not None and\
           'shape_dist_traveled' in self.shapes.columns):
-            assert di is not None,\
-              'This feed has distances, so must specify dist_units_in'
+            if di is None:
+                raise ValueError(
+                  'This feed has distances, so must specify dist_units_in')
         # Set defaults
         if di is None:
             di = 'km'
         if do is None:
             do = di
         DU = utils.DISTANCE_UNITS
-        assert di in DU and do in DU,\
-          'Distance units must lie in {!s}'.format(DU)
+        if not (di in DU and do in DU):
+            raise ValueError(
+              'Distance units must lie in {!s}'.format(DU))
         self.dist_units_in = di
         self.dist_units_out = do
         
@@ -879,11 +934,13 @@ class Feed(object):
         # Reformat some.
         # Prefix a 0 to arrival and departure times if necessary.
         # This makes sorting by time work as expected.
-        def reformat_times(timestr):
-            result = timestr
-            if isinstance(result, str) and len(result) == 7:
-                result = '0' + result
-            return result
+        def reformat_times(t):
+            if pd.isnull(t):
+                return t
+            t = t.strip()
+            if len(t) == 7:
+                t = '0' + t
+            return t
 
         self.stop_times[['arrival_time', 'departure_time']] =\
           self.stop_times[['arrival_time', 'departure_time']].\
@@ -908,9 +965,8 @@ class Feed(object):
     # ----------------------------------
     def is_active_trip(self, trip, date):
         """
-        If the given trip (trip ID) is active on the given date 
-        (string of the form '%Y%m%d'), then return ``True``.
-        Otherwise, return ``False``.
+        If the given trip (trip ID) is active on the given date,
+        then return ``True``; otherwise return ``False``.
         To avoid error checking in the interest of speed, 
         assume ``trip`` is a valid trip ID in the feed and 
         ``date`` is a valid date object.
@@ -947,8 +1003,8 @@ class Feed(object):
     def get_trips(self, date=None, time=None):
         """
         Return the section of ``self.trips`` that contains
-        only trips active on the given date (string of the form '%Y%m%d').
-        If ``date is None``, then return all trips.
+        only trips active on the given date.
+        If the date is not given, then return all trips.
         If a date and time are given, 
         then return only those trips active at that date and time.
         Do not take times modulo 24.
@@ -985,18 +1041,22 @@ class Feed(object):
 
     def get_trips_activity(self, dates):
         """
-        Return a Pandas data frame with the columns
+        Return a  data frame with the columns
 
         - trip_id
-        - dates[0]: 1 if the trip is active on the given date; 0 otherwise
-        - dates[1]: ditto
+        - ``dates[0]``: 1 if the trip is active on ``dates[0]``; 
+          0 otherwise
+        - ``dates[1]``: 1 if the trip is active on ``dates[0]``; 
+          0 otherwise
         - etc.
-        - dates[-1]: ditto
+        - ``dates[-1]``: 1 if the trip is active on ``dates[-1]``; 
+          0 otherwise
 
-        If ``dates is None``, then return ``None``.
+        If ``dates`` is ``None`` or the empty list, then return an 
+        empty data frame with the column 'trip_id'.
         """
         if not dates:
-            return
+            return pd.DataFrame(columns=['trip_id'])
 
         f = self.trips.copy()
         for date in dates:
@@ -1006,7 +1066,7 @@ class Feed(object):
 
     def get_trips_stats(self, get_dist_from_shapes=False):
         """
-        Return a Pandas data frame with the following columns:
+        Return a  data frame with the following columns:
 
         - trip_id
         - route_id
@@ -1147,7 +1207,7 @@ class Feed(object):
 
     def get_trips_locations(self, date, times):
         """
-        Return a Pandas data frame of the positions of all trips
+        Return a  data frame of the positions of all trips
         active on the given date and times 
         Include the columns:
 
@@ -1163,10 +1223,12 @@ class Feed(object):
         Assume ``self.stop_times`` has an accurate ``shape_dist_traveled``
         column.
         """
-        assert 'shape_dist_traveled' in self.stop_times.columns,\
-          "The shape_dist_traveled column is required in self.stop_times. "\
-          "You can create it, possibly with some inaccuracies, "\
-          "via self.stop_times = self.add_dist_to_stop_times()."
+        if 'shape_dist_traveled' not in self.stop_times.columns:
+            raise ValueError(
+              "The shape_dist_traveled column is required "\
+              "in self.stop_times. "\
+              "You can create it, possibly with some inaccuracies, "\
+              "via self.stop_times = self.add_dist_to_stop_times().")
         
         # Start with stop times active on date
         f = self.get_stop_times(date)
@@ -1223,11 +1285,22 @@ class Feed(object):
         
     # Route methods
     # ----------------------------------
+    def clean_route_short_names(self):
+        """
+        Clean the ``route_short_name`` column in ``self.routes`` 
+        using ``utils.clean_series``.
+        Among other things, this will disambiguate duplicate
+        route short names.
+        Return ``None``
+        """
+        self.routes['route_short_name'] = utils.clean_series(
+          self.routes['route_short_name'])
+
     def get_routes(self, date=None, time=None):
         """
         Return the section of ``self.routes`` that contains
         only routes active on the given date.
-        If ``date is None``, then return all routes.
+        If no date is given, then return all routes.
         If a date and time are given, then return only those routes with
         trips active at that date and time.
         Do not take times modulo 24.
@@ -1292,7 +1365,7 @@ class Feed(object):
 
     def get_route_timetable(self, route_id, date):
         """
-        Return a Pandas data frame encoding the timetable
+        Return a  data frame encoding the timetable
         for the given route ID on the given date.
         The columns are all those in ``self.trips`` plus those in 
         ``self.stop_times``.
@@ -1307,7 +1380,7 @@ class Feed(object):
         # So temporarily fill NaN departure times as a workaround.
         f['dt'] = f['departure_time'].fillna(method='ffill')
         f['min_dt'] = f.groupby('trip_id')['dt'].transform(min)
-        return f.sort(['min_dt', 'departure_time']).drop(['min_dt', 'dt'], 
+        return f.sort(['min_dt', 'stop_sequence']).drop(['min_dt', 'dt'], 
           axis=1)
 
     # Stop methods
@@ -1315,9 +1388,8 @@ class Feed(object):
     def get_stops(self, date=None):
         """
         Return the section of ``self.stops`` that contains
-        only stops with active stop times on the given date 
-        (string of the form '%Y%m%d').
-        If ``date is None``, then return all stops.
+        only stops that have visiting trips active on the given date.
+        If no date is given, then return all stops.
         """
         if date is None:
             return self.stops.copy()
@@ -1348,19 +1420,22 @@ class Feed(object):
 
     def get_stops_activity(self, dates):
         """
-        Return a Pandas data frame with the columns
+        Return a  data frame with the columns
 
         - stop_id
-        - dates[0]: a series of ones and zeros indicating if a 
-          stop has stop times on this date (1) or not (0)
+        - ``dates[0]``: 1 if the stop has at least one trip visiting it 
+          on ``dates[0]``; 0 otherwise 
+        - ``dates[1]``: 1 if the stop has at least one trip visiting it 
+          on ``dates[1]``; 0 otherwise 
         - etc.
-        - dates[-1]: ditto
+        - ``dates[-1]``: 1 if the stop has at least one trip visiting it 
+          on ``dates[-1]``; 0 otherwise 
 
-        If ``dates is None``, then return ``None``.
-        Dates are represented as strings of the form '%Y%m%d'.
+        If ``dates`` is ``None`` or the empty list, 
+        then return an empty data frame with the column 'stop_id'.
         """
         if not dates:
-            return
+            return pd.DataFrame(columns=['stop_id'])
 
         trips_activity = self.get_trips_activity(dates)
         g = trips_activity.merge(self.stop_times).groupby('stop_id')
@@ -1377,10 +1452,9 @@ class Feed(object):
     def get_stops_stats(self, date, split_directions=False,
         headway_start_time='07:00:00', headway_end_time='19:00:00'):
         """
-        Get all the stop times ``S`` that have trips active on the given
-        date and call ``get_stops_stats()`` with ``S`` and the keyword 
-        arguments ``split_directions``, ``headway_start_time``, and 
-        ``headway_end_time``.
+        Call ``get_stops_stats()`` with the subset of trips active on 
+        the given date and with the keyword arguments ``split_directions``,
+        ``headway_start_time``, and ``headway_end_time``.
 
         See ``get_stops_stats()`` for a description of the output.
 
@@ -1390,36 +1464,30 @@ class Feed(object):
         The latter function works without a feed, though.
         """
         # Get stop times active on date and direction IDs
-        f = self.get_trips(date).merge(self.stop_times)
-
-        return get_stops_stats(f, split_directions=split_directions,
+        return get_stops_stats(self.stop_times, self.get_trips(date),
+          split_directions=split_directions,
           headway_start_time=headway_start_time, 
           headway_end_time=headway_end_time)
 
     def get_stops_time_series(self, date, split_directions=False,
       freq='5Min'):
         """
-        Get all the stop times ``S`` that have trips active on the given
-        date and call ``get_stops_stats()`` with ``S`` and the keyword 
-        arguments ``split_directions`` and ``freq`` and with 
-        ``date_label`` equal to ``date``.
-        See ``Feed.get_stops_time_series()`` for a description of the output.
-
-        If there are no active stop times on the date, then return ``None``.
+        Call ``get_stops_times_series()`` with the subset of trips active on 
+        the given date and with the keyword arguments ``split_directions``
+        and ``freq`` and with ``date_label`` equal to ``date``.
+        See ``get_stops_time_series()`` for a description of the output.
 
         NOTES:
 
         This is a more user-friendly version of ``get_stops_time_series()``.
         The latter function works without a feed, though.
         """  
-        # Get active stop times for date and direction IDs
-        f = self.get_trips(date).merge(self.stop_times)
-        return get_stops_time_series(f, split_directions=split_directions,
-            freq=freq, date_label=date)
+        return get_stops_time_series(self.stop_times, self.get_trips(date),
+          split_directions=split_directions, freq=freq, date_label=date)
 
     def get_stop_timetable(self, stop_id, date):
         """
-        Return a Pandas data frame encoding the timetable
+        Return a  data frame encoding the timetable
         for the given stop ID on the given date.
         The columns are all those in ``self.trips`` plus those in
         ``self.stop_times``.
@@ -1432,32 +1500,29 @@ class Feed(object):
 
     def get_stops_in_stations(self):
         """
-        If this feed has station data, that is, 'location_type' and
-        'parent_station' columns in ``self.stops``, then return a Pandas
+        If this feed has station data, that is, ``location_type`` and
+        ``parent_station`` columns in ``self.stops``, then return a 
         data frame that has the same columns as ``self.stops``
         but only includes stops with parent stations, that is, stops with
         location type 0 or blank and nonblank parent station.
-        Otherwise, return ``None``.
+        Otherwise, return an empty data frame with the specified columns.
         """
         f = self.stops
-        result = f[(f['location_type'] != 1) & (f['parent_station'].notnull())]
-        if result.empty:
-            return
-        return result
+        return f[(f['location_type'] != 1) & (f['parent_station'].notnull())]
 
     def get_stations_stats(self, date, split_directions=False,
         headway_start_time='07:00:00', headway_end_time='19:00:00'):
         """
-        If this feed has station data, that is, 'location_type' and
-        'parent_station' columns in ``self.stops``, then compute
+        If this feed has station data, that is, ``location_type`` and
+        ``parent_station`` columns in ``self.stops``, then compute
         the same stats that ``self.get_stops_stats()`` does, but for
         stations.
-        Otherwise, return ``None``.
+        Otherwise, return an empty data frame with the specified columns.
         """
         # Get stop times of active trips that visit stops in stations
         sis = self.get_stops_in_stations()
-        if sis is None:
-            return
+        if sis.empty:
+            return sis
 
         f = self.get_stop_times(date)
         f = f.merge(sis)
@@ -1542,7 +1607,7 @@ class Feed(object):
         Return a string that is a GeoJSON feature collection of 
         linestring features representing ``self.shapes``.
         Each feature will have a ``shape_id`` property. 
-        If ``self.shapes is None``, then return ``None``.
+        If ``self.shapes`` is ``None``, then return ``None``.
         The coordinates reference system is the default one for GeoJSON,
         namely WGS84.
         """
@@ -1566,6 +1631,7 @@ class Feed(object):
         """
         Add/overwrite the optional ``shape_dist_traveled`` GTFS field for
         ``self.shapes``.
+        Return ``None``.
 
         NOTE: 
 
@@ -1573,8 +1639,9 @@ class Feed(object):
         for the Portland feed differ by at most 0.016 km in absolute values
         from of the original values. 
         """
-        assert self.shapes is not None,\
-          "This method requires the feed to have a shapes.txt file"
+        if self.shapes is None:
+            raise ValueError(
+              "This method requires the feed to have a shapes.txt file")
 
         f = self.shapes
         m_to_dist = utils.get_convert_dist('m', self.dist_units_out)
@@ -1609,8 +1676,8 @@ class Feed(object):
     def get_stop_times(self, date=None):
         """
         Return the section of ``self.stop_times`` that contains
-        only trips active on the given date (string of the form '%Y%m%d').
-        If ``date is None``, then return all stop times.
+        only trips active on the given date.
+        If no date is given, then return all stop times.
         """
         f = self.stop_times.copy()
         if date is None:
@@ -1786,7 +1853,7 @@ class Feed(object):
         """
         Given ``trips_stats``, which is the output of 
         ``self.get_trips_stats()`` and a date,
-        return a Pandas data frame including the following feed
+        return a  data frame including the following feed
         stats for the date.
 
         - num_trips: number of trips active on the given date
@@ -1801,12 +1868,24 @@ class Feed(object):
         - service_duration: sum of the service durations for the active routes
         - service_speed: service_distance/service_duration
 
-        If there are no stats for the given date, return an empty data frame.
+        If there are no stats for the given date, return an empty data frame
+        with the specified columns.
         """
+        cols = [
+          'num_trips',
+          'num_routes',
+          'num_stops',
+          'peak_num_trips',
+          'peak_start_time',
+          'peak_end_time',
+          'service_distance',
+          'service_duration',
+          'service_speed',
+          ]
         d = OrderedDict()
         trips = self.get_trips(date)
         if trips.empty:
-            return pd.DataFrame()
+            return pd.DataFrame(columns=cols)
 
         d['num_trips'] = trips.shape[0]
         d['num_routes'] = self.get_routes(date).shape[0]
@@ -1849,11 +1928,18 @@ class Feed(object):
         - service_speed: service_distance/service_duration
 
         If there is no time series for the given date, 
-        return an empty data frame.
+        return an empty data frame with specified columns.
         """
+        cols = [
+          'num_trip_starts',
+          'num_trips',
+          'service_distance',
+          'service_duration',
+          'service_speed',
+          ]
         rts = self.get_routes_time_series(trips_stats, date, freq=freq)
         if rts.empty:
-            return pd.DataFrame()
+            return pd.DataFrame(columns=cols)
 
         stats = rts.columns.levels[0].tolist()
         # split_directions = 'direction_id' in rts.columns.names
@@ -1913,4 +1999,3 @@ class Feed(object):
 
         # Delete temporary directory
         shutil.rmtree(tmp_dir)
-

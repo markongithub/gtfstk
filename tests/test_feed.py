@@ -21,11 +21,11 @@ class TestFeed(unittest.TestCase):
     def test_init(self):
         # Test distance units check.
         # Bad dist_units_in:
-        self.assertRaises(AssertionError, Feed, 
+        self.assertRaises(ValueError, Feed, 
           path='data/cairns_gtfs.zip', 
           dist_units_in='bingo')
         # Requires dist_units_in:
-        self.assertRaises(AssertionError, Feed,
+        self.assertRaises(ValueError, Feed,
           path='data/portland_gtfs.zip')
 
         # Test file checks
@@ -360,16 +360,16 @@ class TestFeed(unittest.TestCase):
     # ----------------------------------
     def test_get_stops_stats_outer(self):
         feed = copy(cairns)
-        st = pd.merge(feed.stop_times, 
-          feed.trips[['trip_id', 'direction_id']])
         for split_directions in [True, False]:
-            stops_stats = get_stops_stats(st, 
+            stops_stats = get_stops_stats(feed.stop_times,
+              feed.trips, 
               split_directions=split_directions)
             # Should be a data frame
             self.assertIsInstance(stops_stats, pd.core.frame.DataFrame)
             # Should contain the correct columns
             expect_cols = set([
               'stop_id',
+              'num_routes',
               'num_trips',
               'max_headway',
               'min_headway',
@@ -386,16 +386,16 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(get_stops, expect_stops)
 
         # Empty check
-        stats = get_stops_stats(pd.DataFrame())    
+        stats = get_stops_stats(feed.stop_times, pd.DataFrame())    
         self.assertTrue(stats.empty)
 
     def test_get_stops_time_series_outer(self):
         feed = copy(cairns)
-        st = pd.merge(feed.stop_times, 
-          feed.trips[['trip_id', 'direction_id']])
         for split_directions in [True, False]:
-            ss = get_stops_stats(st, split_directions=split_directions)
-            sts = get_stops_time_series(st, freq='1H',
+            ss = get_stops_stats(feed.stop_times, 
+              feed.trips, split_directions=split_directions)
+            sts = get_stops_time_series(feed.stop_times, 
+              feed.trips, freq='1H',
               split_directions=split_directions) 
             
             # Should be a data frame
@@ -414,14 +414,15 @@ class TestFeed(unittest.TestCase):
 
             # Each stop should have a correct total trip count
             if split_directions == False:
-                stg = st.groupby('stop_id')
-                for stop in set(st['stop_id'].values):
+                stg = feed.stop_times.groupby('stop_id')
+                for stop in set(feed.stop_times['stop_id'].values):
                     get = sts['num_trips'][stop].sum() 
                     expect = stg.get_group(stop)['departure_time'].count()
                     self.assertEqual(get, expect)
         
         # Empty check
-        stops_ts = get_stops_time_series(pd.DataFrame(), freq='1H',
+        stops_ts = get_stops_time_series(feed.stop_times,
+          pd.DataFrame(), freq='1H',
           split_directions=split_directions) 
         self.assertTrue(stops_ts.empty)
 
