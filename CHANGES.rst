@@ -1,6 +1,10 @@
 Changes
 ========
 
+v1
+--------------------
+- Changed function names, favoring a ``compute_`` prefix over a ``get_`` prefix for complex functions.
+
 v0.12.3 (2015-07-18)
 --------------------
 - Changed to return empty data frames instead of ``None`` where appropriate
