@@ -55,7 +55,6 @@ coverage.xml
 # Miscellany
 .tresorit/
 .DS_Store
-gtfstk/tests/.ipynb_checkpoints/
-examples/.ipynb_checkpoints/
+*.ipynb_checkpoints/
 examples/stats/
 tests/*.ipynb*
