@@ -12,6 +12,7 @@ with the possibility that the hour is greater than 24.
 Unless specified otherwise, 'data frame' and 'series' refer to
 Pandas data frames and series, respectively.
 """
+from pathlib import Path
 import datetime as dt
 import dateutil.relativedelta as rd
 from collections import OrderedDict, Counter
@@ -37,6 +38,7 @@ REQUIRED_GTFS_FILES = [
   'stop_times',
   'calendar',
   ]
+
 OPTIONAL_GTFS_FILES = [
   'calendar_dates',  
   'fare_attributes',    
@@ -46,35 +48,168 @@ OPTIONAL_GTFS_FILES = [
   'transfers',   
   'feed_info',
   ]
+
+DTYPE = {
+  'stop_id': str, 
+  'stop_code': str,
+  'route_id': str, 
+  'route_short_name': str,
+  'trip_id': str, 
+  'service_id': str, 
+  'shape_id': str, 
+  'start_date': str, 
+  'end_date': str,
+  'location_type': int,
+  'wheelchair_boarding': int,
+  'route_type': int,
+  'direction_id': int,
+  'stop_sequence': int,
+  'wheelchair_accessible': int,
+  'bikes_allowed': int,
+  'pickup_type': int,
+  'drop_off_type': int,
+  'timepoint': int,
+  'monday': int,
+  'tuesday': int,
+  'wednesday': int,
+  'thursday': int,
+  'friday': int,
+  'saturday': int,
+  'sunday': int,
+  'exception_type': int,
+  'payment_method': int,
+  'transfers': int,
+  'shape_pt_sequence': int,
+  'exact_times': int,
+  'transfer_type': int,
+  'transfer_duration': int,
+  'min_transfer_time': int,
+}
+
 # Columns that must be formatted as int/str in GTFS and not float;
 # useful for export().
-INT_COLS = [
-  'location_type',
-  'wheelchair_boarding',
-  'route_type',
-  'direction_id',
-  'stop_sequence',
-  'wheelchair_accessible',
-  'bikes_allowed',
-  'pickup_type',
-  'drop_off_type',
-  'timepoint',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-  'exception_type',
-  'payment_method',
-  'transfers',
-  'shape_pt_sequence',
-  'exact_times',
-  'transfer_type',
-  'transfer_duration',
-  'min_transfer_time',
-]
+INT_COLS = [key for key, value in DTYPE.items() if value == int]
+
+def read_feed(path, dist_units_in=None, dist_units_out=None,
+  clean_feed=True):
+    """
+    Read in all the relevant GTFS text files within the directory or 
+    ZIP file given by ``path`` and assign them to instance attributes.
+    Assume the zip file unzips as a collection of GTFS text files
+    rather than as a directory of GTFS text files.
+
+    If this feed has the optional ``shape_dist_traveled`` column 
+    in ``shapes.txt`` or ``stop_times.txt``,
+    then you must specify the distance units by setting ``dist_units_in``.
+    Supported distance units are listed in ``utils.DISTANCE_UNITS``.
+    If the feed lacks distances, then ``dist_units_in`` is not required
+    and will be set to 'km'.
+    If ``dist_units_out`` is not specified, then it will be set to
+    ``dist_units_in``.
+    ``dist_units_out`` specifies the distance units for the outputs of 
+    the methods below, including ``export()``
+    """
+
+    # Unzip path if necessary
+    zipped = False
+    if zipfile.is_zipfile(path):
+        # Extract to temporary location
+        zipped = True
+        archive = zipfile.ZipFile(path)
+        path = path.rstrip('.zip') + '/'
+        archive.extractall(path)
+
+    path = Path(path)
+
+    # Check that the required GTFS files exist
+    for f in REQUIRED_GTFS_FILES:
+        ff = f + '.txt'
+        if ff == 'calendar.txt':
+            if not Path(path, ff).exists() or\
+              not Path(path, 'calendar_dates.txt').exists():
+                raise ValueError(
+                  "File calendar.txt or calendar_dates.txt"\
+                  " is required in GTFS feeds")
+        else:
+            if not Path(path, ff).exists():
+                raise ValueError(
+                  "File {!s} is required in GTFS feeds".format(ff))
+
+    # Read files into feed dictionary of data frames
+    feed_dict = {}
+    for f in REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES:
+        ff = f + '.txt'
+        p = Path(path, ff)
+        if p.exists():
+            feed_dict[f] = pd.read_csv(p.as_posix(), dtype=DTYPE)
+        else:
+            feed_dict[f] = None
+        
+    feed_dict['dist_units_in'] = dist_units_in
+    feed_dict['dist_units_out'] = dist_units_out
+
+    # Remove extracted zip directory
+    if zipped:
+        shutil.rmtree(path.as_posix())
+
+    # Check feed dictionary
+    check_feed_dict(feed_dict)
+
+    # Clean feed dictionary
+    if clean_feed:
+        feed_dict = clean_feed_dict(feed_dict)
+
+    # Create feed from feed dictionary
+    return Feed(**feed_dict)
+
+def check_feed_dict(feed_dict):
+    """
+    Perform some checks on a feed dictionary.
+    """  
+    d = feed_dict
+
+    # Calendar or calendar_dates must be nonempty
+    if (d['calendar'] is None and d['calendar_dates'] is None) or\
+      (d['calendar'].empty and d['calendar_dates'].empty):
+        raise ValueError(
+          "calendar or calendar_dates must be nonempty")
+
+    # Check for valid distance units
+    # Require dist_units_in if feed has distances
+    if 'shape_dist_traveled' in d['stop_times'].columns or\
+      (d['shapes'] is not None and\
+      'shape_dist_traveled' in d['shapes'].columns):
+        if d['dist_units_in'] is None:
+            raise ValueError(
+              'This feed has distances, so you must specify dist_units_in')    
+
+    DU = utils.DISTANCE_UNITS
+    for du in [d['dist_units_in'], d['dist_units_out']]:
+        if du is not None and du not in DU:
+            raise ValueError('Distance units must lie in {!s}'.format(DU))
+
+def clean_feed_dict(feed_dict):
+    """
+    Clean some value of a feed dictionary.
+    """
+    d = feed_dict
+
+    # Prefix a 0 to arrival and departure times if necessary.
+    # This makes sorting by time work as expected.
+    def reformat_times(t):
+        if pd.isnull(t):
+            return t
+        t = t.strip()
+        if len(t) == 7:
+            t = '0' + t
+        return t
+
+    st = d['stop_times']
+    st[['arrival_time', 'departure_time']] = st[['arrival_time', 
+      'departure_time']].applymap(reformat_times)
+    d['stop_times'] = st
+
+    return d
 
 def count_active_trips(trips, time):
     """
@@ -806,13 +941,12 @@ class Feed(object):
     Make sure you have enough memory!  
     The stop times object can be big.
     """
-    def __init__(self, path, dist_units_in=None, dist_units_out=None):
+    def __init__(self, agency=None, stops=None, routes=None, trips=None, 
+      stop_times=None, calendar=None, calendar_dates=None, 
+      fare_attributes=None, fare_rules=None, shapes=None, frequencies=None,
+      transfers=None, feed_info=None,
+      dist_units_in=None, dist_units_out=None):
         """
-        Read in all the relevant GTFS text files within the directory or 
-        ZIP file given by ``path`` and assign them to instance attributes.
-        Assume the zip file unzips as a collection of GTFS text files
-        rather than as a directory of GTFS text files.
-
         If this feed has the optional ``shape_dist_traveled`` column 
         in ``shapes.txt`` or ``stop_times.txt``,
         then you must specify the distance units by setting ``dist_units_in``.
@@ -824,127 +958,21 @@ class Feed(object):
         ``dist_units_out`` specifies the distance units for the outputs of 
         the methods below, including ``export()``
         """
-        zipped = False
-        if zipfile.is_zipfile(path):
-            # Extract to temporary location
-            zipped = True
-            archive = zipfile.ZipFile(path)
-            path = path.rstrip('.zip') + '/'
-            archive.extractall(path)
+        # Set attributes
+        for kwarg, value in locals().items():
+            if kwarg == 'self':
+                continue
+            setattr(self, kwarg, value)
 
-        # Check that the required GTFS files exist
-        for f in REQUIRED_GTFS_FILES:
-            ff = f + '.txt'
-            if ff == 'calendar.txt':
-                if not (os.path.exists(path + ff) or\
-                  os.path.exists(path + 'calendar_dates.txt')):
-                    raise ValueError(
-                      "File calendar.txt or calendar_dates.txt"\
-                      " is required in GTFS feeds")
-            else:
-                if not os.path.exists(path + ff):
-                    raise ValueError(
-                      "File {!s} is required in GTFS feeds".format(ff))
-
-        # Get required GTFS files
-        self.agency = pd.read_csv(path + 'agency.txt')
-        self.stops = pd.read_csv(path + 'stops.txt', 
-          dtype={'stop_id': str, 'stop_code': str})
-        self.routes = pd.read_csv(path + 'routes.txt', 
-          dtype={'route_id': str, 'route_short_name': str})
-        self.trips = pd.read_csv(path + 'trips.txt', 
-          dtype={'route_id': str, 'trip_id': str, 'service_id': str, 
-          'shape_id': str, 'stop_id': str})
-        self.trips_i = self.trips.set_index('trip_id')
-        self.stop_times = pd.read_csv(path + 'stop_times.txt', 
-          dtype={'stop_id': str, 'trip_id': str})
-    
-        # One of calendar.txt and calendar_dates.txt is
-        # required by the GTFS.
-        if os.path.isfile(path + 'calendar.txt') and\
-          not pd.read_csv(path + 'calendar.txt').empty:
-            calendar = pd.read_csv(path + 'calendar.txt', 
-              dtype={'service_id': str, 'start_date': str, 'end_date': str})
-            self.calendar = calendar
-            # Index by service ID to make self.is_active_trip() fast
-            self.calendar_i = calendar.set_index('service_id')
-        else:
-            self.calendar = None
-            self.calendar_i = None
-
-        if os.path.isfile(path + 'calendar_dates.txt') and\
-          not pd.read_csv(path + 'calendar_dates.txt').empty:
-            calendar_dates = pd.read_csv(path + 'calendar_dates.txt', 
-              dtype={'service_id': str, 'date': str})
-            self.calendar_dates = calendar_dates
-            # Group by service ID and date to make 
-            # self.is_active_trip() fast
-            self.calendar_dates_g = calendar_dates.groupby(
-              ['service_id', 'date'])
-        else:
-            self.calendar_dates = None
-            self.calendar_dates_g = None
-
-        if self.calendar is None and self.calendar_dates is None:
-            raise ValueError(
-              'One of calendar.txt or calendar_dates.txt must be non-empty')
-
-        # Get optional GTFS files if they exist.
-        # Get shapes.
-        if os.path.isfile(path + 'shapes.txt') and\
-          not pd.read_csv(path + 'shapes.txt').empty:
-            self.shapes = pd.read_csv(path + 'shapes.txt', 
-              dtype={'shape_id': str})
-        else:
-            self.shapes = None
-
-        # Get rest.
-        for f in [f for f in OPTIONAL_GTFS_FILES 
-          if f not in ['shapes', 'calendar_dates']]:
-            p = path + f + '.txt'
-            if os.path.isfile(p) and not pd.read_csv(p).empty:
-                    setattr(self, f, pd.read_csv(p, dtype={'route_id': str}))
-            else:
-                setattr(self, f, None)
-
-        # Check for valid distance units
-        di, do = dist_units_in, dist_units_out
-        # Require dist_units_in if feed has distances
-        if 'shape_dist_traveled' in self.stop_times.columns or\
-          (self.shapes is not None and\
-          'shape_dist_traveled' in self.shapes.columns):
-            if di is None:
-                raise ValueError(
-                  'This feed has distances, so must specify dist_units_in')
         # Set defaults
-        if di is None:
-            di = 'km'
-        if do is None:
-            do = di
-        DU = utils.DISTANCE_UNITS
-        if not (di in DU and do in DU):
-            raise ValueError(
-              'Distance units must lie in {!s}'.format(DU))
-        self.dist_units_in = di
-        self.dist_units_out = do
+        if self.dist_units_in is None:
+            self.dist_units_in = 'km'
+        if self.dist_units_out is None:
+            self.dist_units_out = self.dist_units_in
         
         # Set distance conversion function
-        self.convert_dist = utils.get_convert_dist(di, do)
-
-        # Reformat some.
-        # Prefix a 0 to arrival and departure times if necessary.
-        # This makes sorting by time work as expected.
-        def reformat_times(t):
-            if pd.isnull(t):
-                return t
-            t = t.strip()
-            if len(t) == 7:
-                t = '0' + t
-            return t
-
-        self.stop_times[['arrival_time', 'departure_time']] =\
-          self.stop_times[['arrival_time', 'departure_time']].\
-          applymap(reformat_times)
+        self.convert_dist = utils.get_convert_dist(self.dist_units_in,
+          self.dist_units_out)
 
         # Convert distances to dist_units_out if necessary
         if 'shape_dist_traveled' in self.stop_times.columns:
@@ -956,11 +984,23 @@ class Feed(object):
             self.shapes['shape_dist_traveled'] =\
               self.shapes['shape_dist_traveled'].map(self.convert_dist)
 
-        # Clean up
-        if zipped:
-            # Remove extracted directory
-            shutil.rmtree(path)
-        
+        # Create some extra data frames for fast searching
+        if self.trips is not None and not self.trips.empty:
+            self.trips_i = self.trips.set_index('trip_id')
+        else:
+            self.trips_i = None
+
+        if self.calendar is not None and not self.calendar.empty:
+            self.calendar_i = self.calendar.set_index('service_id')
+        else:
+            self.calendar_i = None 
+
+        if self.calendar_dates is not None and not self.calendar_dates.empty:
+            self.calendar_dates_g = self.calendar_dates.groupby(
+              ['service_id', 'date'])
+        else:
+            self.calendar_dates_g = None
+
     # Trip methods
     # ----------------------------------
     def is_active_trip(self, trip, date):
