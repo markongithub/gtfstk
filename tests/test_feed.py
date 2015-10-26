@@ -598,7 +598,7 @@ class TestFeed(unittest.TestCase):
         # Check that within each trip the shape_dist_traveled column 
         # is monotonically increasing
         for trip, group in st2.groupby('trip_id'):
-            group = group.sort('stop_sequence')
+            group = group.sort_values('stop_sequence')
             sdt = list(group['shape_dist_traveled'].values)
             print('-'*40)
             print('trip', trip, sdt)

@@ -719,12 +719,12 @@ def plot_headways(stats, max_headway_limit=60):
             f = f[(f[('max_headway', 0)] <= max_headway_limit) |
               (f[('max_headway', 1)] <= max_headway_limit)]
         # Sort by max headway
-        f = f.sort(columns=[('max_headway', 0)], ascending=False)
+        f = f.sort_values(columns=[('max_headway', 0)], ascending=False)
     else:
         f = stats.set_index(index)[['max_headway', 'mean_headway']]
         if max_headway_limit is not None:
             f = f[f['max_headway'] <= max_headway_limit]
-        f = f.sort(columns=['max_headway'], ascending=False)
+        f = f.sort_values(columns=['max_headway'], ascending=False)
     if f.empty:
         return
 
@@ -902,9 +902,8 @@ class Feed(object):
         for f in [f for f in OPTIONAL_GTFS_FILES 
           if f not in ['shapes', 'calendar_dates']]:
             p = path + f + '.txt'
-            if os.path.isfile(p) and\
-              not pd.read_csv(p).empty:
-                    setattr(self, f, pd.read_csv(p))
+            if os.path.isfile(p) and not pd.read_csv(p).empty:
+                    setattr(self, f, pd.read_csv(p, dtype={'route_id': str}))
             else:
                 setattr(self, f, None)
 
@@ -1107,7 +1106,7 @@ class Feed(object):
         # compute durations.
         f = self.trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
         f = f.merge(self.routes[['route_id', 'route_short_name']])
-        f = f.merge(self.stop_times).sort(['trip_id', 'stop_sequence'])
+        f = f.merge(self.stop_times).sort_values(['trip_id', 'stop_sequence'])
         f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
         
         # Compute all trips stats except distance, 
@@ -1204,7 +1203,7 @@ class Feed(object):
         h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
           applymap(lambda x: utils.timestr_to_seconds(x, inverse=True))
         
-        return h.sort(['route_id', 'direction_id', 'start_time'])
+        return h.sort_values(['route_id', 'direction_id', 'start_time'])
 
     def compute_trips_locations(self, date, times):
         """
@@ -1381,7 +1380,7 @@ class Feed(object):
         # So temporarily fill NaN departure times as a workaround.
         f['dt'] = f['departure_time'].fillna(method='ffill')
         f['min_dt'] = f.groupby('trip_id')['dt'].transform(min)
-        return f.sort(['min_dt', 'stop_sequence']).drop(['min_dt', 'dt'], 
+        return f.sort_values(['min_dt', 'stop_sequence']).drop(['min_dt', 'dt'], 
           axis=1)
 
     # Stop methods
@@ -1497,7 +1496,7 @@ class Feed(object):
         f = self.get_stop_times(date)
         f = f.merge(self.trips)
         f = f[f['stop_id'] == stop_id]
-        return f.sort('departure_time')
+        return f.sort_values('departure_time')
 
     def get_stops_in_stations(self):
         """
@@ -1649,7 +1648,7 @@ class Feed(object):
 
         def compute_dist(group):
             # Compute the distances of the stops along this trip
-            group = group.sort('shape_pt_sequence')
+            group = group.sort_values('shape_pt_sequence')
             shape = group['shape_id'].iat[0]
             if not isinstance(shape, str):
                 print(trip, 'no shape_id:', shape)
