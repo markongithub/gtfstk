@@ -3,10 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to GTFS Toolkit's documentation!
+GTFSTK |version| Documentation
 ========================================
-
-Contents:
 
 .. toctree::
    :maxdepth: 2

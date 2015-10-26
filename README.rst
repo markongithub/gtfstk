@@ -12,7 +12,7 @@ Installation
 
 Examples
 --------
-You can play with ``examples/examples.ipynb`` in an iPython notebook
+You can play with ``examples/examples.ipynb`` in a Jupyter notebook
 
 
 Documentation
@@ -22,7 +22,7 @@ Documentation is in ``docs/`` and also on RawGit `here <https://rawgit.com/araic
 
 Notes
 --------
-- Development Status: Beta
+- Development Status is Beta
 - This project uses semantic versioning (major.minor.micro), where each breaking feature or API change is considered a major release, at least after version 0.12.3. 
   So the version code reflects the project's change history, rather than its development status. 
   In particular, a high major version number, does not imply a mature development status.
@@ -31,3 +31,8 @@ Notes
 Comments
 ------------
 Constructive comments are welcome and are best filed in this repository's issue section with an appropriate label, e.g. 'enhancement'.
+
+
+Authors
+---------
+- Alex Raichev (2014-05)
