@@ -72,6 +72,7 @@ INT_COLS = [
   'shape_pt_sequence',
   'exact_times',
   'transfer_type',
+  'transfer_duration',
   'min_transfer_time',
 ]
 
@@ -91,10 +92,10 @@ def count_active_trips(trips, time):
     return trips[(trips['start_time'] <= time) &\
       (trips['end_time'] > time)].shape[0]
 
-def get_routes_stats(trips_stats_subset, split_directions=False,
+def compute_routes_stats(trips_stats_subset, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Given a subset of the output of ``Feed.get_trips_stats()``, 
+    Given a subset of the output of ``Feed.compute_trips_stats()``, 
     calculate stats for the routes in that subset.
     
     Return a data frame with the following columns:
@@ -180,7 +181,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
     headway_start = utils.timestr_to_seconds(headway_start_time)
     headway_end = utils.timestr_to_seconds(headway_end_time)
 
-    def get_route_stats_split_directions(group):
+    def compute_route_stats_split_directions(group):
         # Take this group of all trips stats for a single route
         # and compute route-level stats.
         d = OrderedDict()
@@ -216,7 +217,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
         d['service_duration'] = group['duration'].sum()
         return pd.Series(d)
 
-    def get_route_stats(group):
+    def compute_route_stats(group):
         d = OrderedDict()
         d['route_short_name'] = group['route_short_name'].iat[0]
         d['num_trips'] = group.shape[0]
@@ -257,7 +258,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
 
     if split_directions:
         g = f.groupby(['route_id', 'direction_id']).apply(
-          get_route_stats_split_directions).reset_index()
+          compute_route_stats_split_directions).reset_index()
         
         # Add the is_bidirectional column
         def is_bidirectional(group):
@@ -270,7 +271,7 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
         g = g.merge(gg)
     else:
         g = f.groupby('route_id').apply(
-          get_route_stats).reset_index()
+          compute_route_stats).reset_index()
 
     # Compute a few more stats
     g['service_speed'] = g['service_distance']/g['service_duration']
@@ -284,10 +285,10 @@ def get_routes_stats(trips_stats_subset, split_directions=False,
 
     return g
 
-def get_routes_time_series(trips_stats_subset,
+def compute_routes_time_series(trips_stats_subset,
   split_directions=False, freq='5Min', date_label='20010101'):
     """
-    Given a subset of the output of ``Feed.get_trips_stats()``, 
+    Given a subset of the output of ``Feed.compute_trips_stats()``, 
     calculate time series for the routes in that subset.
 
     Return a time series version of the following route stats:
@@ -415,7 +416,7 @@ def get_routes_time_series(trips_stats_subset,
       split_directions=split_directions)
     return downsample(g, freq=freq)
 
-def get_stops_stats(stop_times, trips_subset, split_directions=False,
+def compute_stops_stats(stop_times, trips_subset, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
     Given a stop times data frame and a subset of a trips data frame,
@@ -470,7 +471,7 @@ def get_stops_stats(stop_times, trips_subset, split_directions=False,
     headway_end = utils.timestr_to_seconds(headway_end_time)
 
     # Compute stats for each stop
-    def get_stop_stats(group):
+    def compute_stop_stats(group):
         # Operate on the group of all stop times for an individual stop
         d = OrderedDict()
         d['num_routes'] = group['route_id'].unique().size
@@ -497,7 +498,7 @@ def get_stops_stats(stop_times, trips_subset, split_directions=False,
     else:
         g = f.groupby('stop_id')
 
-    result = g.apply(get_stop_stats).reset_index()
+    result = g.apply(compute_stop_stats).reset_index()
 
     # Convert start and end times to time strings
     result[['start_time', 'end_time']] =\
@@ -506,7 +507,7 @@ def get_stops_stats(stop_times, trips_subset, split_directions=False,
 
     return result
 
-def get_stops_time_series(stop_times, trips_subset, split_directions=False,
+def compute_stops_time_series(stop_times, trips_subset, split_directions=False,
   freq='5Min', date_label='20010101'):
     """
     Given a stop times data frame and a subset of a trips data frame,
@@ -585,8 +586,8 @@ def get_stops_time_series(stop_times, trips_subset, split_directions=False,
 def downsample(time_series, freq):
     """
     Downsample the given route, stop, or feed time series, 
-    (outputs of ``Feed.get_routes_time_series()``, 
-    ``Feed.get_stops_time_series()``, or ``Feed.get_feed_time_series()``,
+    (outputs of ``Feed.compute_routes_time_series()``, 
+    ``Feed.compute_stops_time_series()``, or ``Feed.compute_feed_time_series()``,
     respectively) to the given Pandas frequency.
     Return the given time series unchanged if the given frequency is 
     shorter than the original frequency.
@@ -760,7 +761,7 @@ def plot_routes_time_series(routes_time_series):
         return
 
     # Aggregate time series
-    f = get_feed_time_series(rts)
+    f = compute_feed_time_series(rts)
 
     # Reformat time periods
     f.index = [t.time().strftime('%H:%M') 
@@ -1039,7 +1040,7 @@ class Feed(object):
 
         return f
 
-    def get_trips_activity(self, dates):
+    def compute_trips_activity(self, dates):
         """
         Return a  data frame with the columns
 
@@ -1064,7 +1065,7 @@ class Feed(object):
               int(self.is_active_trip(trip, date)))
         return f[['trip_id'] + dates]
 
-    def get_trips_stats(self, get_dist_from_shapes=False):
+    def compute_trips_stats(self, compute_dist_from_shapes=False):
         """
         Return a  data frame with the following columns:
 
@@ -1088,16 +1089,16 @@ class Feed(object):
         NOTES:
 
         If ``self.stop_times`` has a ``shape_dist_traveled`` column
-        and ``get_dist_from_shapes == False``,
+        and ``compute_dist_from_shapes == False``,
         then use that column to compute the distance column.
         Else if ``self.shapes is not None``, then compute the distance 
         column using the shapes and Shapely. 
         Otherwise, set the distances to ``np.nan``.
 
-        Calculating trip distances with ``get_dist_from_shapes=True``
+        Calculating trip distances with ``compute_dist_from_shapes=True``
         seems pretty accurate.
         For example, calculating trip distances on the Portland feed using
-        ``get_dist_from_shapes=False`` and ``get_dist_from_shapes=True``,
+        ``compute_dist_from_shapes=False`` and ``compute_dist_from_shapes=True``,
         yields a difference of at most 0.83km.
         """        
 
@@ -1111,7 +1112,7 @@ class Feed(object):
         
         # Compute all trips stats except distance, 
         # which is possibly more involved
-        geometry_by_stop = self.get_geometry_by_stop(use_utm=True)
+        geometry_by_stop = self.build_geometry_by_stop(use_utm=True)
         g = f.groupby('trip_id')
 
         def my_agg(group):
@@ -1137,17 +1138,17 @@ class Feed(object):
         h = g.apply(my_agg)  
 
         # Compute distance
-        if 'shape_dist_traveled' in f.columns and not get_dist_from_shapes:
+        if 'shape_dist_traveled' in f.columns and not compute_dist_from_shapes:
             # Compute distances using shape_dist_traveled column
             h['distance'] = g.apply(
               lambda group: group['shape_dist_traveled'].max())
         elif self.shapes is not None:
             # Compute distances using the shapes and Shapely
-            geometry_by_shape = self.get_geometry_by_shape()
-            geometry_by_stop = self.get_geometry_by_stop()
+            geometry_by_shape = self.build_geometry_by_shape()
+            geometry_by_stop = self.build_geometry_by_stop()
             m_to_dist = utils.get_convert_dist('m', self.dist_units_out)
 
-            def get_dist(group):
+            def compute_dist(group):
                 """
                 Return the distance traveled along the trip between the first
                 and last stops.
@@ -1191,7 +1192,7 @@ class Feed(object):
                     # return the length of the linestring
                     return linestring.length
 
-            h['distance'] = g.apply(get_dist)
+            h['distance'] = g.apply(compute_dist)
             # Convert from meters
             h['distance'] = h['distance'].map(m_to_dist)
         else:
@@ -1205,7 +1206,7 @@ class Feed(object):
         
         return h.sort(['route_id', 'direction_id', 'start_time'])
 
-    def get_trips_locations(self, date, times):
+    def compute_trips_locations(self, date, times):
         """
         Return a  data frame of the positions of all trips
         active on the given date and times 
@@ -1239,11 +1240,11 @@ class Feed(object):
         # at the given time times.
         # Use linear interpolation based on stop departure times and
         # shape distance traveled.
-        geometry_by_shape = self.get_geometry_by_shape(use_utm=False)
+        geometry_by_shape = self.build_geometry_by_shape(use_utm=False)
         sample_times = np.array([utils.timestr_to_seconds(s) 
           for s in times])
         
-        def get_rel_dist(group):
+        def compute_rel_dist(group):
             dists = sorted(group['shape_dist_traveled'].values)
             times = sorted(group['departure_time'].values)
             ts = sample_times[(sample_times >= times[0]) &\
@@ -1252,8 +1253,8 @@ class Feed(object):
             return pd.DataFrame({'time': ts, 'rel_dist': ds/dists[-1]})
         
         # return f.groupby('trip_id', group_keys=False).\
-        #   apply(get_rel_dist).reset_index()
-        g = f.groupby('trip_id').apply(get_rel_dist).reset_index()
+        #   apply(compute_rel_dist).reset_index()
+        g = f.groupby('trip_id').apply(compute_rel_dist).reset_index()
         
         # Delete extraneous multi-index column
         del g['level_1']
@@ -1312,21 +1313,21 @@ class Feed(object):
         R = trips['route_id'].unique()
         return self.routes[self.routes['route_id'].isin(R)]
 
-    def get_routes_stats(self, trips_stats, date, split_directions=False,
+    def compute_routes_stats(self, trips_stats, date, split_directions=False,
         headway_start_time='07:00:00', headway_end_time='19:00:00'):
         """
         Take ``trips_stats``, which is the output of 
-        ``self.get_trips_stats()``, cut it down to the subset ``S`` of trips
+        ``self.compute_trips_stats()``, cut it down to the subset ``S`` of trips
         that are active on the given date, and then call
-        ``get_routes_stats()`` with ``S`` and the keyword arguments
+        ``compute_routes_stats()`` with ``S`` and the keyword arguments
         ``split_directions``, ``headway_start_time``, and 
         ``headway_end_time``.
 
-        See ``get_routes_stats()`` for a description of the output.
+        See ``compute_routes_stats()`` for a description of the output.
 
         NOTES:
 
-        This is a more user-friendly version of ``get_routes_stats()``.
+        This is a more user-friendly version of ``compute_routes_stats()``.
         The latter function works without a feed, though.
 
         Return ``None`` if the date does not lie in this feed's date range.
@@ -1334,38 +1335,38 @@ class Feed(object):
         # Get the subset of trips_stats that contains only trips active
         # on the given date
         trips_stats_subset = trips_stats.merge(self.get_trips(date))
-        return get_routes_stats(trips_stats_subset, 
+        return compute_routes_stats(trips_stats_subset, 
           split_directions=split_directions,
           headway_start_time=headway_start_time, 
           headway_end_time=headway_end_time)
 
-    def get_routes_time_series(self, trips_stats, date, 
+    def compute_routes_time_series(self, trips_stats, date, 
       split_directions=False, freq='5Min'):
         """
         Take ``trips_stats``, which is the output of 
-        ``self.get_trips_stats()``, cut it down to the subset ``S`` of trips
+        ``self.compute_trips_stats()``, cut it down to the subset ``S`` of trips
         that are active on the given date, and then call
-        ``Feed.get_routes_time_series()`` with ``S`` and the given 
+        ``Feed.compute_routes_time_series()`` with ``S`` and the given 
         keyword arguments ``split_directions`` and ``freq``
         and with ``date_label = utils.date_to_str(date)``.
 
-        See ``Feed.get_routes_time_series()`` for a description of the output.
+        See ``Feed.compute_routes_time_series()`` for a description of the output.
 
         If there are no active trips on the date, then return ``None``.
 
         NOTES:
 
-        This is a more user-friendly version of ``get_routes_time_series()``.
+        This is a more user-friendly version of ``compute_routes_time_series()``.
         The latter function works without a feed, though.
         """  
         trips_stats_subset = trips_stats.merge(self.get_trips(date))
-        return get_routes_time_series(trips_stats_subset, 
+        return compute_routes_time_series(trips_stats_subset, 
           split_directions=split_directions, freq=freq, 
           date_label=date)
 
     def get_route_timetable(self, route_id, date):
         """
-        Return a  data frame encoding the timetable
+        Return a data frame encoding the timetable
         for the given route ID on the given date.
         The columns are all those in ``self.trips`` plus those in 
         ``self.stop_times``.
@@ -1398,7 +1399,7 @@ class Feed(object):
         S = stop_times['stop_id'].unique()
         return self.stops[self.stops['stop_id'].isin(S)]
 
-    def get_geometry_by_stop(self, use_utm=True):
+    def build_geometry_by_stop(self, use_utm=True):
         """
         Return a dictionary with structure
         stop_id -> Shapely point object.
@@ -1418,7 +1419,7 @@ class Feed(object):
                 geometry_by_stop[stop] = Point([lon, lat]) 
         return geometry_by_stop
 
-    def get_stops_activity(self, dates):
+    def compute_stops_activity(self, dates):
         """
         Return a  data frame with the columns
 
@@ -1437,7 +1438,7 @@ class Feed(object):
         if not dates:
             return pd.DataFrame(columns=['stop_id'])
 
-        trips_activity = self.get_trips_activity(dates)
+        trips_activity = self.compute_trips_activity(dates)
         g = trips_activity.merge(self.stop_times).groupby('stop_id')
         # Pandas won't allow me to simply return g[dates].max().reset_index().
         # I get ``TypeError: unorderable types: datetime.date() < str()``.
@@ -1449,40 +1450,40 @@ class Feed(object):
                 f = f.merge(g[date].max().reset_index())
         return f
 
-    def get_stops_stats(self, date, split_directions=False,
+    def compute_stops_stats(self, date, split_directions=False,
         headway_start_time='07:00:00', headway_end_time='19:00:00'):
         """
-        Call ``get_stops_stats()`` with the subset of trips active on 
+        Call ``compute_stops_stats()`` with the subset of trips active on 
         the given date and with the keyword arguments ``split_directions``,
         ``headway_start_time``, and ``headway_end_time``.
 
-        See ``get_stops_stats()`` for a description of the output.
+        See ``compute_stops_stats()`` for a description of the output.
 
         NOTES:
 
-        This is a more user-friendly version of ``get_stops_stats()``.
+        This is a more user-friendly version of ``compute_stops_stats()``.
         The latter function works without a feed, though.
         """
         # Get stop times active on date and direction IDs
-        return get_stops_stats(self.stop_times, self.get_trips(date),
+        return compute_stops_stats(self.stop_times, self.get_trips(date),
           split_directions=split_directions,
           headway_start_time=headway_start_time, 
           headway_end_time=headway_end_time)
 
-    def get_stops_time_series(self, date, split_directions=False,
+    def compute_stops_time_series(self, date, split_directions=False,
       freq='5Min'):
         """
-        Call ``get_stops_times_series()`` with the subset of trips active on 
+        Call ``compute_stops_times_series()`` with the subset of trips active on 
         the given date and with the keyword arguments ``split_directions``
         and ``freq`` and with ``date_label`` equal to ``date``.
-        See ``get_stops_time_series()`` for a description of the output.
+        See ``compute_stops_time_series()`` for a description of the output.
 
         NOTES:
 
-        This is a more user-friendly version of ``get_stops_time_series()``.
+        This is a more user-friendly version of ``compute_stops_time_series()``.
         The latter function works without a feed, though.
         """  
-        return get_stops_time_series(self.stop_times, self.get_trips(date),
+        return compute_stops_time_series(self.stop_times, self.get_trips(date),
           split_directions=split_directions, freq=freq, date_label=date)
 
     def get_stop_timetable(self, stop_id, date):
@@ -1510,12 +1511,12 @@ class Feed(object):
         f = self.stops
         return f[(f['location_type'] != 1) & (f['parent_station'].notnull())]
 
-    def get_stations_stats(self, date, split_directions=False,
+    def compute_stations_stats(self, date, split_directions=False,
         headway_start_time='07:00:00', headway_end_time='19:00:00'):
         """
         If this feed has station data, that is, ``location_type`` and
         ``parent_station`` columns in ``self.stops``, then compute
-        the same stats that ``self.get_stops_stats()`` does, but for
+        the same stats that ``self.compute_stops_stats()`` does, but for
         stations.
         Otherwise, return an empty data frame with the specified columns.
         """
@@ -1534,7 +1535,7 @@ class Feed(object):
         headway_end = utils.timestr_to_seconds(headway_end_time)
 
         # Compute stats for each station
-        def get_station_stats(group):
+        def compute_station_stats(group):
             # Operate on the group of all stop times for an individual stop
             d = OrderedDict()
             d['num_trips'] = group.shape[0]
@@ -1558,7 +1559,7 @@ class Feed(object):
         else:
             g = f.groupby('parent_station')
 
-        result = g.apply(get_station_stats).reset_index()
+        result = g.apply(compute_station_stats).reset_index()
 
         # Convert start and end times to time strings
         result[['start_time', 'end_time']] =\
@@ -1569,7 +1570,7 @@ class Feed(object):
 
     # Shape methods
     # ----------------------------------
-    def get_geometry_by_shape(self, use_utm=True):
+    def build_geometry_by_shape(self, use_utm=True):
         """
         Return a dictionary with structure
         shape_id -> Shapely linestring of shape.
@@ -1602,7 +1603,7 @@ class Feed(object):
                 geometry_by_shape[shape] = LineString(lonlats)
         return geometry_by_shape
 
-    def get_shapes_geojson(self):
+    def build_shapes_geojson(self):
         """
         Return a string that is a GeoJSON feature collection of 
         linestring features representing ``self.shapes``.
@@ -1612,7 +1613,7 @@ class Feed(object):
         namely WGS84.
         """
 
-        geometry_by_shape = self.get_geometry_by_shape(use_utm=False)
+        geometry_by_shape = self.build_geometry_by_shape(use_utm=False)
         if geometry_by_shape is None:
             return
 
@@ -1646,7 +1647,7 @@ class Feed(object):
         f = self.shapes
         m_to_dist = utils.get_convert_dist('m', self.dist_units_out)
 
-        def get_dist(group):
+        def compute_dist(group):
             # Compute the distances of the stops along this trip
             group = group.sort('shape_pt_sequence')
             shape = group['shape_id'].iat[0]
@@ -1666,7 +1667,7 @@ class Feed(object):
             group['shape_dist_traveled'] = distances
             return group
 
-        g = f.groupby('shape_id', group_keys=False).apply(get_dist)
+        g = f.groupby('shape_id', group_keys=False).apply(compute_dist)
         # Convert from meters
         g['shape_dist_traveled'] = g['shape_dist_traveled'].map(m_to_dist)
         self.shapes = g
@@ -1714,8 +1715,8 @@ class Feed(object):
         (so shape_dist_traveled != 0).
         This is the case for several trips in the Portland feed, for example. 
         """
-        geometry_by_shape = self.get_geometry_by_shape()
-        geometry_by_stop = self.get_geometry_by_stop()
+        geometry_by_shape = self.build_geometry_by_shape()
+        geometry_by_stop = self.build_geometry_by_stop()
 
         # Initialize data frame
         f = self.stop_times.merge(
@@ -1727,7 +1728,7 @@ class Feed(object):
         dist_by_stop_by_shape = {shape: {} for shape in geometry_by_shape}
         m_to_dist = utils.get_convert_dist('m', self.dist_units_out)
 
-        def get_dist(group):
+        def compute_dist(group):
             # Compute the distances of the stops along this trip
             trip = group['trip_id'].iat[0]
             shape = group['shape_id'].iat[0]
@@ -1776,7 +1777,7 @@ class Feed(object):
             group['shape_dist_traveled'] = distances
             return group
 
-        result = f.groupby('trip_id', group_keys=False).apply(get_dist)
+        result = f.groupby('trip_id', group_keys=False).apply(compute_dist)
         # Convert departure times back to time strings
         result['departure_time'] = result['departure_time'].map(lambda x: 
           utils.timestr_to_seconds(x, inverse=True))
@@ -1845,14 +1846,14 @@ class Feed(object):
         Given a list of dates, return the first date that has the 
         maximum number of active trips.
         """
-        f = self.get_trips_activity(dates)
+        f = self.compute_trips_activity(dates)
         s = [(f[date].sum(), date) for date in dates]
         return max(s)[1]
 
-    def get_feed_stats(self, trips_stats, date):
+    def compute_feed_stats(self, trips_stats, date):
         """
         Given ``trips_stats``, which is the output of 
-        ``self.get_trips_stats()`` and a date,
+        ``self.compute_trips_stats()`` and a date,
         return a  data frame including the following feed
         stats for the date.
 
@@ -1912,9 +1913,9 @@ class Feed(object):
 
         return pd.DataFrame(d, index=[0])
 
-    def get_feed_time_series(self, trips_stats, date, freq='5Min'):
+    def compute_feed_time_series(self, trips_stats, date, freq='5Min'):
         """
-        Given trips stats (output of ``self.get_trips_stats()``),
+        Given trips stats (output of ``self.compute_trips_stats()``),
         a date, and a Pandas frequency string,
         return a time series of stats for this feed on the given date
         at the given frequency with the following columns
@@ -1937,7 +1938,7 @@ class Feed(object):
           'service_duration',
           'service_speed',
           ]
-        rts = self.get_routes_time_series(trips_stats, date, freq=freq)
+        rts = self.compute_routes_time_series(trips_stats, date, freq=freq)
         if rts.empty:
             return pd.DataFrame(columns=cols)
 

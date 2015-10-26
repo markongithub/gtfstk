@@ -39,11 +39,11 @@ class TestFeed(unittest.TestCase):
 
     # Test route methods
     # ----------------------------------
-    def test_get_routes_stats_outer(self):
+    def test_compute_routes_stats_outer(self):
         feed = copy(cairns)
-        f = feed.get_trips_stats()
+        f = feed.compute_trips_stats()
         for split_directions in [True, False]:
-            rs = get_routes_stats(f, split_directions=split_directions)
+            rs = compute_routes_stats(f, split_directions=split_directions)
 
             # Should be a data frame of the correct shape
             self.assertIsInstance(rs, pd.core.frame.DataFrame)
@@ -79,16 +79,16 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(set(rs.columns), expect_cols)
 
         # Empty check
-        rs = get_routes_stats(pd.DataFrame(), 
+        rs = compute_routes_stats(pd.DataFrame(), 
           split_directions=split_directions)    
         self.assertTrue(rs.empty)
 
-    def test_get_routes_time_series_outer(self):
+    def test_compute_routes_time_series_outer(self):
         feed = copy(cairns)
-        f = feed.get_trips_stats()
+        f = feed.compute_trips_stats()
         for split_directions in [True, False]:
-            rs = get_routes_stats(f, split_directions=split_directions)
-            rts = get_routes_time_series(f, 
+            rs = compute_routes_stats(f, split_directions=split_directions)
+            rts = compute_routes_time_series(f, 
               split_directions=split_directions, freq='1H')
             
             # Should be a data frame of the correct shape
@@ -112,7 +112,7 @@ class TestFeed(unittest.TestCase):
                     self.assertTrue(abs((get - expect)/expect) < 0.001)
 
         # Empty check
-        rts = get_routes_time_series(pd.DataFrame(), 
+        rts = compute_routes_time_series(pd.DataFrame(), 
           split_directions=split_directions, 
           freq='1H')    
         self.assertTrue(rts.empty)
@@ -138,13 +138,13 @@ class TestFeed(unittest.TestCase):
         # Should have correct columns
         self.assertEqual(set(g.columns), set(feed.routes.columns))
 
-    def test_get_routes_stats(self):
+    def test_compute_routes_stats(self):
         feed = copy(cairns)
         date = feed.get_dates()[0]
-        trips_stats = feed.get_trips_stats()
+        trips_stats = feed.compute_trips_stats()
         f = pd.merge(trips_stats, feed.get_trips(date))
         for split_directions in [True, False]:
-            rs = feed.get_routes_stats(trips_stats, date, 
+            rs = feed.compute_routes_stats(trips_stats, date, 
               split_directions=split_directions)
 
             # Should be a data frame of the correct shape
@@ -182,18 +182,18 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(set(rs.columns), expect_cols)
 
         # Empty check
-        f = feed.get_routes_stats(trips_stats, '20010101')
+        f = feed.compute_routes_stats(trips_stats, '20010101')
         self.assertTrue(f.empty)
 
-    def test_get_routes_time_series(self):
+    def test_compute_routes_time_series(self):
         feed = copy(cairns)
         date = feed.get_dates()[0]
-        trips_stats = feed.get_trips_stats()
+        trips_stats = feed.compute_trips_stats()
         ats = pd.merge(trips_stats, feed.get_trips(date))
         for split_directions in [True, False]:
-            f = feed.get_routes_stats(trips_stats, date, 
+            f = feed.compute_routes_stats(trips_stats, date, 
               split_directions=split_directions)
-            rts = feed.get_routes_time_series(trips_stats, date, 
+            rts = feed.compute_routes_time_series(trips_stats, date, 
               split_directions=split_directions, freq='1H')
             
             # Should be a data frame of the correct shape
@@ -218,7 +218,7 @@ class TestFeed(unittest.TestCase):
 
         # Empty check
         date = '19000101'
-        rts = feed.get_routes_time_series(trips_stats, date, 
+        rts = feed.compute_routes_time_series(trips_stats, date, 
           split_directions=split_directions, freq='1H')
         self.assertTrue(rts.empty)
 
@@ -281,13 +281,13 @@ class TestFeed(unittest.TestCase):
         # Should have correct columns
         self.assertEqual(set(g.columns), set(feed.trips.columns))
 
-    def test_get_trips_locations(self):
+    def test_compute_trips_locations(self):
         feed = copy(cairns)
-        trips_stats = feed.get_trips_stats()
+        trips_stats = feed.compute_trips_stats()
         feed.add_dist_to_stop_times(trips_stats)
         date = feed.get_dates()[0]
         timestrs = ['08:00:00']
-        f = feed.get_trips_locations(date, timestrs)
+        f = feed.compute_trips_locations(date, timestrs)
         g = feed.get_trips(date, timestrs[0])
         # Should be a data frame
         self.assertIsInstance(f, pd.core.frame.DataFrame)
@@ -306,10 +306,10 @@ class TestFeed(unittest.TestCase):
           ])
         self.assertEqual(set(f.columns), expect_cols)
     
-    def test_get_trips_activity(self):
+    def test_compute_trips_activity(self):
         feed = copy(cairns)
         dates = feed.get_first_week()
-        trips_activity = feed.get_trips_activity(dates)
+        trips_activity = feed.compute_trips_activity(dates)
         # Should be a data frame
         self.assertIsInstance(trips_activity, pd.core.frame.DataFrame)
         # Should have the correct shape
@@ -318,9 +318,9 @@ class TestFeed(unittest.TestCase):
         # Date columns should contain only zeros and ones
         self.assertEqual(set(trips_activity[dates].values.flatten()), {0, 1})
 
-    def test_get_trips_stats(self):
+    def test_compute_trips_stats(self):
         feed = copy(cairns)
-        trips_stats = feed.get_trips_stats()
+        trips_stats = feed.compute_trips_stats()
         
         # Should be a data frame with the correct number of rows
         self.assertIsInstance(trips_stats, pd.core.frame.DataFrame)
@@ -347,7 +347,7 @@ class TestFeed(unittest.TestCase):
         
         # Shapeless feeds should have null entries for distance column
         feed2 = cairns_shapeless
-        trips_stats = feed2.get_trips_stats()
+        trips_stats = feed2.compute_trips_stats()
         self.assertEqual(len(trips_stats['distance'].unique()), 1)
         self.assertTrue(np.isnan(trips_stats['distance'].unique()[0]))   
         
@@ -358,10 +358,10 @@ class TestFeed(unittest.TestCase):
     
     # Test stop methods
     # ----------------------------------
-    def test_get_stops_stats_outer(self):
+    def test_compute_stops_stats_outer(self):
         feed = copy(cairns)
         for split_directions in [True, False]:
-            stops_stats = get_stops_stats(feed.stop_times,
+            stops_stats = compute_stops_stats(feed.stop_times,
               feed.trips, 
               split_directions=split_directions)
             # Should be a data frame
@@ -386,15 +386,15 @@ class TestFeed(unittest.TestCase):
             self.assertEqual(get_stops, expect_stops)
 
         # Empty check
-        stats = get_stops_stats(feed.stop_times, pd.DataFrame())    
+        stats = compute_stops_stats(feed.stop_times, pd.DataFrame())    
         self.assertTrue(stats.empty)
 
-    def test_get_stops_time_series_outer(self):
+    def test_compute_stops_time_series_outer(self):
         feed = copy(cairns)
         for split_directions in [True, False]:
-            ss = get_stops_stats(feed.stop_times, 
+            ss = compute_stops_stats(feed.stop_times, 
               feed.trips, split_directions=split_directions)
-            sts = get_stops_time_series(feed.stop_times, 
+            sts = compute_stops_time_series(feed.stop_times, 
               feed.trips, freq='1H',
               split_directions=split_directions) 
             
@@ -421,7 +421,7 @@ class TestFeed(unittest.TestCase):
                     self.assertEqual(get, expect)
         
         # Empty check
-        stops_ts = get_stops_time_series(feed.stop_times,
+        stops_ts = compute_stops_time_series(feed.stop_times,
           pd.DataFrame(), freq='1H',
           split_directions=split_directions) 
         self.assertTrue(stops_ts.empty)
@@ -438,9 +438,9 @@ class TestFeed(unittest.TestCase):
         # Should have correct columns
         self.assertEqual(set(f.columns), set(feed.stops.columns))
 
-    def test_get_geometry_by_stop(self):
+    def test_build_geometry_by_stop(self):
         feed = copy(cairns)
-        geometry_by_stop = feed.get_geometry_by_stop()
+        geometry_by_stop = feed.build_geometry_by_stop()
         # Should be a dictionary
         self.assertIsInstance(geometry_by_stop, dict)
         # The first element should be a Shapely point
@@ -448,10 +448,10 @@ class TestFeed(unittest.TestCase):
         # Should include all stops
         self.assertEqual(len(geometry_by_stop), feed.stops.shape[0])
 
-    def test_get_stops_activity(self):
+    def test_compute_stops_activity(self):
         feed = copy(cairns)
         dates = feed.get_first_week()
-        stops_activity = feed.get_stops_activity(dates)
+        stops_activity = feed.compute_stops_activity(dates)
         # Should be a data frame
         self.assertIsInstance(stops_activity, pd.core.frame.DataFrame)
         # Should have the correct shape
@@ -460,10 +460,10 @@ class TestFeed(unittest.TestCase):
         # Date columns should contain only zeros and ones
         self.assertEqual(set(stops_activity[dates].values.flatten()), {0, 1})
 
-    def test_get_stops_stats(self):
+    def test_compute_stops_stats(self):
         feed = copy(cairns)
         date = feed.get_dates()[0]
-        stops_stats = feed.get_stops_stats(date)
+        stops_stats = feed.compute_stops_stats(date)
         # Should be a data frame
         self.assertIsInstance(stops_stats, pd.core.frame.DataFrame)
         # Should contain the correct stops
@@ -473,17 +473,17 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(get_stops, expect_stops)
         
         # Empty check
-        f = feed.get_stops_stats('20010101')
+        f = feed.compute_stops_stats('20010101')
         self.assertTrue(f.empty)
 
-    def test_get_stops_time_series(self):
+    def test_compute_stops_time_series(self):
         feed = copy(cairns)
         date = feed.get_dates()[0]
         ast = pd.merge(feed.get_trips(date), feed.stop_times)
         for split_directions in [True, False]:
-            f = feed.get_stops_stats(date, 
+            f = feed.compute_stops_stats(date, 
               split_directions=split_directions)
-            stops_ts = feed.get_stops_time_series(date, freq='1H',
+            stops_ts = feed.compute_stops_time_series(date, freq='1H',
               split_directions=split_directions) 
             
             # Should be a data frame
@@ -510,7 +510,7 @@ class TestFeed(unittest.TestCase):
         
         # Empty check
         date = '19000101'
-        stops_ts = feed.get_stops_time_series(date, freq='1H',
+        stops_ts = feed.compute_stops_time_series(date, freq='1H',
           split_directions=split_directions) 
         self.assertTrue(stops_ts.empty)
 
@@ -528,9 +528,9 @@ class TestFeed(unittest.TestCase):
 
     # Test shape methods
     # ----------------------------------
-    def test_get_geometry_by_shape(self):
+    def test_build_geometry_by_shape(self):
         feed = copy(cairns)
-        geometry_by_shape = feed.get_geometry_by_shape()
+        geometry_by_shape = feed.build_geometry_by_shape()
         # Should be a dictionary
         self.assertIsInstance(geometry_by_shape, dict)
         # The first element should be a Shapely linestring
@@ -541,7 +541,7 @@ class TestFeed(unittest.TestCase):
           feed.shapes.groupby('shape_id').first().shape[0])
         # Should be None if feed.shapes is None
         feed2 = cairns_shapeless
-        self.assertIsNone(feed2.get_geometry_by_shape())
+        self.assertIsNone(feed2.build_geometry_by_shape())
 
     def test_add_dist_to_shapes(self):
         feed = copy(cairns)
@@ -560,10 +560,10 @@ class TestFeed(unittest.TestCase):
             sdt = list(group['shape_dist_traveled'].values)
             self.assertEqual(sdt, sorted(sdt))
 
-    def test_get_shapes_geojson(self):
+    def test_build_shapes_geojson(self):
         feed = copy(cairns)
-        collection = json.loads(feed.get_shapes_geojson())
-        geometry_by_shape = feed.get_geometry_by_shape(use_utm=False)
+        collection = json.loads(feed.build_shapes_geojson())
+        geometry_by_shape = feed.build_geometry_by_shape(use_utm=False)
         for f in collection['features']:
             shape = f['properties']['shape_id']
             geom = sh_shape(f['geometry'])
@@ -585,7 +585,7 @@ class TestFeed(unittest.TestCase):
     def test_add_dist_to_stop_times(self):
         feed = copy(cairns)
         st1 = feed.stop_times.copy()
-        trips_stats = feed.get_trips_stats()
+        trips_stats = feed.compute_trips_stats()
         feed.add_dist_to_stop_times(trips_stats)
         st2 = feed.stop_times
 
@@ -628,11 +628,11 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(dates[-1], d2)
         self.assertEqual(len(dates), 7)
 
-    def test_get_feed_stats(self):
+    def test_compute_feed_stats(self):
         feed = copy(cairns)
         date = feed.get_dates()[0]
-        trips_stats = feed.get_trips_stats()
-        f = feed.get_feed_stats(trips_stats, date)
+        trips_stats = feed.compute_trips_stats()
+        f = feed.compute_feed_stats(trips_stats, date)
         # Should be a data frame
         self.assertIsInstance(f, pd.core.frame.DataFrame)
         # Should have the correct number of rows
@@ -652,14 +652,14 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(set(f.columns), expect_cols)
 
         # Empty check
-        f = feed.get_feed_stats(trips_stats, '20010101')
+        f = feed.compute_feed_stats(trips_stats, '20010101')
         self.assertTrue(f.empty)
 
-    def test_get_feed_time_series(self):
+    def test_compute_feed_time_series(self):
         feed = copy(cairns)
         date = feed.get_dates()[0]
-        trips_stats = feed.get_trips_stats()
-        f = feed.get_feed_time_series(trips_stats, date, freq='1H')
+        trips_stats = feed.compute_trips_stats()
+        f = feed.compute_feed_time_series(trips_stats, date, freq='1H')
         # Should be a data frame 
         self.assertIsInstance(f, pd.core.frame.DataFrame)
         # Should have the correct number of rows
@@ -675,7 +675,7 @@ class TestFeed(unittest.TestCase):
         self.assertEqual(set(f.columns), expect_cols)
 
         # Empty check
-        f = feed.get_feed_time_series(trips_stats, '20010101')
+        f = feed.compute_feed_time_series(trips_stats, '20010101')
         self.assertTrue(f.empty)
 
     def test_get_busiest_date(self):
