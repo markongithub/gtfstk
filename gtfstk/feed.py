@@ -934,6 +934,14 @@ def plot_routes_time_series(routes_time_series):
     return fig
 
 
+def check_overrides(feed, *overrides):
+    missing_overrides = [r for r in overrides 
+      if r is None and getattr(feed, r) is None]
+      
+    if missing_overrides:
+        raise ValueError("Attributes {!s} of this feed must not be None".\
+          format(missing_overrides)
+
 class Feed(object):
     """
     A class to gather all the GTFS files for a feed and store them in memory 
@@ -1003,7 +1011,8 @@ class Feed(object):
 
     # Trip methods
     # ----------------------------------
-    def is_active_trip(self, trip, date):
+    def is_active_trip(self, trip, date,
+      trips_i=None, calendar_dates_g=None, calendar_i=None):
         """
         If the given trip (trip ID) is active on the given date,
         then return ``True``; otherwise return ``False``.
