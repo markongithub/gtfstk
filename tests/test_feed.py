@@ -39,7 +39,7 @@ class TestFeed(unittest.TestCase):
 
     # Test route methods
     # ----------------------------------
-    def test_compute_routes_stats_outer(self):
+    def test_compute_routes_stats(self):
         feed = copy(cairns)
         f = feed.compute_trips_stats()
         for split_directions in [True, False]:
