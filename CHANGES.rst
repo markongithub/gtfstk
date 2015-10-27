@@ -2,6 +2,7 @@ Changes
 ========
 v1
 --------------------
+- Switched to a value class style, moving most Feed methods out into functions.
 - Changed function names, favoring a ``compute_`` prefix over a ``get_`` prefix for complex functions.
 - Bug fix. In ``INT_COLS`` changed ``'dropoff_type'`` to ``'drop_off_type'``.
 

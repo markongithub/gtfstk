@@ -1,6 +1,7 @@
 """
-Tools for computing some stats from a GTFS feed, assuming the feed
-is valid.
+A class to represent partial and complete, valid and invalid GTFS feeds.
+Functions for computing various quantities from a Feed object,
+such as trips distances and durations.
 
 CONVENTIONS:
 
@@ -27,7 +28,7 @@ import numpy as np
 from shapely.geometry import Point, LineString, mapping
 import utm
 
-from . import utils
+from . import utilities as utils
 
 
 REQUIRED_GTFS_FILES = [
@@ -59,62 +60,67 @@ DTYPE = {
   'shape_id': str, 
   'start_date': str, 
   'end_date': str,
-  'location_type': int,
-  'wheelchair_boarding': int,
-  'route_type': int,
-  'direction_id': int,
-  'stop_sequence': int,
-  'wheelchair_accessible': int,
-  'bikes_allowed': int,
-  'pickup_type': int,
-  'drop_off_type': int,
-  'timepoint': int,
-  'monday': int,
-  'tuesday': int,
-  'wednesday': int,
-  'thursday': int,
-  'friday': int,
-  'saturday': int,
-  'sunday': int,
-  'exception_type': int,
-  'payment_method': int,
-  'transfers': int,
-  'shape_pt_sequence': int,
-  'exact_times': int,
-  'transfer_type': int,
-  'transfer_duration': int,
-  'min_transfer_time': int,
+  'date': str,
 }
 
-# Columns that must be formatted as int/str in GTFS and not float;
-# useful for export().
-INT_COLS = [key for key, value in DTYPE.items() if value == int]
+# Columns that must be formatted as integers when outputting GTFS
+INT_COLS = [
+  'location_type',
+  'wheelchair_boarding',
+  'route_type',
+  'direction_id',
+  'stop_sequence',
+  'wheelchair_accessible',
+  'bikes_allowed',
+  'pickup_type',
+  'drop_off_type',
+  'timepoint',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+  'exception_type',
+  'payment_method',
+  'transfers',
+  'shape_pt_sequence',
+  'exact_times',
+  'transfer_type',
+  'transfer_duration',
+  'min_transfer_time',
+]
 
 
-class GTFSError(Exception):
-    """
-    Exception raised for Feed objects that do not conform to the
-    GTFS specification.
-
-    Attributes:
-    
-    - msg: explanation of the error
-    """
-    def __init__(feed, msg):
-        feed.msg = msg
-   
-    def __str__(feed):
-        return repr(feed.msg)
-
-
+# TODO: Explain attributes
 class Feed(object):
     """
     A class to gather some or all GTFS files as data frames.
-    That's it!
+    That's it.
     Business logic lives outside the class.
     
     Warning: the stop times data frame can be big (several gigabytes), 
     so make sure you have enough memory to handle it.
+
+    Attributes:
+
+    - agency
+    - stops
+    - routes
+    - trips 
+    - stop_times
+    - calendar
+    - calendar_dates 
+    - fare_attributes
+    - fare_rules
+    - shapes
+    - frequencies
+    - transfers
+    - feed_info
+    - dist_units_in
+    - dist_units_out
+    - convert_dist
     """
     def __init__(self, agency=None, stops=None, routes=None, trips=None, 
       stop_times=None, calendar=None, calendar_dates=None, 
@@ -122,16 +128,26 @@ class Feed(object):
       frequencies=None, transfers=None, feed_info=None,
       dist_units_in=None, dist_units_out=None):
         """
-        If this feed has the optional ``shape_dist_traveled`` column 
-        in ``shapes.txt`` or ``stop_times.txt``,
-        then you must specify the distance units by setting ``dist_units_in``.
+        Assume that every non-None input is a Pandas data frame,
+        except for ``dist_units_in`` and ``dist_units_out`` which 
+        should be strings.
+
+        If the ``shapes`` or ``stop_times`` data frame has the optional
+        column ``shape_dist_traveled``,
+        then the native distance units used in those data frames must be 
+        specified with ``dist_units_in``. 
         Supported distance units are listed in ``utils.DISTANCE_UNITS``.
-        If the feed lacks distances, then ``dist_units_in`` is not required
-        and will be set to 'km'.
+        
+        If ``shape_dist_traveled`` column does not exist, then 
+        ``dist_units_in`` is not required and will be set to ``'km'``.
+        The parameter ``dist_units_out`` specifies the distance units for 
+        the outputs of functions that act on feeds, 
+        e.g. ``compute_trips_stats()``.
         If ``dist_units_out`` is not specified, then it will be set to
         ``dist_units_in``.
-        ``dist_units_out`` specifies the distance units for the outputs of 
-        the methods below, including ``export()``
+
+        No other format checking is performed.
+        In particular, a Feed instance need not represent a valid GTFS feed.
         """
         # Set attributes
         for kwarg, value in locals().items():
@@ -164,7 +180,8 @@ class Feed(object):
           self.dist_units_out)
 
         # Convert distances to dist_units_out if necessary
-        if 'shape_dist_traveled' in self.stop_times.columns:
+        if self.stop_times is not None and\
+          'shape_dist_traveled' in self.stop_times.columns:
             self.stop_times['shape_dist_traveled'] =\
               self.stop_times['shape_dist_traveled'].map(self.convert_dist)
 
@@ -190,25 +207,16 @@ class Feed(object):
         else:
             self.calendar_dates_g = None
 
-
-def read_feed(path, dist_units_in=None, dist_units_out=None,
-  clean_feed=True):
+# -------------------------------------
+# Functions about input and output
+# -------------------------------------
+def read_gtfs(path, dist_units_in=None, dist_units_out=None):
     """
-    Create a Feed object from the given path, which is a 
-    directory of GTFS text files or a zip file that 
-    unzips as a collection of GTFS text files
-    (rather than as a directory of GTFS text files).
-
-    If this feed has the optional ``shape_dist_traveled`` column 
-    in ``shapes.txt`` or ``stop_times.txt``,
-    then you must specify the distance units by setting ``dist_units_in``.
-    Supported distance units are listed in ``utils.DISTANCE_UNITS``.
-    If the feed lacks distances, then ``dist_units_in`` is not required
-    and will be set to 'km'.
-    If ``dist_units_out`` is not specified, then it will be set to
-    ``dist_units_in``.
-    ``dist_units_out`` specifies the distance units for functions
-    that manipulate feeds.
+    Create a Feed object from the given path and 
+    given distance units.
+    The path points to a directory containing GTFS text files or 
+    a zip file that unzips as a collection of GTFS text files
+    (but not as a directory containing GTFS text files).
     """
     # Unzip path if necessary
     zipped = False
@@ -241,57 +249,121 @@ def read_feed(path, dist_units_in=None, dist_units_out=None,
     # Create feed 
     return Feed(**feed_dict)
 
-#--------------------------------------
-# Feed functions
-#--------------------------------------
-def validate(feed):
+def write_gtfs(feed, path, ndigits=6):
     """
-    Perform some validation checks against the GTFS specification.
-    """  
-    # Calendar or calendar_dates must be nonempty
-    if (feed.calendar is None and feed.calendar_dates is None) or\
-      (feed.calendar.empty and feed.calendar_dates.empty):
-        raise GTFSError("calendar or calendar_dates must be nonempty")
-
-def reformat_stop_times(feed):
+    Export the given feed to a zip archive located at ``path``.
+    Round all decimals to ``ndigits`` decimal places.
+    All distances will be displayed in units ``feed.dist_units_out``.
     """
-    Clean some feed attributes and return a new feed.
-    """
-    new_feed = deepcopy(feed)
+    # Remove '.zip' extension from path, because it gets added
+    # automatically below
+    path = path.rstrip('.zip')
 
-    # Prefix a 0 to arrival and departure times if necessary.
-    # This makes sorting by time work as expected.
-    def reformat_times(t):
-        if pd.isnull(t):
-            return t
-        t = t.strip()
-        if len(t) == 7:
-            t = '0' + t
-        return t
+    # Write files to a temporary directory 
+    tmp_dir = tempfile.mkdtemp()
+    names = REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
+    int_cols_set = set(INT_COLS)
+    for name in names:
+        f = getattr(feed, name)
+        if f is None:
+            continue
 
-    st = new_feed.stop_times
-    if st is not None:
-        st[['arrival_time', 'departure_time']] = st[['arrival_time', 
-          'departure_time']].applymap(reformat_times)
-        new_feed.stop_times = st
+        f = f.copy()
+        # Some columns need to be output as integers.
+        # If there are integers and NaNs in any such column, 
+        # then Pandas will format the column as float, which we don't want.
+        s = list(int_cols_set & set(f.columns))
+        if s:
+            f[s] = f[s].fillna(-1).astype(int).astype(str).\
+              replace('-1', '')
+        tmp_path = Path(tmp_dir, name + '.txt')
+        f.to_csv(tmp_path.as_posix(), index=False, 
+          float_format='%.{!s}f'.format(ndigits))
 
-    return new_feed
+    # Zip directory 
+    shutil.make_archive(path, format='zip', root_dir=tmp_dir)    
 
-def disambiguate_route_short_names(feed):
-    """
-    Clean the ``route_short_name`` column in ``feed.routes`` 
-    using ``utils.clean_series``.
-    Among other things, this will disambiguate duplicate
-    route short names.
-    Return the resulting new feed.
-    """
-    new_feed = deepcopy(feed)
-    new_feed.routes['route_short_name'] = utils.clean_series(
-      new_feed.routes['route_short_name'])
+    # Delete temporary directory
+    shutil.rmtree(tmp_dir)
 
 # -------------------------------------
-# Trip functions
+# Functions about calendars
 # -------------------------------------
+def get_dates(feed, as_date_obj=False):
+    """
+    Return a chronologically ordered list of dates
+    for which this feed is valid.
+    If ``as_date_obj == True``, then return the dates as
+    as ``datetime.date`` objects.  
+    """
+    if feed.calendar is not None:
+        start_date = feed.calendar['start_date'].min()
+        end_date = feed.calendar['end_date'].max()
+    else:
+        # Use calendar_dates
+        start_date = feed.calendar_dates['date'].min()
+        end_date = feed.calendar_dates['date'].max()
+    
+    start_date = utils.datestr_to_date(start_date)
+    end_date = utils.datestr_to_date(end_date)
+    num_days = (end_date - start_date).days
+    result = [start_date + rd.relativedelta(days=+d) 
+      for d in range(num_days + 1)]
+    
+    if not as_date_obj:
+        result = [utils.datestr_to_date(x, inverse=True)
+          for x in result]
+    
+    return result
+
+def get_first_week(feed, as_date_obj=False):
+    """
+    Return a list of date corresponding
+    to the first Monday--Sunday week for which this feed is valid.
+    In the unlikely event that this feed does not cover a full 
+    Monday--Sunday week, then return whatever initial segment of the 
+    week it does cover. 
+    If ``as_date_obj == True``, then return the dates as
+    as ``datetime.date`` objects.          
+    """
+    dates = get_dates(feed, as_date_obj=True)
+    # Get first Monday
+    monday_index = None
+    for (i, date) in enumerate(dates):
+        if date.weekday() == 0:
+            monday_index = i
+            break
+    week = []
+    for j in range(7):
+        try:
+            week.append(dates[monday_index + j])
+        except:
+            break
+    # Convert to date strings if requested
+    if not as_date_obj:
+        week = [utils.datestr_to_date(x, inverse=True)
+          for x in week]
+    return week
+
+# -------------------------------------
+# Functions about trips
+# -------------------------------------
+def count_active_trips(trips, time):
+    """
+    Given a data frame containing the rows
+
+    - trip_id
+    - start_time: start time of the trip in seconds past midnight
+    - end_time: end time of the trip in seconds past midnight
+
+    and a time in seconds past midnight, return the number of 
+    trips in the data frame that are active at the given time.
+    A trip is a considered active at time t if 
+    start_time <= t < end_time.
+    """
+    return trips[(trips['start_time'] <= time) &\
+      (trips['end_time'] > time)].shape[0]
+
 def is_active_trip(feed, trip, date):
     """
     If the given trip (trip ID) is active on the given date,
@@ -397,6 +469,15 @@ def compute_trips_activity(feed, dates):
         f[date] = f['trip_id'].map(lambda trip: 
           int(feed.is_active_trip(trip, date)))
     return f[['trip_id'] + dates]
+
+def get_busiest_date(feed, dates):
+    """
+    Given a list of dates, return the first date that has the 
+    maximum number of active trips.
+    """
+    f = compute_trips_activity(feed, dates)
+    s = [(f[date].sum(), date) for date in dates]
+    return max(s)[1]
 
 def compute_trips_stats(feed, compute_dist_from_shapes=False):
     """
@@ -617,8 +698,9 @@ def compute_trips_locations(feed, date, times):
     
     return h.groupby('shape_id').apply(get_lonlat)
     
-# Route functions
-# ----------------------------------
+# -------------------------------------
+# Functions about routes
+# -------------------------------------
 def get_routes(feed, date=None, time=None):
     """
     Return the section of ``feed.routes`` that contains
@@ -1032,8 +1114,9 @@ def get_route_timetable(feed, route_id, date):
     return f.sort_values(['min_dt', 'stop_sequence']).drop(['min_dt', 'dt'], 
       axis=1)
 
-# Stop functions
-# ----------------------------------
+# -------------------------------------
+# Functions about stops
+# -------------------------------------
 def get_stops(feed, date=None):
     """
     Return the section of ``feed.stops`` that contains
@@ -1384,8 +1467,9 @@ def compute_stations_stats(feed, date, split_directions=False,
 
     return result
 
-# Shape functions
-# ----------------------------------
+# -------------------------------------
+# Functions about shapes
+# -------------------------------------
 def build_geometry_by_shape(feed, use_utm=True):
     """
     Return a dictionary with structure
@@ -1488,8 +1572,9 @@ def add_dist_to_shapes(feed):
     g['shape_dist_traveled'] = g['shape_dist_traveled'].map(m_to_dist)
     feed.shapes = g
 
-# Stop time functions
-# ----------------------------------
+# -------------------------------------
+# Functions about stop times
+# -------------------------------------
 def get_stop_times(feed, date=None):
     """
     Return the section of ``feed.stop_times`` that contains
@@ -1602,70 +1687,9 @@ def add_dist_to_stop_times(feed, trips_stats):
     del result['duration']
     feed.stop_times = result
 
-# Feed functions
-# ----------------------------------
-def get_dates(feed, as_date_obj=False):
-    """
-    Return a chronologically ordered list of dates
-    for which this feed is valid.
-    If ``as_date_obj == True``, then return the dates as
-    as ``datetime.date`` objects.  
-    """
-    if feed.calendar is not None:
-        start_date = feed.calendar['start_date'].min()
-        end_date = feed.calendar['end_date'].max()
-    else:
-        # Use calendar_dates
-        start_date = feed.calendar_dates['date'].min()
-        end_date = feed.calendar_dates['date'].max()
-    start_date = utils.datestr_to_date(start_date)
-    end_date = utils.datestr_to_date(end_date)
-    num_days = (end_date - start_date).days
-    result = [start_date + rd.relativedelta(days=+d) 
-      for d in range(num_days + 1)]
-    if not as_date_obj:
-        result = [utils.datestr_to_date(x, inverse=True)
-          for x in result]
-    return result
-
-def get_first_week(feed, as_date_obj=False):
-    """
-    Return a list of date corresponding
-    to the first Monday--Sunday week for which this feed is valid.
-    In the unlikely event that this feed does not cover a full 
-    Monday--Sunday week, then return whatever initial segment of the 
-    week it does cover. 
-    If ``as_date_obj == True``, then return the dates as
-    as ``datetime.date`` objects.          
-    """
-    dates = feed.get_dates(as_date_obj=True)
-    # Get first Monday
-    monday_index = None
-    for (i, date) in enumerate(dates):
-        if date.weekday() == 0:
-            monday_index = i
-            break
-    week = []
-    for j in range(7):
-        try:
-            week.append(dates[monday_index + j])
-        except:
-            break
-    # Convert to date strings if requested
-    if not as_date_obj:
-        week = [utils.datestr_to_date(x, inverse=True)
-          for x in week]
-    return week
-
-def get_busiest_date(feed, dates):
-    """
-    Given a list of dates, return the first date that has the 
-    maximum number of active trips.
-    """
-    f = feed.compute_trips_activity(dates)
-    s = [(f[date].sum(), date) for date in dates]
-    return max(s)[1]
-
+# -------------------------------------
+# Functions about feeds
+# -------------------------------------
 def compute_feed_stats(feed, trips_stats, date):
     """
     Given ``trips_stats``, which is the output of 
@@ -1781,61 +1805,10 @@ def compute_feed_time_series(feed, trips_stats, date, freq='5Min'):
     f['service_speed'] = f['service_distance']/f['service_duration']
     return f
 
-def export(feed, path, ndigits=6):
-    """
-    Export this feed to a zip archive located at ``path``.
-    Round all decimals to ``ndigits`` decimal places.
-    All distances will be displayed in units ``feed.dist_units_out``.
-    """
-    # Remove '.zip' extension from path, because it gets added
-    # automatically below
-    path = path.rstrip('.zip')
 
-    # Write files to a temporary directory 
-    tmp_dir = tempfile.mkdtemp()
-    names = REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
-    int_cols_set = set(INT_COLS)
-    for name in names:
-        f = getattr(feed, name)
-        if f is None:
-            continue
-        f = f.copy()
-        # Some columns need to be output as integers.
-        # If there are integers and NaNs in any such column, 
-        # then Pandas will format the column as float, which we don't want.
-        s = list(int_cols_set & set(f.columns))
-        if s:
-            f[s] = f[s].fillna(-1).astype(int).astype(str).\
-              replace('-1', '')
-        tmp_path = os.path.join(tmp_dir, name + '.txt')
-        f.to_csv(tmp_path, index=False, 
-          float_format='%.{!s}f'.format(ndigits))
-
-    # Zip directory 
-    shutil.make_archive(path, format="zip", root_dir=tmp_dir)    
-
-    # Delete temporary directory
-    shutil.rmtree(tmp_dir)
-
-#--------------------------------------
+# -------------------------------------
 # Miscellaneous functions
-#--------------------------------------
-def count_active_trips(trips, time):
-    """
-    Given a data frame containing the rows
-
-    - trip_id
-    - start_time: start time of the trip in seconds past midnight
-    - end_time: end time of the trip in seconds past midnight
-
-    and a time in seconds past midnight, return the number of 
-    trips in the data frame that are active at the given time.
-    A trip is a considered active at time t if 
-    start_time <= t < end_time.
-    """
-    return trips[(trips['start_time'] <= time) &\
-      (trips['end_time'] > time)].shape[0]
-
+# -------------------------------------
 def downsample(time_series, freq):
     """
     Downsample the given route, stop, or feed time series, 
