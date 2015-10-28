@@ -12,7 +12,7 @@ Installation
 
 Examples
 --------
-You can play with ``examples/examples.ipynb`` in a Jupyter notebook
+You can play with ``ipynb/examples.ipynb`` in a Jupyter notebook
 
 
 Documentation

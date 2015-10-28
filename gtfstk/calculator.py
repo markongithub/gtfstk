@@ -12,6 +12,10 @@ with the possibility that the hour is greater than 24.
 
 Unless specified otherwise, 'data frame' and 'series' refer to
 Pandas data frames and series, respectively.
+
+TODO:
+
+- For each function, document what Feed attributes are required.
 """
 from pathlib import Path
 import datetime as dt
@@ -22,6 +26,7 @@ import zipfile
 import tempfile
 import shutil
 import json
+from copy import copy
 
 import pandas as pd
 import numpy as np
@@ -420,13 +425,13 @@ def get_trips(feed, date=None, time=None):
         return f
 
     f['is_active'] = f['trip_id'].map(
-      lambda trip: feed.is_active_trip(trip, date))
+      lambda trip: is_active_trip(feed, trip, date))
     f = f[f['is_active']]
     del f['is_active']
 
     if time is not None:
         # Get trips active during given time
-        g = f.merge(feed.stop_times[['trip_id', 'departure_time']])
+        g = pd.merge(f, feed.stop_times[['trip_id', 'departure_time']])
       
         def F(group):
             d = {}
@@ -440,7 +445,7 @@ def get_trips(feed, date=None, time=None):
             return pd.Series(d)
 
         h = g.groupby('trip_id').apply(F).reset_index()
-        f = f.merge(h[h['is_active']])
+        f = pd.merge(f, h[h['is_active']])
         del f['is_active']
 
     return f
@@ -467,10 +472,10 @@ def compute_trips_activity(feed, dates):
     f = feed.trips.copy()
     for date in dates:
         f[date] = f['trip_id'].map(lambda trip: 
-          int(feed.is_active_trip(trip, date)))
+          int(is_active_trip(feed, trip, date)))
     return f[['trip_id'] + dates]
 
-def get_busiest_date(feed, dates):
+def compute_busiest_date(feed, dates):
     """
     Given a list of dates, return the first date that has the 
     maximum number of active trips.
@@ -520,13 +525,13 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
     # Convert departure times to seconds past midnight to 
     # compute durations.
     f = feed.trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
-    f = f.merge(feed.routes[['route_id', 'route_short_name']])
-    f = f.merge(feed.stop_times).sort_values(['trip_id', 'stop_sequence'])
+    f = pd.merge(f, feed.routes[['route_id', 'route_short_name']])
+    f = pd.merge(f, feed.stop_times).sort_values(['trip_id', 'stop_sequence'])
     f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
     
     # Compute all trips stats except distance, 
     # which is possibly more involved
-    geometry_by_stop = feed.build_geometry_by_stop(use_utm=True)
+    geometry_by_stop = build_geometry_by_stop(feed, use_utm=True)
     g = f.groupby('trip_id')
 
     def my_agg(group):
@@ -558,8 +563,8 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
           lambda group: group['shape_dist_traveled'].max())
     elif feed.shapes is not None:
         # Compute distances using the shapes and Shapely
-        geometry_by_shape = feed.build_geometry_by_shape()
-        geometry_by_stop = feed.build_geometry_by_stop()
+        geometry_by_shape = build_geometry_by_shape(feed)
+        geometry_by_stop = build_geometry_by_stop(feed)
         m_to_dist = utils.get_convert_dist('m', feed.dist_units_out)
 
         def compute_dist(group):
@@ -646,7 +651,7 @@ def compute_trips_locations(feed, date, times):
           "via feed.stop_times = feed.add_dist_to_stop_times().")
     
     # Start with stop times active on date
-    f = feed.get_stop_times(date)
+    f = get_stop_times(feed, date)
     f['departure_time'] = f['departure_time'].map(
       utils.timestr_to_seconds)
 
@@ -654,7 +659,7 @@ def compute_trips_locations(feed, date, times):
     # at the given time times.
     # Use linear interpolation based on stop departure times and
     # shape distance traveled.
-    geometry_by_shape = feed.build_geometry_by_shape(use_utm=False)
+    geometry_by_shape = build_geometry_by_shape(feed, use_utm=False)
     sample_times = np.array([utils.timestr_to_seconds(s) 
       for s in times])
     
@@ -679,7 +684,7 @@ def compute_trips_locations(feed, date, times):
 
     # Merge in more trip info and
     # compute longitude and latitude of trip from relative distance
-    h = g.merge(feed.trips[['trip_id', 'route_id', 'direction_id', 
+    h = pd.merge(g, feed.trips[['trip_id', 'route_id', 'direction_id', 
       'shape_id']])
     if not h.shape[0]:
         # Return a data frame with the promised headers but no data.
@@ -713,7 +718,7 @@ def get_routes(feed, date=None, time=None):
     if date is None:
         return feed.routes.copy()
 
-    trips = feed.get_trips(date, time)
+    trips = get_trips(feed, date, time)
     R = trips['route_id'].unique()
     return feed.routes[feed.routes['route_id'].isin(R)]
 
@@ -931,12 +936,11 @@ def compute_routes_stats(feed, trips_stats, date, split_directions=False,
     """
     # Get the subset of trips_stats that contains only trips active
     # on the given date
-    trips_stats_subset = trips_stats.merge(feed.get_trips(date))
+    trips_stats_subset = pd.merge(trips_stats, get_trips(feed, date))
     return compute_routes_stats_base(trips_stats_subset, 
       split_directions=split_directions,
       headway_start_time=headway_start_time, 
       headway_end_time=headway_end_time)
-
 
 def compute_routes_time_series_base(trips_stats_subset,
   split_directions=False, freq='5Min', date_label='20010101'):
@@ -1089,7 +1093,7 @@ def compute_routes_time_series(feed, trips_stats, date,
     ``compute_routes_time_series_base()``.
     The latter function works without a feed, though.
     """  
-    trips_stats_subset = trips_stats.merge(feed.get_trips(date))
+    trips_stats_subset = pd.merge(trips_stats, get_trips(feed, date))
     return compute_routes_time_series_base(trips_stats_subset, 
       split_directions=split_directions, freq=freq, 
       date_label=date)
@@ -1103,16 +1107,16 @@ def get_route_timetable(feed, route_id, date):
     The result is sorted by grouping by trip ID and
     sorting the groups by their first departure time.
     """
-    f = feed.get_trips(date)
+    f = get_trips(feed, date)
     f = f[f['route_id'] == route_id].copy()
-    f = f.merge(feed.stop_times)
+    f = pd.merge(f, feed.stop_times)
     # Groupby trip ID and sort groups by their minimum departure time.
     # For some reason NaN departure times mess up the transform below.
     # So temporarily fill NaN departure times as a workaround.
     f['dt'] = f['departure_time'].fillna(method='ffill')
     f['min_dt'] = f.groupby('trip_id')['dt'].transform(min)
-    return f.sort_values(['min_dt', 'stop_sequence']).drop(['min_dt', 'dt'], 
-      axis=1)
+    return f.sort_values(['min_dt', 'stop_sequence']).drop(
+      ['min_dt', 'dt'], axis=1)
 
 # -------------------------------------
 # Functions about stops
@@ -1126,7 +1130,7 @@ def get_stops(feed, date=None):
     if date is None:
         return feed.stops.copy()
 
-    stop_times = feed.get_stop_times(date)
+    stop_times = get_stop_times(feed, date)
     S = stop_times['stop_id'].unique()
     return feed.stops[feed.stops['stop_id'].isin(S)]
 
@@ -1169,8 +1173,8 @@ def compute_stops_activity(feed, dates):
     if not dates:
         return pd.DataFrame(columns=['stop_id'])
 
-    trips_activity = feed.compute_trips_activity(dates)
-    g = trips_activity.merge(feed.stop_times).groupby('stop_id')
+    trips_activity = compute_trips_activity(feed, dates)
+    g = pd.merge(trips_activity, feed.stop_times).groupby('stop_id')
     # Pandas won't allow me to simply return g[dates].max().reset_index().
     # I get ``TypeError: unorderable types: datetime.date() < str()``.
     # So here's a workaround.
@@ -1227,7 +1231,7 @@ def compute_stops_stats_base(stop_times, trips_subset, split_directions=False,
     if trips_subset.empty:
         return pd.DataFrame(columns=cols)
 
-    f = stop_times.merge(trips_subset)
+    f = pd.merge(stop_times, trips_subset)
 
     # Convert departure times to seconds to ease headway calculations
     f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
@@ -1287,7 +1291,7 @@ def compute_stops_stats(feed, date, split_directions=False,
     The latter function works without a feed, though.
     """
     # Get stop times active on date and direction IDs
-    return compute_stops_stats_base(feed.stop_times, feed.get_trips(date),
+    return compute_stops_stats_base(feed.stop_times, get_trips(feed, date),
       split_directions=split_directions,
       headway_start_time=headway_start_time, 
       headway_end_time=headway_end_time)
@@ -1327,7 +1331,7 @@ def compute_stops_time_series_base(stop_times, trips_subset,
     if trips_subset.empty:
         return pd.DataFrame(columns=cols)
 
-    f = stop_times.merge(trips_subset)
+    f = pd.merge(stop_times, trips_subset)
 
     if split_directions:
         # Alter stop IDs to encode trip direction: 
@@ -1382,8 +1386,9 @@ def compute_stops_time_series(feed, date, split_directions=False,
     ``compute_stops_time_series_base()``.
     The latter function works without a feed, though.
     """  
-    return compute_stops_time_series(feed.stop_times, feed.get_trips(date),
-      split_directions=split_directions, freq=freq, date_label=date)
+    return compute_stops_time_series_base(feed.stop_times, 
+      get_trips(feed, date), split_directions=split_directions, 
+      freq=freq, date_label=date)
 
 def get_stop_timetable(feed, stop_id, date):
     """
@@ -1393,8 +1398,8 @@ def get_stop_timetable(feed, stop_id, date):
     ``feed.stop_times``.
     The result is sorted by departure time.
     """
-    f = feed.get_stop_times(date)
-    f = f.merge(feed.trips)
+    f = get_stop_times(feed, date)
+    f = pd.merge(f, feed.trips)
     f = f[f['stop_id'] == stop_id]
     return f.sort_values('departure_time')
 
@@ -1404,7 +1409,7 @@ def get_stops_in_stations(feed):
     ``parent_station`` columns in ``feed.stops``, then return a 
     data frame that has the same columns as ``feed.stops``
     but only includes stops with parent stations, that is, stops with
-    location type 0 or blank and nonblank parent station.
+    location type 0 or blank and non-blank parent station.
     Otherwise, return an empty data frame with the specified columns.
     """
     f = feed.stops
@@ -1420,12 +1425,12 @@ def compute_stations_stats(feed, date, split_directions=False,
     Otherwise, return an empty data frame with the specified columns.
     """
     # Get stop times of active trips that visit stops in stations
-    sis = feed.get_stops_in_stations()
+    sis = get_stops_in_stations(feed)
     if sis.empty:
         return sis
 
-    f = feed.get_stop_times(date)
-    f = f.merge(sis)
+    f = get_stop_times(feed, date)
+    f = pd.merge(f, sis)
 
     # Convert departure times to seconds to ease headway calculations
     f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
@@ -1513,7 +1518,7 @@ def build_shapes_geojson(feed):
     namely WGS84.
     """
 
-    geometry_by_shape = feed.build_geometry_by_shape(use_utm=False)
+    geometry_by_shape = build_geometry_by_shape(feed, use_utm=False)
     if geometry_by_shape is None:
         return
 
@@ -1530,9 +1535,8 @@ def build_shapes_geojson(feed):
 
 def add_dist_to_shapes(feed):
     """
-    Add/overwrite the optional ``shape_dist_traveled`` GTFS field for
-    ``feed.shapes``.
-    Return ``None``.
+    Copy ``feed.shapes``, calculate the optional ``shape_dist_traveled`` 
+    GTFS field, and return the resulting shapes data frame.
 
     NOTE: 
 
@@ -1570,7 +1574,8 @@ def add_dist_to_shapes(feed):
     g = f.groupby('shape_id', group_keys=False).apply(compute_dist)
     # Convert from meters
     g['shape_dist_traveled'] = g['shape_dist_traveled'].map(m_to_dist)
-    feed.shapes = g
+
+    return g
 
 # -------------------------------------
 # Functions about stop times
@@ -1585,14 +1590,15 @@ def get_stop_times(feed, date=None):
     if date is None:
         return f
 
-    g = feed.get_trips(date)
+    g = get_trips(feed, date)
     return f[f['trip_id'].isin(g['trip_id'])]
 
 def add_dist_to_stop_times(feed, trips_stats):
     """
-    Add/overwrite the optional ``shape_dist_traveled`` GTFS field in
-    ``feed.stop_times``.
-    Doesn't always give accurate results, as described below.
+    Copy ``feed.stop_times``, compute its optional 
+    ``shape_dist_traveled`` GTFS field, and return the resulting
+    data frame.
+    Does not always give accurate results, as described below.
 
     ALGORITHM:
 
@@ -1616,13 +1622,13 @@ def add_dist_to_stop_times(feed, trips_stats):
     (so shape_dist_traveled != 0).
     This is the case for several trips in the Portland feed, for example. 
     """
-    geometry_by_shape = feed.build_geometry_by_shape()
-    geometry_by_stop = feed.build_geometry_by_stop()
+    geometry_by_shape = build_geometry_by_shape(feed)
+    geometry_by_stop = build_geometry_by_stop(feed)
 
     # Initialize data frame
-    f = feed.stop_times.merge(
+    f = pd.merge(feed.stop_times,
       trips_stats[['trip_id', 'shape_id', 'distance', 'duration']]).\
-      sort(['trip_id', 'stop_sequence'])
+      sort_values(['trip_id', 'stop_sequence'])
 
     # Convert departure times to seconds past midnight to ease calculations
     f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
@@ -1682,10 +1688,8 @@ def add_dist_to_stop_times(feed, trips_stats):
     # Convert departure times back to time strings
     result['departure_time'] = result['departure_time'].map(lambda x: 
       utils.timestr_to_seconds(x, inverse=True))
-    del result['shape_id']
-    del result['distance']
-    del result['duration']
-    feed.stop_times = result
+    
+    return result.drop(['shape_id', 'distance', 'duration'], axis=1)
 
 # -------------------------------------
 # Functions about feeds
@@ -1724,13 +1728,13 @@ def compute_feed_stats(feed, trips_stats, date):
       'service_speed',
       ]
     d = OrderedDict()
-    trips = feed.get_trips(date)
+    trips = get_trips(feed, date)
     if trips.empty:
         return pd.DataFrame(columns=cols)
 
     d['num_trips'] = trips.shape[0]
-    d['num_routes'] = feed.get_routes(date).shape[0]
-    d['num_stops'] = feed.get_stops(date).shape[0]
+    d['num_routes'] = get_routes(feed, date).shape[0]
+    d['num_stops'] = get_stops(feed, date).shape[0]
 
     # Compute peak stats
     f = trips.merge(trips_stats)
@@ -1778,7 +1782,7 @@ def compute_feed_time_series(feed, trips_stats, date, freq='5Min'):
       'service_duration',
       'service_speed',
       ]
-    rts = feed.compute_routes_time_series(trips_stats, date, freq=freq)
+    rts = compute_routes_time_series(feed, trips_stats, date, freq=freq)
     if rts.empty:
         return pd.DataFrame(columns=cols)
 
@@ -1804,7 +1808,6 @@ def compute_feed_time_series(feed, trips_stats, date, freq='5Min'):
       keys=stats)
     f['service_speed'] = f['service_distance']/f['service_duration']
     return f
-
 
 # -------------------------------------
 # Miscellaneous functions
@@ -1909,117 +1912,3 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
         new_frames = frames
     return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
       names=subcolumns)
-
-def plot_headways(stats, max_headway_limit=60):
-    """
-    Given a stops or routes stats data frame, 
-    return bar charts of the max and mean headways as a MatplotLib figure.
-    Only include the stops/routes with max headways at most 
-    ``max_headway_limit`` minutes.
-    If ``max_headway_limit is None``, then include them all in a giant plot. 
-    If there are no stops/routes within the max headway limit, then return 
-    ``None``.
-
-    NOTES:
-
-    Take the resulting figure ``f`` and do ``f.tight_layout()``
-    for a nice-looking plot.
-    """
-    import matplotlib.pyplot as plt
-
-    # Set Pandas plot style
-    pd.options.display.mpl_style = 'default'
-
-    if 'stop_id' in stats.columns:
-        index = 'stop_id'
-    elif 'route_id' in stats.columns:
-        index = 'route_id'
-    split_directions = 'direction_id' in stats.columns
-    if split_directions:
-        # Move the direction_id column to a hierarchical column,
-        # select the headway columns, and convert from seconds to minutes
-        f = stats.pivot(index=index, columns='direction_id')[['max_headway', 
-          'mean_headway']]
-        # Only take the stops/routes within the max headway limit
-        if max_headway_limit is not None:
-            f = f[(f[('max_headway', 0)] <= max_headway_limit) |
-              (f[('max_headway', 1)] <= max_headway_limit)]
-        # Sort by max headway
-        f = f.sort_values(columns=[('max_headway', 0)], ascending=False)
-    else:
-        f = stats.set_index(index)[['max_headway', 'mean_headway']]
-        if max_headway_limit is not None:
-            f = f[f['max_headway'] <= max_headway_limit]
-        f = f.sort_values(columns=['max_headway'], ascending=False)
-    if f.empty:
-        return
-
-    # Plot max and mean headway separately
-    n = f.shape[0]
-    data_frames = [f['max_headway'], f['mean_headway']]
-    titles = ['Max Headway','Mean Headway']
-    ylabels = [index, index]
-    xlabels = ['minutes', 'minutes']
-    fig, axes = plt.subplots(nrows=1, ncols=2)
-    for (i, f) in enumerate(data_frames):
-        f.plot(kind='barh', ax=axes[i], figsize=(10, max(n/9, 10)))
-        axes[i].set_title(titles[i])
-        axes[i].set_xlabel(xlabels[i])
-        axes[i].set_ylabel(ylabels[i])
-    return fig
-
-def plot_routes_time_series(routes_time_series):
-    """
-    Given a routes time series data frame,
-    sum each time series indicator over all routes, 
-    plot each series indicator using MatplotLib, 
-    and return the resulting figure of subplots.
-
-    NOTES:
-
-    Take the resulting figure ``f`` and do ``f.tight_layout()``
-    for a nice-looking plot.
-    """
-    import matplotlib.pyplot as plt
-
-    rts = routes_time_series
-    if 'route_id' not in rts.columns.names:
-        return
-
-    # Aggregate time series
-    f = compute_feed_time_series(rts)
-
-    # Reformat time periods
-    f.index = [t.time().strftime('%H:%M') 
-      for t in rts.index.to_datetime()]
-    
-    #split_directions = 'direction_id' in rts.columns.names
-
-    # Split time series by into its component time series by indicator type
-    # stats = rts.columns.levels[0].tolist()
-    stats = [
-      'num_trip_starts',
-      'num_trips',
-      'service_distance',
-      'service_duration',
-      'service_speed',
-      ]
-    ts_dict = {stat: f[stat] for stat in stats}
-
-    # Create plots  
-    pd.options.display.mpl_style = 'default'
-    titles = [stat.capitalize().replace('_', ' ') for stat in stats]
-    units = ['','','km','h', 'kph']
-    alpha = 1
-    fig, axes = plt.subplots(nrows=len(stats), ncols=1)
-    for (i, stat) in enumerate(stats):
-        if stat == 'service_speed':
-            stacked = False
-        else:
-            stacked = True
-        ts_dict[stat].plot(ax=axes[i], alpha=alpha, 
-          kind='bar', figsize=(8, 10), stacked=stacked, width=1)
-        axes[i].set_title(titles[i])
-        axes[i].set_ylabel(units[i])
-
-    return fig

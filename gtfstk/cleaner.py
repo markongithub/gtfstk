@@ -1,16 +1,20 @@
+from . import utilities as utils 
+
+import pandas as pd
 """
 Functions for cleaning a Feed object.
 """  
 
-def reformat_stop_times(feed):
+def clean_stop_times(feed):
     """
-    Clean some feed attributes and return a new feed.
+    In ``feed.stop_times``, prefix a zero to arrival and 
+    departure times if necessary.
+    This makes sorting by time work as expected.
+    Return the resulting stop times data frame.
     """
-    new_feed = deepcopy(feed)
+    st = feed.stop_times.copy()
 
-    # Prefix a 0 to arrival and departure times if necessary.
-    # This makes sorting by time work as expected.
-    def reformat_times(t):
+    def reformat(t):
         if pd.isnull(t):
             return t
         t = t.strip()
@@ -18,22 +22,22 @@ def reformat_stop_times(feed):
             t = '0' + t
         return t
 
-    st = new_feed.stop_times
     if st is not None:
         st[['arrival_time', 'departure_time']] = st[['arrival_time', 
-          'departure_time']].applymap(reformat_times)
-        new_feed.stop_times = st
+          'departure_time']].applymap(reformat)
 
-    return new_feed
+    return st
 
-def disambiguate_route_short_names(feed):
+def clean_routes(feed):
     """
-    Clean the ``route_short_name`` column in ``feed.routes`` 
+    In ``feed.routes``, disambiguate the ``route_short_name`` column 
     using ``utils.clean_series``.
     Among other things, this will disambiguate duplicate
     route short names.
-    Return the resulting new feed.
+    Return the resulting routes data frame.
     """
-    new_feed = deepcopy(feed)
-    new_feed.routes['route_short_name'] = utils.clean_series(
-      new_feed.routes['route_short_name'])
+    routes = feed.routes.copy()
+    if routes is not None:
+        routes['route_short_name'] = utils.clean_series(
+          routes['route_short_name'])
+    return routes
