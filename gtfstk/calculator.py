@@ -33,72 +33,10 @@ import numpy as np
 from shapely.geometry import Point, LineString, mapping
 import utm
 
-from . import utilities as utils
+from . import utilities as ut
+from . import constants as cs
 
 
-REQUIRED_GTFS_FILES = [
-  'agency',  
-  'stops',   
-  'routes',
-  'trips',
-  'stop_times',
-  'calendar',
-  ]
-
-OPTIONAL_GTFS_FILES = [
-  'calendar_dates',  
-  'fare_attributes',    
-  'fare_rules',  
-  'shapes',  
-  'frequencies',     
-  'transfers',   
-  'feed_info',
-  ]
-
-DTYPE = {
-  'stop_id': str, 
-  'stop_code': str,
-  'route_id': str, 
-  'route_short_name': str,
-  'trip_id': str, 
-  'service_id': str, 
-  'shape_id': str, 
-  'start_date': str, 
-  'end_date': str,
-  'date': str,
-}
-
-# Columns that must be formatted as integers when outputting GTFS
-INT_COLS = [
-  'location_type',
-  'wheelchair_boarding',
-  'route_type',
-  'direction_id',
-  'stop_sequence',
-  'wheelchair_accessible',
-  'bikes_allowed',
-  'pickup_type',
-  'drop_off_type',
-  'timepoint',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-  'exception_type',
-  'payment_method',
-  'transfers',
-  'shape_pt_sequence',
-  'exact_times',
-  'transfer_type',
-  'transfer_duration',
-  'min_transfer_time',
-]
-
-
-# TODO: Explain attributes
 class Feed(object):
     """
     A class to gather some or all GTFS files as data frames.
@@ -110,22 +48,32 @@ class Feed(object):
 
     Attributes:
 
-    - agency
-    - stops
-    - routes
-    - trips 
-    - stop_times
-    - calendar
-    - calendar_dates 
-    - fare_attributes
-    - fare_rules
-    - shapes
-    - frequencies
-    - transfers
-    - feed_info
-    - dist_units_in
-    - dist_units_out
-    - convert_dist
+    - ``agency``
+    - ``stops``
+    - ``routes``
+    - ``trips``
+    - ``trips_i``: ``trips`` reindexed by its ``'trip_id'`` column;
+      speeds up ``is_active_trip()``
+    - ``stop_times``
+    - ``calendar``
+    - ``calendar_i``: ``calendar`` reindexed by its ``'service_id'`` column;
+      speeds up ``is_active_trip()``
+    - ``calendar_dates`` 
+    - ``calendar_dates_g``: ``calendar_dates`` grouped by 
+      ``['service_id', 'date']``; speeds up ``is_active_trip()``
+    - ``fare_attributes``
+    - ``fare_rules``
+    - ``shapes``
+    - ``frequencies``
+    - ``transfers``
+    - ``feed_info``
+    - ``dist_units_in``: a string in ``constants.DISTANCE_UNITS``;
+      specifies the native distance units of the feed
+    - ``dist_units_out``: a string in ``constants.DISTANCE_UNITS``;
+      specifies the output distance units for functions that operate
+      on Feed objects
+    - ``convert_dist``: function that converts from ``dist_units_in`` to
+      ``dist_units_out``
     """
     def __init__(self, agency=None, stops=None, routes=None, trips=None, 
       stop_times=None, calendar=None, calendar_dates=None, 
@@ -141,7 +89,7 @@ class Feed(object):
         column ``shape_dist_traveled``,
         then the native distance units used in those data frames must be 
         specified with ``dist_units_in``. 
-        Supported distance units are listed in ``utils.DISTANCE_UNITS``.
+        Supported distance units are listed in ``constants.DISTANCE_UNITS``.
         
         If ``shape_dist_traveled`` column does not exist, then 
         ``dist_units_in`` is not required and will be set to ``'km'``.
@@ -169,7 +117,7 @@ class Feed(object):
             if self.dist_units_in is None:
                 raise ValueError(
                   'This feed has distances, so you must specify dist_units_in')    
-        DU = utils.DISTANCE_UNITS
+        DU = cs.DISTANCE_UNITS
         for du in [self.dist_units_in, self.dist_units_out]:
             if du is not None and du not in DU:
                 raise ValueError('Distance units must lie in {!s}'.format(DU))
@@ -181,7 +129,7 @@ class Feed(object):
             self.dist_units_out = self.dist_units_in
         
         # Set distance conversion function
-        self.convert_dist = utils.get_convert_dist(self.dist_units_in,
+        self.convert_dist = ut.get_convert_dist(self.dist_units_in,
           self.dist_units_out)
 
         # Convert distances to dist_units_out if necessary
@@ -236,11 +184,14 @@ def read_gtfs(path, dist_units_in=None, dist_units_out=None):
 
     # Read files into feed dictionary of data frames
     feed_dict = {}
-    for f in REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES:
+    for f in cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES:
         ff = f + '.txt'
         p = Path(path, ff)
         if p.exists():
-            feed_dict[f] = pd.read_csv(p.as_posix(), dtype=DTYPE)
+            feed_dict[f] = pd.read_csv(p.as_posix(), dtype=cs.DTYPE,
+              encoding='utf-8-sig') 
+            # utf-8-sig gets rid of the byte order mark (BOM);
+            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string 
         else:
             feed_dict[f] = None
         
@@ -266,8 +217,8 @@ def write_gtfs(feed, path, ndigits=6):
 
     # Write files to a temporary directory 
     tmp_dir = tempfile.mkdtemp()
-    names = REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
-    int_cols_set = set(INT_COLS)
+    names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
+    int_cols_set = set(cs.INT_COLS)
     for name in names:
         f = getattr(feed, name)
         if f is None:
@@ -309,14 +260,14 @@ def get_dates(feed, as_date_obj=False):
         start_date = feed.calendar_dates['date'].min()
         end_date = feed.calendar_dates['date'].max()
     
-    start_date = utils.datestr_to_date(start_date)
-    end_date = utils.datestr_to_date(end_date)
+    start_date = ut.datestr_to_date(start_date)
+    end_date = ut.datestr_to_date(end_date)
     num_days = (end_date - start_date).days
     result = [start_date + rd.relativedelta(days=+d) 
       for d in range(num_days + 1)]
     
     if not as_date_obj:
-        result = [utils.datestr_to_date(x, inverse=True)
+        result = [ut.datestr_to_date(x, inverse=True)
           for x in result]
     
     return result
@@ -346,7 +297,7 @@ def get_first_week(feed, as_date_obj=False):
             break
     # Convert to date strings if requested
     if not as_date_obj:
-        week = [utils.datestr_to_date(x, inverse=True)
+        week = [ut.datestr_to_date(x, inverse=True)
           for x in week]
     return week
 
@@ -401,8 +352,8 @@ def is_active_trip(feed, trip, date):
     cali = feed.calendar_i
     if cali is not None:
         if service in cali.index:
-            weekday_str = utils.weekday_to_str(
-              utils.datestr_to_date(date).weekday())
+            weekday_str = ut.weekday_to_str(
+              ut.datestr_to_date(date).weekday())
             if cali.at[service, 'start_date'] <= date <= cali.at[service,
               'end_date'] and cali.at[service, weekday_str] == 1:
                 return True
@@ -527,7 +478,7 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
     f = feed.trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
     f = pd.merge(f, feed.routes[['route_id', 'route_short_name']])
     f = pd.merge(f, feed.stop_times).sort_values(['trip_id', 'stop_sequence'])
-    f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
+    f['departure_time'] = f['departure_time'].map(ut.timestr_to_seconds)
     
     # Compute all trips stats except distance, 
     # which is possibly more involved
@@ -565,7 +516,7 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
         # Compute distances using the shapes and Shapely
         geometry_by_shape = build_geometry_by_shape(feed)
         geometry_by_stop = build_geometry_by_stop(feed)
-        m_to_dist = utils.get_convert_dist('m', feed.dist_units_out)
+        m_to_dist = ut.get_convert_dist('m', feed.dist_units_out)
 
         def compute_dist(group):
             """
@@ -621,7 +572,7 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
     h = h.reset_index()
     h['speed'] = h['distance']/h['duration']
     h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
-      applymap(lambda x: utils.timestr_to_seconds(x, inverse=True))
+      applymap(lambda x: ut.timestr_to_seconds(x, inverse=True))
     
     return h.sort_values(['route_id', 'direction_id', 'start_time'])
 
@@ -653,14 +604,14 @@ def compute_trips_locations(feed, date, times):
     # Start with stop times active on date
     f = get_stop_times(feed, date)
     f['departure_time'] = f['departure_time'].map(
-      utils.timestr_to_seconds)
+      ut.timestr_to_seconds)
 
     # Compute relative distance of each trip along its path
     # at the given time times.
     # Use linear interpolation based on stop departure times and
     # shape distance traveled.
     geometry_by_shape = build_geometry_by_shape(feed, use_utm=False)
-    sample_times = np.array([utils.timestr_to_seconds(s) 
+    sample_times = np.array([ut.timestr_to_seconds(s) 
       for s in times])
     
     def compute_rel_dist(group):
@@ -680,7 +631,7 @@ def compute_trips_locations(feed, date, times):
     
     # Convert times back to time strings
     g['time'] = g['time'].map(
-      lambda x: utils.timestr_to_seconds(x, inverse=True))
+      lambda x: ut.timestr_to_seconds(x, inverse=True))
 
     # Merge in more trip info and
     # compute longitude and latitude of trip from relative distance
@@ -806,10 +757,10 @@ def compute_routes_stats_base(trips_stats_subset, split_directions=False,
     # Convert trip start and end times to seconds to ease calculations below
     f = trips_stats_subset.copy()
     f[['start_time', 'end_time']] = f[['start_time', 'end_time']].\
-      applymap(utils.timestr_to_seconds)
+      applymap(ut.timestr_to_seconds)
 
-    headway_start = utils.timestr_to_seconds(headway_start_time)
-    headway_end = utils.timestr_to_seconds(headway_end_time)
+    headway_start = ut.timestr_to_seconds(headway_start_time)
+    headway_end = ut.timestr_to_seconds(headway_end_time)
 
     def compute_route_stats_split_directions(group):
         # Take this group of all trips stats for a single route
@@ -838,7 +789,7 @@ def compute_routes_stats_base(trips_stats_subset, split_directions=False,
         # Compute peak num trips
         times = np.unique(group[['start_time', 'end_time']].values)
         counts = [count_active_trips(group, t) for t in times]
-        start, end = utils.get_peak_indices(times, counts)
+        start, end = ut.get_peak_indices(times, counts)
         d['peak_num_trips'] = counts[start]
         d['peak_start_time'] = times[start]
         d['peak_end_time'] = times[end]
@@ -876,7 +827,7 @@ def compute_routes_stats_base(trips_stats_subset, split_directions=False,
         # Compute peak num trips
         times = np.unique(group[['start_time', 'end_time']].values)
         counts = [count_active_trips(group, t) for t in times]
-        start, end = utils.get_peak_indices(times, counts)
+        start, end = ut.get_peak_indices(times, counts)
         d['peak_num_trips'] = counts[start]
         d['peak_start_time'] = times[start]
         d['peak_end_time'] = times[end]
@@ -911,7 +862,7 @@ def compute_routes_stats_base(trips_stats_subset, split_directions=False,
     # Convert route times to time strings
     g[['start_time', 'end_time', 'peak_start_time', 'peak_end_time']] =\
       g[['start_time', 'end_time', 'peak_start_time', 'peak_end_time']].\
-      applymap(lambda x: utils.timestr_to_seconds(x, inverse=True))
+      applymap(lambda x: ut.timestr_to_seconds(x, inverse=True))
 
     return g
 
@@ -1021,7 +972,7 @@ def compute_routes_time_series_base(trips_stats_subset,
 
     # Bin start and end times
     def F(x):
-        return (utils.timestr_to_seconds(x)//60) % (24*60)
+        return (ut.timestr_to_seconds(x)//60) % (24*60)
 
     tss[['start_index', 'end_index']] =\
       tss[['start_time', 'end_time']].applymap(F)
@@ -1081,7 +1032,7 @@ def compute_routes_time_series(feed, trips_stats, date,
     that are active on the given date, and then call
     ``compute_routes_time_series_base()`` with ``S`` and the given 
     keyword arguments ``split_directions`` and ``freq``
-    and with ``date_label = utils.date_to_str(date)``.
+    and with ``date_label = ut.date_to_str(date)``.
 
     See ``compute_routes_time_series_base()`` for a description of the output.
 
@@ -1234,10 +1185,10 @@ def compute_stops_stats_base(stop_times, trips_subset, split_directions=False,
     f = pd.merge(stop_times, trips_subset)
 
     # Convert departure times to seconds to ease headway calculations
-    f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
+    f['departure_time'] = f['departure_time'].map(ut.timestr_to_seconds)
 
-    headway_start = utils.timestr_to_seconds(headway_start_time)
-    headway_end = utils.timestr_to_seconds(headway_end_time)
+    headway_start = ut.timestr_to_seconds(headway_start_time)
+    headway_end = ut.timestr_to_seconds(headway_end_time)
 
     # Compute stats for each stop
     def compute_stop_stats(group):
@@ -1272,7 +1223,7 @@ def compute_stops_stats_base(stop_times, trips_subset, split_directions=False,
     # Convert start and end times to time strings
     result[['start_time', 'end_time']] =\
       result[['start_time', 'end_time']].applymap(
-      lambda x: utils.timestr_to_seconds(x, inverse=True))
+      lambda x: ut.timestr_to_seconds(x, inverse=True))
 
     return result
 
@@ -1346,7 +1297,7 @@ def compute_stops_time_series_base(stop_times, trips_subset,
 
     # Bin each stop departure time
     def F(x):
-        return (utils.timestr_to_seconds(x)//60) % (24*60)
+        return (ut.timestr_to_seconds(x)//60) % (24*60)
 
     f['departure_index'] = f['departure_time'].map(F)
 
@@ -1433,10 +1384,10 @@ def compute_stations_stats(feed, date, split_directions=False,
     f = pd.merge(f, sis)
 
     # Convert departure times to seconds to ease headway calculations
-    f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
+    f['departure_time'] = f['departure_time'].map(ut.timestr_to_seconds)
 
-    headway_start = utils.timestr_to_seconds(headway_start_time)
-    headway_end = utils.timestr_to_seconds(headway_end_time)
+    headway_start = ut.timestr_to_seconds(headway_start_time)
+    headway_end = ut.timestr_to_seconds(headway_end_time)
 
     # Compute stats for each station
     def compute_station_stats(group):
@@ -1468,7 +1419,7 @@ def compute_stations_stats(feed, date, split_directions=False,
     # Convert start and end times to time strings
     result[['start_time', 'end_time']] =\
       result[['start_time', 'end_time']].applymap(
-      lambda x: utils.timestr_to_seconds(x, inverse=True))
+      lambda x: ut.timestr_to_seconds(x, inverse=True))
 
     return result
 
@@ -1549,7 +1500,7 @@ def add_dist_to_shapes(feed):
           "This function requires the feed to have a shapes.txt file")
 
     f = feed.shapes
-    m_to_dist = utils.get_convert_dist('m', feed.dist_units_out)
+    m_to_dist = ut.get_convert_dist('m', feed.dist_units_out)
 
     def compute_dist(group):
         # Compute the distances of the stops along this trip
@@ -1631,9 +1582,9 @@ def add_dist_to_stop_times(feed, trips_stats):
       sort_values(['trip_id', 'stop_sequence'])
 
     # Convert departure times to seconds past midnight to ease calculations
-    f['departure_time'] = f['departure_time'].map(utils.timestr_to_seconds)
+    f['departure_time'] = f['departure_time'].map(ut.timestr_to_seconds)
     dist_by_stop_by_shape = {shape: {} for shape in geometry_by_shape}
-    m_to_dist = utils.get_convert_dist('m', feed.dist_units_out)
+    m_to_dist = ut.get_convert_dist('m', feed.dist_units_out)
 
     def compute_dist(group):
         # Compute the distances of the stops along this trip
@@ -1652,7 +1603,7 @@ def add_dist_to_stop_times(feed, trips_stats):
             if stop in dist_by_stop_by_shape[shape]:
                 d = dist_by_stop_by_shape[shape][stop]
             else:
-                d = m_to_dist(utils.get_segment_length(linestring, 
+                d = m_to_dist(ut.get_segment_length(linestring, 
                   geometry_by_stop[stop]))
                 dist_by_stop_by_shape[shape][stop] = d
             distances.append(d)
@@ -1687,7 +1638,7 @@ def add_dist_to_stop_times(feed, trips_stats):
     result = f.groupby('trip_id', group_keys=False).apply(compute_dist)
     # Convert departure times back to time strings
     result['departure_time'] = result['departure_time'].map(lambda x: 
-      utils.timestr_to_seconds(x, inverse=True))
+      ut.timestr_to_seconds(x, inverse=True))
     
     return result.drop(['shape_id', 'distance', 'duration'], axis=1)
 
@@ -1739,16 +1690,16 @@ def compute_feed_stats(feed, trips_stats, date):
     # Compute peak stats
     f = trips.merge(trips_stats)
     f[['start_time', 'end_time']] =\
-      f[['start_time', 'end_time']].applymap(utils.timestr_to_seconds)
+      f[['start_time', 'end_time']].applymap(ut.timestr_to_seconds)
 
     times = np.unique(f[['start_time', 'end_time']].values)
     counts = [count_active_trips(f, t) for t in times]
-    start, end = utils.get_peak_indices(times, counts)
+    start, end = ut.get_peak_indices(times, counts)
     d['peak_num_trips'] = counts[start]
     d['peak_start_time'] =\
-      utils.timestr_to_seconds(times[start], inverse=True)
+      ut.timestr_to_seconds(times[start], inverse=True)
     d['peak_end_time'] =\
-      utils.timestr_to_seconds(times[end], inverse=True)
+      ut.timestr_to_seconds(times[end], inverse=True)
 
     # Compute remaining stats
     d['service_distance'] = f['distance'].sum()

@@ -10,7 +10,8 @@ from shapely.geometry import Point, LineString, mapping
 from shapely.geometry import shape as sh_shape
 
 from gtfstk.calculator import *
-import gtfstk.utilities as utils
+import gtfstk.utilities as ut
+import gtfstk.constants as cs
 
 # Load test feeds
 cairns = read_gtfs('data/cairns_gtfs.zip')
@@ -41,7 +42,7 @@ class TestCalculator(unittest.TestCase):
                 self.assertEqual(value, 'km')
             elif key == 'convert_dist':
                 self.assertIsInstance(value, FunctionType)
-            elif key in REQUIRED_GTFS_FILES and key != 'calendar_dates':
+            elif key in cs.REQUIRED_GTFS_FILES and key != 'calendar_dates':
                 self.assertIsInstance(value, pd.DataFrame)
 
         # Bad dist_units_in:
@@ -61,7 +62,7 @@ class TestCalculator(unittest.TestCase):
         path = 'data/test_gtfs.zip'
         write_gtfs(feed1, path)
         feed2 = read_gtfs(path)
-        names = REQUIRED_GTFS_FILES + OPTIONAL_GTFS_FILES
+        names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
         for name in names:
             f1 = getattr(feed1, name)
             f2 = getattr(feed2, name)
@@ -101,8 +102,8 @@ class TestCalculator(unittest.TestCase):
             d1 = '20140526'
             d2 = '20141228'
             if as_date_obj:
-                d1 = utils.datestr_to_date(d1)
-                d2 = utils.datestr_to_date(d2)
+                d1 = ut.datestr_to_date(d1)
+                d2 = ut.datestr_to_date(d2)
                 self.assertEqual(len(dates), (d2 - d1).days + 1)
             self.assertEqual(dates[0], d1)
             self.assertEqual(dates[-1], d2)
