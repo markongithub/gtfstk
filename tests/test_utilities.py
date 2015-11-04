@@ -8,15 +8,13 @@ from numpy.testing import assert_array_equal
 from shapely.geometry import Point, LineString, mapping
 from shapely.geometry import shape as sh_shape
 
-from gtfstk.feed import *
-from gtfstk.utils import *
+from gtfstk.calculator import *
+from gtfstk.utilities import *
 
 # Load test feeds
-cairns = Feed('data/cairns_gtfs.zip')
-cairns_shapeless = Feed('data/cairns_gtfs.zip')
-cairns_shapeless.shapes = None
+cairns = read_gtfs('data/cairns_gtfs.zip')
 
-class TestFeed(unittest.TestCase):
+class TestUtilities(unittest.TestCase):
     # Test utils functions
     def test_time_to_seconds(self):
         timestr1 = '01:01:01'
@@ -92,6 +90,7 @@ class TestFeed(unittest.TestCase):
         get = get_peak_indices(times, counts)
         expect = [0, 1]
         assert_array_equal(get, expect)
+
 
 if __name__ == '__main__':
     unittest.main()

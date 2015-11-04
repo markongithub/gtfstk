@@ -12,4 +12,4 @@ Installation
 
 Examples
 --------
-Play with ``examples/examples.ipynb`` in a Jupyter notebook
+Play with ``ipynb/examples.ipynb`` in a Jupyter notebook

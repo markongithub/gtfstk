@@ -6,7 +6,8 @@ import pandas as pd
 import numpy as np
 from shapely.geometry import Point
 
-DISTANCE_UNITS = ['ft', 'mi', 'm', 'km']
+from . import constants as cs
+
 
 def time_it(f):
     def wrap(*args, **kwargs):
@@ -198,7 +199,7 @@ def get_convert_dist(dist_units_in, dist_units_out):
     Only supports distance units in ``DISTANCE_UNITS``.
     """
     di, do = dist_units_in, dist_units_out
-    DU = DISTANCE_UNITS
+    DU = cs.DISTANCE_UNITS
     if not (di in DU and do in DU):
         raise ValueError(
           'Distance units must lie in {!s}'.format(DU))
