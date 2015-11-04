@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='gtfstk',
-    version='0.12.4',
+    version='1',
     author='Alexander Raichev',
     author_email='alex@raichev.net',
     packages=['gtfstk', 'tests'],
