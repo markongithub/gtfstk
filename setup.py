@@ -12,7 +12,7 @@ setup(
     long_description=open('README.rst').read(),
     install_requires=[
         'Shapely>=1.5.1',
-        'pandas>=0.15.2',
+        'pandas>=0.17',
         'utm>=0.3.1',    
     ],
 )
