@@ -1,3 +1,4 @@
+#:
 REQUIRED_GTFS_FILES = [
   'agency',  
   'stops',   
@@ -7,6 +8,7 @@ REQUIRED_GTFS_FILES = [
   'calendar',
   ]
 
+#:
 OPTIONAL_GTFS_FILES = [
   'calendar_dates',  
   'fare_attributes',    
@@ -17,6 +19,7 @@ OPTIONAL_GTFS_FILES = [
   'feed_info',
   ]
 
+#:
 DTYPE = {
   'stop_id': str, 
   'stop_code': str,
@@ -31,6 +34,7 @@ DTYPE = {
 }
 
 # Columns that must be formatted as integers when outputting GTFS
+#:
 INT_COLS = [
   'location_type',
   'wheelchair_boarding',
@@ -59,4 +63,5 @@ INT_COLS = [
   'min_transfer_time',
 ]
 
+#:
 DISTANCE_UNITS = ['ft', 'mi', 'm', 'km']

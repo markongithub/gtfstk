@@ -3,13 +3,10 @@ A class to represent partial and complete, valid and invalid GTFS feeds.
 Functions for computing various quantities from a Feed object,
 such as trips distances and durations.
 
-CONVENTIONS:
-
 In conformance with GTFS and unless specified otherwise, 
 dates are encoded as date strings of 
 the form YYMMDD and times are encoded as time strings of the form HH:MM:SS
 with the possibility that the hour is greater than 24.
-
 Unless specified otherwise, 'data frame' and 'series' refer to
 Pandas data frames and series, respectively.
 
@@ -17,6 +14,7 @@ TODO:
 
 - For each function, document what Feed attributes are required.
 """
+
 from pathlib import Path
 import datetime as dt
 import dateutil.relativedelta as rd

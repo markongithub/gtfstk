@@ -1,9 +1,11 @@
-from . import utilities as utils 
-
-import pandas as pd
 """
 Functions for cleaning a Feed object.
 """  
+
+from . import utilities as utils 
+
+import pandas as pd
+
 
 def clean_stop_times(feed):
     """

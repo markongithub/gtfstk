@@ -1,7 +1,7 @@
-The utils Module
+The cleaner Module
 ===========================
 
-.. automodule:: gtfstk.utils
+.. automodule:: gtfstk.cleaner
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,7 +1,7 @@
 Changes
 ========
 
-v1
+v1 (2015-11-04)
 --------------------
 - Split code base into more modules
 - Refactored the Feed class into a value class, exporting most methods to functions

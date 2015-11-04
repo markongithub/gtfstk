@@ -1,7 +1,7 @@
-The feed Module
+The calculator Module
 ===========================
 
-.. automodule:: gtfstk.feed
+.. automodule:: gtfstk.calculator
     :members:
     :undoc-members:
     :show-inheritance:

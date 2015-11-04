@@ -1,10 +1,10 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-
 """
 Functions for plotting various graphs related to GTFS feeds.
 Experimental.
 """
+
+import pandas as pd
+import matplotlib.pyplot as plt
 
 def plot_headways(stats, max_headway_limit=60):
     """

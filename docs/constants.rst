@@ -1,7 +1,7 @@
-The feed Module
+The constants Module
 ===========================
 
-.. automodule:: gtfstk.feed
+.. automodule:: gtfstk.constants
     :members:
     :undoc-members:
     :show-inheritance:

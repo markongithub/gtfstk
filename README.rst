@@ -17,7 +17,7 @@ You can play with ``ipynb/examples.ipynb`` in a Jupyter notebook
 
 Documentation
 --------------
-Documentation is in ``docs/`` and also on RawGit `here <https://rawgit.com/araichev/gtfstk/master/docs/_build/html/index.html>`_.
+Documentation is in ``docs/`` and also on RawGit `here <https://rawgit.com/araichev/gtfstk/master/docs/_build/singlehtml/index.html>`_.
 
 
 Notes
