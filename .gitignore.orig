@@ -1,0 +1,11 @@
+*__pycache__/
+dist/
+.DS_Store
+<<<<<<< HEAD
+*.ipynb_checkpoints/
+examples/stats/
+tests/*.ipynb*
+=======
+*.ipynb_checkpoints
+MANIFEST
+>>>>>>> 6c9d49cf7e01f81c6f280c0d2b775a722894dd98
