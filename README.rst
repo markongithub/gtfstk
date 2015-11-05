@@ -4,23 +4,35 @@ This is a Python 3.4 tool kit for processing `General Transit Feed Specification
 It's mostly for computing statistics, such as daily service distance per route and daily number of trips per stop.
 It uses Pandas and Shapely to do the heavy lifting.
 
-Warning
---------
-This is an alpha release.
-It needs more testing, and the API might change.
 
 Installation
 -------------
 ``pip install gtfstk``
 
+
 Examples
 --------
-You can play with ``examples/examples.ipynb`` in an iPython notebook
+You can play with ``ipynb/examples.ipynb`` in a Jupyter notebook
+
 
 Documentation
 --------------
-Documentation is in ``docs/`` and also `here <https://rawgit.com/araichev/gtfstk/master/docs/_build/html/index.html>`_.
+Documentation is in ``docs/`` and also on RawGit `here <https://rawgit.com/araichev/gtfstk/master/docs/_build/singlehtml/index.html>`_.
+
+
+Notes
+--------
+- Development status: Alpha
+- This project uses semantic versioning (major.minor.micro), where each breaking feature or API change is considered a major release, at least after version 0.12.3. 
+  So the version code reflects the project's change history, rather than its development status. 
+  In particular, a high major version number, does not imply a mature development status.
+
 
 Comments
 ------------
 Constructive comments are welcome and are best filed in this repository's issue section with an appropriate label, e.g. 'enhancement'.
+
+
+Authors
+---------
+- Alex Raichev (2014-05)
