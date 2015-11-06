@@ -12,6 +12,7 @@ GTFSTK |version| Documentation
    introduction
    constants
    utilities
+   feed
    calculator
    cleaner
    plotter

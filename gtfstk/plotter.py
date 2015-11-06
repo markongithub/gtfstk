@@ -1,8 +1,3 @@
-"""
-Functions for plotting various graphs related to GTFS feeds.
-Experimental.
-"""
-
 import pandas as pd
 import matplotlib.pyplot as plt
 

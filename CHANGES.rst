@@ -3,7 +3,10 @@ Changes
 
 v2
 --------------------
-- Changed ``plot_routes_time_series()`` to ``plot_feed_time_series()``
+- Moved the ``Feed`` class into a separate file
+- Fixed a fatal bug in ``plot_routes_time_series()`` and renamed it ``plot_feed_time_series()``
+- Added ``route_type`` to trips stats and routes stats
+- Added more functions to the ``cleaner`` module
 
 
 v1 (2015-11-04)
