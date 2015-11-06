@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>GTFSTK 1 documentation</title>
+    <title>GTFSTK 2 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1',
+        VERSION:     '2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,7 +29,7 @@
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 2 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -38,8 +38,10 @@
   <ul>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-introduction">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-constants">The constants Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-utilities">The utilities Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-feed">The feed Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-calculator">The calculator Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-cleaner">The cleaner Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-plotter">The plotter Module</a></li>
@@ -55,9 +57,9 @@
           <div class="body" role="main">
             
   <div class="section" id="gtfstk-version-documentation">
-<h1>GTFSTK 1 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>GTFSTK 2 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
-<span id="document-introduction"></span><p>This is a Python 3.4 tool kit for processing <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
+<span id="document-introduction"></span><p>This is a Python 3 tool kit for processing <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
 It&#8217;s mostly for computing network-level statistics, such as mean daily service distance per route and mean daily number of vehicles per stop.
 Uses Pandas and Shapely to do the heavy lifting.</p>
 <div class="section" id="installation">
@@ -68,6 +70,15 @@ Uses Pandas and Shapely to do the heavy lifting.</p>
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <p>Play with <code class="docutils literal"><span class="pre">ipynb/examples.ipynb</span></code> in a Jupyter notebook</p>
 </div>
+<div class="section" id="conventions">
+<h2>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h2>
+<p>In conformance with GTFS and unless specified otherwise,
+dates are encoded as date strings of
+the form YYMMDD and times are encoded as time strings of the form HH:MM:SS
+with the possibility that the hour is greater than 24.
+Unless specified otherwise, &#8216;data frame&#8217; and &#8216;series&#8217; refer to
+Pandas data frames and series, respectively.</p>
+</div>
 <span id="document-constants"></span><div class="section" id="module-gtfstk.constants">
 <span id="the-constants-module"></span><h2>The constants Module<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
@@ -77,7 +88,7 @@ Uses Pandas and Shapely to do the heavy lifting.</p>
 
 <dl class="data">
 <dt id="gtfstk.constants.DTYPE">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'shape_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'service_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -201,24 +212,11 @@ If <code class="docutils literal"><span class="pre">inverse</span> <span class="
 </dd></dl>
 
 </div>
-<span id="document-calculator"></span><div class="section" id="module-gtfstk.calculator">
-<span id="the-calculator-module"></span><h2>The calculator Module<a class="headerlink" href="#module-gtfstk.calculator" title="Permalink to this headline">¶</a></h2>
-<p>A class to represent partial and complete, valid and invalid GTFS feeds.
-Functions for computing various quantities from a Feed object,
-such as trips distances and durations.</p>
-<p>In conformance with GTFS and unless specified otherwise, 
-dates are encoded as date strings of 
-the form YYMMDD and times are encoded as time strings of the form HH:MM:SS
-with the possibility that the hour is greater than 24.
-Unless specified otherwise, &#8216;data frame&#8217; and &#8216;series&#8217; refer to
-Pandas data frames and series, respectively.</p>
-<p>TODO:</p>
-<ul class="simple">
-<li>For each function, document what Feed attributes are required.</li>
-</ul>
+<span id="document-feed"></span><div class="section" id="module-gtfstk.feed">
+<span id="the-feed-module"></span><h2>The feed Module<a class="headerlink" href="#module-gtfstk.feed" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="gtfstk.calculator.Feed">
-<em class="property">class </em><code class="descclassname">gtfstk.calculator.</code><code class="descname">Feed</code><span class="sig-paren">(</span><em>agency=None</em>, <em>stops=None</em>, <em>routes=None</em>, <em>trips=None</em>, <em>stop_times=None</em>, <em>calendar=None</em>, <em>calendar_dates=None</em>, <em>fare_attributes=None</em>, <em>fare_rules=None</em>, <em>shapes=None</em>, <em>frequencies=None</em>, <em>transfers=None</em>, <em>feed_info=None</em>, <em>dist_units_in=None</em>, <em>dist_units_out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.Feed" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.feed.Feed">
+<em class="property">class </em><code class="descclassname">gtfstk.feed.</code><code class="descname">Feed</code><span class="sig-paren">(</span><em>agency=None</em>, <em>stops=None</em>, <em>routes=None</em>, <em>trips=None</em>, <em>stop_times=None</em>, <em>calendar=None</em>, <em>calendar_dates=None</em>, <em>fare_attributes=None</em>, <em>fare_rules=None</em>, <em>shapes=None</em>, <em>frequencies=None</em>, <em>transfers=None</em>, <em>feed_info=None</em>, <em>dist_units_in=None</em>, <em>dist_units_out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>A class to gather some or all GTFS files as data frames.
 That&#8217;s it.
@@ -256,6 +254,13 @@ on Feed objects</li>
 </ul>
 </dd></dl>
 
+</div>
+<span id="document-calculator"></span><div class="section" id="module-gtfstk.calculator">
+<span id="the-calculator-module"></span><h2>The calculator Module<a class="headerlink" href="#module-gtfstk.calculator" title="Permalink to this headline">¶</a></h2>
+<p>TODO:</p>
+<ul class="simple">
+<li>For each function, document what Feed attributes are required.</li>
+</ul>
 <dl class="function">
 <dt id="gtfstk.calculator.add_dist_to_shapes">
 <code class="descclassname">gtfstk.calculator.</code><code class="descname">add_dist_to_shapes</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.add_dist_to_shapes" title="Permalink to this definition">¶</a></dt>
@@ -419,6 +424,7 @@ calculate stats for the routes in that subset.</p>
 <ul class="simple">
 <li>route_id</li>
 <li>route_short_name</li>
+<li>route_type</li>
 <li>direction_id</li>
 <li>num_trips: number of trips</li>
 <li>is_loop: 1 if at least one of the trips on the route has its
@@ -683,6 +689,7 @@ column.</p>
 <li>trip_id</li>
 <li>route_id</li>
 <li>route_short_name</li>
+<li>route_type</li>
 <li>direction_id</li>
 <li>shape_id</li>
 <li>num_stops: number of stops on trip</li>
@@ -868,10 +875,18 @@ All distances will be displayed in units <code class="docutils literal"><span cl
 <span id="the-cleaner-module"></span><h2>The cleaner Module<a class="headerlink" href="#module-gtfstk.cleaner" title="Permalink to this headline">¶</a></h2>
 <p>Functions for cleaning a Feed object.</p>
 <dl class="function">
-<dt id="gtfstk.cleaner.clean_routes">
-<code class="descclassname">gtfstk.cleaner.</code><code class="descname">clean_routes</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaner.clean_routes" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.cleaner.assess">
+<code class="descclassname">gtfstk.cleaner.</code><code class="descname">assess</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaner.assess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Pandas series containing various feed assessments, such as
+the number of trips missing shapes.
+This is not a validator.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.cleaner.clean_route_short_names">
+<code class="descclassname">gtfstk.cleaner.</code><code class="descname">clean_route_short_names</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaner.clean_route_short_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>In <code class="docutils literal"><span class="pre">feed.routes</span></code>, disambiguate the <code class="docutils literal"><span class="pre">route_short_name</span></code> column 
-using <code class="docutils literal"><span class="pre">utils.clean_series</span></code>.
+using <code class="docutils literal"><span class="pre">ut.clean_series</span></code>.
 Among other things, this will disambiguate duplicate
 route short names.
 Return the resulting routes data frame.</p>
@@ -886,11 +901,29 @@ This makes sorting by time work as expected.
 Return the resulting stop times data frame.</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="gtfstk.cleaner.prune_dead_routes">
+<code class="descclassname">gtfstk.cleaner.</code><code class="descname">prune_dead_routes</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaner.prune_dead_routes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all routes from <code class="docutils literal"><span class="pre">feed.routes</span></code> that do not have
+trips listed in <code class="docutils literal"><span class="pre">feed.trips</span></code>.
+Return a new routes data frame.</p>
+</dd></dl>
+
 </div>
 <span id="document-plotter"></span><div class="section" id="module-gtfstk.plotter">
 <span id="the-plotter-module"></span><h2>The plotter Module<a class="headerlink" href="#module-gtfstk.plotter" title="Permalink to this headline">¶</a></h2>
-<p>Functions for plotting various graphs related to GTFS feeds.
-Experimental.</p>
+<dl class="function">
+<dt id="gtfstk.plotter.plot_feed_time_series">
+<code class="descclassname">gtfstk.plotter.</code><code class="descname">plot_feed_time_series</code><span class="sig-paren">(</span><em>feed_time_series</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.plotter.plot_feed_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a routes time series data frame,
+sum each time series indicator over all routes, 
+plot each series indicator using MatplotLib, 
+and return the resulting figure of subplots.</p>
+<p>NOTES:</p>
+<p>Take the resulting figure <code class="docutils literal"><span class="pre">f</span></code> and do <code class="docutils literal"><span class="pre">f.tight_layout()</span></code>
+for a nice-looking plot.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="gtfstk.plotter.plot_headways">
 <code class="descclassname">gtfstk.plotter.</code><code class="descname">plot_headways</code><span class="sig-paren">(</span><em>stats</em>, <em>max_headway_limit=60</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.plotter.plot_headways" title="Permalink to this definition">¶</a></dt>
@@ -901,18 +934,6 @@ Only include the stops/routes with max headways at most
 If <code class="docutils literal"><span class="pre">max_headway_limit</span> <span class="pre">is</span> <span class="pre">None</span></code>, then include them all in a giant plot. 
 If there are no stops/routes within the max headway limit, then return 
 <code class="docutils literal"><span class="pre">None</span></code>.</p>
-<p>NOTES:</p>
-<p>Take the resulting figure <code class="docutils literal"><span class="pre">f</span></code> and do <code class="docutils literal"><span class="pre">f.tight_layout()</span></code>
-for a nice-looking plot.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfstk.plotter.plot_routes_time_series">
-<code class="descclassname">gtfstk.plotter.</code><code class="descname">plot_routes_time_series</code><span class="sig-paren">(</span><em>routes_time_series</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.plotter.plot_routes_time_series" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a routes time series data frame,
-sum each time series indicator over all routes, 
-plot each series indicator using MatplotLib, 
-and return the resulting figure of subplots.</p>
 <p>NOTES:</p>
 <p>Take the resulting figure <code class="docutils literal"><span class="pre">f</span></code> and do <code class="docutils literal"><span class="pre">f.tight_layout()</span></code>
 for a nice-looking plot.</p>
@@ -961,7 +982,7 @@ GTFS specification.</p>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
