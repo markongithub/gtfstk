@@ -1,6 +1,12 @@
 Changes
 ========
 
+v?
+--------------------
+- Made matplotlib import optional
+- Updated plotter function chart colors
+
+
 v2
 --------------------
 - Moved the ``Feed`` class into a separate file

@@ -67,7 +67,8 @@ def plot_headways(stats, max_headway_limit=60):
     xlabels = ['minutes', 'minutes']
     fig, axes = plt.subplots(nrows=1, ncols=2)
     for (i, f) in enumerate(data_frames):
-        f.plot(kind='barh', ax=axes[i], figsize=(10, max(n/9, 10)))
+        f.plot(kind='barh', ax=axes[i], figsize=(10, max(n/9, 10)),
+          color=['steelblue', 'darkslateblue'])
         axes[i].set_title(titles[i])
         axes[i].set_xlabel(xlabels[i])
         axes[i].set_ylabel(ylabels[i])
@@ -114,7 +115,8 @@ def plot_feed_time_series(feed_time_series):
         else:
             stacked = True
         ts_dict[stat].plot(ax=axes[i], alpha=alpha, 
-          kind='bar', figsize=(8, 15), stacked=stacked, width=1)
+          kind='bar', figsize=(8, 15), stacked=stacked, width=1,
+          color='steelblue')
         axes[i].set_title(titles[i])
         axes[i].set_ylabel(units[i])
 

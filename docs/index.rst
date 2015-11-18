@@ -10,13 +10,7 @@ GTFSTK |version| Documentation
    :maxdepth: 2
 
    introduction
-   constants
-   utilities
-   feed
-   calculator
-   cleaner
-   plotter
-   validator
+   modules
 
 Indices and tables
 ==================

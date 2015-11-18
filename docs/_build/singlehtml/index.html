@@ -39,13 +39,13 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-introduction">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#examples">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#document-constants">The constants Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#document-utilities">The utilities Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#document-feed">The feed Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#document-calculator">The calculator Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#document-cleaner">The cleaner Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#document-plotter">The plotter Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#document-validator">The validator Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-modules">Module constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.utilities">Module utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.feed">Module feed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.calculator">Module calculator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.cleaner">Module cleaner</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.plotter">Module plotter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.validator">Module validator</a></li>
 </ul>
 
         </div>
@@ -79,8 +79,8 @@ with the possibility that the hour is greater than 24.
 Unless specified otherwise, &#8216;data frame&#8217; and &#8216;series&#8217; refer to
 Pandas data frames and series, respectively.</p>
 </div>
-<span id="document-constants"></span><div class="section" id="module-gtfstk.constants">
-<span id="the-constants-module"></span><h2>The constants Module<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
+<span id="document-modules"></span><div class="section" id="module-gtfstk.constants">
+<span id="module-constants"></span><h2>Module constants<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="gtfstk.constants.DISTANCE_UNITS">
 <code class="descclassname">gtfstk.constants.</code><code class="descname">DISTANCE_UNITS</code><em class="property"> = ['ft', 'mi', 'm', 'km']</em><a class="headerlink" href="#gtfstk.constants.DISTANCE_UNITS" title="Permalink to this definition">¶</a></dt>
@@ -88,7 +88,7 @@ Pandas data frames and series, respectively.</p>
 
 <dl class="data">
 <dt id="gtfstk.constants.DTYPE">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'service_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'stop_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -107,8 +107,8 @@ Pandas data frames and series, respectively.</p>
 <dd></dd></dl>
 
 </div>
-<span id="document-utilities"></span><div class="section" id="module-gtfstk.utilities">
-<span id="the-utilities-module"></span><h2>The utilities Module<a class="headerlink" href="#module-gtfstk.utilities" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-gtfstk.utilities">
+<span id="module-utilities"></span><h2>Module utilities<a class="headerlink" href="#module-gtfstk.utilities" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="gtfstk.utilities.clean_series">
 <code class="descclassname">gtfstk.utilities.</code><code class="descname">clean_series</code><span class="sig-paren">(</span><em>series</em>, <em>nan_prefix='n/a'</em>, <em>mark='-'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utilities.clean_series" title="Permalink to this definition">¶</a></dt>
@@ -212,8 +212,8 @@ If <code class="docutils literal"><span class="pre">inverse</span> <span class="
 </dd></dl>
 
 </div>
-<span id="document-feed"></span><div class="section" id="module-gtfstk.feed">
-<span id="the-feed-module"></span><h2>The feed Module<a class="headerlink" href="#module-gtfstk.feed" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-gtfstk.feed">
+<span id="module-feed"></span><h2>Module feed<a class="headerlink" href="#module-gtfstk.feed" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="gtfstk.feed.Feed">
 <em class="property">class </em><code class="descclassname">gtfstk.feed.</code><code class="descname">Feed</code><span class="sig-paren">(</span><em>agency=None</em>, <em>stops=None</em>, <em>routes=None</em>, <em>trips=None</em>, <em>stop_times=None</em>, <em>calendar=None</em>, <em>calendar_dates=None</em>, <em>fare_attributes=None</em>, <em>fare_rules=None</em>, <em>shapes=None</em>, <em>frequencies=None</em>, <em>transfers=None</em>, <em>feed_info=None</em>, <em>dist_units_in=None</em>, <em>dist_units_out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed" title="Permalink to this definition">¶</a></dt>
@@ -255,8 +255,8 @@ on Feed objects</li>
 </dd></dl>
 
 </div>
-<span id="document-calculator"></span><div class="section" id="module-gtfstk.calculator">
-<span id="the-calculator-module"></span><h2>The calculator Module<a class="headerlink" href="#module-gtfstk.calculator" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-gtfstk.calculator">
+<span id="module-calculator"></span><h2>Module calculator<a class="headerlink" href="#module-gtfstk.calculator" title="Permalink to this headline">¶</a></h2>
 <p>TODO:</p>
 <ul class="simple">
 <li>For each function, document what Feed attributes are required.</li>
@@ -871,8 +871,8 @@ All distances will be displayed in units <code class="docutils literal"><span cl
 </dd></dl>
 
 </div>
-<span id="document-cleaner"></span><div class="section" id="module-gtfstk.cleaner">
-<span id="the-cleaner-module"></span><h2>The cleaner Module<a class="headerlink" href="#module-gtfstk.cleaner" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-gtfstk.cleaner">
+<span id="module-cleaner"></span><h2>Module cleaner<a class="headerlink" href="#module-gtfstk.cleaner" title="Permalink to this headline">¶</a></h2>
 <p>Functions for cleaning a Feed object.</p>
 <dl class="function">
 <dt id="gtfstk.cleaner.assess">
@@ -910,8 +910,11 @@ Return a new routes data frame.</p>
 </dd></dl>
 
 </div>
-<span id="document-plotter"></span><div class="section" id="module-gtfstk.plotter">
-<span id="the-plotter-module"></span><h2>The plotter Module<a class="headerlink" href="#module-gtfstk.plotter" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-gtfstk.plotter">
+<span id="module-plotter"></span><h2>Module plotter<a class="headerlink" href="#module-gtfstk.plotter" title="Permalink to this headline">¶</a></h2>
+<p>Functions for plotting various graphs related to GTFS feeds.
+Optional.
+Requires Matplotlib.</p>
 <dl class="function">
 <dt id="gtfstk.plotter.plot_feed_time_series">
 <code class="descclassname">gtfstk.plotter.</code><code class="descname">plot_feed_time_series</code><span class="sig-paren">(</span><em>feed_time_series</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.plotter.plot_feed_time_series" title="Permalink to this definition">¶</a></dt>
@@ -940,8 +943,8 @@ for a nice-looking plot.</p>
 </dd></dl>
 
 </div>
-<span id="document-validator"></span><div class="section" id="module-gtfstk.validator">
-<span id="the-validator-module"></span><h2>The validator Module<a class="headerlink" href="#module-gtfstk.validator" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-gtfstk.validator">
+<span id="module-validator"></span><h2>Module validator<a class="headerlink" href="#module-gtfstk.validator" title="Permalink to this headline">¶</a></h2>
 <p>Functions for validating a Feed object against the 
 <a class="reference external" href="https://developers.google.com/transit/gtfs/reference?hl=en">GTFS specification</a>.</p>
 <dl class="exception">
