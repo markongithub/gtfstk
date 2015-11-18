@@ -1,10 +1,21 @@
 """
 Functions for plotting various graphs related to GTFS feeds.
-Experimental.
+Optional.
+Requires Matplotlib.
 """
-
 import pandas as pd
-import matplotlib.pyplot as plt
+import importlib
+
+
+# Import matplotlib if it is installed
+loader = importlib.find_loader('matplotlib')
+if loader is None:
+    print("Warning: matplotlib is not installed, "\
+      "so the plotting functions (those in module gtfstk.plotter) "\
+      "will not work.")
+else:
+    import matplotlib.pyplot as plt
+
 
 def plot_headways(stats, max_headway_limit=60):
     """
