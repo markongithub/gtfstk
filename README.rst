@@ -26,11 +26,7 @@ Notes
 - This project uses semantic versioning (major.minor.micro), where each breaking feature or API change is considered a major release, at least after version 0.12.3. 
   So the version code reflects the project's change history, rather than its development status. 
   In particular, a high major version number, does not imply a mature development status.
-
-
-Comments
-------------
-Constructive comments are welcome and are best filed in this repository's issue section with an appropriate label, e.g. 'enhancement'.
+- Constructive comments are welcome and are best filed in this repository's issue section with an appropriate label, e.g. 'enhancement'.
 
 
 Authors

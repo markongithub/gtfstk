@@ -1,6 +1,11 @@
 Changes
 ========
 
+v?
+--------------------
+- Made Matplotlib import optional
+
+
 v1 (2015-11-04)
 --------------------
 - Split code base into more modules

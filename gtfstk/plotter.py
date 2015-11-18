@@ -67,7 +67,8 @@ def plot_headways(stats, max_headway_limit=60):
     xlabels = ['minutes', 'minutes']
     fig, axes = plt.subplots(nrows=1, ncols=2)
     for (i, f) in enumerate(data_frames):
-        f.plot(kind='barh', ax=axes[i], figsize=(10, max(n/9, 10)))
+        f.plot(kind='barh', ax=axes[i], figsize=(10, max(n/9, 10)),
+          colors=['lightblue', 'blue'])
         axes[i].set_title(titles[i])
         axes[i].set_xlabel(xlabels[i])
         axes[i].set_ylabel(ylabels[i])
