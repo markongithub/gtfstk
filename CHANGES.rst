@@ -1,14 +1,14 @@
 Changes
 ========
 
-v?
+v2.0.1 (2015-11-19)
 --------------------
 - Made matplotlib import optional
 - Updated plotter function chart colors
 
 
-v2
---------------------
+v2 (2015-11-06)
+----------------
 - Moved the ``Feed`` class into a separate file
 - Fixed a fatal bug in ``plot_routes_time_series()`` and renamed it ``plot_feed_time_series()``
 - Added ``route_type`` to trips stats and routes stats
