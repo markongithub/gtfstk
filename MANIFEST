@@ -4,15 +4,10 @@ README.rst
 requirements.txt
 setup.py
 docs/Makefile
-docs/calculator.rst
-docs/cleaner.rst
 docs/conf.py
-docs/constants.rst
 docs/index.rst
 docs/introduction.rst
-docs/plotter.rst
-docs/utilities.rst
-docs/validator.rst
+docs/modules.rst
 docs/_build/doctrees/calculator.doctree
 docs/_build/doctrees/cleaner.doctree
 docs/_build/doctrees/constants.doctree
@@ -24,6 +19,7 @@ docs/_build/doctrees/index.doctree
 docs/_build/doctrees/index.doctree.orig
 docs/_build/doctrees/introduction.doctree
 docs/_build/doctrees/introduction.doctree.orig
+docs/_build/doctrees/modules.doctree
 docs/_build/doctrees/plotter.doctree
 docs/_build/doctrees/utilities.doctree
 docs/_build/doctrees/utils.doctree
@@ -59,6 +55,7 @@ gtfstk/__init__.py
 gtfstk/calculator.py
 gtfstk/cleaner.py
 gtfstk/constants.py
+gtfstk/feed.py
 gtfstk/plotter.py
 gtfstk/utilities.py
 gtfstk/validator.py
@@ -69,4 +66,6 @@ ipynb/.ipynb_checkpoints/tests-checkpoint.ipynb
 tests/__init__.py
 tests/test_calculator.py
 tests/test_cleaner.py
+tests/test_feed.py
 tests/test_utilities.py
+tests/tests.ipynb

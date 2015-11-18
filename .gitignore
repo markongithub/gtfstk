@@ -1,5 +1,7 @@
 *__pycache__*
 dist/
 .DS_Store
-*.ipynb_checkpoints
-MANIFEST
+gtfstk/tests/.ipynb_checkpoints/
+examples/.ipynb_checkpoints/
+examples/stats/
+tests/*.ipynb*
