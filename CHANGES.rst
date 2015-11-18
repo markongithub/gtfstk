@@ -1,10 +1,24 @@
 Changes
 ========
 
+v2.0.1 (2015-11-19)
+--------------------
+- Made matplotlib import optional
+- Updated plotter function chart colors
+
+
+v2 (2015-11-06)
+----------------
+- Moved the ``Feed`` class into a separate file
+- Fixed a fatal bug in ``plot_routes_time_series()`` and renamed it ``plot_feed_time_series()``
+- Added ``route_type`` to trips stats and routes stats
+- Added more functions to the ``cleaner`` module
+
+
 v1 (2015-11-04)
 --------------------
-- Split code base into more modules
-- Refactored the Feed class into a value class, exporting most methods to functions
+- Modularized more
+- Refactored the Feed class, exporting most methods to functions
 - Changed function names, favoring a ``compute_`` prefix over a ``get_`` prefix for complex functions
 - Bug fix: in ``INT_COLS`` changed ``'dropoff_type'`` to ``'drop_off_type'``.
 
