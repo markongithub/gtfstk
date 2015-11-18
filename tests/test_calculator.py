@@ -1,7 +1,6 @@
 import unittest
 from copy import copy
 import shutil
-from types import FunctionType
 
 import pandas as pd 
 import numpy as np
@@ -20,30 +19,11 @@ cairns_shapeless.shapes = None
 
 class TestCalculator(unittest.TestCase):
 
-    def test_feed_constructor(self):
-        feed = Feed(agency=pd.DataFrame())
-        for key, value in feed.__dict__.items():
-            if key in ['dist_units_in', 'dist_units_out']:
-                self.assertEqual(value, 'km')
-            elif key == 'convert_dist':
-                self.assertIsInstance(value, FunctionType)
-            elif key == 'agency':
-                self.assertIsInstance(value, pd.DataFrame)
-            else:
-                self.assertIsNone(value)
-
     # --------------------------------------------
     # Test functions about inputs and outputs
     # --------------------------------------------
     def test_read_gtfs(self):
         feed = read_gtfs('data/cairns_gtfs.zip')
-        for key, value in feed.__dict__.items():
-            if key in ['dist_units_in', 'dist_units_out']:
-                self.assertEqual(value, 'km')
-            elif key == 'convert_dist':
-                self.assertIsInstance(value, FunctionType)
-            elif key in cs.REQUIRED_GTFS_FILES and key != 'calendar_dates':
-                self.assertIsInstance(value, pd.DataFrame)
 
         # Bad dist_units_in:
         self.assertRaises(ValueError, read_gtfs, 
@@ -198,6 +178,7 @@ class TestCalculator(unittest.TestCase):
           'direction_id',
           'route_id',
           'route_short_name',
+          'route_type',
           'shape_id',
           'num_stops',
           'start_time', 
@@ -290,6 +271,7 @@ class TestCalculator(unittest.TestCase):
             expect_cols = set([
               'route_id',
               'route_short_name',
+              'route_type',
               'num_trips',
               'is_bidirectional',
               'is_loop',
@@ -338,6 +320,7 @@ class TestCalculator(unittest.TestCase):
             expect_cols = set([
               'route_id',
               'route_short_name',
+              'route_type',
               'num_trips',
               'is_bidirectional',
               'is_loop',
