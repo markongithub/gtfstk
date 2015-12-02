@@ -4,17 +4,6 @@ Optional.
 Requires Matplotlib.
 """
 import pandas as pd
-import importlib
-
-
-# Import matplotlib if it is installed
-loader = importlib.find_loader('matplotlib')
-if loader is None:
-    print("Warning: matplotlib is not installed, "\
-      "so the plotting functions (those in module gtfstk.plotter) "\
-      "will not work.")
-else:
-    import matplotlib.pyplot as plt
 
 
 def plot_headways(stats, max_headway_limit=60):
@@ -32,6 +21,9 @@ def plot_headways(stats, max_headway_limit=60):
     Take the resulting figure ``f`` and do ``f.tight_layout()``
     for a nice-looking plot.
     """
+    import matplotlib.pyplot as plt
+
+
     # Set Pandas plot style
     pd.options.display.mpl_style = 'default'
 
@@ -86,6 +78,9 @@ def plot_feed_time_series(feed_time_series):
     Take the resulting figure ``f`` and do ``f.tight_layout()``
     for a nice-looking plot.
     """
+    import matplotlib.pyplot as plt
+
+
     fts = feed_time_series.copy()
 
     # Reformat time periods
