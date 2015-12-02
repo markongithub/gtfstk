@@ -976,6 +976,57 @@ def build_geometry_by_stop(feed, use_utm=True):
             geometry_by_stop[stop] = Point([lon, lat]) 
     return geometry_by_stop
 
+def geometrize_stops(stops):
+    """
+    Given a stops data frame, 
+    convert it to a GeoPandas GeoDataFrame and return the result.
+    The result has a 'geometry' column of WGS84 points 
+    instead of 'stop_lon' and 'stop_lat' columns.
+    Requires GeoPandas.
+    """
+    import geopandas as gpd 
+
+
+    f = stops.copy()
+    s = gpd.GeoSeries([Point(p) for p in 
+      stops[['stop_lon', 'stop_lat']].values])
+    f['geometry'] = s 
+    f.drop(['stop_lon', 'stop_lat'], axis=1, inplace=True)
+    f = gpd.GeoDataFrame(f, crs=cs.CRS_WGS84)
+    return f 
+
+def ungeometrize_stops(geo_stops):
+    """
+    The inverse of :func:`geometrize_stops`.
+    """
+    f = geo_stops.copy()
+    f['stop_lon'] = f['geometry'].map(
+      lambda p: p.x)
+    f['stop_lat'] = f['geometry'].map(
+      lambda p: p.y)
+    del f['geometry']
+    return f
+
+def get_stops_intersecting_polygon(feed, polygon, geo_stops=None):
+    """
+    Return the slice of ``feed.stops`` that contains all stops
+    that intersect the given Shapely Polygon object.
+    Assume the polygon specified in WGS84 longitude-latitude coordinates.
+    
+    To do this, first geometrize ``feed.stops`` via :func:`geometrize_stops`.
+    Alternatively, use the ``geo_stops`` GeoDataFrame, if given.
+    Requires GeoPandas.
+    """
+    if geo_stops is not None:
+        f = geo_stops.copy()
+    else:
+        f = geometrize_stops(feed.stops)
+    
+    cols = f.columns
+    f['hit'] = f['geometry'].intersects(polygon)
+    f = f[f['hit']][cols]
+    return ungeometrize_stops(f)
+
 def compute_stops_activity(feed, dates):
     """
     Return a  data frame with the columns
@@ -1355,6 +1406,71 @@ def build_shapes_geojson(feed):
       }
     return json.dumps(d)
 
+def geometrize_shapes(shapes):
+    """
+    Given a shapes data frame, convert it to a GeoPandas 
+    GeoDataFrame and return the result.
+    The result has a 'geometry' column of WGS84 line strings
+    instead of 'shape_pt_sequence', 'shape_pt_lon', 'shape_pt_lat',  
+    and 'shape_dist_traveled' columns.
+    Requires GeoPandas.
+    """
+    import geopandas as gpd
+
+
+    f = shapes.copy().sort_values(['shape_id', 'shape_pt_sequence'])
+    
+    def my_agg(group):
+        d = {}
+        d['geometry'] =\
+          LineString(group[['shape_pt_lon', 'shape_pt_lat']].values)
+        return pd.Series(d)
+
+    g = f.groupby('shape_id').apply(my_agg).reset_index()
+    g = gpd.GeoDataFrame(g, crs=cs.CRS_WGS84)
+
+    return g 
+
+def ungeometrize_shapes(geo_shapes):
+    """
+    The inverse of :func:`geometrize_shapes`.
+    Produces the columns:
+
+    - shape_id
+    - shape_pt_sequence
+    - shape_pt_lon
+    - shape_pt_lat
+    """
+    F = []
+    for index, row in geo_shapes.iterrows():
+        F.extend([[row['shape_id'], i, x, y] for 
+        i, (x, y) in enumerate(row['geometry'].coords)])
+
+    return pd.DataFrame(F, 
+      columns=['shape_id', 'shape_pt_sequence', 
+      'shape_pt_lon', 'shape_pt_lat'])
+
+def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None):
+    """
+    Return the slice of ``feed.shapes`` that contains all shapes
+    that intersect the given Shapely geometry object 
+    (e.g. a Polygon or LineString).
+    Assume the geometry is specified in WGS84 longitude-latitude coordinates.
+    
+    To do this, first geometrize ``feed.shapes`` via :func:`geometrize_shapes`.
+    Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
+    Requires GeoPandas.
+    """
+    if geo_shapes is not None:
+        f = geo_shapes.copy()
+    else:
+        f = geometrize_shapes(feed.shapes)
+    
+    cols = f.columns
+    f['hit'] = f['geometry'].intersects(geometry)
+    f = f[f['hit']][cols]
+    return ungeometrize_shapes(f)
+
 def add_dist_to_shapes(feed):
     """
     Copy ``feed.shapes``, calculate the optional ``shape_dist_traveled`` 
@@ -1630,6 +1746,134 @@ def compute_feed_time_series(feed, trips_stats, date, freq='5Min'):
       keys=stats)
     f['service_speed'] = f['service_distance']/f['service_duration']
     return f
+
+def create_shapes(feed):
+    """
+    Given a feed, create new shapes for it by connecting its unique 
+    stop sequences.
+    Then assign the resulting new shape IDs to the existing trips.
+
+    More specifically, do the following.
+    Copy the feed, collect its unique stop sequences,
+    sort them to impose a canonical order, and assign shape IDs to them.
+    Then create a shapes data frame using the stop sequences and
+    their corresponding longitude and latitudes.
+    Then add the shape IDs to the ``trips`` data frame.
+    Return the resulting feed.
+
+    This is useful for feeds that lack shapes.
+    """
+    feed = copy(feed)
+
+    # Get all trip stop sequences
+    f = feed.stop_times[['trip_id', 'stop_sequence', 'stop_id']].sort_values(
+      ['trip_id', 'stop_sequence'])
+
+    # Collect unique stop sequences, 
+    # sort them to impose a canonical order, and 
+    # assign shape IDs to them
+    stop_seqs = sorted(set(tuple(group['stop_id'].values) 
+      for trip, group in f.groupby('trip_id')))
+ 
+    shape_by_stop_seq = {seq: 'shape_{!s}'.format(int(i + BIG)) 
+      for i, seq in enumerate(stop_seqs)}
+ 
+    # Assign these new shape IDs to trips 
+    shape_by_trip = {
+      trip: shape_by_stop_seq[tuple(group['stop_id'].values)] 
+      for trip, group in f.groupby('trip_id')}
+    feed.trips['shape_id'] = feed.trips['trip_id'].map(
+      lambda x: shape_by_trip[x])
+ 
+    # Build shapes
+    G = [[shape, i, stop] for stop_seq, shape in shape_by_stop_seq.items() 
+      for i, stop in enumerate(stop_seq)]
+    g = pd.DataFrame(G, columns=['shape_id', 'shape_pt_sequence', 
+      'stop_id'])
+
+    # Add lon/lat
+    g = g.merge(feed.stops[['stop_id', 'stop_lon', 'stop_lat']]).sort_values(
+      ['shape_id', 'shape_pt_sequence'])
+
+    # Drop and rename columns
+    g = g.drop(['stop_id'], axis=1)
+    g = g.rename(columns={
+      'stop_lon': 'shape_pt_lon',
+      'stop_lat': 'shape_pt_lat',
+      })
+    feed.shapes = g
+
+    return feed
+
+def get_feed_intersecting_polygon(feed, polygon):
+    """
+    Build a new feed by taking the given one, keeping only the trips 
+    that have at least one stop intersecting the given polygon, and then
+    restricting stops, routes, stop times, etc. to those associated with 
+    that subset of trips. 
+    Return the resulting feed.
+    Requires GeoPandas.
+    """
+    # Initialize the new feed as the old feed.
+    # Restrict its data frames below.
+    feed = copy(feed)
+    
+    # Get IDs of stops within the polygon
+    stop_ids = get_stops_intersecting_polygon(
+      feed, polygon)['stop_id'].unique()
+        
+    # Get all trips that stop at at least one of those stops
+    st = feed.stop_times.copy()
+    trip_ids = st[st['stop_id'].isin(stop_ids)]['trip_id'].unique()
+    feed.trips = feed.trips[feed.trips['trip_id'].isin(trip_ids)].copy()
+    
+    # Get stop times for trips
+    feed.stop_times = st[st['trip_id'].isin(trip_ids)].copy()
+    
+    # Get stops for trips
+    stop_ids = feed.stop_times['stop_id'].unique()
+    feed.stops = feed.stops[feed.stops['stop_id'].isin(stop_ids)].copy()
+    
+    # Get routes for trips
+    route_ids = feed.trips['route_id'].unique()
+    feed.routes = feed.routes[feed.routes['route_id'].isin(route_ids)].copy()
+    
+    # Get calendar for trips
+    service_ids = feed.trips['service_id'].unique()
+    feed.calendar = feed.calendar[
+      feed.calendar['service_id'].isin(service_ids)].copy()
+    
+    # Get agency for trips
+    if 'agency_id' in feed.routes.columns:
+        agency_ids = feed.routes['agency_id'].unique()
+        if len(agency_ids):
+            feed.agency = feed.agency[
+              feed.agency['agency_id'].isin(agency_ids)].copy()
+            
+    # Now for the optional files.
+    # Get calendar dates for trips.
+    cd = feed.calendar_dates
+    if cd is not None:
+        feed.calendar_dates = cd[cd['service_id'].isin(service_ids)].copy()
+    
+    # Get frequencies for trips
+    if feed.frequencies is not None:
+        feed.frequencies = feed.frequencies[
+          feed.frequencies['trip_id'].isin(trip_ids)].copy()
+        
+    # Get shapes for trips
+    if feed.shapes is not None:
+        shape_ids = trips['shape_id'].unique()
+        feed.shapes = feed.shapes[
+          feed.shapes['shape_id'].isin(shape_ids)].copy()
+        
+    # Get transfers for stops
+    if feed.transfers is not None:
+        t = feed.transfers
+        feed.transfers = t[t['from_stop_id'].isin(stop_ids) |\
+          t['to_stop_id'].isin(stop_ids)].copy()
+        
+    return feed
 
 # -------------------------------------
 # Miscellaneous functions
