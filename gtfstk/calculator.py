@@ -1875,6 +1875,24 @@ def get_feed_intersecting_polygon(feed, polygon):
         
     return feed
 
+def add_route_type_to_shapes(feed):
+    """
+    Append a ``route_type`` column to a copy of ``feed.shapes`` and return
+    the resulting shapes data frame.
+
+    Note that a single shape can be linked to multiple trips on 
+    multiple routes of multiple route types.
+    In that case the route type of the shape is the route type of the last
+    route (sorted by ID) with a trip with that shape.
+    """        
+    f = pd.merge(feed.routes, feed.trips).sort_values(['shape_id', 'route_id'])
+    rtype_by_shape = dict(f[['shape_id', 'route_type']].values)
+    
+    g = feed.shapes.copy()
+    g['route_type'] = g['shape_id'].map(lambda x: rtype_by_shape[x])
+    
+    return g
+
 # -------------------------------------
 # Miscellaneous functions
 # -------------------------------------
