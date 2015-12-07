@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>GTFSTK 2.0.1 documentation</title>
+    <title>GTFSTK 2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.0.1',
+        VERSION:     '2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,7 +29,7 @@
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 2.0.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -57,7 +57,7 @@
           <div class="body" role="main">
             
   <div class="section" id="gtfstk-release-documentation">
-<h1>GTFSTK 2.0.1 Documentation<a class="headerlink" href="#gtfstk-release-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>GTFSTK 2.1 Documentation<a class="headerlink" href="#gtfstk-release-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <span id="document-introduction"></span><p>This is a Python 3 tool kit for processing <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
 It&#8217;s mostly for computing network-level statistics, such as mean daily service distance per route and mean daily number of vehicles per stop.
@@ -82,13 +82,23 @@ Pandas data frames and series, respectively.</p>
 <span id="document-modules"></span><div class="section" id="module-gtfstk.constants">
 <span id="module-constants"></span><h2>Module constants<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
+<dt id="gtfstk.constants.BIG">
+<code class="descclassname">gtfstk.constants.</code><code class="descname">BIG</code><em class="property"> = 1000000</em><a class="headerlink" href="#gtfstk.constants.BIG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="data">
+<dt id="gtfstk.constants.CRS_WGS84">
+<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'ellps': 'WGS84', 'datum': 'WGS84', 'no_defs': True, 'proj': 'longlat'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="data">
 <dt id="gtfstk.constants.DISTANCE_UNITS">
 <code class="descclassname">gtfstk.constants.</code><code class="descname">DISTANCE_UNITS</code><em class="property"> = ['ft', 'mi', 'm', 'km']</em><a class="headerlink" href="#gtfstk.constants.DISTANCE_UNITS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
 <dt id="gtfstk.constants.DTYPE">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'date': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'trip_id': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -298,6 +308,17 @@ Unfortunately, this fallback method will produce incorrect results
 when the first stop does not start at the start of its shape
 (so shape_dist_traveled != 0).
 This is the case for several trips in the Portland feed, for example.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.add_route_type_to_shapes">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">add_route_type_to_shapes</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.add_route_type_to_shapes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append a <code class="docutils literal"><span class="pre">route_type</span></code> column to a copy of <code class="docutils literal"><span class="pre">feed.shapes</span></code> and return
+the resulting shapes data frame.</p>
+<p>Note that a single shape can be linked to multiple trips on 
+multiple routes of multiple route types.
+In that case the route type of the shape is the route type of the last
+route (sorted by ID) with a trip with that shape.</p>
 </dd></dl>
 
 <dl class="function">
@@ -734,6 +755,22 @@ start_time &lt;= t &lt; end_time.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="gtfstk.calculator.create_shapes">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">create_shapes</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.create_shapes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a feed, create new shapes for it by connecting its unique 
+stop sequences.
+Then assign the resulting new shape IDs to the existing trips.</p>
+<p>More specifically, do the following.
+Copy the feed, collect its unique stop sequences,
+sort them to impose a canonical order, and assign shape IDs to them.
+Then create a shapes data frame using the stop sequences and
+their corresponding longitude and latitudes.
+Then add the shape IDs to the <code class="docutils literal"><span class="pre">trips</span></code> data frame.
+Return the resulting feed.</p>
+<p>This is useful for feeds that lack shapes.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfstk.calculator.downsample">
 <code class="descclassname">gtfstk.calculator.</code><code class="descname">downsample</code><span class="sig-paren">(</span><em>time_series</em>, <em>freq</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.downsample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Downsample the given route, stop, or feed time series, 
@@ -745,12 +782,44 @@ shorter than the original frequency.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="gtfstk.calculator.geometrize_shapes">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">geometrize_shapes</code><span class="sig-paren">(</span><em>shapes</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.geometrize_shapes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a shapes data frame, convert it to a GeoPandas 
+GeoDataFrame and return the result.
+The result has a &#8216;geometry&#8217; column of WGS84 line strings
+instead of &#8216;shape_pt_sequence&#8217;, &#8216;shape_pt_lon&#8217;, &#8216;shape_pt_lat&#8217;,  
+and &#8216;shape_dist_traveled&#8217; columns.
+Requires GeoPandas.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.geometrize_stops">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">geometrize_stops</code><span class="sig-paren">(</span><em>stops</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.geometrize_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a stops data frame, 
+convert it to a GeoPandas GeoDataFrame and return the result.
+The result has a &#8216;geometry&#8217; column of WGS84 points 
+instead of &#8216;stop_lon&#8217; and &#8216;stop_lat&#8217; columns.
+Requires GeoPandas.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfstk.calculator.get_dates">
 <code class="descclassname">gtfstk.calculator.</code><code class="descname">get_dates</code><span class="sig-paren">(</span><em>feed</em>, <em>as_date_obj=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.get_dates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a chronologically ordered list of dates
 for which this feed is valid.
 If <code class="docutils literal"><span class="pre">as_date_obj</span> <span class="pre">==</span> <span class="pre">True</span></code>, then return the dates as
 as <code class="docutils literal"><span class="pre">datetime.date</span></code> objects.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.get_feed_intersecting_polygon">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">get_feed_intersecting_polygon</code><span class="sig-paren">(</span><em>feed</em>, <em>polygon</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.get_feed_intersecting_polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a new feed by taking the given one, keeping only the trips 
+that have at least one stop intersecting the given polygon, and then
+restricting stops, routes, stop times, etc. to those associated with 
+that subset of trips. 
+Return the resulting feed.
+Requires GeoPandas.</p>
 </dd></dl>
 
 <dl class="function">
@@ -785,6 +854,18 @@ If no date is given, then return all routes.
 If a date and time are given, then return only those routes with
 trips active at that date and time.
 Do not take times modulo 24.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.get_shapes_intersecting_geometry">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">get_shapes_intersecting_geometry</code><span class="sig-paren">(</span><em>feed</em>, <em>geometry</em>, <em>geo_shapes=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.get_shapes_intersecting_geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the slice of <code class="docutils literal"><span class="pre">feed.shapes</span></code> that contains all shapes
+that intersect the given Shapely geometry object 
+(e.g. a Polygon or LineString).
+Assume the geometry is specified in WGS84 longitude-latitude coordinates.</p>
+<p>To do this, first geometrize <code class="docutils literal"><span class="pre">feed.shapes</span></code> via <a class="reference internal" href="#gtfstk.calculator.geometrize_shapes" title="gtfstk.calculator.geometrize_shapes"><code class="xref py py-func docutils literal"><span class="pre">geometrize_shapes()</span></code></a>.
+Alternatively, use the <code class="docutils literal"><span class="pre">geo_shapes</span></code> GeoDataFrame, if given.
+Requires GeoPandas.</p>
 </dd></dl>
 
 <dl class="function">
@@ -825,6 +906,17 @@ Otherwise, return an empty data frame with the specified columns.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="gtfstk.calculator.get_stops_intersecting_polygon">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">get_stops_intersecting_polygon</code><span class="sig-paren">(</span><em>feed</em>, <em>polygon</em>, <em>geo_stops=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.get_stops_intersecting_polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the slice of <code class="docutils literal"><span class="pre">feed.stops</span></code> that contains all stops
+that intersect the given Shapely Polygon object.
+Assume the polygon specified in WGS84 longitude-latitude coordinates.</p>
+<p>To do this, first geometrize <code class="docutils literal"><span class="pre">feed.stops</span></code> via <a class="reference internal" href="#gtfstk.calculator.geometrize_stops" title="gtfstk.calculator.geometrize_stops"><code class="xref py py-func docutils literal"><span class="pre">geometrize_stops()</span></code></a>.
+Alternatively, use the <code class="docutils literal"><span class="pre">geo_stops</span></code> GeoDataFrame, if given.
+Requires GeoPandas.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfstk.calculator.get_trips">
 <code class="descclassname">gtfstk.calculator.</code><code class="descname">get_trips</code><span class="sig-paren">(</span><em>feed</em>, <em>date=None</em>, <em>time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.get_trips" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the section of <code class="docutils literal"><span class="pre">feed.trips</span></code> that contains
@@ -860,6 +952,25 @@ given distance units.
 The path points to a directory containing GTFS text files or 
 a zip file that unzips as a collection of GTFS text files
 (but not as a directory containing GTFS text files).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.ungeometrize_shapes">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">ungeometrize_shapes</code><span class="sig-paren">(</span><em>geo_shapes</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.ungeometrize_shapes" title="Permalink to this definition">¶</a></dt>
+<dd><p>The inverse of <a class="reference internal" href="#gtfstk.calculator.geometrize_shapes" title="gtfstk.calculator.geometrize_shapes"><code class="xref py py-func docutils literal"><span class="pre">geometrize_shapes()</span></code></a>.
+Produces the columns:</p>
+<ul class="simple">
+<li>shape_id</li>
+<li>shape_pt_sequence</li>
+<li>shape_pt_lon</li>
+<li>shape_pt_lat</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.ungeometrize_stops">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">ungeometrize_stops</code><span class="sig-paren">(</span><em>geo_stops</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.ungeometrize_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>The inverse of <a class="reference internal" href="#gtfstk.calculator.geometrize_stops" title="gtfstk.calculator.geometrize_stops"><code class="xref py py-func docutils literal"><span class="pre">geometrize_stops()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -947,6 +1058,7 @@ for a nice-looking plot.</p>
 <span id="module-validator"></span><h2>Module validator<a class="headerlink" href="#module-gtfstk.validator" title="Permalink to this headline">¶</a></h2>
 <p>Functions for validating a Feed object against the 
 <a class="reference external" href="https://developers.google.com/transit/gtfs/reference?hl=en">GTFS specification</a>.</p>
+<p>Supplements but does not replace the <code class="docutils literal"><span class="pre">feedvalidator</span></code> module of the <a class="reference external" href="https://github.com/google/transitfeed">transitfeed package</a>.</p>
 <dl class="exception">
 <dt id="gtfstk.validator.GTFSError">
 <em class="property">exception </em><code class="descclassname">gtfstk.validator.</code><code class="descname">GTFSError</code><span class="sig-paren">(</span><em>feed</em>, <em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validator.GTFSError" title="Permalink to this definition">¶</a></dt>
@@ -985,7 +1097,7 @@ GTFS specification.</p>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 2.0.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

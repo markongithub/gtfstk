@@ -1,7 +1,9 @@
 """
+This module performs a bunch of useful calculations on Feed objects.
+
 TODO:
 
-- For each function, document what Feed attributes are required.
+- Finish documenting what Feed attributes are used in each function
 """
 
 from pathlib import Path
@@ -115,6 +117,11 @@ def get_dates(feed, as_date_obj=False):
     for which this feed is valid.
     If ``as_date_obj == True``, then return the dates as
     as ``datetime.date`` objects.  
+
+    Feed attributes used:
+
+    - ``feed.calendar`` or ``feed.calendar_dates``
+
     """
     if feed.calendar is not None:
         start_date = feed.calendar['start_date'].min()
@@ -144,7 +151,12 @@ def get_first_week(feed, as_date_obj=False):
     Monday--Sunday week, then return whatever initial segment of the 
     week it does cover. 
     If ``as_date_obj == True``, then return the dates as
-    as ``datetime.date`` objects.          
+    as ``datetime.date`` objects.      
+
+    Feed attributes used:
+
+    - Those in :func:`get_dates`
+
     """
     dates = get_dates(feed, as_date_obj=True)
     # Get first Monday
@@ -180,6 +192,11 @@ def count_active_trips(trips, time):
     trips in the data frame that are active at the given time.
     A trip is a considered active at time t if 
     start_time <= t < end_time.
+
+    Feed attributes used:
+
+    - ``feed.trips``
+        
     """
     return trips[(trips['start_time'] <= time) &\
       (trips['end_time'] > time)].shape[0]
@@ -192,9 +209,11 @@ def is_active_trip(feed, trip, date):
     assume ``trip`` is a valid trip ID in the feed and 
     ``date`` is a valid date object.
 
-    Assume the following feed attributes are not None:
+    Feed attributes used:
 
-    - trips_i
+    - ``feed.trips_i``
+    - ``feed.calendar_dates_g`` (optionally)
+    - ``feed.calendar_i`` (optionally)
 
     NOTES: 
 
@@ -234,6 +253,12 @@ def get_trips(feed, date=None, time=None):
     If a date and time are given, 
     then return only those trips active at that date and time.
     Do not take times modulo 24.
+
+    Feed attributes used:
+
+    - ``feed.trips``
+    - Those in :func:`is_active_trip`
+        
     """
     f = feed.trips.copy()
     if date is None:
@@ -280,6 +305,12 @@ def compute_trips_activity(feed, dates):
 
     If ``dates`` is ``None`` or the empty list, then return an 
     empty data frame with the column 'trip_id'.
+
+    Feed attributes used:
+
+    - ``feed.trips``
+    - Those in :func:`is_active_trip`
+        
     """
     if not dates:
         return pd.DataFrame(columns=['trip_id'])
@@ -294,6 +325,11 @@ def compute_busiest_date(feed, dates):
     """
     Given a list of dates, return the first date that has the 
     maximum number of active trips.
+
+    Feed attributes used:
+
+    - Those is :func:`compute_trips_activity`
+        
     """
     f = compute_trips_activity(feed, dates)
     s = [(f[date].sum(), date) for date in dates]
@@ -320,6 +356,14 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
       contains all ``np.nan`` entries if ``feed.shapes is None``
     - duration: duration of the trip in hours
     - speed: distance/duration
+
+    Feed attributes used:
+
+    - ``feed.trips``
+    - ``feed.routes``
+    - ``feed.stop_times``
+    - ``feed.shapes`` (optionally)
+    - Those in :func:`build_geometry_by_stop`
 
     NOTES:
 

@@ -1,7 +1,6 @@
 """
 Functions for validating a Feed object against the 
 `GTFS specification <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
-
 Supplements but does not replace the ``feedvalidator`` module of the `transitfeed package <https://github.com/google/transitfeed>`_.
 """  
 
