@@ -1515,6 +1515,24 @@ def add_dist_to_shapes(feed):
 
     return g
 
+def add_route_type_to_shapes(feed):
+    """
+    Append a ``route_type`` column to a copy of ``feed.shapes`` and return
+    the resulting shapes data frame.
+
+    Note that a single shape can be linked to multiple trips on 
+    multiple routes of multiple route types.
+    In that case the route type of the shape is the route type of the last
+    route (sorted by ID) with a trip with that shape.
+    """        
+    f = pd.merge(feed.routes, feed.trips).sort_values(['shape_id', 'route_id'])
+    rtype_by_shape = dict(f[['shape_id', 'route_type']].values)
+    
+    g = feed.shapes.copy()
+    g['route_type'] = g['shape_id'].map(lambda x: rtype_by_shape[x])
+    
+    return g
+
 # -------------------------------------
 # Functions about stop times
 # -------------------------------------
@@ -1775,7 +1793,7 @@ def create_shapes(feed):
     stop_seqs = sorted(set(tuple(group['stop_id'].values) 
       for trip, group in f.groupby('trip_id')))
  
-    shape_by_stop_seq = {seq: 'shape_{!s}'.format(int(i + BIG)) 
+    shape_by_stop_seq = {seq: 'shape_{!s}'.format(int(i + cs.BIG)) 
       for i, seq in enumerate(stop_seqs)}
  
     # Assign these new shape IDs to trips 
@@ -1863,7 +1881,7 @@ def get_feed_intersecting_polygon(feed, polygon):
         
     # Get shapes for trips
     if feed.shapes is not None:
-        shape_ids = trips['shape_id'].unique()
+        shape_ids = feed.trips['shape_id'].unique()
         feed.shapes = feed.shapes[
           feed.shapes['shape_id'].isin(shape_ids)].copy()
         
@@ -1874,24 +1892,6 @@ def get_feed_intersecting_polygon(feed, polygon):
           t['to_stop_id'].isin(stop_ids)].copy()
         
     return feed
-
-def add_route_type_to_shapes(feed):
-    """
-    Append a ``route_type`` column to a copy of ``feed.shapes`` and return
-    the resulting shapes data frame.
-
-    Note that a single shape can be linked to multiple trips on 
-    multiple routes of multiple route types.
-    In that case the route type of the shape is the route type of the last
-    route (sorted by ID) with a trip with that shape.
-    """        
-    f = pd.merge(feed.routes, feed.trips).sort_values(['shape_id', 'route_id'])
-    rtype_by_shape = dict(f[['shape_id', 'route_type']].values)
-    
-    g = feed.shapes.copy()
-    g['route_type'] = g['shape_id'].map(lambda x: rtype_by_shape[x])
-    
-    return g
 
 # -------------------------------------
 # Miscellaneous functions

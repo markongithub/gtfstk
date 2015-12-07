@@ -109,9 +109,6 @@ class TestCalculator(unittest.TestCase):
     # --------------------------------------------
     # Test functions about trips
     # --------------------------------------------
-    def test_count_active_trips(self):
-        pass
-
     def test_is_active(self):
         feed = copy(cairns)
         trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
@@ -492,7 +489,7 @@ class TestCalculator(unittest.TestCase):
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
     def test_get_stops_intersecting_polygon(self):
         feed = copy(cairns)
-        with open('data/cairns_stop_750070_square.geojson') as src:
+        with open('data/cairns_square_stop_750070.geojson') as src:
             polygon = sh_shape(json.load(src)['features'][0]['geometry'])
         pstops = get_stops_intersecting_polygon(feed, polygon)
         stop_ids = ['750070']
@@ -643,12 +640,6 @@ class TestCalculator(unittest.TestCase):
           set(feed.stop_times.columns)
         self.assertEqual(set(f.columns), expect_cols)    
 
-    def test_get_stops_in_stations(self):
-        pass
-
-    def test_compute_stations_stats(self):
-        pass
-
     # ----------------------------------
     # Test functions about shapes
     # ----------------------------------
@@ -729,6 +720,13 @@ class TestCalculator(unittest.TestCase):
         for name, group in s2.groupby('shape_id'):
             sdt = list(group['shape_dist_traveled'].values)
             self.assertEqual(sdt, sorted(sdt))
+
+    def test_add_route_type_to_shapes(self):
+        feed = copy(cairns)
+        shapes = add_route_type_to_shapes(feed)
+        # Should contain correct columns
+        self.assertEqual(set(shapes.columns), 
+          set(feed.shapes.columns) | {'route_type'})
 
     # ----------------------------------
     # Test functions about stop times
@@ -817,22 +815,41 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(f.empty)
 
     def test_create_shapes(self):
-        feed = copy(cairns_shapeless)
+        feed1 = copy(cairns_shapeless)
+        feed2 = create_shapes(feed1)
         # Number of shapes should equal number of unique stop sequences
+        st = feed1.stop_times.sort_values(['trip_id', 'stop_sequence'])
+        stop_seqs = set([tuple(group['stop_id'].values)
+          for __, group in st.groupby('trip_id')])
+        self.assertEqual(feed2.shapes['shape_id'].nunique(), len(stop_seqs))
+
+    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
+    def test_get_feed_intersecting_polygon(self):
+        feed1 = copy(cairns)
+        with open('data/cairns_square_stop_750070.geojson') as src:
+            polygon = sh_shape(json.load(src)['features'][0]['geometry'])
+        feed2 = get_feed_intersecting_polygon(feed1, polygon)
+        # Should have correct routes
+        rsns = ['120', '120N']
+        self.assertEqual(set(feed2.routes['route_short_name']), set(rsns))
+        # Should have correct trips
+        route_ids = feed1.routes[feed1.routes['route_short_name'].isin(
+          rsns)]['route_id']
+        trip_ids = feed1.trips[feed1.trips['route_id'].isin(
+          route_ids)]['trip_id']
+        self.assertEqual(set(feed2.trips['trip_id']), set(trip_ids))
+        # Should have correct shapes
+        shape_ids = feed1.trips[feed1.trips['route_id'].isin(
+          route_ids)]['shape_id']
+        self.assertEqual(set(feed2.shapes['shape_id']), set(shape_ids))
+        # Should have correct stops
+        stop_ids = feed1.stop_times[feed1.stop_times['trip_id'].isin(
+          trip_ids)]['stop_id']
+        self.assertEqual(set(feed2.stop_times['stop_id']), set(stop_ids))
+
     # ----------------------------------
     # Test miscellanous functions
     # ----------------------------------
-    def test_downsample(self):
-        pass
-
-    def test_combine_time_series(self):
-        pass
-
-    def test_plot_headways(self):
-        pass
-
-    def test_plot_routes_time_series(self):
-        pass
 
         
 if __name__ == '__main__':
