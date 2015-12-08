@@ -1,6 +1,6 @@
 """
 This module defines the Feed class which represents GTFS files as data frames.
-Operations on feeds live outside of the class in other modules.
+Operations on Feed objects live outside of the class in other modules.
 """
 from . import constants as cs
 from . import utilities as ut
@@ -9,7 +9,7 @@ from . import utilities as ut
 class Feed(object):
     """
     A class that represents GTFS files as data frames.
-    
+
     Warning: the stop times data frame can be big (several gigabytes), 
     so make sure you have enough memory to handle it.
 

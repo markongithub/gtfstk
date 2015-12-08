@@ -1,7 +1,6 @@
 """
-Functions for validating a Feed object against the 
-`GTFS specification <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
-Supplements but does not replace the ``feedvalidator`` module of the `transitfeed package <https://github.com/google/transitfeed>`_.
+This module contains functions that supplement but do not replace the ``feedvalidator`` module of the `transitfeed package <https://github.com/google/transitfeed>`_.
+The latter module checks if GFTS feeds adhere to the `GTFS specification <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
 """  
 
 
@@ -22,7 +21,9 @@ class GTFSError(Exception):
 
 
 def check_calendar(feed):
-    # Calendar or calendar_dates must be nonempty
+    """
+    Check that one of ``feed.calendar`` or ``feed.calendar_dates`` is nonempty.
+    """
     if (feed.calendar is None and feed.calendar_dates is None) or\
       (feed.calendar.empty and feed.calendar_dates.empty):
         raise GTFSError("calendar or calendar_dates must be nonempty")

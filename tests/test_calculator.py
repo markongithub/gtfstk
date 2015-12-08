@@ -32,6 +32,10 @@ class TestCalculator(unittest.TestCase):
     # Test functions about inputs and outputs
     # --------------------------------------------
     def test_read_gtfs(self):
+        # Bad path
+        self.assertRaises(ValueError, read_gtfs,
+          path='bad_path!')
+        
         feed = read_gtfs('data/cairns_gtfs.zip')
 
         # Bad dist_units_in:

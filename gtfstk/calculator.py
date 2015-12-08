@@ -1,9 +1,5 @@
 """
 This module performs a bunch of useful calculations on Feed objects.
-
-TODO:
-
-- Finish documenting what Feed attributes are used in each function
 """
 
 from pathlib import Path
@@ -37,24 +33,28 @@ def read_gtfs(path, dist_units_in=None, dist_units_out=None):
     a zip file that unzips as a collection of GTFS text files
     (but not as a directory containing GTFS text files).
     """
+    p = Path(path)
+    if not p.exists():
+        raise ValueError("Path {!s} does not exist".format(p.as_posix()))
+
     # Unzip path if necessary
     zipped = False
-    if zipfile.is_zipfile(path):
+    if zipfile.is_zipfile(p.as_posix()):
         # Extract to temporary location
         zipped = True
-        archive = zipfile.ZipFile(path)
-        path = path.rstrip('.zip') + '/'
-        archive.extractall(path)
+        archive = zipfile.ZipFile(p.as_posix())
+        # Strip off .zip extension
+        p = p.parent / p.stem
+        archive.extractall(p.as_posix())
 
-    path = Path(path)
 
     # Read files into feed dictionary of data frames
     feed_dict = {}
     for f in cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES:
         ff = f + '.txt'
-        p = Path(path, ff)
-        if p.exists():
-            feed_dict[f] = pd.read_csv(p.as_posix(), dtype=cs.DTYPE,
+        pp = Path(p, ff)
+        if pp.exists():
+            feed_dict[f] = pd.read_csv(pp.as_posix(), dtype=cs.DTYPE,
               encoding='utf-8-sig') 
             # utf-8-sig gets rid of the byte order mark (BOM);
             # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string 
@@ -66,7 +66,7 @@ def read_gtfs(path, dist_units_in=None, dist_units_out=None):
 
     # Remove extracted zip directory
     if zipped:
-        shutil.rmtree(path.as_posix())
+        shutil.rmtree(p.as_posix())
 
     # Create feed 
     return Feed(**feed_dict)
@@ -76,10 +76,13 @@ def write_gtfs(feed, path, ndigits=6):
     Export the given feed to a zip archive located at ``path``.
     Round all decimals to ``ndigits`` decimal places.
     All distances will be displayed in units ``feed.dist_units_out``.
+
+    Assume the following feed attributes are not ``None``: none.
     """
     # Remove '.zip' extension from path, because it gets added
     # automatically below
-    path = path.rstrip('.zip')
+    p = Path(path)
+    p = p.parent / p.stem
 
     # Write files to a temporary directory 
     tmp_dir = tempfile.mkdtemp()
@@ -103,7 +106,7 @@ def write_gtfs(feed, path, ndigits=6):
           float_format='%.{!s}f'.format(ndigits))
 
     # Zip directory 
-    shutil.make_archive(path, format='zip', root_dir=tmp_dir)    
+    shutil.make_archive(p.as_posix(), format='zip', root_dir=tmp_dir)    
 
     # Delete temporary directory
     shutil.rmtree(tmp_dir)
@@ -118,7 +121,7 @@ def get_dates(feed, as_date_obj=False):
     If ``as_date_obj == True``, then return the dates as
     as ``datetime.date`` objects.  
 
-    Feed attributes used:
+    Assume the following feed attributes are not ``None``:
 
     - ``feed.calendar`` or ``feed.calendar_dates``
 
@@ -153,9 +156,9 @@ def get_first_week(feed, as_date_obj=False):
     If ``as_date_obj == True``, then return the dates as
     as ``datetime.date`` objects.      
 
-    Feed attributes used:
+    Assume the following feed attributes are not ``None``:
 
-    - Those in :func:`get_dates`
+    - Those used in :func:`get_dates`
 
     """
     dates = get_dates(feed, as_date_obj=True)
@@ -193,7 +196,7 @@ def count_active_trips(trips, time):
     A trip is a considered active at time t if 
     start_time <= t < end_time.
 
-    Feed attributes used:
+    Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
         
@@ -209,7 +212,7 @@ def is_active_trip(feed, trip, date):
     assume ``trip`` is a valid trip ID in the feed and 
     ``date`` is a valid date object.
 
-    Feed attributes used:
+    Assume the following feed attributes are not ``None``:
 
     - ``feed.trips_i``
     - ``feed.calendar_dates_g`` (optionally)
@@ -254,10 +257,10 @@ def get_trips(feed, date=None, time=None):
     then return only those trips active at that date and time.
     Do not take times modulo 24.
 
-    Feed attributes used:
+    Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
-    - Those in :func:`is_active_trip`
+    - Those used in :func:`is_active_trip`
         
     """
     f = feed.trips.copy()
@@ -306,10 +309,10 @@ def compute_trips_activity(feed, dates):
     If ``dates`` is ``None`` or the empty list, then return an 
     empty data frame with the column 'trip_id'.
 
-    Feed attributes used:
+    Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
-    - Those in :func:`is_active_trip`
+    - Those used in :func:`is_active_trip`
         
     """
     if not dates:
@@ -326,7 +329,7 @@ def compute_busiest_date(feed, dates):
     Given a list of dates, return the first date that has the 
     maximum number of active trips.
 
-    Feed attributes used:
+    Assume the following feed attributes are not ``None``:
 
     - Those is :func:`compute_trips_activity`
         
@@ -357,13 +360,13 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
     - duration: duration of the trip in hours
     - speed: distance/duration
 
-    Feed attributes used:
+    Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
     - ``feed.routes``
     - ``feed.stop_times``
     - ``feed.shapes`` (optionally)
-    - Those in :func:`build_geometry_by_stop`
+    - Those used in :func:`build_geometry_by_stop`
 
     NOTES:
 
@@ -504,6 +507,13 @@ def compute_trips_locations(feed, date, times):
 
     Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled``
     column.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.trips``
+    - Those used in :func:`get_stop_times`
+    - Those used in :func:`build_geometry_by_shape`
+        
     """
     if 'shape_dist_traveled' not in feed.stop_times.columns:
         raise ValueError(
@@ -576,6 +586,12 @@ def get_routes(feed, date=None, time=None):
     If a date and time are given, then return only those routes with
     trips active at that date and time.
     Do not take times modulo 24.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.routes``
+    - Those used in :func:`get_trips`
+        
     """
     if date is None:
         return feed.routes.copy()
@@ -638,6 +654,8 @@ def compute_routes_stats_base(trips_stats_subset, split_directions=False,
 
     If ``trips_stats_subset`` is empty, return an empty data frame with
     the columns specified above.
+
+    Assume the following feed attributes are not ``None``: none.
     """        
     cols = [
       'route_id',
@@ -793,6 +811,10 @@ def compute_routes_stats(feed, trips_stats, date, split_directions=False,
 
     See ``compute_routes_stats_base()`` for a description of the output.
 
+    Assume the following feed attributes are not ``None``:
+
+    - Those used in :func:`compute_routes_stats_base`
+        
     NOTES:
 
     This is a more user-friendly version of ``compute_routes_stats_base()``.
@@ -953,6 +975,11 @@ def compute_routes_time_series(feed, trips_stats, date,
 
     If there are no active trips on the date, then return ``None``.
 
+    Assume the following feed attributes are not ``None``:
+
+    - Those used in :func:`get_trips`
+        
+
     NOTES:
 
     This is a more user-friendly version of 
@@ -972,6 +999,12 @@ def get_route_timetable(feed, route_id, date):
     ``feed.stop_times``.
     The result is sorted by grouping by trip ID and
     sorting the groups by their first departure time.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stop_times``
+    - Those used in :func:`get_trips`
+        
     """
     f = get_trips(feed, date)
     f = f[f['route_id'] == route_id].copy()
@@ -992,6 +1025,12 @@ def get_stops(feed, date=None):
     Return the section of ``feed.stops`` that contains
     only stops that have visiting trips active on the given date.
     If no date is given, then return all stops.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stops``
+    - Those used in :func:`get_stop_times`
+        
     """
     if date is None:
         return feed.stops.copy()
@@ -1008,6 +1047,11 @@ def build_geometry_by_stop(feed, use_utm=True):
     in UTM coordinates.
     Otherwise, return each point in WGS84 longitude-latitude
     coordinates.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stops``
+        
     """
     geometry_by_stop = {}
     if use_utm:
@@ -1060,6 +1104,11 @@ def get_stops_intersecting_polygon(feed, polygon, geo_stops=None):
     To do this, first geometrize ``feed.stops`` via :func:`geometrize_stops`.
     Alternatively, use the ``geo_stops`` GeoDataFrame, if given.
     Requires GeoPandas.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stops``, if ``geo_stops`` is not given
+        
     """
     if geo_stops is not None:
         f = geo_stops.copy()
@@ -1086,6 +1135,13 @@ def compute_stops_activity(feed, dates):
 
     If ``dates`` is ``None`` or the empty list, 
     then return an empty data frame with the column 'stop_id'.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stop_times``
+    - Those used in :func:`compute_trips_activity`
+        
+
     """
     if not dates:
         return pd.DataFrame(columns=['stop_id'])
@@ -1202,6 +1258,11 @@ def compute_stops_stats(feed, date, split_directions=False,
 
     See ``compute_stops_stats_base()`` for a description of the output.
 
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stop_timtes``
+    - Those used in :func:`get_trips`
+        
     NOTES:
 
     This is a more user-friendly version of ``compute_stops_stats_base()``.
@@ -1297,6 +1358,11 @@ def compute_stops_time_series(feed, date, split_directions=False,
     ``split_directions``and ``freq`` and with ``date_label`` equal to ``date``.
     See ``compute_stops_time_series_base()`` for a description of the output.
 
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stop_times``
+    - Those used in :func:`get_trips`
+        
     NOTES:
 
     This is a more user-friendly version of 
@@ -1314,6 +1380,12 @@ def get_stop_timetable(feed, stop_id, date):
     The columns are all those in ``feed.trips`` plus those in
     ``feed.stop_times``.
     The result is sorted by departure time.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.trips``
+    - Those used in :func:`get_stop_times`
+        
     """
     f = get_stop_times(feed, date)
     f = pd.merge(f, feed.trips)
@@ -1328,6 +1400,11 @@ def get_stops_in_stations(feed):
     but only includes stops with parent stations, that is, stops with
     location type 0 or blank and non-blank parent station.
     Otherwise, return an empty data frame with the specified columns.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stops``
+        
     """
     f = feed.stops
     return f[(f['location_type'] != 1) & (f['parent_station'].notnull())]
@@ -1340,6 +1417,12 @@ def compute_stations_stats(feed, date, split_directions=False,
     the same stats that ``feed.compute_stops_stats()`` does, but for
     stations.
     Otherwise, return an empty data frame with the specified columns.
+
+    Assume the following feed attributes are not ``None``:
+
+    - Those used in :func:`get_stops_in_stations`
+    - Those used in :func:`get_stop_times`
+
     """
     # Get stop times of active trips that visit stops in stations
     sis = get_stops_in_stations(feed)
@@ -1401,6 +1484,11 @@ def build_geometry_by_shape(feed, use_utm=True):
     in UTM coordinates.
     Otherwise, return each linestring in WGS84 longitude-latitude
     coordinates.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.shapes``
+
     """
     if feed.shapes is None:
         return
@@ -1433,6 +1521,11 @@ def build_shapes_geojson(feed):
     If ``feed.shapes`` is ``None``, then return ``None``.
     The coordinates reference system is the default one for GeoJSON,
     namely WGS84.
+
+    Assume the following feed attributes are not ``None``:
+
+    - Those used in :func:`build_geometry_by_shape`
+
     """
 
     geometry_by_shape = build_geometry_by_shape(feed, use_utm=False)
@@ -1504,6 +1597,11 @@ def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None):
     To do this, first geometrize ``feed.shapes`` via :func:`geometrize_shapes`.
     Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
     Requires GeoPandas.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.shapes``, if ``geo_shapes`` is not given
+
     """
     if geo_shapes is not None:
         f = geo_shapes.copy()
@@ -1519,6 +1617,10 @@ def add_dist_to_shapes(feed):
     """
     Copy ``feed.shapes``, calculate the optional ``shape_dist_traveled`` 
     GTFS field, and return the resulting shapes data frame.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.shapes``
 
     NOTE: 
 
@@ -1568,6 +1670,13 @@ def add_route_type_to_shapes(feed):
     multiple routes of multiple route types.
     In that case the route type of the shape is the route type of the last
     route (sorted by ID) with a trip with that shape.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.routes``
+    - ``feed.trips``
+    - ``feed.shapes``
+
     """        
     f = pd.merge(feed.routes, feed.trips).sort_values(['shape_id', 'route_id'])
     rtype_by_shape = dict(f[['shape_id', 'route_type']].values)
@@ -1585,6 +1694,12 @@ def get_stop_times(feed, date=None):
     Return the section of ``feed.stop_times`` that contains
     only trips active on the given date.
     If no date is given, then return all stop times.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stop_times``
+    - Those used in :func:`get_trips`
+
     """
     f = feed.stop_times.copy()
     if date is None:
@@ -1599,6 +1714,12 @@ def add_dist_to_stop_times(feed, trips_stats):
     ``shape_dist_traveled`` GTFS field, and return the resulting
     data frame.
     Does not always give accurate results, as described below.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stop_times``
+    - Those used in :func:`build_geometry_by_shape`
+    - Those used in :func:`build_geometry_by_stop`
 
     ALGORITHM:
 
@@ -1715,6 +1836,13 @@ def compute_feed_stats(feed, trips_stats, date):
 
     If there are no stats for the given date, return an empty data frame
     with the specified columns.
+
+    Assume the following feed attributes are not ``None``:
+
+    - Those used in :func:`get_trips`
+    - Those used in :func:`get_routes`
+    - Those used in :func:`get_stops`
+
     """
     cols = [
       'num_trips',
@@ -1774,6 +1902,11 @@ def compute_feed_time_series(feed, trips_stats, date, freq='5Min'):
 
     If there is no time series for the given date, 
     return an empty data frame with specified columns.
+
+    Assume the following feed attributes are not ``None``:
+
+    - Those used in :func:`compute_routes_time_series`
+
     """
     cols = [
       'num_trip_starts',
@@ -1824,6 +1957,12 @@ def create_shapes(feed):
     Return the resulting feed.
 
     This is useful for feeds that lack shapes.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stop_times``
+    - ``feed.trips``
+    - ``feed.stops``
     """
     feed = copy(feed)
 
@@ -1875,6 +2014,15 @@ def get_feed_intersecting_polygon(feed, polygon):
     that subset of trips. 
     Return the resulting feed.
     Requires GeoPandas.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.stop_times``
+    - ``feed.trips``
+    - ``feed.stops``
+    - ``feed.routes``
+    - Those used in :func:`get_stops_intersecting_polygon`
+
     """
     # Initialize the new feed as the old feed.
     # Restrict its data frames below.
@@ -1902,8 +2050,9 @@ def get_feed_intersecting_polygon(feed, polygon):
     
     # Get calendar for trips
     service_ids = feed.trips['service_id'].unique()
-    feed.calendar = feed.calendar[
-      feed.calendar['service_id'].isin(service_ids)].copy()
+    if feed.calendar is not None:
+        feed.calendar = feed.calendar[
+          feed.calendar['service_id'].isin(service_ids)].copy()
     
     # Get agency for trips
     if 'agency_id' in feed.routes.columns:
