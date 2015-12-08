@@ -1,6 +1,7 @@
 import unittest
 from copy import copy
 import shutil
+import importlib
 
 import pandas as pd 
 import numpy as np
@@ -11,6 +12,14 @@ from shapely.geometry import shape as sh_shape
 from gtfstk.calculator import *
 import gtfstk.utilities as ut
 import gtfstk.constants as cs
+
+# Check if GeoPandas is installed
+loader = importlib.find_loader('geopandas')
+if loader is None:
+    HAS_GEOPANDAS = False
+else:
+    HAS_GEOPANDAS = True
+    from geopandas import GeoDataFrame
 
 # Load test feeds
 cairns = read_gtfs('data/cairns_gtfs.zip')
@@ -23,6 +32,10 @@ class TestCalculator(unittest.TestCase):
     # Test functions about inputs and outputs
     # --------------------------------------------
     def test_read_gtfs(self):
+        # Bad path
+        self.assertRaises(ValueError, read_gtfs,
+          path='bad_path!')
+        
         feed = read_gtfs('data/cairns_gtfs.zip')
 
         # Bad dist_units_in:
@@ -100,9 +113,6 @@ class TestCalculator(unittest.TestCase):
     # --------------------------------------------
     # Test functions about trips
     # --------------------------------------------
-    def test_count_active_trips(self):
-        pass
-
     def test_is_active(self):
         feed = copy(cairns)
         trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
@@ -455,6 +465,40 @@ class TestCalculator(unittest.TestCase):
         # Should include all stops
         self.assertEqual(len(geometry_by_stop), feed.stops.shape[0])
 
+    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
+    def test_geometrize_stops(self):
+        stops = cairns.stops.copy()
+        geo_stops = geometrize_stops(stops)
+        # Should be a GeoDataFrame
+        self.assertIsInstance(geo_stops, GeoDataFrame)
+        # Should have the correct shape
+        self.assertEqual(geo_stops.shape[0], stops.shape[0])
+        self.assertEqual(geo_stops.shape[1], stops.shape[1] - 1)
+        # Should have the correct columns
+        expect_cols = set(list(stops.columns) + ['geometry']) -\
+          set(['stop_lon', 'stop_lat'])
+        self.assertEqual(set(geo_stops.columns), expect_cols)
+
+    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
+    def test_ungeometrize_stops(self):
+        stops = cairns.stops.copy()
+        geo_stops = geometrize_stops(stops)
+        stops2 = ungeometrize_stops(geo_stops)
+        # Test columns are correct
+        self.assertEqual(set(stops2.columns), set(stops.columns))
+        # Data frames should be equal after sorting columns
+        cols = sorted(stops.columns)
+        assert_frame_equal(stops2[cols], stops[cols])
+
+    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
+    def test_get_stops_intersecting_polygon(self):
+        feed = copy(cairns)
+        with open('data/cairns_square_stop_750070.geojson') as src:
+            polygon = sh_shape(json.load(src)['features'][0]['geometry'])
+        pstops = get_stops_intersecting_polygon(feed, polygon)
+        stop_ids = ['750070']
+        self.assertEqual(pstops['stop_id'].values, stop_ids)
+
     def test_compute_stops_activity(self):
         feed = copy(cairns)
         dates = get_first_week(feed)
@@ -600,12 +644,6 @@ class TestCalculator(unittest.TestCase):
           set(feed.stop_times.columns)
         self.assertEqual(set(f.columns), expect_cols)    
 
-    def test_get_stops_in_stations(self):
-        pass
-
-    def test_compute_stations_stats(self):
-        pass
-
     # ----------------------------------
     # Test functions about shapes
     # ----------------------------------
@@ -633,6 +671,43 @@ class TestCalculator(unittest.TestCase):
             geom = sh_shape(f['geometry'])
             self.assertTrue(geom.equals(geometry_by_shape[shape]))
 
+    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
+    def test_geometrize_shapes(self):
+        shapes = cairns.shapes.copy()
+        geo_shapes = geometrize_shapes(shapes)
+        # Should be a GeoDataFrame
+        self.assertIsInstance(geo_shapes, GeoDataFrame)
+        # Should have the correct shape
+        self.assertEqual(geo_shapes.shape[0], shapes['shape_id'].nunique())
+        self.assertEqual(geo_shapes.shape[1], shapes.shape[1] - 2)
+        # Should have the correct columns
+        expect_cols = set(list(shapes.columns) + ['geometry']) -\
+          set(['shape_pt_lon', 'shape_pt_lat', 'shape_pt_sequence',
+          'shape_dist_traveled'])
+        self.assertEqual(set(geo_shapes.columns), expect_cols)
+
+    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
+    def test_ungeometrize_shapes(self):
+        shapes = cairns.shapes.copy()
+        geo_shapes = geometrize_shapes(shapes)
+        shapes2 = ungeometrize_shapes(geo_shapes)
+        # Test columns are correct
+        expect_cols = set(list(shapes.columns)) -\
+          set(['shape_dist_traveled'])
+        self.assertEqual(set(shapes2.columns), expect_cols)
+        # Data frames should agree on certain columns
+        cols = ['shape_id', 'shape_pt_lon', 'shape_pt_lat']
+        assert_frame_equal(shapes2[cols], shapes[cols])
+
+    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
+    def test_get_shapes_intersecting_geometry(self):
+        feed = copy(cairns)
+        path = 'data/cairns_square_stop_750070.geojson'
+        polygon = sh_shape(json.load(open(path))['features'][0]['geometry'])
+        pshapes = get_shapes_intersecting_geometry(feed, polygon)
+        shape_ids = ['120N0005', '1200010', '1200001']
+        self.assertEqual(set(pshapes['shape_id'].unique()), set(shape_ids))
+
     def test_add_dist_to_shapes(self):
         feed = copy(cairns)
         s1 = feed.shapes.copy()
@@ -649,6 +724,13 @@ class TestCalculator(unittest.TestCase):
         for name, group in s2.groupby('shape_id'):
             sdt = list(group['shape_dist_traveled'].values)
             self.assertEqual(sdt, sorted(sdt))
+
+    def test_add_route_type_to_shapes(self):
+        feed = copy(cairns)
+        shapes = add_route_type_to_shapes(feed)
+        # Should contain correct columns
+        self.assertEqual(set(shapes.columns), 
+          set(feed.shapes.columns) | {'route_type'})
 
     # ----------------------------------
     # Test functions about stop times
@@ -736,20 +818,42 @@ class TestCalculator(unittest.TestCase):
         f = compute_feed_time_series(feed, trips_stats, '20010101')
         self.assertTrue(f.empty)
 
+    def test_create_shapes(self):
+        feed1 = copy(cairns_shapeless)
+        feed2 = create_shapes(feed1)
+        # Number of shapes should equal number of unique stop sequences
+        st = feed1.stop_times.sort_values(['trip_id', 'stop_sequence'])
+        stop_seqs = set([tuple(group['stop_id'].values)
+          for __, group in st.groupby('trip_id')])
+        self.assertEqual(feed2.shapes['shape_id'].nunique(), len(stop_seqs))
+
+    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
+    def test_get_feed_intersecting_polygon(self):
+        feed1 = copy(cairns)
+        with open('data/cairns_square_stop_750070.geojson') as src:
+            polygon = sh_shape(json.load(src)['features'][0]['geometry'])
+        feed2 = get_feed_intersecting_polygon(feed1, polygon)
+        # Should have correct routes
+        rsns = ['120', '120N']
+        self.assertEqual(set(feed2.routes['route_short_name']), set(rsns))
+        # Should have correct trips
+        route_ids = feed1.routes[feed1.routes['route_short_name'].isin(
+          rsns)]['route_id']
+        trip_ids = feed1.trips[feed1.trips['route_id'].isin(
+          route_ids)]['trip_id']
+        self.assertEqual(set(feed2.trips['trip_id']), set(trip_ids))
+        # Should have correct shapes
+        shape_ids = feed1.trips[feed1.trips['route_id'].isin(
+          route_ids)]['shape_id']
+        self.assertEqual(set(feed2.shapes['shape_id']), set(shape_ids))
+        # Should have correct stops
+        stop_ids = feed1.stop_times[feed1.stop_times['trip_id'].isin(
+          trip_ids)]['stop_id']
+        self.assertEqual(set(feed2.stop_times['stop_id']), set(stop_ids))
+
     # ----------------------------------
     # Test miscellanous functions
     # ----------------------------------
-    def test_downsample(self):
-        pass
-
-    def test_combine_time_series(self):
-        pass
-
-    def test_plot_headways(self):
-        pass
-
-    def test_plot_routes_time_series(self):
-        pass
 
         
 if __name__ == '__main__':

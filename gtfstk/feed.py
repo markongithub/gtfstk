@@ -1,17 +1,19 @@
+"""
+This module defines the Feed class which represents GTFS files as data frames.
+Operations on Feed objects live outside of the class in other modules.
+"""
 from . import constants as cs
 from . import utilities as ut
 
 
 class Feed(object):
     """
-    A class to gather some or all GTFS files as data frames.
-    That's it.
-    Business logic lives outside the class.
-    
+    A class that represents GTFS files as data frames.
+
     Warning: the stop times data frame can be big (several gigabytes), 
     so make sure you have enough memory to handle it.
 
-    Attributes:
+    Attributes, almost all of which default to ``None``:
 
     - ``agency``
     - ``stops``
@@ -33,10 +35,10 @@ class Feed(object):
     - ``transfers``
     - ``feed_info``
     - ``dist_units_in``: a string in ``constants.DISTANCE_UNITS``;
-      specifies the native distance units of the feed
+      specifies the native distance units of the feed; default is 'km'
     - ``dist_units_out``: a string in ``constants.DISTANCE_UNITS``;
       specifies the output distance units for functions that operate
-      on Feed objects
+      on Feed objects; default is ``dist_units_in``
     - ``convert_dist``: function that converts from ``dist_units_in`` to
       ``dist_units_out``
     """

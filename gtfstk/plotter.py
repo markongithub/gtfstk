@@ -1,26 +1,14 @@
 """
-Functions for plotting various graphs related to GTFS feeds.
-Optional.
-Requires Matplotlib.
+This module contains functions for plotting various graphs related to Feed objects.
+It is optional and requires Matplotlib.
 """
 import pandas as pd
-import importlib
-
-
-# Import matplotlib if it is installed
-loader = importlib.find_loader('matplotlib')
-if loader is None:
-    print("Warning: matplotlib is not installed, "\
-      "so the plotting functions (those in module gtfstk.plotter) "\
-      "will not work.")
-else:
-    import matplotlib.pyplot as plt
 
 
 def plot_headways(stats, max_headway_limit=60):
     """
     Given a stops or routes stats data frame, 
-    return bar charts of the max and mean headways as a MatplotLib figure.
+    return bar charts of the max and mean headways as a Matplotlib figure.
     Only include the stops/routes with max headways at most 
     ``max_headway_limit`` minutes.
     If ``max_headway_limit is None``, then include them all in a giant plot. 
@@ -32,6 +20,9 @@ def plot_headways(stats, max_headway_limit=60):
     Take the resulting figure ``f`` and do ``f.tight_layout()``
     for a nice-looking plot.
     """
+    import matplotlib.pyplot as plt
+
+
     # Set Pandas plot style
     pd.options.display.mpl_style = 'default'
 
@@ -78,7 +69,7 @@ def plot_feed_time_series(feed_time_series):
     """
     Given a routes time series data frame,
     sum each time series indicator over all routes, 
-    plot each series indicator using MatplotLib, 
+    plot each series indicator using Matplotlib, 
     and return the resulting figure of subplots.
 
     NOTES:
@@ -86,6 +77,9 @@ def plot_feed_time_series(feed_time_series):
     Take the resulting figure ``f`` and do ``f.tight_layout()``
     for a nice-looking plot.
     """
+    import matplotlib.pyplot as plt
+
+
     fts = feed_time_series.copy()
 
     # Reformat time periods

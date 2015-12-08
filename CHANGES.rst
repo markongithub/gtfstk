@@ -1,9 +1,16 @@
 Changes
 ========
 
+v2.1 (2015-12-08)
+------------------
+- Added more functions to ``calculator.py``, some of which are optional and depend on GeoPandas
+- Documented more
+- Made ``read_gtfs()`` raise a more helpful error when an input path does not exist
+
+
 v2.0.1 (2015-11-19)
 --------------------
-- Made matplotlib import optional
+- Made Matplotlib import optional
 - Updated plotter function chart colors
 
 

@@ -1,5 +1,5 @@
 """
-Functions for cleaning a Feed object.
+This module contains functions for cleaning Feed objects.
 """  
 from collections import OrderedDict
 
