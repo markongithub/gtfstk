@@ -21,10 +21,13 @@ else:
     HAS_GEOPANDAS = True
     from geopandas import GeoDataFrame
 
-# Load test feeds
+# Load/create test feeds
 cairns = read_gtfs('data/cairns_gtfs.zip')
 cairns_shapeless = read_gtfs('data/cairns_gtfs.zip')
 cairns_shapeless.shapes = None
+trips = cairns_shapeless.trips.copy()
+trips['shape_id'] = np.nan
+cairns_shapeless.trips = trips
 
 class TestCalculator(unittest.TestCase):
 
@@ -819,8 +822,17 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(f.empty)
 
     def test_create_shapes(self):
-        feed1 = copy(cairns_shapeless)
+        feed1 = copy(cairns)
+        # Remove a trip shape
+        trip_id = 'CNS2014-CNS_MUL-Weekday-00-4165878'
+        feed1.trips.loc[feed1.trips['trip_id'] == trip_id, 'shape_id'] = np.nan
         feed2 = create_shapes(feed1)
+        # Should create only 1 new shape
+        self.assertEqual(len(set(feed2.shapes['shape_id']) - set(
+          feed1.shapes['shape_id'])), 1)
+
+        feed1 = copy(cairns)
+        feed2 = create_shapes(feed1, all_trips=True)
         # Number of shapes should equal number of unique stop sequences
         st = feed1.stop_times.sort_values(['trip_id', 'stop_sequence'])
         stop_seqs = set([tuple(group['stop_id'].values)

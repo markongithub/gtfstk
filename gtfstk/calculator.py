@@ -12,6 +12,7 @@ import tempfile
 import shutil
 import json
 from copy import copy
+import math
 
 import pandas as pd
 import numpy as np
@@ -1942,22 +1943,15 @@ def compute_feed_time_series(feed, trips_stats, date, freq='5Min'):
     f['service_speed'] = f['service_distance']/f['service_duration']
     return f
 
-def create_shapes(feed):
+def create_shapes(feed, all_trips=False):
     """
-    Given a feed, create new shapes for it by connecting its unique 
-    stop sequences.
-    Then assign the resulting new shape IDs to the existing trips.
+    Given a feed, create a shape for every trip that is missing a shape ID.
+    Do this by connecting the stops on the trip with straight lines.
+    Return the resulting feed which has updated shapes and trips data frames.
 
-    More specifically, do the following.
-    Copy the feed, collect its unique stop sequences,
-    sort them to impose a canonical order, and assign shape IDs to them.
-    Then create a shapes data frame using the stop sequences and
-    their corresponding longitude and latitudes.
-    Then add the shape IDs to the ``trips`` data frame.
-    Return the resulting feed.
-
-    This is useful for feeds that lack shapes.
-
+    If ``all_trips == True``, then create new shapes for all trips 
+    by connecting stops, and remove the old shapes.
+    
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stop_times``
@@ -1966,43 +1960,57 @@ def create_shapes(feed):
     """
     feed = copy(feed)
 
-    # Get all trip stop sequences
-    f = feed.stop_times[['trip_id', 'stop_sequence', 'stop_id']].sort_values(
-      ['trip_id', 'stop_sequence'])
+    if all_trips:
+        trip_ids = feed.trips['trip_id']
+    else:
+        trip_ids = feed.trips[feed.trips['shape_id'].isnull()]['trip_id']
 
-    # Collect unique stop sequences, 
+    # Get stop times for given trips
+    f = feed.stop_times[feed.stop_times['trip_id'].isin(trip_ids)][
+      ['trip_id', 'stop_sequence', 'stop_id']]
+    f = f.sort_values(['trip_id', 'stop_sequence'])
+
+    if f.empty:
+        # Nothing to do
+        return feed 
+
+    # Create new shape IDs for given trips.
+    # To do this, collect unique stop sequences, 
     # sort them to impose a canonical order, and 
     # assign shape IDs to them
     stop_seqs = sorted(set(tuple(group['stop_id'].values) 
       for trip, group in f.groupby('trip_id')))
- 
-    shape_by_stop_seq = {seq: 'shape_{!s}'.format(int(i + cs.BIG)) 
+    print(len(stop_seqs))
+    d = int(math.log10(len(stop_seqs))) + 1  # Digits for padding shape IDs  
+    shape_by_stop_seq = {seq: 'shape_{num:0{pad}d}'.format(num=i, pad=d) 
       for i, seq in enumerate(stop_seqs)}
  
-    # Assign these new shape IDs to trips 
-    shape_by_trip = {
-      trip: shape_by_stop_seq[tuple(group['stop_id'].values)] 
+    # Assign these new shape IDs to given trips 
+    shape_by_trip = {trip: shape_by_stop_seq[tuple(group['stop_id'].values)] 
       for trip, group in f.groupby('trip_id')}
-    feed.trips['shape_id'] = feed.trips['trip_id'].map(
-      lambda x: shape_by_trip[x])
- 
-    # Build shapes
+    trip_cond = feed.trips['trip_id'].isin(trip_ids)
+    feed.trips.loc[trip_cond, 'shape_id'] = feed.trips.loc[trip_cond,
+      'trip_id'].map(lambda x: shape_by_trip[x])
+
+    # Build new shapes for given trips
     G = [[shape, i, stop] for stop_seq, shape in shape_by_stop_seq.items() 
       for i, stop in enumerate(stop_seq)]
     g = pd.DataFrame(G, columns=['shape_id', 'shape_pt_sequence', 
       'stop_id'])
-
-    # Add lon/lat
     g = g.merge(feed.stops[['stop_id', 'stop_lon', 'stop_lat']]).sort_values(
       ['shape_id', 'shape_pt_sequence'])
-
-    # Drop and rename columns
     g = g.drop(['stop_id'], axis=1)
     g = g.rename(columns={
       'stop_lon': 'shape_pt_lon',
       'stop_lat': 'shape_pt_lat',
       })
-    feed.shapes = g
+
+    if feed.shapes is not None and not all_trips:
+        # Update feed shapes with new shapes
+        feed.shapes = pd.concat([feed.shapes, g])
+    else:
+        # Create all new shapes
+        feed.shapes = g
 
     return feed
 

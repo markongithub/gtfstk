@@ -69,6 +69,3 @@ DISTANCE_UNITS = ['ft', 'mi', 'm', 'km']
 #:
 CRS_WGS84 = {'no_defs': True, 'ellps': 'WGS84', 'datum': 
   'WGS84', 'proj': 'longlat'}
-
-#:
-BIG = 1000000
