@@ -2082,7 +2082,7 @@ def get_feed_intersecting_polygon(feed, polygon):
         
     # Get shapes for trips
     if feed.shapes is not None:
-        shape_ids = feed.trips['shape_id'].unique()
+        shape_ids = feed.trips['shape_id']
         feed.shapes = feed.shapes[
           feed.shapes['shape_id'].isin(shape_ids)].copy()
         

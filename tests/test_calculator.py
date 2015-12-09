@@ -206,7 +206,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(trips_stats.columns), expect_cols)
         
         # Shapeless feeds should have null entries for distance column
-        feed2 = cairns_shapeless
+        feed2 = copy(cairns_shapeless)
         trips_stats = compute_trips_stats(feed2)
         self.assertEqual(len(trips_stats['distance'].unique()), 1)
         self.assertTrue(np.isnan(trips_stats['distance'].unique()[0]))   
@@ -662,7 +662,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(len(geometry_by_shape), 
           feed.shapes.groupby('shape_id').first().shape[0])
         # Should be None if feed.shapes is None
-        feed2 = cairns_shapeless
+        feed2 = copy(cairns_shapeless)
         self.assertIsNone(build_geometry_by_shape(feed2))
 
     def test_build_shapes_geojson(self):
@@ -831,7 +831,6 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(len(set(feed2.shapes['shape_id']) - set(
           feed1.shapes['shape_id'])), 1)
 
-        feed1 = copy(cairns)
         feed2 = create_shapes(feed1, all_trips=True)
         # Number of shapes should equal number of unique stop sequences
         st = feed1.stop_times.sort_values(['trip_id', 'stop_sequence'])
@@ -841,7 +840,9 @@ class TestCalculator(unittest.TestCase):
 
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
     def test_get_feed_intersecting_polygon(self):
-        feed1 = copy(cairns)
+        # For some reason ``copy(cairns)`` doesn't work here;
+        # doing so yields the wrong shapes data frame
+        feed1 = read_gtfs('data/cairns_gtfs.zip') 
         with open('data/cairns_square_stop_750070.geojson') as src:
             polygon = sh_shape(json.load(src)['features'][0]['geometry'])
         feed2 = get_feed_intersecting_polygon(feed1, polygon)
@@ -855,8 +856,10 @@ class TestCalculator(unittest.TestCase):
           route_ids)]['trip_id']
         self.assertEqual(set(feed2.trips['trip_id']), set(trip_ids))
         # Should have correct shapes
-        shape_ids = feed1.trips[feed1.trips['route_id'].isin(
-          route_ids)]['shape_id']
+        shape_ids = feed1.trips[feed1.trips['trip_id'].isin(
+          trip_ids)]['shape_id']
+        print(feed1.trips['shape_id'].unique())
+        print(shape_ids.unique())
         self.assertEqual(set(feed2.shapes['shape_id']), set(shape_ids))
         # Should have correct stops
         stop_ids = feed1.stop_times[feed1.stop_times['trip_id'].isin(
