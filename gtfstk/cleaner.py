@@ -63,6 +63,13 @@ def assess(feed):
     """
     d = OrderedDict()
 
+    # Count duplicate route short names
+    r = feed.routes
+    dup = r.duplicated(subset=['route_short_name'])
+    n = dup[dup].count()
+        d['num_duplicated_route_short_names'] = n
+        d['frac_duplicated_route_short_names'] = n/r.shape[0]
+
     # Has shape_dist_traveled column in stop times?
     st = feed.stop_times
     if 'shape_dist_traveled' in st.columns:

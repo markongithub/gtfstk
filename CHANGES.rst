@@ -4,6 +4,7 @@ Changes
 v3
 ------------------
 - Changed signature and behavior of ``create_shapes()``
+- Added duplicate route short name count to ``assess()``
 
 
 v2.1 (2015-12-08)
