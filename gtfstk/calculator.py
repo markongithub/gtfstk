@@ -2038,33 +2038,33 @@ def get_feed_intersecting_polygon(feed, polygon):
     
     # Get IDs of stops within the polygon
     stop_ids = get_stops_intersecting_polygon(
-      feed, polygon)['stop_id'].unique()
+      feed, polygon)['stop_id']
         
     # Get all trips that stop at at least one of those stops
     st = feed.stop_times.copy()
-    trip_ids = st[st['stop_id'].isin(stop_ids)]['trip_id'].unique()
+    trip_ids = st[st['stop_id'].isin(stop_ids)]['trip_id']
     feed.trips = feed.trips[feed.trips['trip_id'].isin(trip_ids)].copy()
     
     # Get stop times for trips
     feed.stop_times = st[st['trip_id'].isin(trip_ids)].copy()
     
     # Get stops for trips
-    stop_ids = feed.stop_times['stop_id'].unique()
+    stop_ids = feed.stop_times['stop_id']
     feed.stops = feed.stops[feed.stops['stop_id'].isin(stop_ids)].copy()
     
     # Get routes for trips
-    route_ids = feed.trips['route_id'].unique()
+    route_ids = feed.trips['route_id']
     feed.routes = feed.routes[feed.routes['route_id'].isin(route_ids)].copy()
     
     # Get calendar for trips
-    service_ids = feed.trips['service_id'].unique()
+    service_ids = feed.trips['service_id']
     if feed.calendar is not None:
         feed.calendar = feed.calendar[
           feed.calendar['service_id'].isin(service_ids)].copy()
     
     # Get agency for trips
     if 'agency_id' in feed.routes.columns:
-        agency_ids = feed.routes['agency_id'].unique()
+        agency_ids = feed.routes['agency_id']
         if len(agency_ids):
             feed.agency = feed.agency[
               feed.agency['agency_id'].isin(agency_ids)].copy()
