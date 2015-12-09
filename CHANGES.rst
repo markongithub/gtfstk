@@ -1,6 +1,11 @@
 Changes
 ========
 
+v3
+------------------
+- Changed signature and behavior of ``create_shapes()``
+
+
 v2.1 (2015-12-08)
 ------------------
 - Added more functions to ``calculator.py``, some of which are optional and depend on GeoPandas
