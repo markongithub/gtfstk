@@ -1,5 +1,6 @@
 *__pycache__*
 dist/
+*.pyc
 .DS_Store
 gtfstk/tests/.ipynb_checkpoints/
 examples/.ipynb_checkpoints/
