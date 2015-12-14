@@ -136,6 +136,87 @@ class Feed(object):
         else:
             self.calendar_dates_g = None
 
+    def __eq__(self, other):
+        """
+        Define equality between two feeds as follows.
+        Two feeds are equal if and only if their defining input parameters
+        are equal.
+        Data frames are canonically sorted before checking for equality.
+        """
+        # None checks first
+        # Other checks
+        pass
+        
+# -------------------------------------
+# Functions about basics
+# -------------------------------------
+def copy(feed):
+    """
+    Return a copy of the given feed, using Pandas's copy method to 
+    properly copy data frame attributes.
+    """
+    # Copy feed attributes necessary to create new feed
+    new_feed_input = dict()
+    for key in cs.FEED_INPUTS:
+        value = getattr(feed, key)
+        if isinstance(value, pd.DataFrame):
+            # Pandas copy data frame
+            value = value.copy()
+        new_feed_input[key] = value
+    
+    return Feed(**new_feed_input)
+
+def prefix_ids(data_frame, prefix):
+    """
+    Prefix the all GTFS IDs (stop IDs, trip IDs, etc.) in the given data frame
+    by the given string.
+    For instance, every stop ID ``x`` will become ``prefix + x``.
+    Return the resulting data frame.
+    """
+    f = data_frame.copy()
+    for col in cs.ID_COLUMNS:
+        if col in f.columns:
+            f[col] = prefix + f[col]
+    return f 
+
+def concatenate(feed1, feed2, prefix1='feed1_', prefix2='feed2_'):
+    """
+    Concatenate all corresponding pairs of data frames from
+    ``feed1`` and ``feed2``.
+    Prefix the GTFS IDs of the data frames from ``feed1`` and
+    ``feed2`` by ``prefix1`` and ``prefix2``, respectively, to mark
+    which values came from which feeds and to avoid ID collisions.
+    Return the resulting feed.
+
+    Raise a ``ValueError`` if the given feeds have different 
+    ``dist_units_in`` or ``dist_units_out`` attributes.
+    """
+    if feed1.dist_units_in != feed2.dist_units_in or\
+      feed1.dist_units_out != feed2.dist_units_out:
+        raise ValueError('The given feeds must have the same dist_units_in '\
+          'and dist_units_out attributes')
+
+    new_feed_input = dict()
+    for key in cs.FEED_INPUTS:
+        value = None
+        for feed, prefix in [(feed1, prefix1), (feed2, prefix2)]:
+            v = getattr(feed, key)
+            if isinstance(v, pd.DataFrame):
+                # Prefix IDs of v
+                v = prefix_ids(v, prefix)
+                # Concatenate v with value
+                if value is None:
+                    value = v.copy()
+                else:
+                    value = pd.concat([value, v])
+            else:
+                # Set/reset value to v
+                value = v
+
+            new_feed_input[key] = value
+
+    return Feed(**new_feed_input)
+
 # -------------------------------------
 # Functions about input and output
 # -------------------------------------
@@ -224,73 +305,3 @@ def write_gtfs(feed, path, ndigits=6):
 
     # Delete temporary directory
     shutil.rmtree(tmp_dir)
-
-# -------------------------------------
-# Functions about basics
-# -------------------------------------
-def copy(feed):
-    """
-    Return a copy of the given feed, using Pandas's copy method to 
-    properly copy data frame attributes.
-    """
-    # Copy feed attributes necessary to create new feed
-    new_feed_input = dict()
-    for key in cs.FEED_INPUTS:
-        value = getattr(feed, key)
-        if isinstance(value, pd.DataFrame):
-            # Pandas copy data frame
-            value = value.copy()
-        new_feed_input[key] = value
-    
-    return Feed(**new_feed_input)
-
-def prefix_ids(data_frame, prefix):
-    """
-    Prefix the all GTFS IDs (stop IDs, trip IDs, etc.) in the given data frame
-    by the given string.
-    For instance, every stop ID ``x`` will become ``prefix + x``.
-    Return the resulting data frame.
-    """
-    f = data_frame.copy()
-    for col in cs.ID_COLUMNS:
-        if col in f.columns:
-            f[col] = prefix + f[col]
-    return f 
-
-def concatenate(feed1, feed2, prefix1='feed1_', prefix2='feed2_'):
-    """
-    Concatenate all corresponding pairs of data frames from
-    ``feed1`` and ``feed2``.
-    Prefix the GTFS IDs of the data frames from ``feed1`` and
-    ``feed2`` by ``prefix1`` and ``prefix2``, respectively, to mark
-    which values came from which feeds and to avoid ID collisions.
-    Return the resulting feed.
-
-    Raise a ``ValueError`` if the given feeds have different 
-    ``dist_units_in`` or ``dist_units_out`` attributes.
-    """
-    if feed1.dist_units_in != feed2.dist_units_in or\
-      feed1.dist_units_out != feed2.dist_units_out:
-        raise ValueError('The given feeds must have the same dist_units_in '\
-          'and dist_units_out attributes')
-
-    new_feed_input = dict()
-    for key in cs.FEED_INPUTS:
-        value = None
-        for feed, prefix in [(feed1, prefix1), (feed2, prefix2)]:
-            v = getattr(feed, key)
-            if isinstance(v, pd.DataFrame):
-                # Prefix IDs of v
-                v = prefix_ids(v, prefix)
-                # Concatenate v with value
-                if value is None:
-                    value = v.copy()
-                else:
-                    value = pd.concat([value, v])
-            else:
-                # Set/reset value to v
-                value = v
-
-            new_feed_input[key] = value
-
-    return Feed(**new_feed_input)

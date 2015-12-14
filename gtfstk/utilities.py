@@ -211,3 +211,10 @@ def get_convert_dist(dist_units_in, dist_units_out):
       'km': {'ft': 1/0.0003048, 'm': 1000, 'mi': 1/1.609344, 'km': 1,},
       }
     return lambda x: d[di][do]*x
+
+def equal(x, y):
+    """
+    Equality testing that works on both standard Python objects 
+    and data frames.
+    """
+    pass
