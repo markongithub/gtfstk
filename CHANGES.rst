@@ -1,10 +1,14 @@
 Changes
 ========
 
-v3
+v3.0.0
 ------------------
 - Changed signature and behavior of ``create_shapes()``
 - Added duplicate route short name count to ``assess()``
+- Changed ``INT_COLS`` to ``INT_COLUMNS``
+- Moved some functions
+- Added some functions
+
 
 
 v2.1 (2015-12-08)
@@ -33,7 +37,7 @@ v1 (2015-11-04)
 - Modularized more
 - Refactored the Feed class, exporting most methods to functions
 - Changed function names, favoring a ``compute_`` prefix over a ``get_`` prefix for complex functions
-- Bug fix: in ``INT_COLS`` changed ``'dropoff_type'`` to ``'drop_off_type'``.
+- Bug fix: in ``INT_COLUMNS`` changed ``'dropoff_type'`` to ``'drop_off_type'``.
 
 
 v0.12.3 (2015-07-18)
@@ -63,7 +67,7 @@ v0.12.0 (2015-04-21)
 
 v0.11.16 (2015-04-20)
 ---------------------
-- Added ``min_transfer_time`` to ``INT_COLS``
+- Added ``min_transfer_time`` to ``INT_COLUMNS``
 
 
 v0.11.15 (2015-04-14)
@@ -78,7 +82,7 @@ v0.11.14 (2015-04-14)
 
 v0.11.13 (2015-04-14)
 ---------------------
-- Removed ``parent_station`` from ``INT_COLS``, which should have never been there in the first place
+- Removed ``parent_station`` from ``INT_COLUMNS``, which should have never been there in the first place
 
 
 v0.11.12 (2015-04-13)

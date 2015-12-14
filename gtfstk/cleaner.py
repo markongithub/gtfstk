@@ -6,6 +6,8 @@ from collections import OrderedDict
 import pandas as pd
 
 from . import utilities as ut
+from . import constants as cs
+from .feed import Feed
 
 
 def clean_stop_times(feed):
@@ -33,10 +35,9 @@ def clean_stop_times(feed):
 
 def clean_route_short_names(feed):
     """
-    In ``feed.routes``, disambiguate the ``route_short_name`` column 
-    using ``ut.clean_series``.
-    Among other things, this will disambiguate duplicate
-    route short names.
+    Apply :func:`utilities.clean_series` to ``feed.routes``.
+    Among other things, this will assign values to null route short names
+    and will disambiguate duplicate route short names.
     Return the resulting routes data frame.
     """
     routes = feed.routes.copy()
@@ -59,7 +60,7 @@ def assess(feed):
     """
     Return a Pandas series containing various feed assessments, such as
     the number of trips missing shapes.
-    This is not a validator.
+    This is not a GTFS validator.
     """
     d = OrderedDict()
 

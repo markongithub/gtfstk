@@ -69,3 +69,4 @@ tests/test_cleaner.py
 tests/test_feed.py
 tests/test_utilities.py
 tests/tests.ipynb
+tests/.ipynb_checkpoints/tests-checkpoint.ipynb

@@ -8,7 +8,7 @@ from numpy.testing import assert_array_equal
 from shapely.geometry import Point, LineString, mapping
 from shapely.geometry import shape as sh_shape
 
-from gtfstk.calculator import *
+from gtfstk.feed import read_gtfs
 from gtfstk.utilities import *
 
 # Load test feeds

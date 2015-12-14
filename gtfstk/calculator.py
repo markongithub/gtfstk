@@ -1,17 +1,10 @@
 """
 This module performs a bunch of useful calculations on Feed objects.
 """
-
-from pathlib import Path
 import datetime as dt
 import dateutil.relativedelta as rd
 from collections import OrderedDict, Counter
-import os
-import zipfile
-import tempfile
-import shutil
 import json
-from copy import copy
 import math
 
 import pandas as pd
@@ -21,96 +14,8 @@ import utm
 
 from . import constants as cs
 from . import utilities as ut
-from .feed import Feed
+from .feed import Feed, copy
 
-# -------------------------------------
-# Functions about input and output
-# -------------------------------------
-def read_gtfs(path, dist_units_in=None, dist_units_out=None):
-    """
-    Create a Feed object from the given path and 
-    given distance units.
-    The path points to a directory containing GTFS text files or 
-    a zip file that unzips as a collection of GTFS text files
-    (but not as a directory containing GTFS text files).
-    """
-    p = Path(path)
-    if not p.exists():
-        raise ValueError("Path {!s} does not exist".format(p.as_posix()))
-
-    # Unzip path if necessary
-    zipped = False
-    if zipfile.is_zipfile(p.as_posix()):
-        # Extract to temporary location
-        zipped = True
-        archive = zipfile.ZipFile(p.as_posix())
-        # Strip off .zip extension
-        p = p.parent / p.stem
-        archive.extractall(p.as_posix())
-
-
-    # Read files into feed dictionary of data frames
-    feed_dict = {}
-    for f in cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES:
-        ff = f + '.txt'
-        pp = Path(p, ff)
-        if pp.exists():
-            feed_dict[f] = pd.read_csv(pp.as_posix(), dtype=cs.DTYPE,
-              encoding='utf-8-sig') 
-            # utf-8-sig gets rid of the byte order mark (BOM);
-            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string 
-        else:
-            feed_dict[f] = None
-        
-    feed_dict['dist_units_in'] = dist_units_in
-    feed_dict['dist_units_out'] = dist_units_out
-
-    # Remove extracted zip directory
-    if zipped:
-        shutil.rmtree(p.as_posix())
-
-    # Create feed 
-    return Feed(**feed_dict)
-
-def write_gtfs(feed, path, ndigits=6):
-    """
-    Export the given feed to a zip archive located at ``path``.
-    Round all decimals to ``ndigits`` decimal places.
-    All distances will be displayed in units ``feed.dist_units_out``.
-
-    Assume the following feed attributes are not ``None``: none.
-    """
-    # Remove '.zip' extension from path, because it gets added
-    # automatically below
-    p = Path(path)
-    p = p.parent / p.stem
-
-    # Write files to a temporary directory 
-    tmp_dir = tempfile.mkdtemp()
-    names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
-    int_cols_set = set(cs.INT_COLS)
-    for name in names:
-        f = getattr(feed, name)
-        if f is None:
-            continue
-
-        f = f.copy()
-        # Some columns need to be output as integers.
-        # If there are integers and NaNs in any such column, 
-        # then Pandas will format the column as float, which we don't want.
-        s = list(int_cols_set & set(f.columns))
-        if s:
-            f[s] = f[s].fillna(-1).astype(int).astype(str).\
-              replace('-1', '')
-        tmp_path = Path(tmp_dir, name + '.txt')
-        f.to_csv(tmp_path.as_posix(), index=False, 
-          float_format='%.{!s}f'.format(ndigits))
-
-    # Zip directory 
-    shutil.make_archive(p.as_posix(), format='zip', root_dir=tmp_dir)    
-
-    # Delete temporary directory
-    shutil.rmtree(tmp_dir)
 
 # -------------------------------------
 # Functions about calendars
@@ -122,19 +27,19 @@ def get_dates(feed, as_date_obj=False):
     If ``as_date_obj == True``, then return the dates as
     as ``datetime.date`` objects.  
 
-    Assume the following feed attributes are not ``None``:
-
-    - ``feed.calendar`` or ``feed.calendar_dates``
-
+    If ``feed.calendar`` and ``feed.calendar_dates`` are both 
+    ``None``, then return the empty list.
     """
     if feed.calendar is not None:
         start_date = feed.calendar['start_date'].min()
         end_date = feed.calendar['end_date'].max()
-    else:
+    elif feed.calendar_dates is not None:
         # Use calendar_dates
         start_date = feed.calendar_dates['date'].min()
         end_date = feed.calendar_dates['date'].max()
-    
+    else:
+        return []
+
     start_date = ut.datestr_to_date(start_date)
     end_date = ut.datestr_to_date(end_date)
     num_days = (end_date - start_date).days
@@ -151,42 +56,44 @@ def get_first_week(feed, as_date_obj=False):
     """
     Return a list of date corresponding
     to the first Monday--Sunday week for which this feed is valid.
-    In the unlikely event that this feed does not cover a full 
+    If the given feed does not cover a full 
     Monday--Sunday week, then return whatever initial segment of the 
-    week it does cover. 
+    week it does cover, which could be the empty list.
     If ``as_date_obj == True``, then return the dates as
-    as ``datetime.date`` objects.      
-
-    Assume the following feed attributes are not ``None``:
-
-    - Those used in :func:`get_dates`
-
+    as ``datetime.date`` objects.    
     """
     dates = get_dates(feed, as_date_obj=True)
+    if not dates:
+        return []
+
     # Get first Monday
     monday_index = None
     for (i, date) in enumerate(dates):
         if date.weekday() == 0:
             monday_index = i
             break
-    week = []
+    if monday_index is None:
+        return []
+
+    result = []
     for j in range(7):
         try:
-            week.append(dates[monday_index + j])
+            result.append(dates[monday_index + j])
         except:
             break
+
     # Convert to date strings if requested
     if not as_date_obj:
-        week = [ut.datestr_to_date(x, inverse=True)
-          for x in week]
-    return week
+        result = [ut.datestr_to_date(x, inverse=True)
+          for x in result]
+    return result
 
 # -------------------------------------
 # Functions about trips
 # -------------------------------------
-def count_active_trips(trips, time):
+def count_active_trips(trip_times, time):
     """
-    Given a data frame containing the rows
+    Given a data frame ``trip_times`` containing the columns
 
     - trip_id
     - start_time: start time of the trip in seconds past midnight
@@ -195,29 +102,22 @@ def count_active_trips(trips, time):
     and a time in seconds past midnight, return the number of 
     trips in the data frame that are active at the given time.
     A trip is a considered active at time t if 
-    start_time <= t < end_time.
-
-    Assume the following feed attributes are not ``None``:
-
-    - ``feed.trips``
-        
+    start_time <= t < end_time.        
     """
-    return trips[(trips['start_time'] <= time) &\
-      (trips['end_time'] > time)].shape[0]
+    t = trip_times
+    return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
 
 def is_active_trip(feed, trip, date):
     """
     If the given trip (trip ID) is active on the given date,
     then return ``True``; otherwise return ``False``.
     To avoid error checking in the interest of speed, 
-    assume ``trip`` is a valid trip ID in the feed and 
+    assume ``trip`` is a valid trip ID in the given feed and 
     ``date`` is a valid date object.
 
     Assume the following feed attributes are not ``None``:
 
     - ``feed.trips_i``
-    - ``feed.calendar_dates_g`` (optionally)
-    - ``feed.calendar_i`` (optionally)
 
     NOTES: 
 
@@ -253,21 +153,16 @@ def get_trips(feed, date=None, time=None):
     """
     Return the section of ``feed.trips`` that contains
     only trips active on the given date.
-    If the date is not given, then return all trips.
+    If ``feed.trips`` is ``None`` or the date is ``None``, 
+    then return all ``feed.trips``.
     If a date and time are given, 
     then return only those trips active at that date and time.
     Do not take times modulo 24.
-
-    Assume the following feed attributes are not ``None``:
-
-    - ``feed.trips``
-    - Those used in :func:`is_active_trip`
-        
     """
-    f = feed.trips.copy()
-    if date is None:
-        return f
+    if feed.trips is None or date is None:
+        return feed.trips 
 
+    f = feed.trips.copy()
     f['is_active'] = f['trip_id'].map(
       lambda trip: is_active_trip(feed, trip, date))
     f = f[f['is_active']]
@@ -301,7 +196,7 @@ def compute_trips_activity(feed, dates):
     - trip_id
     - ``dates[0]``: 1 if the trip is active on ``dates[0]``; 
       0 otherwise
-    - ``dates[1]``: 1 if the trip is active on ``dates[0]``; 
+    - ``dates[1]``: 1 if the trip is active on ``dates[1]``; 
       0 otherwise
     - etc.
     - ``dates[-1]``: 1 if the trip is active on ``dates[-1]``; 
@@ -329,10 +224,11 @@ def compute_busiest_date(feed, dates):
     """
     Given a list of dates, return the first date that has the 
     maximum number of active trips.
+    If the list of dates is empty, then raise a ``ValueError``.
 
     Assume the following feed attributes are not ``None``:
 
-    - Those is :func:`compute_trips_activity`
+    - Those used in :func:`compute_trips_activity`
         
     """
     f = compute_trips_activity(feed, dates)
@@ -341,7 +237,7 @@ def compute_busiest_date(feed, dates):
 
 def compute_trips_stats(feed, compute_dist_from_shapes=False):
     """
-    Return a  data frame with the following columns:
+    Return a data frame with the following columns:
 
     - trip_id
     - route_id
@@ -384,7 +280,6 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
     ``compute_dist_from_shapes=False`` and ``compute_dist_from_shapes=True``,
     yields a difference of at most 0.83km.
     """        
-
     # Start with stop times and extra trip info.
     # Convert departure times to seconds past midnight to 
     # compute durations.

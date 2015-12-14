@@ -8,8 +8,9 @@ from numpy.testing import assert_array_equal
 from shapely.geometry import Point, LineString, mapping
 from shapely.geometry import shape as sh_shape
 
-from gtfstk.calculator import *
+from gtfstk.constants import *
 from gtfstk.utilities import *
+from gtfstk.feed import *
 from gtfstk.cleaner import *
 
 cairns = read_gtfs('data/cairns_gtfs.zip')

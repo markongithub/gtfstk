@@ -1,7 +1,16 @@
 """
-This module defines the Feed class which represents GTFS files as data frames.
-Operations on Feed objects live outside of the class in other modules.
+This module defines the Feed class, which represents GTFS files as data frames,
+and defines some basic operations on Feed objects.
+All operations of Feed objects live outside of the Feed class.
+Every operation on a Feed object assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or is a data frame with the columns required in the `GTFS <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
 """
+from pathlib import Path
+import zipfile
+import tempfile
+import shutil
+
+import pandas as pd 
+
 from . import constants as cs
 from . import utilities as ut
 
@@ -126,3 +135,162 @@ class Feed(object):
               ['service_id', 'date'])
         else:
             self.calendar_dates_g = None
+
+# -------------------------------------
+# Functions about input and output
+# -------------------------------------
+def read_gtfs(path, dist_units_in=None, dist_units_out=None):
+    """
+    Create a Feed object from the given path and 
+    given distance units.
+    The path points to a directory containing GTFS text files or 
+    a zip file that unzips as a collection of GTFS text files
+    (but not as a directory containing GTFS text files).
+    """
+    p = Path(path)
+    if not p.exists():
+        raise ValueError("Path {!s} does not exist".format(p.as_posix()))
+
+    # Unzip path if necessary
+    zipped = False
+    if zipfile.is_zipfile(p.as_posix()):
+        # Extract to temporary location
+        zipped = True
+        archive = zipfile.ZipFile(p.as_posix())
+        # Strip off .zip extension
+        p = p.parent / p.stem
+        archive.extractall(p.as_posix())
+
+
+    # Read files into feed dictionary of data frames
+    feed_dict = {}
+    for f in cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES:
+        ff = f + '.txt'
+        pp = Path(p, ff)
+        if pp.exists():
+            feed_dict[f] = pd.read_csv(pp.as_posix(), dtype=cs.DTYPE,
+              encoding='utf-8-sig') 
+            # utf-8-sig gets rid of the byte order mark (BOM);
+            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string 
+        else:
+            feed_dict[f] = None
+        
+    feed_dict['dist_units_in'] = dist_units_in
+    feed_dict['dist_units_out'] = dist_units_out
+
+    # Remove extracted zip directory
+    if zipped:
+        shutil.rmtree(p.as_posix())
+
+    # Create feed 
+    return Feed(**feed_dict)
+
+def write_gtfs(feed, path, ndigits=6):
+    """
+    Export the given feed to a zip archive located at ``path``.
+    Round all decimals to ``ndigits`` decimal places.
+    All distances will be displayed in units ``feed.dist_units_out``.
+
+    Assume the following feed attributes are not ``None``: none.
+    """
+    # Remove '.zip' extension from path, because it gets added
+    # automatically below
+    p = Path(path)
+    p = p.parent / p.stem
+
+    # Write files to a temporary directory 
+    tmp_dir = tempfile.mkdtemp()
+    names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
+    INT_COLUMNS_set = set(cs.INT_COLUMNS)
+    for name in names:
+        f = getattr(feed, name)
+        if f is None:
+            continue
+
+        f = f.copy()
+        # Some columns need to be output as integers.
+        # If there are NaNs in any such column, 
+        # then Pandas will format the column as float, which we don't want.
+        s = list(INT_COLUMNS_set & set(f.columns))
+        if s:
+            f[s] = f[s].fillna(-1).astype(int).astype(str).\
+              replace('-1', '')
+        tmp_path = Path(tmp_dir, name + '.txt')
+        f.to_csv(tmp_path.as_posix(), index=False, 
+          float_format='%.{!s}f'.format(ndigits))
+
+    # Zip directory 
+    shutil.make_archive(p.as_posix(), format='zip', root_dir=tmp_dir)    
+
+    # Delete temporary directory
+    shutil.rmtree(tmp_dir)
+
+# -------------------------------------
+# Functions about basics
+# -------------------------------------
+def copy(feed):
+    """
+    Return a copy of the given feed, using Pandas's copy method to 
+    properly copy data frame attributes.
+    """
+    # Copy feed attributes necessary to create new feed
+    new_feed_input = dict()
+    for key in cs.FEED_INPUTS:
+        value = getattr(feed, key)
+        if isinstance(value, pd.DataFrame):
+            # Pandas copy data frame
+            value = value.copy()
+        new_feed_input[key] = value
+    
+    return Feed(**new_feed_input)
+
+def prefix_ids(data_frame, prefix):
+    """
+    Prefix the all GTFS IDs (stop IDs, trip IDs, etc.) in the given data frame
+    by the given string.
+    For instance, every stop ID ``x`` will become ``prefix + x``.
+    Return the resulting data frame.
+    """
+    f = data_frame.copy()
+    for col in cs.ID_COLUMNS:
+        if col in f.columns:
+            f[col] = prefix + f[col]
+    return f 
+
+def concatenate(feed1, feed2, prefix1='feed1_', prefix2='feed2_'):
+    """
+    Concatenate all corresponding pairs of data frames from
+    ``feed1`` and ``feed2``.
+    Prefix the GTFS IDs of the data frames from ``feed1`` and
+    ``feed2`` by ``prefix1`` and ``prefix2``, respectively, to mark
+    which values came from which feeds and to avoid ID collisions.
+    Return the resulting feed.
+
+    Raise a ``ValueError`` if the given feeds have different 
+    ``dist_units_in`` or ``dist_units_out`` attributes.
+    """
+    if feed1.dist_units_in != feed2.dist_units_in or\
+      feed1.dist_units_out != feed2.dist_units_out:
+        raise ValueError('The given feeds must have the same dist_units_in '\
+          'and dist_units_out attributes')
+
+    new_feed_input = dict()
+    for key in cs.FEED_INPUTS:
+        value = None
+        for feed, prefix in [(feed1, prefix1), (feed2, prefix2)]:
+            v = getattr(feed, key)
+            if isinstance(v, pd.DataFrame):
+                # Prefix IDs of v
+                v = prefix_ids(v, prefix)
+                # Concatenate v with value
+                if value is None:
+                    value = v.copy()
+                else:
+                    value = pd.concat([value, v])
+            else:
+                # Set/reset value to v
+                value = v
+
+            new_feed_input[key] = value
+
+    return Feed(**new_feed_input)
