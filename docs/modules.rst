@@ -6,6 +6,7 @@ Module constants
     :undoc-members:
     :show-inheritance:
 
+
 Module utilities
 ===========================
 
@@ -13,6 +14,7 @@ Module utilities
     :members:
     :undoc-members:
     :show-inheritance:
+
 
 Module feed
 ===========================
@@ -22,13 +24,15 @@ Module feed
     :undoc-members:
     :show-inheritance:
 
-Module calculator
+
+Module validator 
 ===========================
 
-.. automodule:: gtfstk.calculator
+.. automodule:: gtfstk.validator
     :members:
     :undoc-members:
     :show-inheritance:
+
 
 Module cleaner 
 ===========================
@@ -38,18 +42,20 @@ Module cleaner
     :undoc-members:
     :show-inheritance:
 
-Module plotter
+
+Module calculator
 ===========================
 
-.. automodule:: gtfstk.plotter
+.. automodule:: gtfstk.calculator
     :members:
     :undoc-members:
     :show-inheritance:
 
-Module validator 
+
+Module plotter
 ===========================
 
-.. automodule:: gtfstk.validator
+.. automodule:: gtfstk.plotter
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,7 +1,16 @@
 """
-This module defines the Feed class which represents GTFS files as data frames.
-Operations on Feed objects live outside of the class in other modules.
+This module defines the Feed class, which represents GTFS files as data frames,
+and defines some basic operations on Feed objects.
+Almost all operations on Feed objects are functions that live outside of the Feed class and are not methods of the Feed class.
+Every function that acts on a Feed object assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or is a data frame with the columns required in the `GTFS <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
 """
+from pathlib import Path
+import zipfile
+import tempfile
+import shutil
+
+import pandas as pd 
+
 from . import constants as cs
 from . import utilities as ut
 
@@ -126,3 +135,194 @@ class Feed(object):
               ['service_id', 'date'])
         else:
             self.calendar_dates_g = None
+
+    def __eq__(self, other):
+        """
+        Define equality between two feeds as follows.
+        Two feeds are equal if and only if their ``contsants.FEED_INPUTS``
+        attributes are equal, or almost equal in the case of data frames.
+        Almost equality is checked via :func:`utilities.almost_equal`, which
+        canonically sorts data frame rows and columns.
+        """
+        # Return False if failures
+        for key in cs.FEED_INPUTS:
+            x = getattr(self, key)
+            y = getattr(other, key)
+            # Data frame case
+            if isinstance(x, pd.DataFrame):
+                if not isinstance(y, pd.DataFrame) or\
+                  not ut.almost_equal(x, y):
+                    return False 
+            # Other case
+            else:
+                if x != y:
+                    return False
+        # No failures
+        return True
+
+# -------------------------------------
+# Functions about basics
+# -------------------------------------
+def copy(feed):
+    """
+    Return a copy of the given feed, using Pandas's copy method to 
+    properly copy feed attributes that are data frames.
+    """
+    # Copy feed attributes necessary to create new feed
+    new_feed_input = dict()
+    for key in cs.FEED_INPUTS:
+        value = getattr(feed, key)
+        if isinstance(value, pd.DataFrame):
+            # Pandas copy data frame
+            value = value.copy()
+        new_feed_input[key] = value
+    
+    return Feed(**new_feed_input)
+
+# def concatenate(feeds, prefixes=None):
+#     """
+#     Given a list of feeds, concatenate or set equal their attributes.
+#     To avoid GTFS ID collisions when doing so, prefix the GTFS IDs
+#     of the data frames in ``feeds[j]`` with the string ``prefixes[j]``
+#     via :func:`prefix_ids`.
+#     Return the resulting feed.
+
+#     If ``feeds`` is empty, then return the empty feed.
+#     If there is only one feed in ``feeds``, then return ``feeds[0]``.
+#     Raise a ``ValueError`` if the given feeds have different 
+#     ``dist_units_in`` or ``dist_units_out`` attributes.
+#     If ``prefixes is None``, then set it to ``['feed0_', 'feed1_', ...]``.
+#     Raise a ``ValueError`` if ``prefixes`` is not ``None`` and 
+#     the lengths of ``feeds`` and ``prefixes`` differ.
+#     """
+#     # Trivial cases
+#     n = len(feeds)
+#     if not n:
+#         return Feed()
+#     if n == 1:
+#         return feeds[0]
+
+#     # Raise error if conflicting distance units
+#     for i in range(n - 1):
+#         if feeds[i].dist_units_in != feeds[i + 1].dist_units_in or\
+#           feeds[i].dist_units_out != feeds[i + 1].dist_units_out:
+#             raise ValueError('The given feeds must have the same '\
+#               'dist_units_in and dist_units_out attributes')
+
+#     # Initialize prefixes if necessary
+#     if prefixes is None:
+#         prefixes = ['feed{!s}_'.format(i) for i in range(n)]
+#     elif len(prefixes) != n:
+#         raise ValueError('prefixes must be None or '\
+#           'have the same length as feeds')
+
+#     # Ready to go now
+#     new_feed_input = dict()
+#     for key in cs.FEED_INPUTS:
+#         value = None
+#         for feed, prefix in zip(feeds, prefixes):
+#             v = getattr(feed, key)
+#             if isinstance(v, pd.DataFrame):
+#                 # Prefix IDs of v
+#                 v = ut.prefix_ids(v, prefix)
+#                 # Overwrite/concatenate value with v
+#                 if value is None:
+#                     value = v.copy()
+#                 else:
+#                     value = pd.concat([value, v])
+#             else:
+#                 # Set/reset value to v
+#                 value = v
+
+#         new_feed_input[key] = value
+
+#     return Feed(**new_feed_input)
+
+# -------------------------------------
+# Functions about input and output
+# -------------------------------------
+def read_gtfs(path, dist_units_in=None, dist_units_out=None):
+    """
+    Create a Feed object from the given path and 
+    given distance units.
+    The path points to a directory containing GTFS text files or 
+    a zip file that unzips as a collection of GTFS text files
+    (but not as a directory containing GTFS text files).
+    """
+    p = Path(path)
+    if not p.exists():
+        raise ValueError("Path {!s} does not exist".format(p.as_posix()))
+
+    # Unzip path if necessary
+    zipped = False
+    if zipfile.is_zipfile(p.as_posix()):
+        # Extract to temporary location
+        zipped = True
+        archive = zipfile.ZipFile(p.as_posix())
+        # Strip off .zip extension
+        p = p.parent / p.stem
+        archive.extractall(p.as_posix())
+
+
+    # Read files into feed dictionary of data frames
+    feed_dict = {}
+    for f in cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES:
+        ff = f + '.txt'
+        pp = Path(p, ff)
+        if pp.exists():
+            feed_dict[f] = pd.read_csv(pp.as_posix(), dtype=cs.DTYPE,
+              encoding='utf-8-sig') 
+            # utf-8-sig gets rid of the byte order mark (BOM);
+            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string 
+        else:
+            feed_dict[f] = None
+        
+    feed_dict['dist_units_in'] = dist_units_in
+    feed_dict['dist_units_out'] = dist_units_out
+
+    # Remove extracted zip directory
+    if zipped:
+        shutil.rmtree(p.as_posix())
+
+    # Create feed 
+    return Feed(**feed_dict)
+
+def write_gtfs(feed, path, ndigits=6):
+    """
+    Export the given feed to a zip archive located at ``path``.
+    Round all decimals to ``ndigits`` decimal places.
+    All distances will be displayed in units ``feed.dist_units_out``.
+
+    Assume the following feed attributes are not ``None``: none.
+    """
+    # Remove '.zip' extension from path, because it gets added
+    # automatically below
+    p = Path(path)
+    p = p.parent / p.stem
+
+    # Write files to a temporary directory 
+    tmp_dir = tempfile.mkdtemp()
+    names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
+    INT_COLUMNS_set = set(cs.INT_COLUMNS)
+    for name in names:
+        f = getattr(feed, name)
+        if f is None:
+            continue
+
+        f = f.copy()
+        # Some columns need to be output as integers.
+        # If there are NaNs in any such column, 
+        # then Pandas will format the column as float, which we don't want.
+        s = list(INT_COLUMNS_set & set(f.columns))
+        if s:
+            f[s] = f[s].fillna(-1).astype(int).astype(str).\
+              replace('-1', '')
+        tmp_path = Path(tmp_dir, name + '.txt')
+        f.to_csv(tmp_path.as_posix(), index=False, 
+          float_format='%.{!s}f'.format(ndigits))
+
+    # Zip directory 
+    shutil.make_archive(p.as_posix(), format='zip', root_dir=tmp_dir)    
+
+    # Delete temporary directory
+    shutil.rmtree(tmp_dir)

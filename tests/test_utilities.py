@@ -8,7 +8,7 @@ from numpy.testing import assert_array_equal
 from shapely.geometry import Point, LineString, mapping
 from shapely.geometry import shape as sh_shape
 
-from gtfstk.calculator import *
+from gtfstk.feed import read_gtfs
 from gtfstk.utilities import *
 
 # Load test feeds
@@ -90,6 +90,16 @@ class TestUtilities(unittest.TestCase):
         get = get_peak_indices(times, counts)
         expect = [0, 1]
         assert_array_equal(get, expect)
+
+    def test_almost_equal(self):
+        f = pd.DataFrame([[1, 2], [3, 4]], columns=['a', 'b'])
+        self.assertTrue(almost_equal(f, f))
+        g = pd.DataFrame([[4, 3], [2, 1]], columns=['b', 'a'])
+        self.assertTrue(almost_equal(f, g))
+        h = pd.DataFrame([[1, 2], [5, 4]], columns=['a', 'b'])
+        self.assertFalse(almost_equal(f, h))
+        h = pd.DataFrame()
+        self.assertFalse(almost_equal(f, h))
 
 
 if __name__ == '__main__':
