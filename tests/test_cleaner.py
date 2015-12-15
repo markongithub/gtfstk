@@ -19,10 +19,15 @@ cairns = read_gtfs('data/cairns_gtfs.zip')
 class TestCleaner(unittest.TestCase):
 
     def test_clean_route_short_names(self):
-        """
-        Mostly tested already via ``test_clean_series()``.
-        """
-        pass
+        feed  = copy(cairns)
+        feed.routes.loc[1:5, 'route_short_name'] = np.nan
+        feed.routes.loc[6:, 'route_short_name'] = 'hello'
+        routes = clean_route_short_names(feed)
+        # Should have unique route short names
+        self.assertEqual(routes['route_short_name'].nunique(), routes.shape[0])
+        # NaNs should be replaced by route IDs
+        self.assertEqual(routes.ix[1:5]['route_short_name'].values.tolist(),
+          cairns.routes.ix[1:5]['route_id'].values.tolist())
 
     def test_prune_dead_routes(self):
         # Should not change Cairns routes

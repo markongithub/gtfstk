@@ -35,15 +35,26 @@ def clean_stop_times(feed):
 
 def clean_route_short_names(feed):
     """
-    Apply :func:`utilities.clean_series` to ``feed.routes``.
-    Among other things, this will assign values to null route short names
-    and will disambiguate duplicate route short names.
+    In ``feed.routes``, assign route IDs to missing route short names.
+    Then disambiguate route short names by applying 
+    :func:`utilities.clean_series`.
     Return the resulting routes data frame.
     """
+    def my_fillna(row):
+        rsn, rid = row
+        if pd.isnull(rsn):
+            rsn = rid
+        return rsn
+
     routes = feed.routes.copy()
     if routes is not None:
+        # Fill NaNs
+        routes['route_short_name'] = routes[['route_short_name', 
+          'route_id']].apply(my_fillna, axis=1)
+        # Disambiguate
         routes['route_short_name'] = ut.clean_series(
           routes['route_short_name'])
+
     return routes
 
 def prune_dead_routes(feed):

@@ -107,10 +107,8 @@ def clean_series(series, nan_prefix='n/a', mark='-'):
     Replace duplicate items x1, x2, x3, etc. with 
     x1 + '-0', x2 + '-1', x3 + '-2', etc.
     Return the resulting series.
-    You can change the dashes to another string by setting
+    The dashes can be changed to another string by setting
     the ``mark`` parameter.
-
-    I use this for cleaning route short names.
     """
     # Replace NaNs
     s = series.copy()
@@ -212,9 +210,39 @@ def get_convert_dist(dist_units_in, dist_units_out):
       }
     return lambda x: d[di][do]*x
 
-def equal(x, y):
+def almost_equal(f, g):
     """
-    Equality testing that works on both standard Python objects 
-    and data frames.
+    Return ``True`` if and only if the given data frames are equal 
+    after sorting their columns names, sorting their values, 
+    and reseting their indices.
     """
-    pass
+    if f.empty or g.empty:
+        return f.equals(g)
+    else:
+        # Put in canonical order
+        F = f.sort_index(axis=1).sort_values(list(f.columns)).reset_index(
+          drop=True)
+        G = g.sort_index(axis=1).sort_values(list(g.columns)).reset_index(
+          drop=True)
+        return F.equals(G)
+
+# def prefix_ids(data_frame, prefix):
+#     """
+#     Prefix the all GTFS IDs (stop IDs, trip IDs, etc.) in the given data frame
+#     by the given string if and only if the ID values are not NaN.
+#     For instance, every non-NaN stop ID ``x`` will become ``prefix + x`` and 
+#     every NaN stop ID will remain NaN.
+#     Return the resulting data frame.
+#     """
+#     f = data_frame.copy()
+
+#     def prefix_it(x):
+#         if pd.notnull(x):
+#             x = prefix + x
+#         return x
+
+#     for col in cs.ID_COLUMNS:
+#         if col in f.columns:
+#             f[col] = f[col].map(prefix_it)
+    
+#     return f 

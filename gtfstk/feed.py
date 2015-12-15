@@ -1,8 +1,8 @@
 """
 This module defines the Feed class, which represents GTFS files as data frames,
 and defines some basic operations on Feed objects.
-All operations of Feed objects live outside of the Feed class.
-Every operation on a Feed object assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or is a data frame with the columns required in the `GTFS <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
+Almost all operations on Feed objects are functions that live outside of the Feed class and are not methods of the Feed class.
+Every function that acts on a Feed object assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or is a data frame with the columns required in the `GTFS <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
 """
 from pathlib import Path
 import zipfile
@@ -139,21 +139,34 @@ class Feed(object):
     def __eq__(self, other):
         """
         Define equality between two feeds as follows.
-        Two feeds are equal if and only if their defining input parameters
-        are equal.
-        Data frames are canonically sorted before checking for equality.
+        Two feeds are equal if and only if their ``contsants.FEED_INPUTS``
+        attributes are equal, or almost equal in the case of data frames.
+        Almost equality is checked via :func:`utilities.almost_equal`, which
+        canonically sorts data frame rows and columns.
         """
-        # None checks first
-        # Other checks
-        pass
-        
+        # Return False if failures
+        for key in cs.FEED_INPUTS:
+            x = getattr(self, key)
+            y = getattr(other, key)
+            # Data frame case
+            if isinstance(x, pd.DataFrame):
+                if not isinstance(y, pd.DataFrame) or\
+                  not ut.almost_equal(x, y):
+                    return False 
+            # Other case
+            else:
+                if x != y:
+                    return False
+        # No failures
+        return True
+
 # -------------------------------------
 # Functions about basics
 # -------------------------------------
 def copy(feed):
     """
     Return a copy of the given feed, using Pandas's copy method to 
-    properly copy data frame attributes.
+    properly copy feed attributes that are data frames.
     """
     # Copy feed attributes necessary to create new feed
     new_feed_input = dict()
@@ -166,56 +179,64 @@ def copy(feed):
     
     return Feed(**new_feed_input)
 
-def prefix_ids(data_frame, prefix):
-    """
-    Prefix the all GTFS IDs (stop IDs, trip IDs, etc.) in the given data frame
-    by the given string.
-    For instance, every stop ID ``x`` will become ``prefix + x``.
-    Return the resulting data frame.
-    """
-    f = data_frame.copy()
-    for col in cs.ID_COLUMNS:
-        if col in f.columns:
-            f[col] = prefix + f[col]
-    return f 
+# def concatenate(feeds, prefixes=None):
+#     """
+#     Given a list of feeds, concatenate or set equal their attributes.
+#     To avoid GTFS ID collisions when doing so, prefix the GTFS IDs
+#     of the data frames in ``feeds[j]`` with the string ``prefixes[j]``
+#     via :func:`prefix_ids`.
+#     Return the resulting feed.
 
-def concatenate(feed1, feed2, prefix1='feed1_', prefix2='feed2_'):
-    """
-    Concatenate all corresponding pairs of data frames from
-    ``feed1`` and ``feed2``.
-    Prefix the GTFS IDs of the data frames from ``feed1`` and
-    ``feed2`` by ``prefix1`` and ``prefix2``, respectively, to mark
-    which values came from which feeds and to avoid ID collisions.
-    Return the resulting feed.
+#     If ``feeds`` is empty, then return the empty feed.
+#     If there is only one feed in ``feeds``, then return ``feeds[0]``.
+#     Raise a ``ValueError`` if the given feeds have different 
+#     ``dist_units_in`` or ``dist_units_out`` attributes.
+#     If ``prefixes is None``, then set it to ``['feed0_', 'feed1_', ...]``.
+#     Raise a ``ValueError`` if ``prefixes`` is not ``None`` and 
+#     the lengths of ``feeds`` and ``prefixes`` differ.
+#     """
+#     # Trivial cases
+#     n = len(feeds)
+#     if not n:
+#         return Feed()
+#     if n == 1:
+#         return feeds[0]
 
-    Raise a ``ValueError`` if the given feeds have different 
-    ``dist_units_in`` or ``dist_units_out`` attributes.
-    """
-    if feed1.dist_units_in != feed2.dist_units_in or\
-      feed1.dist_units_out != feed2.dist_units_out:
-        raise ValueError('The given feeds must have the same dist_units_in '\
-          'and dist_units_out attributes')
+#     # Raise error if conflicting distance units
+#     for i in range(n - 1):
+#         if feeds[i].dist_units_in != feeds[i + 1].dist_units_in or\
+#           feeds[i].dist_units_out != feeds[i + 1].dist_units_out:
+#             raise ValueError('The given feeds must have the same '\
+#               'dist_units_in and dist_units_out attributes')
 
-    new_feed_input = dict()
-    for key in cs.FEED_INPUTS:
-        value = None
-        for feed, prefix in [(feed1, prefix1), (feed2, prefix2)]:
-            v = getattr(feed, key)
-            if isinstance(v, pd.DataFrame):
-                # Prefix IDs of v
-                v = prefix_ids(v, prefix)
-                # Concatenate v with value
-                if value is None:
-                    value = v.copy()
-                else:
-                    value = pd.concat([value, v])
-            else:
-                # Set/reset value to v
-                value = v
+#     # Initialize prefixes if necessary
+#     if prefixes is None:
+#         prefixes = ['feed{!s}_'.format(i) for i in range(n)]
+#     elif len(prefixes) != n:
+#         raise ValueError('prefixes must be None or '\
+#           'have the same length as feeds')
 
-            new_feed_input[key] = value
+#     # Ready to go now
+#     new_feed_input = dict()
+#     for key in cs.FEED_INPUTS:
+#         value = None
+#         for feed, prefix in zip(feeds, prefixes):
+#             v = getattr(feed, key)
+#             if isinstance(v, pd.DataFrame):
+#                 # Prefix IDs of v
+#                 v = ut.prefix_ids(v, prefix)
+#                 # Overwrite/concatenate value with v
+#                 if value is None:
+#                     value = v.copy()
+#                 else:
+#                     value = pd.concat([value, v])
+#             else:
+#                 # Set/reset value to v
+#                 value = v
 
-    return Feed(**new_feed_input)
+#         new_feed_input[key] = value
+
+#     return Feed(**new_feed_input)
 
 # -------------------------------------
 # Functions about input and output

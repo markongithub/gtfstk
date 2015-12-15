@@ -5,9 +5,10 @@ v3.0.0
 ------------------
 - Changed signature and behavior of ``create_shapes()``
 - Added duplicate route short name count to ``assess()``
+- Changed the behavior of ``clean_route_short_names()``
 - Changed ``INT_COLS`` to ``INT_COLUMNS``
 - Moved some functions
-- Added some functions
+- Added some functions, such as a function to copy feeds
 
 
 
