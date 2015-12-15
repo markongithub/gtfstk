@@ -11,7 +11,6 @@ v3.0.0
 - Added some functions, such as a function to copy feeds
 
 
-
 v2.1 (2015-12-08)
 ------------------
 - Added more functions to ``calculator.py``, some of which are optional and depend on GeoPandas

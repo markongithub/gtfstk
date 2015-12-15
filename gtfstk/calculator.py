@@ -1,5 +1,5 @@
 """
-This module performs a bunch of useful calculations on Feed objects.
+This module contains a bunch of useful calculators on Feed objects.
 """
 import datetime as dt
 import dateutil.relativedelta as rd
