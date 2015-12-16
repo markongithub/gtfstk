@@ -303,7 +303,6 @@ def write_gtfs(feed, path, ndigits=6):
     # Write files to a temporary directory 
     tmp_dir = tempfile.mkdtemp()
     names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
-    INT_COLUMNS_set = set(cs.INT_COLUMNS)
     for name in names:
         f = getattr(feed, name)
         if f is None:
@@ -313,8 +312,8 @@ def write_gtfs(feed, path, ndigits=6):
         # Some columns need to be output as integers.
         # If there are NaNs in any such column, 
         # then Pandas will format the column as float, which we don't want.
-        s = list(INT_COLUMNS_set & set(f.columns))
-        if s:
+        f_int_cols = set(cs.INT_COLUMNS) & set(f.columns)
+        for s in f_int_cols:
             f[s] = f[s].fillna(-1).astype(int).astype(str).\
               replace('-1', '')
         tmp_path = Path(tmp_dir, name + '.txt')

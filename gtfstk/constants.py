@@ -25,6 +25,7 @@ DTYPE = {
   'stop_id': str, 
   'stop_code': str,
   'zone_id': str,
+  'parent_station': str,
   'route_id': str, 
   'route_short_name': str,
   'trip_id': str, 
