@@ -1,6 +1,11 @@
 Changes
 ========
 
+v
+------------------
+- Deleted an extraneous print statement in ``create_shapes()``
+
+
 v3.0.1, 2015-12-16 
 ------------------
 - Bugfix: formatted ``parent_station`` as a string in ``constants.DTYPE``

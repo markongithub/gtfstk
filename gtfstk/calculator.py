@@ -1875,7 +1875,6 @@ def create_shapes(feed, all_trips=False):
     # assign shape IDs to them
     stop_seqs = sorted(set(tuple(group['stop_id'].values) 
       for trip, group in f.groupby('trip_id')))
-    print(len(stop_seqs))
     d = int(math.log10(len(stop_seqs))) + 1  # Digits for padding shape IDs  
     shape_by_stop_seq = {seq: 'shape_{num:0{pad}d}'.format(num=i, pad=d) 
       for i, seq in enumerate(stop_seqs)}
