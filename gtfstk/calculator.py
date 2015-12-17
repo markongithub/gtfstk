@@ -267,8 +267,8 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
 
     NOTES:
 
-    If ``feed.stop_times`` has a ``shape_dist_traveled`` column
-    and ``compute_dist_from_shapes == False``,
+    If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at least
+    one non-NaN value and ``compute_dist_from_shapes == False``,
     then use that column to compute the distance column.
     Else if ``feed.shapes is not None``, then compute the distance 
     column using the shapes and Shapely. 
@@ -318,7 +318,8 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
     h = g.apply(my_agg)  
 
     # Compute distance
-    if 'shape_dist_traveled' in f.columns and not compute_dist_from_shapes:
+    if ut.is_not_null(f, 'shape_dist_traveled') and\
+      not compute_dist_from_shapes:
         # Compute distances using shape_dist_traveled column
         h['distance'] = g.apply(
           lambda group: group['shape_dist_traveled'].max())
@@ -411,11 +412,10 @@ def compute_trips_locations(feed, date, times):
     - Those used in :func:`build_geometry_by_shape`
         
     """
-    if 'shape_dist_traveled' not in feed.stop_times.columns:
+    if not ut.is_not_null(feed.stop_times, 'shape_dist_traveled'):
         raise ValueError(
-          "The shape_dist_traveled column is required "\
-          "in feed.stop_times. "\
-          "You can create it, possibly with some inaccuracies, "\
+          "feed.stop_times needs to have a non-null shape_dist_traveled "\
+          "column. You can create it, possibly with some inaccuracies, "\
           "via feed.stop_times = feed.add_dist_to_stop_times().")
     
     # Start with stop times active on date

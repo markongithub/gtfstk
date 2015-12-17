@@ -84,15 +84,18 @@ class Feed(object):
                 continue
             setattr(self, kwarg, value)
 
-        # Check for valid distance units
-        # Require dist_units_in if feed has distances
-        if (self.stop_times is not None and\
-          'shape_dist_traveled' in self.stop_times.columns) or\
-          (self.shapes is not None and\
-          'shape_dist_traveled' in self.shapes.columns):
-            if self.dist_units_in is None:
-                raise ValueError(
-                  'This feed has distances, so you must specify dist_units_in')    
+        # Check for valid distance units.
+        # Require dist_units_in if feed has distances.
+        stop_times_has_dist = ut.is_not_null(self.stop_times, 
+          'shape_dist_traveled')
+        shapes_has_dist = ut.is_not_null(self.shapes, 
+          'shape_dist_traveled')
+
+        if (stop_times_has_dist or shapes_has_dist) and\
+          self.dist_units_in is None:
+            raise ValueError(
+              'This feed has distances, so you must specify dist_units_in')    
+        
         DU = cs.DISTANCE_UNITS
         for du in [self.dist_units_in, self.dist_units_out]:
             if du is not None and du not in DU:
@@ -109,13 +112,11 @@ class Feed(object):
           self.dist_units_out)
 
         # Convert distances to dist_units_out if necessary
-        if self.stop_times is not None and\
-          'shape_dist_traveled' in self.stop_times.columns:
+        if stop_times_has_dist:
             self.stop_times['shape_dist_traveled'] =\
               self.stop_times['shape_dist_traveled'].map(self.convert_dist)
 
-        if self.shapes is not None and\
-          'shape_dist_traveled' in self. shapes.columns:
+        if shapes_has_dist:
             self.shapes['shape_dist_traveled'] =\
               self.shapes['shape_dist_traveled'].map(self.convert_dist)
 

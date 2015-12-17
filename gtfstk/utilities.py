@@ -226,6 +226,19 @@ def almost_equal(f, g):
           drop=True)
         return F.equals(G)
 
+def is_not_null(data_frame, column_name):
+    """
+    Return ``True`` if the given data frame has a column of the given name 
+    (string), and there exists at least one non-NaN value in that column;
+    return ``False`` otherwise.
+    """
+    f = data_frame
+    c = column_name
+    if isinstance(f, pd.DataFrame) and c in f.columns and f[c].notnull().any():
+        return True
+    else:
+        return False
+
 # def prefix_ids(data_frame, prefix):
 #     """
 #     Prefix the all GTFS IDs (stop IDs, trip IDs, etc.) in the given data frame

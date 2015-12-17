@@ -4,6 +4,7 @@ Changes
 v
 ------------------
 - Deleted an extraneous print statement in ``create_shapes()``
+- Added ``utilities.is_not_null()``
 
 
 v3.0.1, 2015-12-16 
