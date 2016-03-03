@@ -609,7 +609,7 @@ class TestCalculator(unittest.TestCase):
 
     def test_build_shapes_geojson(self):
         feed = copy(cairns)
-        collection = json.loads(build_shapes_geojson(feed))
+        collection = build_shapes_geojson(feed)
         geometry_by_shape = build_geometry_by_shape(feed, use_utm=False)
         for f in collection['features']:
             shape = f['properties']['shape_id']

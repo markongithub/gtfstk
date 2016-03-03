@@ -1411,7 +1411,7 @@ def build_geometry_by_shape(feed, use_utm=True):
 
 def build_shapes_geojson(feed):
     """
-    Return a string that is a GeoJSON feature collection of 
+    Return a (decoded) GeoJSON feature collection of 
     linestring features representing ``feed.shapes``.
     Each feature will have a ``shape_id`` property. 
     If ``feed.shapes`` is ``None``, then return ``None``.
@@ -1428,7 +1428,7 @@ def build_shapes_geojson(feed):
     if geometry_by_shape is None:
         return
 
-    d = {
+    return {
       'type': 'FeatureCollection', 
       'features': [{
         'properties': {'shape_id': shape},
@@ -1437,7 +1437,6 @@ def build_shapes_geojson(feed):
         }
         for shape, linestring in geometry_by_shape.items()]
       }
-    return json.dumps(d)
 
 def geometrize_shapes(shapes):
     """
