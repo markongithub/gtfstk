@@ -1,10 +1,14 @@
+"""
+This module contains functions for plotting various graphs related to Feed objects.
+It is optional and requires Matplotlib.
+"""
 import pandas as pd
-import matplotlib.pyplot as plt
+
 
 def plot_headways(stats, max_headway_limit=60):
     """
     Given a stops or routes stats data frame, 
-    return bar charts of the max and mean headways as a MatplotLib figure.
+    return bar charts of the max and mean headways as a Matplotlib figure.
     Only include the stops/routes with max headways at most 
     ``max_headway_limit`` minutes.
     If ``max_headway_limit is None``, then include them all in a giant plot. 
@@ -16,6 +20,9 @@ def plot_headways(stats, max_headway_limit=60):
     Take the resulting figure ``f`` and do ``f.tight_layout()``
     for a nice-looking plot.
     """
+    import matplotlib.pyplot as plt
+
+
     # Set Pandas plot style
     pd.options.display.mpl_style = 'default'
 
@@ -51,7 +58,8 @@ def plot_headways(stats, max_headway_limit=60):
     xlabels = ['minutes', 'minutes']
     fig, axes = plt.subplots(nrows=1, ncols=2)
     for (i, f) in enumerate(data_frames):
-        f.plot(kind='barh', ax=axes[i], figsize=(10, max(n/9, 10)))
+        f.plot(kind='barh', ax=axes[i], figsize=(10, max(n/9, 10)),
+          color=['steelblue', 'darkslateblue'])
         axes[i].set_title(titles[i])
         axes[i].set_xlabel(xlabels[i])
         axes[i].set_ylabel(ylabels[i])
@@ -61,7 +69,7 @@ def plot_feed_time_series(feed_time_series):
     """
     Given a routes time series data frame,
     sum each time series indicator over all routes, 
-    plot each series indicator using MatplotLib, 
+    plot each series indicator using Matplotlib, 
     and return the resulting figure of subplots.
 
     NOTES:
@@ -69,6 +77,9 @@ def plot_feed_time_series(feed_time_series):
     Take the resulting figure ``f`` and do ``f.tight_layout()``
     for a nice-looking plot.
     """
+    import matplotlib.pyplot as plt
+
+
     fts = feed_time_series.copy()
 
     # Reformat time periods
@@ -98,7 +109,8 @@ def plot_feed_time_series(feed_time_series):
         else:
             stacked = True
         ts_dict[stat].plot(ax=axes[i], alpha=alpha, 
-          kind='bar', figsize=(8, 15), stacked=stacked, width=1)
+          kind='bar', figsize=(8, 15), stacked=stacked, width=1,
+          color='steelblue')
         axes[i].set_title(titles[i])
         axes[i].set_ylabel(units[i])
 
