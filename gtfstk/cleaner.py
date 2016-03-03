@@ -1,11 +1,13 @@
 """
-Functions for cleaning a Feed object.
+This module contains functions for cleaning Feed objects.
 """  
 from collections import OrderedDict
 
 import pandas as pd
 
 from . import utilities as ut
+from . import constants as cs
+from .feed import Feed
 
 
 def clean_stop_times(feed):
@@ -33,16 +35,26 @@ def clean_stop_times(feed):
 
 def clean_route_short_names(feed):
     """
-    In ``feed.routes``, disambiguate the ``route_short_name`` column 
-    using ``ut.clean_series``.
-    Among other things, this will disambiguate duplicate
-    route short names.
+    In ``feed.routes``, assign route IDs to missing route short names.
+    Then disambiguate route short names by applying 
+    :func:`utilities.clean_series`.
     Return the resulting routes data frame.
     """
+    def my_fillna(row):
+        rsn, rid = row
+        if pd.isnull(rsn):
+            rsn = rid
+        return rsn
+
     routes = feed.routes.copy()
     if routes is not None:
+        # Fill NaNs
+        routes['route_short_name'] = routes[['route_short_name', 
+          'route_id']].apply(my_fillna, axis=1)
+        # Disambiguate
         routes['route_short_name'] = ut.clean_series(
           routes['route_short_name'])
+
     return routes
 
 def prune_dead_routes(feed):
@@ -59,9 +71,16 @@ def assess(feed):
     """
     Return a Pandas series containing various feed assessments, such as
     the number of trips missing shapes.
-    This is not a validator.
+    This is not a GTFS validator.
     """
     d = OrderedDict()
+
+    # Count duplicate route short names
+    r = feed.routes
+    dup = r.duplicated(subset=['route_short_name'])
+    n = dup[dup].count()
+    d['num_duplicated_route_short_names'] = n
+    d['frac_duplicated_route_short_names'] = n/r.shape[0]
 
     # Has shape_dist_traveled column in stop times?
     st = feed.stop_times

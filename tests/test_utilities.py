@@ -8,7 +8,7 @@ from numpy.testing import assert_array_equal
 from shapely.geometry import Point, LineString, mapping
 from shapely.geometry import shape as sh_shape
 
-from gtfstk.calculator import *
+from gtfstk.feed import read_gtfs
 from gtfstk.utilities import *
 
 # Load test feeds
@@ -91,6 +91,29 @@ class TestUtilities(unittest.TestCase):
         expect = [0, 1]
         assert_array_equal(get, expect)
 
+    def test_almost_equal(self):
+        f = pd.DataFrame([[1, 2], [3, 4]], columns=['a', 'b'])
+        self.assertTrue(almost_equal(f, f))
+        g = pd.DataFrame([[4, 3], [2, 1]], columns=['b', 'a'])
+        self.assertTrue(almost_equal(f, g))
+        h = pd.DataFrame([[1, 2], [5, 4]], columns=['a', 'b'])
+        self.assertFalse(almost_equal(f, h))
+        h = pd.DataFrame()
+        self.assertFalse(almost_equal(f, h))
+
+    def test_is_not_null(self):
+        f = None
+        c = 'foo'
+        self.assertFalse(is_not_null(f, c))
+
+        f = pd.DataFrame(columns=['bar', c])
+        self.assertFalse(is_not_null(f, c))
+
+        f = pd.DataFrame([[1, np.nan]], columns=['bar', c])
+        self.assertFalse(is_not_null(f, c))
+
+        f = pd.DataFrame([[1, np.nan], [2, 2]], columns=['bar', c])
+        self.assertTrue(is_not_null(f, c))
 
 if __name__ == '__main__':
     unittest.main()
