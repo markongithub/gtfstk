@@ -325,8 +325,8 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
           lambda group: group['shape_dist_traveled'].max())
     elif feed.shapes is not None:
         # Compute distances using the shapes and Shapely
-        geometry_by_shape = build_geometry_by_shape(feed)
-        geometry_by_stop = build_geometry_by_stop(feed)
+        geometry_by_shape = build_geometry_by_shape(feed, use_utm=True)
+        geometry_by_stop = build_geometry_by_stop(feed, use_utm=True)
         m_to_dist = ut.get_convert_dist('m', feed.dist_units_out)
 
         def compute_dist(group):
@@ -935,7 +935,7 @@ def get_stops(feed, date=None):
     S = stop_times['stop_id'].unique()
     return feed.stops[feed.stops['stop_id'].isin(S)]
 
-def build_geometry_by_stop(feed, use_utm=True):
+def build_geometry_by_stop(feed, use_utm=False):
     """
     Return a dictionary with structure
     stop_id -> Shapely point object.
@@ -960,12 +960,14 @@ def build_geometry_by_stop(feed, use_utm=True):
             geometry_by_stop[stop] = Point([lon, lat]) 
     return geometry_by_stop
 
-def geometrize_stops(stops):
+def geometrize_stops(stops, use_utm=False):
     """
     Given a stops data frame, 
     convert it to a GeoPandas GeoDataFrame and return the result.
     The result has a 'geometry' column of WGS84 points 
     instead of 'stop_lon' and 'stop_lat' columns.
+    If ``use_utm == True``, then use UTM coordinates for the geometries.
+
     Requires GeoPandas.
     """
     import geopandas as gpd 
@@ -975,15 +977,23 @@ def geometrize_stops(stops):
     s = gpd.GeoSeries([Point(p) for p in 
       stops[['stop_lon', 'stop_lat']].values])
     f['geometry'] = s 
-    f.drop(['stop_lon', 'stop_lat'], axis=1, inplace=True)
-    f = gpd.GeoDataFrame(f, crs=cs.CRS_WGS84)
-    return f 
+    g = f.drop(['stop_lon', 'stop_lat'], axis=1)
+    g = gpd.GeoDataFrame(g, crs=cs.CRS_WGS84)
+
+    if use_utm:
+        lat, lon = f.ix[0][['stop_lat', 'stop_lon']].values
+        crs = ut.get_utm_crs(lat, lon) 
+        g = g.to_crs(crs)
+
+    return g
 
 def ungeometrize_stops(geo_stops):
     """
-    The inverse of :func:`geometrize_stops`.
+    The inverse of :func:`geometrize_stops`.    
+    If ``geo_stops`` is in UTM (has a UTM CRS property),
+    then convert UTM coordinates back to WGS84 coordinates,
     """
-    f = geo_stops.copy()
+    f = geo_stops.copy().to_crs(cs.CRS_WGS84)
     f['stop_lon'] = f['geometry'].map(
       lambda p: p.x)
     f['stop_lat'] = f['geometry'].map(
@@ -1371,7 +1381,7 @@ def compute_stations_stats(feed, date, split_directions=False,
 # -------------------------------------
 # Functions about shapes
 # -------------------------------------
-def build_geometry_by_shape(feed, use_utm=True):
+def build_geometry_by_shape(feed, use_utm=False):
     """
     Return a dictionary with structure
     shape_id -> Shapely linestring of shape.
@@ -1438,13 +1448,15 @@ def build_shapes_geojson(feed):
         for shape, linestring in geometry_by_shape.items()]
       }
 
-def geometrize_shapes(shapes):
+def geometrize_shapes(shapes, use_utm=False):
     """
     Given a shapes data frame, convert it to a GeoPandas 
     GeoDataFrame and return the result.
     The result has a 'geometry' column of WGS84 line strings
     instead of 'shape_pt_sequence', 'shape_pt_lon', 'shape_pt_lat',  
     and 'shape_dist_traveled' columns.
+    If ``use_utm == True``, then use UTM coordinates for the geometries.
+
     Requires GeoPandas.
     """
     import geopandas as gpd
@@ -1461,6 +1473,11 @@ def geometrize_shapes(shapes):
     g = f.groupby('shape_id').apply(my_agg).reset_index()
     g = gpd.GeoDataFrame(g, crs=cs.CRS_WGS84)
 
+    if use_utm:
+        lat, lon = f.ix[0][['shape_pt_lat', 'shape_pt_lon']].values
+        crs = ut.get_utm_crs(lat, lon) 
+        g = g.to_crs(crs)
+
     return g 
 
 def ungeometrize_shapes(geo_shapes):
@@ -1472,7 +1489,12 @@ def ungeometrize_shapes(geo_shapes):
     - shape_pt_sequence
     - shape_pt_lon
     - shape_pt_lat
+
+    If ``geo_shapes`` is in UTM (has a UTM CRS property),
+    then convert UTM coordinates back to WGS84 coordinates,
     """
+    geo_shapes = geo_shapes.to_crs(cs.CRS_WGS84)
+
     F = []
     for index, row in geo_shapes.iterrows():
         F.extend([[row['shape_id'], i, x, y] for 
@@ -1482,7 +1504,8 @@ def ungeometrize_shapes(geo_shapes):
       columns=['shape_id', 'shape_pt_sequence', 
       'shape_pt_lon', 'shape_pt_lat'])
 
-def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None):
+def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None,
+  geometrized=False):
     """
     Return the slice of ``feed.shapes`` that contains all shapes
     that intersect the given Shapely geometry object 
@@ -1497,6 +1520,8 @@ def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None):
 
     - ``feed.shapes``, if ``geo_shapes`` is not given
 
+    If ``geometrized`` is ``True``, then return the 
+    resulting shapes data frame in geometrized form.
     """
     if geo_shapes is not None:
         f = geo_shapes.copy()
@@ -1506,7 +1531,11 @@ def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None):
     cols = f.columns
     f['hit'] = f['geometry'].intersects(geometry)
     f = f[f['hit']][cols]
-    return ungeometrize_shapes(f)
+
+    if geometrized:
+        return f
+    else:
+        return ungeometrize_shapes(f)
 
 def add_dist_to_shapes(feed):
     """
@@ -1638,8 +1667,8 @@ def add_dist_to_stop_times(feed, trips_stats):
     (so shape_dist_traveled != 0).
     This is the case for several trips in the Portland feed, for example. 
     """
-    geometry_by_shape = build_geometry_by_shape(feed)
-    geometry_by_stop = build_geometry_by_stop(feed)
+    geometry_by_shape = build_geometry_by_shape(feed, use_utm=True)
+    geometry_by_stop = build_geometry_by_stop(feed, use_utm=True)
 
     # Initialize data frame
     f = pd.merge(feed.stop_times,
@@ -2090,3 +2119,139 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
         new_frames = frames
     return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
       names=subcolumns)
+
+@ut.time_it
+def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
+    """
+    Compute all the feed trips active on the given date that intersect 
+    the given Shapely LineString (with WGS84 longitude-latitude coordinates),
+    and return a data frame with the columns:
+
+    - ``'trip_id'``
+    - ``'route_id'``
+    - ``'route_short_name'``
+    - ``'crossing_time'``: time (one of possibly several) that the trip vehicle
+      crosses the linestring
+    - ``'orientation'``: 1 or -1; 1 indicates trip travel from the left side
+     to the right side of the screen line; -1 indicates trip travel in the 
+     opposite direction
+
+    Requires GeoPandas.
+    The first step is to geometrize ``feed.shapes`` via
+    :func:`geometrize_shapes`.
+    Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
+
+    Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled``
+    column.
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.shapes``, if ``geo_shapes`` is not given
+
+    Assume that trips travel in the same direction as their shapes.
+    That restriction is part of GTFS, by the way.
+    To calculate direction quickly and accurately, assume that the 
+    screen line is straight and doesn't double back on itself.
+
+    ALGORITHM:
+
+    Compute all the shapes that intersect the linestring.
+    For each such shape, compute the intersection points.
+    For each point p, scan through all the trips in the feed that have 
+    that shape and are active on the given date.
+    Interpolate a stop time for p by assuming that the feed has
+    the shape_dist_traveled field in stop times.
+    Get the trip's route, compute the trip's direction relative
+    to the screen line (+1 or -1) and increment the route-direction count.
+    """  
+    # Get all shapes that intersect the screen line
+    shapes = get_shapes_intersecting_geometry(feed, linestring, geo_shapes,
+      geometrized=True)
+
+    # Convert shapes to UTM
+    lat, lon = feed.shapes.ix[0][['shape_pt_lat', 'shape_pt_lon']].values
+    crs = ut.get_utm_crs(lat, lon) 
+    shapes = shapes.to_crs(crs)
+
+    # Convert linestring to UTM
+    linestring = ut.linestring_to_utm(linestring)
+
+    # Get all intersection points of shapes and linestring
+    shapes['intersection'] = shapes.intersection(linestring)
+
+    # Make a vector in the direction of the screen line
+    # to later calculate trip orientation.
+    # Does not work in case of a bent screen line.
+    p1 = Point(linestring.coords[0])
+    p2 = Point(linestring.coords[-1])
+    w = np.array([p2.x - p1.x, p2.y - p1.y])
+
+    # Build a dictionary from the shapes data frame of the form
+    # shape ID -> (intersection points, distances of points along shape,
+    # tiny vectors from points in direction of shape)
+    # Assume here that trips travel in the same direction as their shapes.
+    pdv_by_shape = {}
+    eps = 1e-4
+    for __, sid, geom, intersection in shapes.itertuples():
+        distances = [geom.project(p) for p in intersection]
+        vectors = []
+        for i, p in enumerate(intersection):
+            q = geom.interpolate(distances[i] + eps)
+            vector = np.array([q.x - p.x, q.y - p.y])
+            vectors.append(vector)
+        pdv_by_shape[sid] = (intersection, distances, vectors)
+
+    # Get trips with those shapes that are active on the given date
+    trips = get_trips(feed, date)
+    trips = trips[trips['shape_id'].isin(pdv_by_shape.keys())]
+
+    # Get route short names
+    trips = trips.merge(feed.routes[['route_id', 'route_short_name']])
+
+    # Get the stop times for those trips
+    f = trips.merge(feed.stop_times)
+
+    # Drop NaN departure times and convert to seconds past midnight
+    f = f[f['departure_time'].notnull()]
+    f['departure_time'] = f['departure_time'].map(ut.timestr_to_seconds)
+
+    # Convert stop time distances to meters
+    converter = ut.get_convert_dist(feed.dist_units_out, 'm')
+    f['shape_dist_traveled'] = f['shape_dist_traveled'].map(converter)
+
+    # For each shape find the trips that cross the screen line
+    # and get crossing times
+    f = f.sort_values(['trip_id', 'stop_sequence'])
+    G = []  # output table
+    for tid, group in f.groupby('trip_id'):
+        sid = group['shape_id'].iat[0] 
+        rid = group['route_id'].iat[0]
+        rsn = group['route_short_name'].iat[0]
+        points, distances, vectors = pdv_by_shape[sid] 
+        stop_times = group['departure_time'].values
+        stop_distances = group['shape_dist_traveled'].values
+        for i in range(len(points)):
+            p = points[i]
+            d_p = distances[i]
+            t_p = np.interp(d_p, stop_distances, stop_times)
+            v = vectors[i]
+            # Compute direction of trip travel relative to
+            # screen line by looking at the sign of the cross
+            # product of v_vec with sl_vec
+            det = np.linalg.det(np.array([v, w]))
+            if det >= 0:
+                orientation = 1
+            else:
+                orientation = -1
+            # Update G
+            G.append([tid, rid, rsn, t_p, orientation])
+    
+    # Create data frame
+    g = pd.DataFrame(G, columns=['trip_id', 'route_id', 
+      'route_short_name', 'crossing_time', 'orientation']
+      ).sort_values('crossing_time')
+
+    # Convert departure times to time strings
+    g['crossing_time'] = g['crossing_time'].map(
+      lambda x: ut.timestr_to_seconds(x, inverse=True))
+
+    return g

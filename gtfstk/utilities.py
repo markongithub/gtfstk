@@ -5,6 +5,8 @@ from functools import wraps
 import pandas as pd
 import numpy as np
 from shapely.geometry import Point
+from shapely.ops import transform
+import utm
 
 from . import constants as cs
 
@@ -238,6 +240,27 @@ def is_not_null(data_frame, column_name):
         return True
     else:
         return False
+
+def get_utm_crs(lat, lon):
+    """
+    Return a GeoPandas coordinate reference system (CRS) dictionary
+    corresponding to the UTM projection appropriate to the given WGS84
+    latitude and longitude.
+    """
+    zone = utm.from_latlon(lat, lon)[2]
+    south = lat < 0
+    return {'proj':'utm', 'zone': zone, 'south': south,
+      'ellps':'WGS84', 'datum':'WGS84', 'units':'m', 'no_defs':True} 
+
+def linestring_to_utm(linestring):
+    """
+    Given a Shapely LineString in WGS84 coordinates, 
+    convert it to the appropriate UTM coordinates. 
+    If ``inverse == True``, then do the inverse.
+    """
+    proj = lambda x, y: utm.from_latlon(y, x)[:2]
+
+    return transform(proj, linestring) 
 
 # def prefix_ids(data_frame, prefix):
 #     """
