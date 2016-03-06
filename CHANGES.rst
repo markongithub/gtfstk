@@ -6,6 +6,7 @@ v4.0.0
 - Deleted an extraneous print statement in ``create_shapes()``
 - Added ``utilities.is_not_null()``
 - Changed ``build_shapes_geojson()`` to return a dictionary instead of a string
+- Added ``compute_screen_line_counts()`` and supporting functions
 
 
 v3.0.1, 2015-12-16 
