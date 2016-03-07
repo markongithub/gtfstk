@@ -1100,7 +1100,7 @@ def compute_stops_stats_base(stop_times, trips_subset, split_directions=False,
       'max_headway',
       'min_headway',
       'mean_headway',
-      'start_time',
+       'start_time',
       'end_time',
       ]
 
@@ -2154,6 +2154,11 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     To calculate direction quickly and accurately, assume that the 
     screen line is straight and doesn't double back on itself.
 
+    WARNING:
+
+    Probably does not give correct results for trips with self-intersecting
+    shapes.
+    
     ALGORITHM:
 
     Compute all the shapes that intersect the linestring.
@@ -2195,11 +2200,12 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     # and v is a tiny vectors from the point in direction of shape.
     # Assume here that trips travel in the same direction as their shapes.
     dv_by_shape = {}
-    eps = 1e-4
+    eps = 1
     convert_dist = ut.get_convert_dist('m', feed.dist_units_out)
     for __, sid, geom, intersection in shapes.itertuples():
         # Get distances along shape of intersection points (in meters)
         distances = [geom.project(p) for p in intersection]
+        # Build tiny vectors
         vectors = []
         for i, p in enumerate(intersection):
             q = geom.interpolate(distances[i] + eps)
@@ -2213,10 +2219,10 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     trips = get_trips(feed, date)
     trips = trips[trips['shape_id'].isin(dv_by_shape.keys())]
 
-    # Get route short names
+    # Merge in route short names
     trips = trips.merge(feed.routes[['route_id', 'route_short_name']])
 
-    # Get the stop times for those trips
+    # Merge in stop times
     f = trips.merge(feed.stop_times)
 
     # Drop NaN departure times and convert to seconds past midnight
@@ -2224,7 +2230,7 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     f['departure_time'] = f['departure_time'].map(ut.timestr_to_seconds)
 
     # For each shape find the trips that cross the screen line
-    # and get crossing times
+    # and get crossing times and orientation
     f = f.sort_values(['trip_id', 'stop_sequence'])
     G = []  # output table
     for tid, group in f.groupby('trip_id'):

@@ -807,6 +807,44 @@ class TestCalculator(unittest.TestCase):
     # ----------------------------------
     # Test miscellanous functions
     # ----------------------------------
+    def test_compute_screen_line_counts(self):
+        feed = copy(cairns) 
+        # Add distances to feed
+        trips_stats = compute_trips_stats(feed, compute_dist_from_shapes=True)
+        feed.stop_times = add_dist_to_stop_times(feed, trips_stats)
+        
+        # Pick date
+        date = get_first_week(feed)[0]
+        
+        # Load screen line
+        with open('data/cairns_screen_line.geojson') as src:
+            line = json.load(src)
+            line = sh_shape(line['features'][0]['geometry'])
+        
+        f = compute_screen_line_counts(feed, line, date)
+
+        # Should have correct columns
+        expect_cols = set([
+          'trip_id',
+          'route_id',
+          'route_short_name',
+          'crossing_time',
+          'orientation',
+          ])
+        self.assertEqual(set(f.columns), expect_cols)
+
+        # Should have correct routes
+        rsns = ['120', '120N']
+        self.assertEqual(set(f['route_short_name']), set(rsns))
+
+        # Should have correct number of trips
+        expect_num_trips = 34
+        self.assertEqual(f['trip_id'].nunique(), expect_num_trips)
+
+        # Should have correct orientations
+        for ori in [-1, 1]:
+            self.assertEqual(f[f['orientation'] == 1].shape[0], 
+              expect_num_trips)
 
         
 if __name__ == '__main__':
