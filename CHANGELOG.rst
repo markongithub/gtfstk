@@ -1,5 +1,11 @@
-Changes
-========
+v4.0.0, 2015-05-11
+------------------
+- Deleted an extraneous print statement in ``calculator.create_shapes()``
+- Added ``utilities.is_not_null()``
+- Changed ``calculator.build_shapes_geojson()`` to return a dictionary instead of a string
+- Upgraded to Pandas 0.18.1 and fixed ``calculator.downsample()`` accordingly
+- Added ``cleaner.aggregate_routes()``
+
 
 v3.0.1, 2015-12-16 
 ------------------

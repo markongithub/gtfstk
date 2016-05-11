@@ -1,5 +1,6 @@
 import unittest
 from types import FunctionType
+from pathlib import Path 
 
 import pandas as pd 
 from pandas.util.testing import assert_frame_equal, assert_series_equal
@@ -7,6 +8,8 @@ import numpy as np
 
 from gtfstk.feed import *
 
+
+DATA_DIR = Path('data')
 
 class TestFeed(unittest.TestCase):
 
@@ -46,7 +49,7 @@ class TestFeed(unittest.TestCase):
     # Test functions about basics
     # --------------------------------------------
     def test_copy(self):
-        feed1 = read_gtfs('data/cairns_gtfs.zip')
+        feed1 = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
         feed2 = copy(feed1)
         for key, value in feed2.__dict__.items():
             expect_value = getattr(feed1, key)            
@@ -68,7 +71,7 @@ class TestFeed(unittest.TestCase):
     #     cat = concatenate([])
     #     self.assertEqual(cat, Feed())
 
-    #     feed = read_gtfs('data/cairns_gtfs.zip')
+    #     feed = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
     #     cat = concatenate([feed])
     #     self.assertEqual(cat, feed)
         
@@ -112,23 +115,23 @@ class TestFeed(unittest.TestCase):
         self.assertRaises(ValueError, read_gtfs,
           path='bad_path!')
         
-        feed = read_gtfs('data/cairns_gtfs.zip')
+        feed = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
 
         # Bad dist_units_in:
         self.assertRaises(ValueError, read_gtfs, 
-          path='data/cairns_gtfs.zip',  
+          path=DATA_DIR/'cairns_gtfs.zip',  
           dist_units_in='bingo')
 
         # Requires dist_units_in:
         self.assertRaises(ValueError, read_gtfs,
-          path='data/portland_gtfs.zip')
+          path=DATA_DIR/'portland_gtfs.zip')
 
     def test_write_gtfs(self):
-        feed1 = read_gtfs('data/cairns_gtfs.zip')
+        feed1 = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
 
         # Export feed1, import it as feed2, and then test that the
         # attributes of the two feeds are equal.
-        path = 'data/test_gtfs.zip'
+        path = DATA_DIR/'test_gtfs.zip'
         write_gtfs(feed1, path)
         feed2 = read_gtfs(path)
         names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
@@ -144,7 +147,7 @@ class TestFeed(unittest.TestCase):
         # To this end, put a NaN, 1.0, and 0.0 in the direction_id column 
         # of trips.txt, export it, and import the column as strings.
         # Should only get np.nan, '0', and '1' entries.
-        feed3 = read_gtfs('data/cairns_gtfs.zip')
+        feed3 = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
         f = feed3.trips.copy()
         f['direction_id'] = f['direction_id'].astype(object)
         f.loc[0, 'direction_id'] = np.nan
@@ -152,12 +155,12 @@ class TestFeed(unittest.TestCase):
         f.loc[2, 'direction_id'] = 0.0
         feed3.trips = f
         write_gtfs(feed3, path)
-        archive = zipfile.ZipFile(path)
-        dir_name = path.rstrip('.zip') + '/'
-        archive.extractall(dir_name)
-        t = pd.read_csv(dir_name + 'trips.txt', dtype={'direction_id': str})
+        archive = zipfile.ZipFile(str(path))
+        dir_name = Path(path.stem) #rstrip('.zip') + '/'
+        archive.extractall(str(dir_name))
+        t = pd.read_csv(dir_name/'trips.txt', dtype={'direction_id': str})
         self.assertTrue(t[~t['direction_id'].isin([np.nan, '0', '1'])].empty)
         
         # Remove extracted directory
-        shutil.rmtree(dir_name)
+        shutil.rmtree(str(dir_name))
 

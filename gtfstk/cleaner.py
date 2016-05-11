@@ -2,12 +2,14 @@
 This module contains functions for cleaning Feed objects.
 """  
 from collections import OrderedDict
+import math
 
 import pandas as pd
 
 from . import utilities as ut
 from . import constants as cs
 from .feed import Feed
+from .feed import copy as fcopy
 
 
 def clean_stop_times(feed):
@@ -66,6 +68,43 @@ def prune_dead_routes(feed):
     live_routes = feed.trips['route_id'].unique()
     r = feed.routes 
     return r[r['route_id'].isin(live_routes)]
+
+def aggregate_routes(feed):
+    """
+    Group routes by route short name and for each group, 
+
+    1. choose the first route in the group
+    2. assign a new route ID to that route
+    3. assign all the trips associated with routes in the group 
+      to that first route.
+
+    Update ``feed.routes`` and ``feed.trips`` with the new routes, 
+    and return the resulting feed.
+    """
+    feed = fcopy(feed)
+
+    # Create new route IDs
+    routes = feed.routes
+    n = routes.groupby('route_short_name').ngroups
+    pad = int(math.log10(n)) + 1
+    nrid_by_orid = dict()
+    i = 1
+    for rsn, group in routes.groupby('route_short_name'):
+        nrid = 'route_{i:0{pad}}'.format(i=i, pad=pad)
+        d = {orid: nrid for orid in group['route_id'].values}
+        nrid_by_orid.update(d)
+        i += 1
+
+    routes['route_id'] = routes['route_id'].map(lambda x: nrid_by_orid[x])
+    routes = routes.groupby('route_short_name').first().reset_index()
+    feed.routes = routes
+
+    # Update route IDs of trips
+    trips = feed.trips
+    trips['route_id'] = trips['route_id'].map(lambda x: nrid_by_orid[x])
+    feed.trips = trips
+
+    return feed 
 
 def assess(feed):
     """
@@ -128,10 +167,12 @@ def assess(feed):
     d['frac_missing_first_departure_times'] = n/g.shape[0]
 
     # Express opinion
-    if d['frac_missing_departure_times'] >= 0.25 or\
-      d['frac_trips_missing_shapes'] >= 0.25:
+    if d['frac_missing_departure_times'] >= 0.8 or\
+      d['frac_trips_missing_shapes'] >= 0.8:
         d['assessment'] = 'bad feed'
-    elif d['frac_missing_directions'] or d['frac_missing_dists']:
+    elif d['frac_missing_directions'] or\
+      d['frac_missing_dists'] or\
+      d['num_duplicated_route_short_names']:
         d['assessment'] = 'probably a fixable feed'
     else:
         d['assessment'] = 'good feed'

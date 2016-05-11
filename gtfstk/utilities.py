@@ -5,6 +5,8 @@ from functools import wraps
 import pandas as pd
 import numpy as np
 from shapely.geometry import Point
+from shapely.ops import transform
+import utm
 
 from . import constants as cs
 
@@ -225,6 +227,40 @@ def almost_equal(f, g):
         G = g.sort_index(axis=1).sort_values(list(g.columns)).reset_index(
           drop=True)
         return F.equals(G)
+
+def is_not_null(data_frame, column_name):
+    """
+    Return ``True`` if the given data frame has a column of the given name 
+    (string), and there exists at least one non-NaN value in that column;
+    return ``False`` otherwise.
+    """
+    f = data_frame
+    c = column_name
+    if isinstance(f, pd.DataFrame) and c in f.columns and f[c].notnull().any():
+        return True
+    else:
+        return False
+
+def get_utm_crs(lat, lon):
+    """
+    Return a GeoPandas coordinate reference system (CRS) dictionary
+    corresponding to the UTM projection appropriate to the given WGS84
+    latitude and longitude.
+    """
+    zone = utm.from_latlon(lat, lon)[2]
+    south = lat < 0
+    return {'proj':'utm', 'zone': zone, 'south': south,
+      'ellps':'WGS84', 'datum':'WGS84', 'units':'m', 'no_defs':True} 
+
+def linestring_to_utm(linestring):
+    """
+    Given a Shapely LineString in WGS84 coordinates, 
+    convert it to the appropriate UTM coordinates. 
+    If ``inverse == True``, then do the inverse.
+    """
+    proj = lambda x, y: utm.from_latlon(y, x)[:2]
+
+    return transform(proj, linestring) 
 
 # def prefix_ids(data_frame, prefix):
 #     """

@@ -1,5 +1,6 @@
 import unittest
 from copy import copy
+from pathlib import Path
 
 import pandas as pd 
 import numpy as np
@@ -12,7 +13,8 @@ from gtfstk.feed import read_gtfs
 from gtfstk.utilities import *
 
 # Load test feeds
-cairns = read_gtfs('data/cairns_gtfs.zip')
+DATA_DIR = Path('data')
+cairns = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
 
 class TestUtilities(unittest.TestCase):
     # Test utils functions
@@ -101,6 +103,19 @@ class TestUtilities(unittest.TestCase):
         h = pd.DataFrame()
         self.assertFalse(almost_equal(f, h))
 
+    def test_is_not_null(self):
+        f = None
+        c = 'foo'
+        self.assertFalse(is_not_null(f, c))
+
+        f = pd.DataFrame(columns=['bar', c])
+        self.assertFalse(is_not_null(f, c))
+
+        f = pd.DataFrame([[1, np.nan]], columns=['bar', c])
+        self.assertFalse(is_not_null(f, c))
+
+        f = pd.DataFrame([[1, np.nan], [2, 2]], columns=['bar', c])
+        self.assertTrue(is_not_null(f, c))
 
 if __name__ == '__main__':
     unittest.main()
