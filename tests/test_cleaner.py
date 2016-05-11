@@ -1,5 +1,6 @@
 import unittest
 from copy import copy
+from pathlib import Path
 
 import pandas as pd 
 import numpy as np
@@ -13,7 +14,8 @@ from gtfstk.utilities import *
 from gtfstk.feed import *
 from gtfstk.cleaner import *
 
-cairns = read_gtfs('data/cairns_gtfs.zip')
+DATA_DIR = Path('data')
+cairns = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
 
 
 class TestCleaner(unittest.TestCase):
