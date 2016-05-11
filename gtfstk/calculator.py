@@ -1,5 +1,6 @@
 """
-This module contains a bunch of useful calculators on Feed objects.
+This module contains functions for calculating things about Feed objects, 
+such as daily service duration per route. 
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -165,17 +166,17 @@ def get_trips(feed, date=None, time=None):
     f = feed.trips.copy()
     f['is_active'] = f['trip_id'].map(
       lambda trip: is_active_trip(feed, trip, date))
-    f = f[f['is_active']]
+    f = f[f['is_active']].copy()
     del f['is_active']
 
     if time is not None:
         # Get trips active during given time
         g = pd.merge(f, feed.stop_times[['trip_id', 'departure_time']])
-      
+
         def F(group):
             d = {}
-            start = group['departure_time'].min()
-            end = group['departure_time'].max()
+            start = group['departure_time'].dropna().min()
+            end = group['departure_time'].dropna().max()
             try:
                 result = start <= time <= end
             except TypeError:
@@ -2028,51 +2029,61 @@ def downsample(time_series, freq):
     Return the given time series unchanged if the given frequency is 
     shorter than the original frequency.
     """    
+    f = time_series.copy()
+
     # Can't downsample to a shorter frequency
-    if time_series.empty or\
-      pd.tseries.frequencies.to_offset(freq) < time_series.index.freq:
-        return time_series
+    if f.empty or\
+      pd.tseries.frequencies.to_offset(freq) < f.index.freq:
+        return f
 
     result = None
-    if 'route_id' in time_series.columns.names:
+    if 'route_id' in f.columns.names:
         # It's a routes time series
         has_multiindex = True
-        # Sums
-        how = OrderedDict((col, 'sum') for col in time_series.columns
-          if col[0] in ['num_trip_starts', 'service_distance', 
-          'service_duration'])
-        # Means
-        how.update(OrderedDict((col, 'mean') for col in time_series.columns
-          if col[0] in ['num_trips']))
-        f = time_series.resample(freq, how=how)
+        # Resample indicators differently.
+        # For some reason in Pandas 0.18.1 the column multi-index gets
+        # messed up when i try to do the resampling all at once via
+        # f.resample(freq).agg(how_dict).
+        # Workaround is to operate on indicators separately.
+        inds_and_hows = [
+          ('num_trips', 'mean'),
+          ('num_trip_starts', 'sum'),
+          ('service_distance', 'sum'),
+          ('service_duration', 'sum'),
+          ]
+        frames = []
+        for ind, how in inds_and_hows:
+            frames.append(f[ind].resample(freq).agg({ind: how}))
+        g = pd.concat(frames, axis=1)
         # Calculate speed and add it to f. Can't resample it.
-        speed = f['service_distance']/f['service_duration']
+        speed = g['service_distance']/g['service_duration']
         speed = pd.concat({'service_speed': speed}, axis=1)
-        result = pd.concat([f, speed], axis=1)
+        result = pd.concat([g, speed], axis=1)
     elif 'stop_id' in time_series.columns.names:
         # It's a stops time series
         has_multiindex = True
-        how = OrderedDict((col, 'sum') for col in time_series.columns)
-        result = time_series.resample(freq, how=how)
+        result = f.resample(freq).sum()
     else:
         # It's a feed time series
         has_multiindex = False
-        # Sums
-        how = OrderedDict((col, 'sum') for col in time_series.columns
-          if col in ['num_trip_starts', 'service_distance', 
-          'service_duration'])
-        # Means
-        how.update(OrderedDict((col, 'mean') for col in time_series.columns
-          if col in ['num_trips']))
-        f = time_series.resample(freq, how=how)
+        inds_and_hows = [
+          ('num_trips', 'mean'),
+          ('num_trip_starts', 'sum'),
+          ('service_distance', 'sum'),
+          ('service_duration', 'sum'),
+          ]
+        frames = []
+        for ind, how in inds_and_hows:
+            frames.append(f[ind].resample(freq).agg({ind: how}))
+        g = pd.concat(frames, axis=1)
         # Calculate speed and add it to f. Can't resample it.
-        speed = f['service_distance']/f['service_duration']
+        speed = g['service_distance']/g['service_duration']
         speed = pd.concat({'service_speed': speed}, axis=1)
-        result = pd.concat([f, speed], axis=1)
+        result = pd.concat([g, speed], axis=1)
 
     # Reset column names in result, because they disappear after resampling.
     # Pandas 0.14.0 bug?
-    result.columns.names = time_series.columns.names
+    result.columns.names = f.columns.names
     # Sort the multiindex column to make slicing possible;
     # see http://pandas.pydata.org/pandas-docs/stable/indexing.html#multiindexing-using-slicers
     if has_multiindex:

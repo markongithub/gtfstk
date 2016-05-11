@@ -43,6 +43,26 @@ class TestCleaner(unittest.TestCase):
         new_routes = prune_dead_routes(feed)
         assert_frame_equal(new_routes, old_routes)
 
+    def test_aggregate_routes(self):
+        feed1 = copy(cairns)
+        # Equalize all route short names
+        feed1.routes['route_short_name'] = 'bingo'
+        feed2 = aggregate_routes(feed1)
+
+        # feed2 should have only one route ID
+        self.assertEqual(feed2.routes.shape[0], 1)
+        
+        # Feeds should have same trip data frames excluding
+        # route IDs
+        feed1.trips['route_id'] = feed2.trips['route_id']
+        self.assertTrue(ut.almost_equal(feed1.trips, feed2.trips))
+
+        # Feeds should have equal attributes excluding
+        # routes and trips data frames
+        feed2.routes = feed1.routes 
+        feed2.trips = feed1.trips
+        self.assertEqual(feed1, feed2)
+
 
 if __name__ == '__main__':
     unittest.main()

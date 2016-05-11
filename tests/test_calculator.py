@@ -163,9 +163,9 @@ class TestCalculator(unittest.TestCase):
         trips_stats = compute_trips_stats(feed)
         feed.stop_times = add_dist_to_stop_times(feed, trips_stats)
         date = get_dates(feed)[0]
-        timestrs = ['08:00:00']
-        f = compute_trips_locations(feed, date, timestrs)
-        g = get_trips(feed, date, timestrs[0])
+        times = ['08:00:00']
+        f = compute_trips_locations(feed, date, times)
+        g = get_trips(feed, date, times[0])
         # Should be a data frame
         self.assertIsInstance(f, pd.core.frame.DataFrame)
         # Should have the correct number of rows
