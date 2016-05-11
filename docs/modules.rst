@@ -1,4 +1,4 @@
-Module constants
+constants Module
 ===========================
 
 .. automodule:: gtfstk.constants
@@ -7,7 +7,7 @@ Module constants
     :show-inheritance:
 
 
-Module utilities
+utilities Module 
 ===========================
 
 .. automodule:: gtfstk.utilities
@@ -16,7 +16,7 @@ Module utilities
     :show-inheritance:
 
 
-Module feed
+feed Module
 ===========================
 
 .. automodule:: gtfstk.feed
@@ -25,7 +25,7 @@ Module feed
     :show-inheritance:
 
 
-Module validator 
+validator Module
 ===========================
 
 .. automodule:: gtfstk.validator
@@ -34,7 +34,7 @@ Module validator
     :show-inheritance:
 
 
-Module cleaner 
+cleaner Module 
 ===========================
 
 .. automodule:: gtfstk.cleaner
@@ -43,7 +43,7 @@ Module cleaner
     :show-inheritance:
 
 
-Module calculator
+calculator Module
 ===========================
 
 .. automodule:: gtfstk.calculator
@@ -52,7 +52,7 @@ Module calculator
     :show-inheritance:
 
 
-Module plotter
+plotter Module
 ===========================
 
 .. automodule:: gtfstk.plotter

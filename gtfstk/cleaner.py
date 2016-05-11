@@ -75,8 +75,7 @@ def aggregate_routes(feed):
 
     1. choose the first route in the group
     2. assign a new route ID to that route
-    3. assign all the trips associated with routes in the group 
-      to that first route.
+    3. assign all the trips associated with routes in the group to that first route.
 
     Update ``feed.routes`` and ``feed.trips`` with the new routes, 
     and return the resulting feed.
