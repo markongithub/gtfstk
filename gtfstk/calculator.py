@@ -1101,7 +1101,7 @@ def compute_stops_stats_base(stop_times, trips_subset, split_directions=False,
       'max_headway',
       'min_headway',
       'mean_headway',
-      'start_time',
+       'start_time',
       'end_time',
       ]
 
@@ -2134,20 +2134,22 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
 @ut.time_it
 def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     """
-    Compute all the feed trips active on the given date that intersect 
-    the given Shapely LineString (with WGS84 longitude-latitude coordinates),
+    Compute all the trips active in the given feed on the given date 
+    that intersect the given Shapely LineString 
+    (with WGS84 longitude-latitude coordinates),
     and return a data frame with the columns:
 
     - ``'trip_id'``
     - ``'route_id'``
     - ``'route_short_name'``
-    - ``'crossing_time'``: time (one of possibly several) that the trip vehicle
-      crosses the linestring
+    - ``'crossing_time'``: time that the trip's vehicle crosses the linestring;
+      one trip could cross multiple times
     - ``'orientation'``: 1 or -1; 1 indicates trip travel from the left side
      to the right side of the screen line; -1 indicates trip travel in the 
      opposite direction
 
     Requires GeoPandas.
+
     The first step is to geometrize ``feed.shapes`` via
     :func:`geometrize_shapes`.
     Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
@@ -2163,6 +2165,11 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     To calculate direction quickly and accurately, assume that the 
     screen line is straight and doesn't double back on itself.
 
+    WARNING:
+
+    Probably does not give correct results for trips with self-intersecting
+    shapes.
+    
     ALGORITHM:
 
     Compute all the shapes that intersect the linestring.
@@ -2171,8 +2178,10 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     that shape and are active on the given date.
     Interpolate a stop time for p by assuming that the feed has
     the shape_dist_traveled field in stop times.
-    Get the trip's route, compute the trip's direction relative
-    to the screen line (+1 or -1) and increment the route-direction count.
+    Use that interpolated time as the crossing time of the trip vehicle,
+    and compute the trip orientation to the screen line via a cross product
+    of a vector in the direction of the screen line and a tiny vector in the 
+    direction of trip travel.
     """  
     # Get all shapes that intersect the screen line
     shapes = get_shapes_intersecting_geometry(feed, linestring, geo_shapes,
@@ -2197,64 +2206,63 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     w = np.array([p2.x - p1.x, p2.y - p1.y])
 
     # Build a dictionary from the shapes data frame of the form
-    # shape ID -> (intersection points, distances of points along shape,
-    # tiny vectors from points in direction of shape)
+    # shape ID -> list of pairs (d, v), one for each intersection point, 
+    # where d is the distance of the intersection point along shape,
+    # and v is a tiny vectors from the point in direction of shape.
     # Assume here that trips travel in the same direction as their shapes.
-    pdv_by_shape = {}
-    eps = 1e-4
+    dv_by_shape = {}
+    eps = 1
+    convert_dist = ut.get_convert_dist('m', feed.dist_units_out)
     for __, sid, geom, intersection in shapes.itertuples():
+        # Get distances along shape of intersection points (in meters)
         distances = [geom.project(p) for p in intersection]
+        # Build tiny vectors
         vectors = []
         for i, p in enumerate(intersection):
             q = geom.interpolate(distances[i] + eps)
             vector = np.array([q.x - p.x, q.y - p.y])
             vectors.append(vector)
-        pdv_by_shape[sid] = (intersection, distances, vectors)
+        # Convert distances to units used in feed
+        distances = [convert_dist(d) for d in distances]
+        dv_by_shape[sid] = list(zip(distances, vectors))
 
     # Get trips with those shapes that are active on the given date
     trips = get_trips(feed, date)
-    trips = trips[trips['shape_id'].isin(pdv_by_shape.keys())]
+    trips = trips[trips['shape_id'].isin(dv_by_shape.keys())]
 
-    # Get route short names
+    # Merge in route short names
     trips = trips.merge(feed.routes[['route_id', 'route_short_name']])
 
-    # Get the stop times for those trips
+    # Merge in stop times
     f = trips.merge(feed.stop_times)
 
     # Drop NaN departure times and convert to seconds past midnight
     f = f[f['departure_time'].notnull()]
     f['departure_time'] = f['departure_time'].map(ut.timestr_to_seconds)
 
-    # Convert stop time distances to meters
-    converter = ut.get_convert_dist(feed.dist_units_out, 'm')
-    f['shape_dist_traveled'] = f['shape_dist_traveled'].map(converter)
-
     # For each shape find the trips that cross the screen line
-    # and get crossing times
+    # and get crossing times and orientation
     f = f.sort_values(['trip_id', 'stop_sequence'])
     G = []  # output table
     for tid, group in f.groupby('trip_id'):
         sid = group['shape_id'].iat[0] 
         rid = group['route_id'].iat[0]
         rsn = group['route_short_name'].iat[0]
-        points, distances, vectors = pdv_by_shape[sid] 
         stop_times = group['departure_time'].values
         stop_distances = group['shape_dist_traveled'].values
-        for i in range(len(points)):
-            p = points[i]
-            d_p = distances[i]
-            t_p = np.interp(d_p, stop_distances, stop_times)
-            v = vectors[i]
+        for d, v in dv_by_shape[sid]:
+            # Interpolate crossing time
+            t = np.interp(d, stop_distances, stop_times)
             # Compute direction of trip travel relative to
             # screen line by looking at the sign of the cross
-            # product of v_vec with sl_vec
+            # product of tiny shape vector and screen line vector
             det = np.linalg.det(np.array([v, w]))
             if det >= 0:
                 orientation = 1
             else:
                 orientation = -1
             # Update G
-            G.append([tid, rid, rsn, t_p, orientation])
+            G.append([tid, rid, rsn, t, orientation])
     
     # Create data frame
     g = pd.DataFrame(G, columns=['trip_id', 'route_id', 

@@ -5,3 +5,4 @@ dist/
 tests/.ipynb_checkpoints/
 ipynb/.ipynb_checkpoints/
 MANIFEST
+data/test_gtfs.zip

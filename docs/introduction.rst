@@ -1,20 +1,20 @@
-This is a Python 3 tool kit for processing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
-It's mostly for computing network-level statistics, such as mean daily service distance per route and mean daily number of vehicles per stop.
-Uses Pandas and Shapely to do the heavy lifting.
+GTFSTK is a Python 3.4+ tool kit for processing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
+It is mostly for computing statistics, such as daily service distance per route and daily number of trips per stop.
+It uses Pandas and Shapely to do the heavy lifting.
 
 
 Installation
--------------
-``pip install gtfstk``
+=============
+Create a Python 3.4+ virtual environment and ``pip install gtfstk``.
 
 
 Examples
---------
-Play with ``ipynb/examples.ipynb`` in a Jupyter notebook
+========
+You can play with ``ipynb/examples.ipynb`` in a Jupyter notebook
 
 
 Conventions
-------------
+============
 In conformance with GTFS and unless specified otherwise, 
 dates are encoded as date strings of 
 the form YYMMDD and times are encoded as time strings of the form HH:MM:SS

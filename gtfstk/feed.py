@@ -299,7 +299,7 @@ def write_gtfs(feed, path, ndigits=6):
     # Remove '.zip' extension from path, because it gets added
     # automatically below
     p = Path(path)
-    p = p.parent / p.stem
+    p = p.parent/p.stem
 
     # Write files to a temporary directory 
     tmp_dir = tempfile.mkdtemp()

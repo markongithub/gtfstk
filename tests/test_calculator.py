@@ -22,8 +22,9 @@ else:
     from geopandas import GeoDataFrame
 
 # Load/create test feeds
-cairns = read_gtfs('data/cairns_gtfs.zip')
-cairns_shapeless = read_gtfs('data/cairns_gtfs.zip')
+DATA_DIR = Path('data')
+cairns = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
+cairns_shapeless = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
 cairns_shapeless.shapes = None
 trips = cairns_shapeless.trips.copy()
 trips['shape_id'] = np.nan
@@ -72,7 +73,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(is_active_trip(feed, trip, date1))
         self.assertFalse(is_active_trip(feed, trip, date2))
 
-        feed = read_gtfs('data/portland_gtfs.zip', dist_units_in='ft')
+        feed = read_gtfs(DATA_DIR/'portland_gtfs.zip', dist_units_in='ft')
         trip = '4526377'
         date1 = '20140518'
         date2 = '20120517'
@@ -438,7 +439,7 @@ class TestCalculator(unittest.TestCase):
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
     def test_get_stops_intersecting_polygon(self):
         feed = copy(cairns)
-        with open('data/cairns_square_stop_750070.geojson') as src:
+        with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
             polygon = sh_shape(json.load(src)['features'][0]['geometry'])
         pstops = get_stops_intersecting_polygon(feed, polygon)
         stop_ids = ['750070']
@@ -647,8 +648,8 @@ class TestCalculator(unittest.TestCase):
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
     def test_get_shapes_intersecting_geometry(self):
         feed = copy(cairns)
-        path = 'data/cairns_square_stop_750070.geojson'
-        polygon = sh_shape(json.load(open(path))['features'][0]['geometry'])
+        path = DATA_DIR/'cairns_square_stop_750070.geojson'
+        polygon = sh_shape(json.load(path.open())['features'][0]['geometry'])
         pshapes = get_shapes_intersecting_geometry(feed, polygon)
         shape_ids = ['120N0005', '1200010', '1200001']
         self.assertEqual(set(pshapes['shape_id'].unique()), set(shape_ids))
@@ -783,7 +784,7 @@ class TestCalculator(unittest.TestCase):
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
     def test_get_feed_intersecting_polygon(self):
         feed1 = copy(cairns) 
-        with open('data/cairns_square_stop_750070.geojson') as src:
+        with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
             polygon = sh_shape(json.load(src)['features'][0]['geometry'])
         feed2 = get_feed_intersecting_polygon(feed1, polygon)
         # Should have correct routes
@@ -807,6 +808,44 @@ class TestCalculator(unittest.TestCase):
     # ----------------------------------
     # Test miscellanous functions
     # ----------------------------------
+    def test_compute_screen_line_counts(self):
+        feed = copy(cairns) 
+        # Add distances to feed
+        trips_stats = compute_trips_stats(feed, compute_dist_from_shapes=True)
+        feed.stop_times = add_dist_to_stop_times(feed, trips_stats)
+        
+        # Pick date
+        date = get_first_week(feed)[0]
+        
+        # Load screen line
+        with (DATA_DIR/'cairns_screen_line.geojson').open() as src:
+            line = json.load(src)
+            line = sh_shape(line['features'][0]['geometry'])
+        
+        f = compute_screen_line_counts(feed, line, date)
+
+        # Should have correct columns
+        expect_cols = set([
+          'trip_id',
+          'route_id',
+          'route_short_name',
+          'crossing_time',
+          'orientation',
+          ])
+        self.assertEqual(set(f.columns), expect_cols)
+
+        # Should have correct routes
+        rsns = ['120', '120N']
+        self.assertEqual(set(f['route_short_name']), set(rsns))
+
+        # Should have correct number of trips
+        expect_num_trips = 34
+        self.assertEqual(f['trip_id'].nunique(), expect_num_trips)
+
+        # Should have correct orientations
+        for ori in [-1, 1]:
+            self.assertEqual(f[f['orientation'] == 1].shape[0], 
+              expect_num_trips)
 
         
 if __name__ == '__main__':
