@@ -37,25 +37,27 @@ def clean_stop_times(feed):
 
 def clean_route_short_names(feed):
     """
-    In ``feed.routes``, assign route IDs to missing route short names.
-    Then disambiguate route short names by applying 
-    :func:`utilities.clean_series`.
+    In ``feed.routes``, assign 'n/a' to missing route short names.
+    Then disambiguate each route short name that is duplicated by
+    appending '-' and its route ID.
     Return the resulting routes data frame.
     """
-    def my_fillna(row):
-        rsn, rid = row
-        if pd.isnull(rsn):
-            rsn = rid
-        return rsn
-
     routes = feed.routes.copy()
-    if routes is not None:
-        # Fill NaNs
-        routes['route_short_name'] = routes[['route_short_name', 
-          'route_id']].apply(my_fillna, axis=1)
-        # Disambiguate
-        routes['route_short_name'] = ut.clean_series(
-          routes['route_short_name'])
+    if routes is None:
+        return routes
+
+    # Fill NaNs
+    routes['route_short_name'] = routes['route_short_name'].fillna('n/a')
+    # Disambiguate
+    def disambiguate(row):
+        rsn, rid = row
+        return rsn + '-' + rid
+
+    routes['dup'] = routes['route_short_name'].duplicated(keep=False)
+    routes.loc[routes['dup'], 'route_short_name'] = routes.loc[
+      routes['dup'], ['route_short_name', 'route_id']].apply(
+      disambiguate, axis=1)
+    del routes['dup']
 
     return routes
 
@@ -69,33 +71,35 @@ def prune_dead_routes(feed):
     r = feed.routes 
     return r[r['route_id'].isin(live_routes)]
 
-def aggregate_routes(feed):
+def aggregate_routes(feed, by='route_short_name'):
     """
-    Group routes by route short name and for each group, 
+    Given a GTFSTK Feed object, group routes by the ``by`` column of 
+    ``feed.routes`` and for each group, 
 
-    1. choose the first route in the group
-    2. assign a new route ID to that route
+    1. choose the first route in the group,
+    2. use that route's ID to assign to the whole group
     3. assign all the trips associated with routes in the group to that first route.
 
     Update ``feed.routes`` and ``feed.trips`` with the new routes, 
     and return the resulting feed.
     """
+    if by not in feed.routes.columns:
+        raise ValueError("Column {0} not in feed.routes".format(
+          by))
+
     feed = fcopy(feed)
 
     # Create new route IDs
     routes = feed.routes
-    n = routes.groupby('route_short_name').ngroups
-    pad = int(math.log10(n)) + 1
+    n = routes.groupby(by).ngroups
     nrid_by_orid = dict()
-    i = 1
-    for rsn, group in routes.groupby('route_short_name'):
-        nrid = 'route_{i:0{pad}}'.format(i=i, pad=pad)
+    for col, group in routes.groupby(by):
+        nrid = group['route_id'].iat[0]
         d = {orid: nrid for orid in group['route_id'].values}
         nrid_by_orid.update(d)
-        i += 1
 
     routes['route_id'] = routes['route_id'].map(lambda x: nrid_by_orid[x])
-    routes = routes.groupby('route_short_name').first().reset_index()
+    routes = routes.groupby(by).first().reset_index()
     feed.routes = routes
 
     # Update route IDs of trips

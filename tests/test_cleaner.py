@@ -27,9 +27,10 @@ class TestCleaner(unittest.TestCase):
         routes = clean_route_short_names(feed)
         # Should have unique route short names
         self.assertEqual(routes['route_short_name'].nunique(), routes.shape[0])
-        # NaNs should be replaced by route IDs
+        # NaNs should be replaced by n/a and route IDs
+        expect_rsns = ('n/a-' + cairns.routes.ix[1:5]['route_id']).tolist()
         self.assertEqual(routes.ix[1:5]['route_short_name'].values.tolist(),
-          cairns.routes.ix[1:5]['route_id'].values.tolist())
+          expect_rsns)
 
     def test_prune_dead_routes(self):
         # Should not change Cairns routes
