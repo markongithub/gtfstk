@@ -1,3 +1,11 @@
+v4.1.0,
+------------------
+- Improved ``cleaner.clean_route_short_names()``
+- Removed ``utilities.clean_series()``
+- Improved ``cleaner.aggregate_routes()``
+- Removed some unnecessary print statements
+
+
 v4.0.0, 2015-05-11
 ------------------
 - Deleted an extraneous print statement in ``calculator.create_shapes()``

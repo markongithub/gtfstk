@@ -57,7 +57,7 @@
           <div class="body" role="main">
             
   <div class="section" id="gtfstk-version-documentation">
-<h1>GTFSTK 4.0.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>GTFSTK 4.1.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <span id="document-introduction"></span><p>GTFSTK is a Python 3.4+ tool kit for processing <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
 It is mostly for computing statistics, such as daily service distance per route and daily number of trips per stop.
@@ -83,7 +83,7 @@ Pandas data frames and series, respectively.</p>
 <span id="constants-module"></span><h2>constants Module<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="gtfstk.constants.CRS_WGS84">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'no_defs': True, 'ellps': 'WGS84', 'datum': 'WGS84', 'proj': 'longlat'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'no_defs': True, 'proj': 'longlat', 'datum': 'WGS84', 'ellps': 'WGS84'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -93,7 +93,7 @@ Pandas data frames and series, respectively.</p>
 
 <dl class="data">
 <dt id="gtfstk.constants.DTYPE">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'end_date': &lt;class 'str'&gt;, 'zone_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'agency_id': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'start_date': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'zone_id': &lt;class 'str'&gt;, 'agency_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -130,19 +130,6 @@ Pandas data frames and series, respectively.</p>
 <dd><p>Return <code class="docutils literal"><span class="pre">True</span></code> if and only if the given data frames are equal 
 after sorting their columns names, sorting their values, 
 and reseting their indices.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfstk.utilities.clean_series">
-<code class="descclassname">gtfstk.utilities.</code><code class="descname">clean_series</code><span class="sig-paren">(</span><em>series</em>, <em>nan_prefix='n/a'</em>, <em>mark='-'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utilities.clean_series" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a series of items, replace NaN entries
-with <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-0'</span></code>, <code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-1'</span></code>, 
-<code class="docutils literal"><span class="pre">nan_prefix</span> <span class="pre">+</span> <span class="pre">'-2'</span></code>, etc.
-Replace duplicate items x1, x2, x3, etc. with 
-x1 + &#8216;-0&#8217;, x2 + &#8216;-1&#8217;, x3 + &#8216;-2&#8217;, etc.
-Return the resulting series.
-The dashes can be changed to another string by setting
-the <code class="docutils literal"><span class="pre">mark</span></code> parameter.</p>
 </dd></dl>
 
 <dl class="function">
@@ -357,11 +344,12 @@ GTFS specification.</p>
 <p>This module contains functions for cleaning Feed objects.</p>
 <dl class="function">
 <dt id="gtfstk.cleaner.aggregate_routes">
-<code class="descclassname">gtfstk.cleaner.</code><code class="descname">aggregate_routes</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaner.aggregate_routes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Group routes by route short name and for each group,</p>
+<code class="descclassname">gtfstk.cleaner.</code><code class="descname">aggregate_routes</code><span class="sig-paren">(</span><em>feed</em>, <em>by='route_short_name'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaner.aggregate_routes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a GTFSTK Feed object, group routes by the <code class="docutils literal"><span class="pre">by</span></code> column of 
+<code class="docutils literal"><span class="pre">feed.routes</span></code> and for each group,</p>
 <ol class="arabic simple">
-<li>choose the first route in the group</li>
-<li>assign a new route ID to that route</li>
+<li>choose the first route in the group,</li>
+<li>use that route&#8217;s ID to assign to the whole group</li>
 <li>assign all the trips associated with routes in the group to that first route.</li>
 </ol>
 <p>Update <code class="docutils literal"><span class="pre">feed.routes</span></code> and <code class="docutils literal"><span class="pre">feed.trips</span></code> with the new routes, 
@@ -379,9 +367,9 @@ This is not a GTFS validator.</p>
 <dl class="function">
 <dt id="gtfstk.cleaner.clean_route_short_names">
 <code class="descclassname">gtfstk.cleaner.</code><code class="descname">clean_route_short_names</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaner.clean_route_short_names" title="Permalink to this definition">¶</a></dt>
-<dd><p>In <code class="docutils literal"><span class="pre">feed.routes</span></code>, assign route IDs to missing route short names.
-Then disambiguate route short names by applying 
-<code class="xref py py-func docutils literal"><span class="pre">utilities.clean_series()</span></code>.
+<dd><p>In <code class="docutils literal"><span class="pre">feed.routes</span></code>, assign &#8216;n/a&#8217; to missing route short names.
+Then disambiguate each route short name that is duplicated by
+appending &#8216;-&#8216; and its route ID.
 Return the resulting routes data frame.</p>
 </dd></dl>
 

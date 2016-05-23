@@ -1565,7 +1565,6 @@ def add_dist_to_shapes(feed):
         group = group.sort_values('shape_pt_sequence')
         shape = group['shape_id'].iat[0]
         if not isinstance(shape, str):
-            print(trip, 'no shape_id:', shape)
             group['shape_dist_traveled'] = np.nan 
             return group
         points = [Point(utm.from_latlon(lat, lon)[:2]) 
@@ -1686,7 +1685,6 @@ def add_dist_to_stop_times(feed, trips_stats):
         trip = group['trip_id'].iat[0]
         shape = group['shape_id'].iat[0]
         if not isinstance(shape, str):
-            print(trip, 'has no shape_id')
             group['shape_dist_traveled'] = np.nan 
             return group
         elif np.isnan(group['distance'].iat[0]):
