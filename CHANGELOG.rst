@@ -1,4 +1,4 @@
-v4.1.0,
+v4.1.0, 2015-05-23
 ------------------
 - Improved ``cleaner.clean_route_short_names()``
 - Removed ``utilities.clean_series()``
