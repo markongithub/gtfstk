@@ -171,7 +171,14 @@ def copy(feed):
     """
     # Copy feed attributes necessary to create new feed
     new_feed_input = dict()
-    for key in cs.FEED_INPUTS:
+
+    # New distance units in/out should be old distance units out
+    new_feed_input['dist_units_in'] = feed.dist_units_out
+    new_feed_input['dist_units_out'] = feed.dist_units_out
+
+    # Set remaining attributes
+    input_keys = set(cs.FEED_INPUTS) - set(['dist_units_in', 'dist_units_out'])
+    for key in input_keys:
         value = getattr(feed, key)
         if isinstance(value, pd.DataFrame):
             # Pandas copy data frame

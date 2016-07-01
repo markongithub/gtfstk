@@ -49,9 +49,18 @@ class TestFeed(unittest.TestCase):
     # Test functions about basics
     # --------------------------------------------
     def test_copy(self):
-        feed1 = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
+        feed1 = read_gtfs(DATA_DIR/'cairns_gtfs.zip',
+          dist_units_in='mi', dist_units_out='km')
         feed2 = copy(feed1)
+
+        # Check distance units
+        self.assertEqual(feed2.dist_units_in, feed1.dist_units_out)
+        self.assertEqual(feed2.dist_units_out, feed1.dist_units_out)
+
+        # Check other attributes
         for key, value in feed2.__dict__.items():
+            if key in ['dist_units_in', 'dist_units_out']:
+                continue
             expect_value = getattr(feed1, key)            
             if isinstance(value, pd.DataFrame):
                 assert_frame_equal(value, expect_value)
