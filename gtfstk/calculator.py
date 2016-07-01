@@ -347,11 +347,12 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
                 # No can do.
                 return np.nan 
             
-            # If the linestring intersects itfeed, then that can cause
+            # If the linestring intersects itself, then that can cause
             # errors in the computation below, so just 
             # return the length of the linestring as a good approximation
+            D = linestring.length
             if not linestring.is_simple:
-                return linestring.length
+                return D
 
             # Otherwise, return the difference of the distances along
             # the linestring of the first and last stop
@@ -363,16 +364,16 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
             except KeyError:
                 # One of the two stop IDs is NaN, so just
                 # return the length of the linestring
-                return linestring.length
+                return D
             d1 = linestring.project(start_point)
             d2 = linestring.project(end_point)
             d = d2 - d1
-            if d > 0:
+            if 0 < d <= D:
                 return d
             else:
                 # Something is probably wrong, so just
                 # return the length of the linestring
-                return linestring.length
+                return D
 
         h['distance'] = g.apply(compute_dist)
         # Convert from meters
@@ -1701,15 +1702,18 @@ def add_dist_to_stop_times(feed, trips_stats):
                 dist_by_stop_by_shape[shape][stop] = d
             distances.append(d)
         s = sorted(distances)
-        if s == distances:
+        D = linestring.length
+        distances_are_reasonable = all([d <= D for d in distances])
+        if distances_are_reasonable and s == distances:
             # Good
             pass
-        elif s == distances[::-1]:
+        elif distances_are_reasonable and s == distances[::-1]:
             # Reverse. This happens when the direction of a linestring
             # opposes the direction of the bus trip.
             distances = distances[::-1]
         else:
-            # Totally redo using trip lengths and linear interpolation.
+            # Totally redo using trip length, first and last stop times,
+            # and linear interpolation
             dt = group['departure_time']
             times = dt.values # seconds
             t0, t1 = times[0], times[-1]                  
