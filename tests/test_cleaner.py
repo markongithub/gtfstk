@@ -22,6 +22,13 @@ class TestCleaner(unittest.TestCase):
 
     def test_clean_route_short_names(self):
         feed  = copy(cairns)
+        
+        # Should have no effect on a fine feed
+        routes = clean_route_short_names(feed)
+        assert_series_equal(routes['route_short_name'], 
+          feed.routes['route_short_name'])
+        
+        # Make route short name duplicates
         feed.routes.loc[1:5, 'route_short_name'] = np.nan
         feed.routes.loc[6:, 'route_short_name'] = 'hello'
         routes = clean_route_short_names(feed)
