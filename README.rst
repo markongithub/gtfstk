@@ -34,6 +34,12 @@ Authors
 
 Changelog
 =========
+
+v4.1.2, 2016-07-01
+------------------
+- Improved distance sanity checks in ``calculator.compute_trips_stats()`` and ``calculator.add_dist_to_stop_times()``
+
+
 v4.1.1, 2016-07-01
 ------------------
 - Bugfixed ``feed.copy()`` so that the ``dist_units_in`` of the copy equals ``dist_units_out`` of the original

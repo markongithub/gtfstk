@@ -368,7 +368,7 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
             d1 = linestring.project(start_point)
             d2 = linestring.project(end_point)
             d = d2 - d1
-            if 0 < d <= D:
+            if 0 < d < D + 100:
                 return d
             else:
                 # Something is probably wrong, so just
@@ -1703,7 +1703,7 @@ def add_dist_to_stop_times(feed, trips_stats):
             distances.append(d)
         s = sorted(distances)
         D = linestring.length
-        distances_are_reasonable = all([d <= D for d in distances])
+        distances_are_reasonable = all([d < D + 100 for d in distances])
         if distances_are_reasonable and s == distances:
             # Good
             pass
