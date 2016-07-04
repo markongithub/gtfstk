@@ -1705,6 +1705,21 @@ def get_stop_times(feed, date=None):
     g = get_trips(feed, date)
     return f[f['trip_id'].isin(g['trip_id'])]
 
+def get_start_and_end_times(feed, date=None):
+    """
+    Return the first departure time and last arrival time (time strings)
+    listed in ``feed.stop_times``, respectively.
+    Restrict to the given date if specified.
+    Return 
+    """
+    st = get_stop_times(feed, date)
+    # if st.empty:
+    #     a, b = np.nan, np.nan 
+    # else:
+    a, b = st['departure_time'].dropna().min(),\
+       st['arrival_time'].dropna().max()
+    return a, b 
+
 def add_dist_to_stop_times(feed, trips_stats):
     """
     Copy ``feed.stop_times``, compute its optional 

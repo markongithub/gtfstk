@@ -35,7 +35,13 @@ Authors
 Changelog
 =========
 
-4.2.0,
+
+4.3.0, 2016-07-04
+-----------------
+- Added the function ``calculator.get_start_and_end_times``
+
+
+4.2.0, 2016-07-04
 -----------------
 - Added the functions ``calculator.compute_center``, ``calculator. compute_bounds``, ``calculator.build_route_geojson``
 - Extended the function ``calculator.get_stops`` to accept an optional route ID
