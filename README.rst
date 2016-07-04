@@ -43,7 +43,6 @@ Changelog
 - Extended the function ``calculator.build_geometry_by_stop`` to accept and optional set of stop IDs
 
 
-
 4.1.2, 2016-07-01
 ------------------
 - Improved distance sanity checks in ``calculator.compute_trips_stats`` and ``calculator.add_dist_to_stop_times``
