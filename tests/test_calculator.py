@@ -386,30 +386,59 @@ class TestCalculator(unittest.TestCase):
           set(feed.stop_times.columns)
         self.assertEqual(set(f.columns), expect_cols)
 
+    def test_build_route_geojson(self):
+        feed = copy(cairns)
+        route_id = feed.routes['route_id'].values[0]
+        g0 = build_route_geojson(feed, route_id)      
+        g1 = build_route_geojson(feed, route_id, include_stops=True)
+        for g in [g0, g1]:
+            # Should be a dictionary
+            self.assertIsInstance(g, dict)
+
+        # Should have the correct number of features
+        self.assertEqual(len(g0['features']), 1)
+        stop_ids = get_stops(feed, route_id=route_id)['stop_id'].values
+        self.assertEqual(len(g1['features']), 1 + len(stop_ids))
+
     # ----------------------------------
     # Test functions about stops
     # ----------------------------------
     def test_get_stops(self):
         feed = copy(cairns)
         date = get_dates(feed)[0]
-        f = get_stops(feed, date)
-        # Should be a data frame
-        self.assertIsInstance(f, pd.core.frame.DataFrame)
-        # Should have the correct shape
-        self.assertTrue(f.shape[0] <= feed.stops.shape[0])
-        self.assertEqual(f.shape[1], feed.stops.shape[1])
-        # Should have correct columns
-        self.assertEqual(set(f.columns), set(feed.stops.columns))
+        route_id = '110-423'
+        f0 = get_stops(feed)
+        f1 = get_stops(feed, date=date)
+        f2 = get_stops(feed, route_id=route_id)
+        f3 = get_stops(feed, date=date, route_id=route_id)
+        for f in [f0, f1, f2, f3]:
+            # Should be a data frame
+            self.assertIsInstance(f, pd.core.frame.DataFrame)
+            # Should have the correct shape
+            self.assertTrue(f.shape[0] <= feed.stops.shape[0])
+            self.assertEqual(f.shape[1], feed.stops.shape[1])
+            # Should have correct columns
+            self.assertEqual(set(f.columns), set(feed.stops.columns))
+        # Number of rows should be reasonable
+        self.assertTrue(f3.shape[0] <= f1.shape[0])
+        self.assertTrue(f3.shape[0] <= f2.shape[0])
 
     def test_build_geometry_by_stop(self):
         feed = copy(cairns)
-        geometry_by_stop = build_geometry_by_stop(feed)
-        # Should be a dictionary
-        self.assertIsInstance(geometry_by_stop, dict)
-        # The first element should be a Shapely point
-        self.assertIsInstance(list(geometry_by_stop.values())[0], Point)
-        # Should include all stops
-        self.assertEqual(len(geometry_by_stop), feed.stops.shape[0])
+        stop_ids = feed.stops['stop_id'][:2].values
+        d0 = build_geometry_by_stop(feed)
+        d1 = build_geometry_by_stop(feed, stop_ids=stop_ids)
+        for d in [d0, d1]:
+            # Should be a dictionary
+            self.assertIsInstance(d, dict)
+            # The first key should be a valid shape ID
+            self.assertTrue(list(d.keys())[0] in 
+              feed.stops['stop_id'].values) 
+            # The first value should be a Shapely linestring
+            self.assertIsInstance(list(d.values())[0], Point)
+        # Lengths should be right
+        self.assertEqual(len(d0), feed.stops['stop_id'].nunique())
+        self.assertEqual(len(d1), len(stop_ids))
 
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
     def test_geometrize_stops(self):
@@ -595,15 +624,20 @@ class TestCalculator(unittest.TestCase):
     # ----------------------------------
     def test_build_geometry_by_shape(self):
         feed = copy(cairns)
-        geometry_by_shape = build_geometry_by_shape(feed)
-        # Should be a dictionary
-        self.assertIsInstance(geometry_by_shape, dict)
-        # The first element should be a Shapely linestring
-        self.assertIsInstance(list(geometry_by_shape.values())[0], 
-          LineString)
-        # Should contain all shapes
-        self.assertEqual(len(geometry_by_shape), 
-          feed.shapes.groupby('shape_id').first().shape[0])
+        shape_ids = feed.shapes['shape_id'].unique()[:2]
+        d0 = build_geometry_by_shape(feed)
+        d1 = build_geometry_by_shape(feed, shape_ids=shape_ids)
+        for d in [d0, d1]:
+            # Should be a dictionary
+            self.assertIsInstance(d, dict)
+            # The first key should be a valid shape ID
+            self.assertTrue(list(d.keys())[0] in 
+              feed.shapes['shape_id'].values) 
+            # The first value should be a Shapely linestring
+            self.assertIsInstance(list(d.values())[0], LineString)
+        # Lengths should be right
+        self.assertEqual(len(d0), feed.shapes['shape_id'].nunique())
+        self.assertEqual(len(d1), len(shape_ids))
         # Should be None if feed.shapes is None
         feed2 = copy(cairns_shapeless)
         self.assertIsNone(build_geometry_by_shape(feed2))
@@ -847,6 +881,25 @@ class TestCalculator(unittest.TestCase):
             self.assertEqual(f[f['orientation'] == 1].shape[0], 
               expect_num_trips)
 
-        
+    def test_compute_bounds(self):
+        feed = copy(cairns) 
+        minlon, minlat, maxlon, maxlat = compute_bounds(feed)
+        # Bounds should be in the ball park
+        self.assertTrue(145 < minlon < 146)
+        self.assertTrue(145 < maxlon < 146)
+        self.assertTrue(-18 < minlat < -15)
+        self.assertTrue(-18 < maxlat < -15)
+
+    def test_compute_center(self):
+        feed = copy(cairns) 
+        centers = [compute_center(feed), compute_center(feed, 20)]
+        bounds = compute_bounds(feed)
+        for lon, lat in centers:
+            # Center should be in the ball park
+            self.assertTrue(bounds[0] < lon < bounds[2])
+            self.assertTrue(bounds[1] < lat < bounds[3])
+
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='gtfstk',
-    version='4.1.2',
+    version='4.2.0',
     author='Alexander Raichev',
     author_email='alex@raichev.net',
     packages=['gtfstk', 'tests'],
@@ -12,7 +12,7 @@ setup(
     long_description=open('README.rst').read(),
     install_requires=[
         'Shapely>=1.5.1',
-        'pandas>=0.18.1',
+        'pandas>=0.18.1, <0.19',
         'utm>=0.3.1',    
     ],
 )

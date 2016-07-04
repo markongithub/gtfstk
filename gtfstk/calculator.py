@@ -10,7 +10,7 @@ import math
 
 import pandas as pd
 import numpy as np
-from shapely.geometry import Point, LineString, mapping
+from shapely.geometry import Point, MultiPoint, MultiLineString, LineString, mapping
 import utm
 
 from . import constants as cs
@@ -915,29 +915,89 @@ def get_route_timetable(feed, route_id, date):
     return f.sort_values(['min_dt', 'stop_sequence']).drop(
       ['min_dt', 'dt'], axis=1)
 
+def build_route_geojson(feed, route_id, include_stops=False):
+    """
+    Given a feed and a route ID (string), return a (decoded) GeoJSON 
+    feature collection comprising a MultiLinestring feature of distinct shapes
+    of the trips on the route.
+    If ``include_stops``, then also include one Point feature for each stop 
+    visited by any trip on the route. 
+    The MultiLinestring feature will contain as properties all the columns
+    in ``feed.routes`` pertaining to the given route, and each Point feature
+    will contain as properties all the columns in ``feed.stops`` pertaining 
+    to the stop, except the ``stop_lat`` and ``stop_lon`` properties.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.routes``
+    - ``feed.shapes``
+    - ``feed.trips``
+    - ``feed.stops``
+
+    """
+    # Get the relevant shapes
+    t = feed.trips.copy()
+    A = t[t['route_id'] == route_id]['shape_id'].unique()
+    geometry_by_shape = build_geometry_by_shape(feed, use_utm=False, 
+      shape_ids=A)
+
+    if geometry_by_shape is None:
+        return
+
+    r = feed.routes.copy()
+    features = [{
+        'type': 'Feature',
+        'properties': json.loads(r[r['route_id'] == route_id].to_json(
+          orient='records')),
+        'geometry': mapping(MultiLineString(
+          [linestring for linestring in geometry_by_shape.values()]))
+        }]
+
+    if include_stops:
+        # Get relevant stops and geometrys
+        s = get_stops(feed, route_id=route_id)
+        cols = set(s.columns) - set(['stop_lon', 'stop_lat'])
+        s = s[list(cols)].copy()
+        stop_ids = s['stop_id'].tolist()
+        geometry_by_stop = build_geometry_by_stop(feed, stop_ids=stop_ids)
+        features.extend([{
+            'type': 'Feature',
+            'properties': json.loads(s[s['stop_id'] == stop_id].to_json(
+              orient='records')),
+            'geometry': mapping(geometry_by_stop[stop_id]),
+            } for stop_id in stop_ids])
+
+    return {'type': 'FeatureCollection', 'features': features}
+
 # -------------------------------------
 # Functions about stops
 # -------------------------------------
-def get_stops(feed, date=None):
+def get_stops(feed, date=None, route_id=None):
     """
-    Return the section of ``feed.stops`` that contains
-    only stops that have visiting trips active on the given date.
-    If no date is given, then return all stops.
+    Return ``feed.stops``.
+    If a date is given, then restrict the output to stops that 
+    are visits by trips active on the given date.
+    If a route ID (string) is given, then restrict the output to stops
+    that are visited by at least one trip on the route.
 
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stops``
     - Those used in :func:`get_stop_times`
-        
+    - ``feed.routes``    
     """
-    if date is None:
-        return feed.stops.copy()
+    s = feed.stops.copy()
+    if date is not None:
+        A = get_stop_times(feed, date)['stop_id']
+        s = s[s['stop_id'].isin(A)].copy()
+    if route_id is not None:
+        A = feed.trips[feed.trips['route_id'] == route_id]['trip_id']
+        st = feed.stop_times.copy()
+        B = st[st['trip_id'].isin(A)]['stop_id']
+        s = s[s['stop_id'].isin(B)].copy()
+    return s
 
-    stop_times = get_stop_times(feed, date)
-    S = stop_times['stop_id'].unique()
-    return feed.stops[feed.stops['stop_id'].isin(S)]
-
-def build_geometry_by_stop(feed, use_utm=False):
+def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
     """
     Return a dictionary with structure
     stop_id -> Shapely point object.
@@ -945,22 +1005,28 @@ def build_geometry_by_stop(feed, use_utm=False):
     in UTM coordinates.
     Otherwise, return each point in WGS84 longitude-latitude
     coordinates.
+    If a list of stop IDs ``stop_ids`` is given, then only include
+    the given stop IDs.
 
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stops``
         
     """
-    geometry_by_stop = {}
+    d = {}
+    stops = feed.stops.copy()
+    if stop_ids is not None:
+        stops = stops[stops['stop_id'].isin(stop_ids)]
+
     if use_utm:
-        for stop, group in feed.stops.groupby('stop_id'):
+        for stop, group in stops.groupby('stop_id'):
             lat, lon = group[['stop_lat', 'stop_lon']].values[0]
-            geometry_by_stop[stop] = Point(utm.from_latlon(lat, lon)[:2]) 
+            d[stop] = Point(utm.from_latlon(lat, lon)[:2]) 
     else:
-        for stop, group in feed.stops.groupby('stop_id'):
+        for stop, group in stops.groupby('stop_id'):
             lat, lon = group[['stop_lat', 'stop_lon']].values[0]
-            geometry_by_stop[stop] = Point([lon, lat]) 
-    return geometry_by_stop
+            d[stop] = Point([lon, lat]) 
+    return d
 
 def geometrize_stops(stops, use_utm=False):
     """
@@ -1383,7 +1449,7 @@ def compute_stations_stats(feed, date, split_directions=False,
 # -------------------------------------
 # Functions about shapes
 # -------------------------------------
-def build_geometry_by_shape(feed, use_utm=False):
+def build_geometry_by_shape(feed, use_utm=False, shape_ids=None):
     """
     Return a dictionary with structure
     shape_id -> Shapely linestring of shape.
@@ -1392,6 +1458,8 @@ def build_geometry_by_shape(feed, use_utm=False):
     in UTM coordinates.
     Otherwise, return each linestring in WGS84 longitude-latitude
     coordinates.
+    If a list of shape IDs ``shape_ids`` is given, then only include
+    the given shape IDs.
 
     Assume the following feed attributes are not ``None``:
 
@@ -1405,21 +1473,25 @@ def build_geometry_by_shape(feed, use_utm=False):
     # >>> u = utm.from_latlon(47.9941214, 7.8509671)
     # >>> print u
     # (414278, 5316285, 32, 'T')
-    geometry_by_shape = {}
+    d = {}
+    shapes = feed.shapes.copy()
+    if shape_ids is not None:
+        shapes = shapes[shapes['shape_id'].isin(shape_ids)]
+
     if use_utm:
-        for shape, group in feed.shapes.groupby('shape_id'):
+        for shape, group in shapes.groupby('shape_id'):
             lons = group['shape_pt_lon'].values
             lats = group['shape_pt_lat'].values
             xys = [utm.from_latlon(lat, lon)[:2] 
               for lat, lon in zip(lats, lons)]
-            geometry_by_shape[shape] = LineString(xys)
+            d[shape] = LineString(xys)
     else:
-        for shape, group in feed.shapes.groupby('shape_id'):
+        for shape, group in shapes.groupby('shape_id'):
             lons = group['shape_pt_lon'].values
             lats = group['shape_pt_lat'].values
             lonlats = zip(lons, lats)
-            geometry_by_shape[shape] = LineString(lonlats)
-    return geometry_by_shape
+            d[shape] = LineString(lonlats)
+    return d
 
 def build_shapes_geojson(feed):
     """
@@ -2276,3 +2348,37 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
       lambda x: ut.timestr_to_seconds(x, inverse=True))
 
     return g
+
+def compute_bounds(feed):   
+    """
+    Return the tuple 
+    (min longitude, min latitude, max longitude, max latitude)
+    where the longitudes and latitude vary across all the stop (WGS84) 
+    coordinates.
+    """
+    lons, lats = feed.stops['stop_lon'], feed.stops['stop_lat']
+    return lons.min(), lats.min(), lons.max(), lats.max()
+    
+def compute_center(feed, num_busiest_stops=None):
+    """
+    Compute the convex hull of all the given feed's stop coordinates and
+    return the centroid.
+    If an integer ``num_busiest_stops`` is given, then compute
+    the ``num_busiest_stops`` busiest stops in the feed on the first
+    Monday of the feed and return the mean of the longitudes and the 
+    mean of the latitudes of these stops, respectively.
+    """
+    s = feed.stops.copy()
+    if num_busiest_stops is not None:
+        n = num_busiest_stops
+        date = get_first_week(feed)[0]
+        ss = compute_stops_stats(feed, date).sort_values(
+          'num_trips', ascending=False)
+        f = ss.head(num_busiest_stops)
+        f = s.merge(f)
+        lon = f['stop_lon'].mean()
+        lat = f['stop_lat'].mean()
+    else:
+        m = MultiPoint(s[['stop_lon', 'stop_lat']].values)
+        lon, lat = list(m.convex_hull.centroid.coords)[0]
+    return lon, lat
