@@ -726,6 +726,26 @@ class TestCalculator(unittest.TestCase):
         # Should have correct columns
         self.assertEqual(set(f.columns), set(feed.stop_times.columns))
 
+    def test_get_start_and_end_times(self):
+        feed = copy(cairns)
+        date = get_dates(feed)[0]
+        st = get_stop_times(feed, date)
+        times = get_start_and_end_times(feed, date)
+        # Should be strings
+        for t in times:
+            self.assertIsInstance(t, str)
+            # Should lie in stop times
+            self.assertTrue(t in 
+              st[['departure_time', 'arrival_time']].values.flatten())
+
+        # Should get null times in some cases
+        times = get_start_and_end_times(feed, '19690711')
+        for t in times:
+            self.assertTrue(pd.isnull(t))
+        feed.stop_times['departure_time'] = np.nan
+        times = get_start_and_end_times(feed)
+        self.assertTrue(pd.isnull(times[0]))
+
     def test_add_dist_to_stop_times(self):
         feed = copy(cairns)
         st1 = feed.stop_times
