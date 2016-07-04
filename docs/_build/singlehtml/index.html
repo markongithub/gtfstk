@@ -57,7 +57,7 @@
           <div class="body" role="main">
             
   <div class="section" id="gtfstk-version-documentation">
-<h1>GTFSTK 4.1.2 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>GTFSTK 4.2.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <span id="document-introduction"></span><p>GTFSTK is a Python 3.4+ tool kit for processing <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
 It is mostly for computing statistics, such as daily service distance per route and daily number of trips per stop.
@@ -83,7 +83,7 @@ Pandas data frames and series, respectively.</p>
 <span id="constants-module"></span><h2>constants Module<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="gtfstk.constants.CRS_WGS84">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'datum': 'WGS84', 'proj': 'longlat', 'no_defs': True, 'ellps': 'WGS84'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'proj': 'longlat', 'ellps': 'WGS84', 'no_defs': True, 'datum': 'WGS84'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -93,7 +93,7 @@ Pandas data frames and series, respectively.</p>
 
 <dl class="data">
 <dt id="gtfstk.constants.DTYPE">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'agency_id': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'zone_id': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'agency_id': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'zone_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -463,14 +463,16 @@ route (sorted by ID) with a trip with that shape.</p>
 
 <dl class="function">
 <dt id="gtfstk.calculator.build_geometry_by_shape">
-<code class="descclassname">gtfstk.calculator.</code><code class="descname">build_geometry_by_shape</code><span class="sig-paren">(</span><em>feed</em>, <em>use_utm=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.build_geometry_by_shape" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">build_geometry_by_shape</code><span class="sig-paren">(</span><em>feed</em>, <em>use_utm=False</em>, <em>shape_ids=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.build_geometry_by_shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dictionary with structure
 shape_id -&gt; Shapely linestring of shape.
 If <code class="docutils literal"><span class="pre">feed.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code>, then return <code class="docutils literal"><span class="pre">None</span></code>.
 If <code class="docutils literal"><span class="pre">use_utm</span> <span class="pre">==</span> <span class="pre">True</span></code>, then return each linestring in
 in UTM coordinates.
 Otherwise, return each linestring in WGS84 longitude-latitude
-coordinates.</p>
+coordinates.
+If a list of shape IDs <code class="docutils literal"><span class="pre">shape_ids</span></code> is given, then only include
+the given shape IDs.</p>
 <p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">feed.shapes</span></code></li>
@@ -479,15 +481,38 @@ coordinates.</p>
 
 <dl class="function">
 <dt id="gtfstk.calculator.build_geometry_by_stop">
-<code class="descclassname">gtfstk.calculator.</code><code class="descname">build_geometry_by_stop</code><span class="sig-paren">(</span><em>feed</em>, <em>use_utm=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.build_geometry_by_stop" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">build_geometry_by_stop</code><span class="sig-paren">(</span><em>feed</em>, <em>use_utm=False</em>, <em>stop_ids=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.build_geometry_by_stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dictionary with structure
 stop_id -&gt; Shapely point object.
 If <code class="docutils literal"><span class="pre">use_utm</span> <span class="pre">==</span> <span class="pre">True</span></code>, then return each point in
 in UTM coordinates.
 Otherwise, return each point in WGS84 longitude-latitude
-coordinates.</p>
+coordinates.
+If a list of stop IDs <code class="docutils literal"><span class="pre">stop_ids</span></code> is given, then only include
+the given stop IDs.</p>
 <p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
 <ul class="simple">
+<li><code class="docutils literal"><span class="pre">feed.stops</span></code></li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.build_route_geojson">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">build_route_geojson</code><span class="sig-paren">(</span><em>feed</em>, <em>route_id</em>, <em>include_stops=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.build_route_geojson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a feed and a route ID (string), return a (decoded) GeoJSON 
+feature collection comprising a MultiLinestring feature of distinct shapes
+of the trips on the route.
+If <code class="docutils literal"><span class="pre">include_stops</span></code>, then also include one Point feature for each stop 
+visited by any trip on the route. 
+The MultiLinestring feature will contain as properties all the columns
+in <code class="docutils literal"><span class="pre">feed.routes</span></code> pertaining to the given route, and each Point feature
+will contain as properties all the columns in <code class="docutils literal"><span class="pre">feed.stops</span></code> pertaining 
+to the stop, except the <code class="docutils literal"><span class="pre">stop_lat</span></code> and <code class="docutils literal"><span class="pre">stop_lon</span></code> properties.</p>
+<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">feed.routes</span></code></li>
+<li><code class="docutils literal"><span class="pre">feed.shapes</span></code></li>
+<li><code class="docutils literal"><span class="pre">feed.trips</span></code></li>
 <li><code class="docutils literal"><span class="pre">feed.stops</span></code></li>
 </ul>
 </dd></dl>
@@ -522,6 +547,15 @@ no &#8216;direction_id&#8217; column.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="gtfstk.calculator.compute_bounds">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">compute_bounds</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.compute_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the tuple 
+(min longitude, min latitude, max longitude, max latitude)
+where the longitudes and latitude vary across all the stop (WGS84) 
+coordinates.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfstk.calculator.compute_busiest_date">
 <code class="descclassname">gtfstk.calculator.</code><code class="descname">compute_busiest_date</code><span class="sig-paren">(</span><em>feed</em>, <em>dates</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.compute_busiest_date" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a list of dates, return the first date that has the 
@@ -531,6 +565,17 @@ If the list of dates is empty, then raise a <code class="docutils literal"><span
 <ul class="simple">
 <li>Those used in <a class="reference internal" href="#gtfstk.calculator.compute_trips_activity" title="gtfstk.calculator.compute_trips_activity"><code class="xref py py-func docutils literal"><span class="pre">compute_trips_activity()</span></code></a></li>
 </ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.compute_center">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">compute_center</code><span class="sig-paren">(</span><em>feed</em>, <em>num_busiest_stops=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.compute_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the convex hull of all the given feed&#8217;s stop coordinates and
+return the centroid.
+If an integer <code class="docutils literal"><span class="pre">num_busiest_stops</span></code> is given, then compute
+the <code class="docutils literal"><span class="pre">num_busiest_stops</span></code> busiest stops in the feed on the first
+Monday of the feed and return the mean of the longitudes and the 
+mean of the latitudes of these stops, respectively.</p>
 </dd></dl>
 
 <dl class="function">
@@ -1141,14 +1186,17 @@ The result is sorted by departure time.</p>
 
 <dl class="function">
 <dt id="gtfstk.calculator.get_stops">
-<code class="descclassname">gtfstk.calculator.</code><code class="descname">get_stops</code><span class="sig-paren">(</span><em>feed</em>, <em>date=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.get_stops" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the section of <code class="docutils literal"><span class="pre">feed.stops</span></code> that contains
-only stops that have visiting trips active on the given date.
-If no date is given, then return all stops.</p>
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">get_stops</code><span class="sig-paren">(</span><em>feed</em>, <em>date=None</em>, <em>route_id=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.get_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal"><span class="pre">feed.stops</span></code>.
+If a date is given, then restrict the output to stops that 
+are visits by trips active on the given date.
+If a route ID (string) is given, then restrict the output to stops
+that are visited by at least one trip on the route.</p>
 <p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">feed.stops</span></code></li>
 <li>Those used in <a class="reference internal" href="#gtfstk.calculator.get_stop_times" title="gtfstk.calculator.get_stop_times"><code class="xref py py-func docutils literal"><span class="pre">get_stop_times()</span></code></a></li>
+<li><code class="docutils literal"><span class="pre">feed.routes</span></code></li>
 </ul>
 </dd></dl>
 
