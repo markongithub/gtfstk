@@ -24,6 +24,7 @@ Notes
 =====
 - Development status is Alpha
 - This project uses `semantic versioning <http://semver.org/>`_
+- This project has been funded generously in part by `MRCagney <http://www.mrcagney.com/>`_
 - Constructive comments are welcome and are best filed in this repository's issues section with an appropriate label, e.g. 'enhancement'.
 
 
@@ -34,7 +35,6 @@ Authors
 
 Changelog
 =========
-
 
 4.3.0, 2016-07-04
 -----------------
