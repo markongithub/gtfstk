@@ -24,6 +24,7 @@ Notes
 =====
 - Development status is Alpha
 - This project uses `semantic versioning <http://semver.org/>`_
+- This project has been funded generously in part by `MRCagney <http://www.mrcagney.com/>`_
 - Constructive comments are welcome and are best filed in this repository's issues section with an appropriate label, e.g. 'enhancement'.
 
 
@@ -34,6 +35,11 @@ Authors
 
 Changelog
 =========
+
+5.0.0, 2016-07-08
+-----------------
+- Renamed the function ``calculator.get_feed_intersecting_polygon`` to ``calculator.restrict_by_polygon``
+- Added the function ``calculator.restrict_by_routes``
 
 
 4.3.0, 2016-07-04

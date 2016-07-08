@@ -2026,7 +2026,71 @@ def create_shapes(feed, all_trips=False):
 
     return feed
 
-def get_feed_intersecting_polygon(feed, polygon):
+def restrict_by_routes(feed, route_ids):
+    """
+    Build a new feed by taking the given one and chopping it down to
+    only the stops, trips, shapes, etc. used by the routes specified
+    in the given list of route IDs. 
+    Return the resulting feed.
+    """
+    # Initialize the new feed as the old feed.
+    # Restrict its data frames below.
+    feed = copy(feed)
+    
+    # Slice routes
+    feed.routes = feed.routes[feed.routes['route_id'].isin(route_ids)].copy()
+
+    # Slice trips
+    feed.trips = feed.trips[feed.trips['route_id'].isin(route_ids)].copy()
+
+    # Slice stop times
+    trip_ids = feed.trips['trip_id']
+    feed.stop_times = feed.stop_times[
+      feed.stop_times['trip_id'].isin(trip_ids)].copy()
+
+    # Slice stops
+    stop_ids = feed.stop_times['stop_id'].unique()
+    feed.stops = feed.stops[feed.stops['stop_id'].isin(stop_ids)].copy()
+
+    # Slice calendar
+    service_ids = feed.trips['service_id']
+    if feed.calendar is not None:
+        feed.calendar = feed.calendar[
+          feed.calendar['service_id'].isin(service_ids)].copy()
+    
+    # Get agency for trips
+    if 'agency_id' in feed.routes.columns:
+        agency_ids = feed.routes['agency_id']
+        if len(agency_ids):
+            feed.agency = feed.agency[
+              feed.agency['agency_id'].isin(agency_ids)].copy()
+            
+    # Now for the optional files.
+    # Get calendar dates for trips.
+    if feed.calendar_dates is not None:
+        feed.calendar_dates = feed.calendar_dates[
+          feed.calendar_dates['service_id'].isin(service_ids)].copy()
+    
+    # Get frequencies for trips
+    if feed.frequencies is not None:
+        feed.frequencies = feed.frequencies[
+          feed.frequencies['trip_id'].isin(trip_ids)].copy()
+        
+    # Get shapes for trips
+    if feed.shapes is not None:
+        shape_ids = feed.trips['shape_id']
+        feed.shapes = feed.shapes[
+          feed.shapes['shape_id'].isin(shape_ids)].copy()
+        
+    # Get transfers for stops
+    if feed.transfers is not None:
+        feed.transfers = feed.transfers[
+          feed.transfers['from_stop_id'].isin(stop_ids) |\
+          feed.transfers['to_stop_id'].isin(stop_ids)].copy()
+        
+    return feed
+
+def restrict_by_polygon(feed, polygon):
     """
     Build a new feed by taking the given one, keeping only the trips 
     that have at least one stop intersecting the given polygon, and then

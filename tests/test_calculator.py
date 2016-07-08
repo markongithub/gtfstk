@@ -835,12 +835,31 @@ class TestCalculator(unittest.TestCase):
           for __, group in st.groupby('trip_id')])
         self.assertEqual(feed2.shapes['shape_id'].nunique(), len(stop_seqs))
 
+    def test_restrict_by_routes(self):
+        feed1 = copy(cairns) 
+        route_ids = feed1.routes['route_id'][:2].tolist()
+        feed2 = restrict_by_routes(feed1, route_ids)
+        # Should have correct routes
+        self.assertEqual(set(feed2.routes['route_id']), set(route_ids))
+        # Should have correct trips
+        trip_ids = feed1.trips[feed1.trips['route_id'].isin(
+          route_ids)]['trip_id']
+        self.assertEqual(set(feed2.trips['trip_id']), set(trip_ids))
+        # Should have correct shapes
+        shape_ids = feed1.trips[feed1.trips['trip_id'].isin(
+          trip_ids)]['shape_id']
+        self.assertEqual(set(feed2.shapes['shape_id']), set(shape_ids))
+        # Should have correct stops
+        stop_ids = feed1.stop_times[feed1.stop_times['trip_id'].isin(
+          trip_ids)]['stop_id']
+        self.assertEqual(set(feed2.stop_times['stop_id']), set(stop_ids))
+
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
-    def test_get_feed_intersecting_polygon(self):
+    def test_restrict_by_polygon(self):
         feed1 = copy(cairns) 
         with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
             polygon = sh_shape(json.load(src)['features'][0]['geometry'])
-        feed2 = get_feed_intersecting_polygon(feed1, polygon)
+        feed2 = restrict_by_polygon(feed1, polygon)
         # Should have correct routes
         rsns = ['120', '120N']
         self.assertEqual(set(feed2.routes['route_short_name']), set(rsns))
