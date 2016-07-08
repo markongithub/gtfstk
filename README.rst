@@ -36,6 +36,12 @@ Authors
 Changelog
 =========
 
+5.0.0, 2016-07-08
+-----------------
+- Renamed the function ``calculator.get_feed_intersecting_polygon`` to ``calculator.restrict_by_polygon``
+- Added the function ``calculator.restrict_by_routes``
+
+
 4.3.0, 2016-07-04
 -----------------
 - Added the function ``calculator.get_start_and_end_times``
