@@ -57,7 +57,7 @@
           <div class="body" role="main">
             
   <div class="section" id="gtfstk-version-documentation">
-<h1>GTFSTK 4.3.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>GTFSTK 5.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <span id="document-introduction"></span><p>GTFSTK is a Python 3.4+ tool kit for processing <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
 It is mostly for computing statistics, such as daily service distance per route and daily number of trips per stop.
@@ -83,7 +83,7 @@ Pandas data frames and series, respectively.</p>
 <span id="constants-module"></span><h2>constants Module<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="gtfstk.constants.CRS_WGS84">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'ellps': 'WGS84', 'no_defs': True, 'datum': 'WGS84', 'proj': 'longlat'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'ellps': 'WGS84', 'proj': 'longlat', 'no_defs': True, 'datum': 'WGS84'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -93,7 +93,7 @@ Pandas data frames and series, respectively.</p>
 
 <dl class="data">
 <dt id="gtfstk.constants.DTYPE">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'end_date': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'zone_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'agency_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'fare_id': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'agency_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'zone_id': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -1076,25 +1076,6 @@ as <code class="docutils literal"><span class="pre">datetime.date</span></code> 
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfstk.calculator.get_feed_intersecting_polygon">
-<code class="descclassname">gtfstk.calculator.</code><code class="descname">get_feed_intersecting_polygon</code><span class="sig-paren">(</span><em>feed</em>, <em>polygon</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.get_feed_intersecting_polygon" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a new feed by taking the given one, keeping only the trips 
-that have at least one stop intersecting the given polygon, and then
-restricting stops, routes, stop times, etc. to those associated with 
-that subset of trips. 
-Return the resulting feed.
-Requires GeoPandas.</p>
-<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">feed.stop_times</span></code></li>
-<li><code class="docutils literal"><span class="pre">feed.trips</span></code></li>
-<li><code class="docutils literal"><span class="pre">feed.stops</span></code></li>
-<li><code class="docutils literal"><span class="pre">feed.routes</span></code></li>
-<li>Those used in <a class="reference internal" href="#gtfstk.calculator.get_stops_intersecting_polygon" title="gtfstk.calculator.get_stops_intersecting_polygon"><code class="xref py py-func docutils literal"><span class="pre">get_stops_intersecting_polygon()</span></code></a></li>
-</ul>
-</dd></dl>
-
-<dl class="function">
 <dt id="gtfstk.calculator.get_first_week">
 <code class="descclassname">gtfstk.calculator.</code><code class="descname">get_first_week</code><span class="sig-paren">(</span><em>feed</em>, <em>as_date_obj=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.get_first_week" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of date corresponding
@@ -1266,6 +1247,34 @@ assume <code class="docutils literal"><span class="pre">trip</span></code> is a 
 <p>NOTES:</p>
 <p>This function is key for getting all trips, routes, 
 etc. that are active on a given date, so the function needs to be fast.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.restrict_by_polygon">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">restrict_by_polygon</code><span class="sig-paren">(</span><em>feed</em>, <em>polygon</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.restrict_by_polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a new feed by taking the given one, keeping only the trips 
+that have at least one stop intersecting the given polygon, and then
+restricting stops, routes, stop times, etc. to those associated with 
+that subset of trips. 
+Return the resulting feed.
+Requires GeoPandas.</p>
+<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">feed.stop_times</span></code></li>
+<li><code class="docutils literal"><span class="pre">feed.trips</span></code></li>
+<li><code class="docutils literal"><span class="pre">feed.stops</span></code></li>
+<li><code class="docutils literal"><span class="pre">feed.routes</span></code></li>
+<li>Those used in <a class="reference internal" href="#gtfstk.calculator.get_stops_intersecting_polygon" title="gtfstk.calculator.get_stops_intersecting_polygon"><code class="xref py py-func docutils literal"><span class="pre">get_stops_intersecting_polygon()</span></code></a></li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.calculator.restrict_by_routes">
+<code class="descclassname">gtfstk.calculator.</code><code class="descname">restrict_by_routes</code><span class="sig-paren">(</span><em>feed</em>, <em>route_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.calculator.restrict_by_routes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a new feed by taking the given one and chopping it down to
+only the stops, trips, shapes, etc. used by the routes specified
+in the given list of route IDs. 
+Return the resulting feed.</p>
 </dd></dl>
 
 <dl class="function">
