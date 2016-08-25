@@ -184,6 +184,20 @@ class TestCalculator(unittest.TestCase):
           ])
         self.assertEqual(set(f.columns), expect_cols)
     
+    def test_build_trip_geojson(self):
+        feed = copy(cairns)
+        trip_id = feed.trips['trip_id'].values[0]
+        g0 = build_trip_geojson(feed, trip_id)      
+        g1 = build_trip_geojson(feed, trip_id, include_stops=True)
+        for g in [g0, g1]:
+            # Should be a dictionary
+            self.assertIsInstance(g, dict)
+
+        # Should have the correct number of features
+        self.assertEqual(len(g0['features']), 1)
+        stop_ids = get_stops(feed, trip_id=trip_id)['stop_id'].values
+        self.assertEqual(len(g1['features']), 1 + len(stop_ids))
+
     # ----------------------------------
     # Test functions about routes
     # ----------------------------------
@@ -406,12 +420,18 @@ class TestCalculator(unittest.TestCase):
     def test_get_stops(self):
         feed = copy(cairns)
         date = get_dates(feed)[0]
-        route_id = '110-423'
-        f0 = get_stops(feed)
-        f1 = get_stops(feed, date=date)
-        f2 = get_stops(feed, route_id=route_id)
-        f3 = get_stops(feed, date=date, route_id=route_id)
-        for f in [f0, f1, f2, f3]:
+        trip_id = feed.trips['trip_id'].iat[0]
+        route_id = feed.routes['route_id'].iat[0]
+        frames = [
+          get_stops(feed), 
+          get_stops(feed, date=date),
+          get_stops(feed, trip_id=trip_id),
+          get_stops(feed, route_id=route_id),
+          get_stops(feed, date=date, trip_id=trip_id),
+          get_stops(feed, date=date, route_id=route_id),
+          get_stops(feed, date=date, trip_id=trip_id, route_id=route_id),
+          ]
+        for f in frames:
             # Should be a data frame
             self.assertIsInstance(f, pd.core.frame.DataFrame)
             # Should have the correct shape
@@ -420,8 +440,9 @@ class TestCalculator(unittest.TestCase):
             # Should have correct columns
             self.assertEqual(set(f.columns), set(feed.stops.columns))
         # Number of rows should be reasonable
-        self.assertTrue(f3.shape[0] <= f1.shape[0])
-        self.assertTrue(f3.shape[0] <= f2.shape[0])
+        self.assertTrue(frames[0].shape[0] <= frames[1].shape[0])
+        self.assertTrue(frames[2].shape[0] <= frames[4].shape[0])
+        self.assertSequenceEqual(frames[4].shape, frames[6].shape)
 
     def test_build_geometry_by_stop(self):
         feed = copy(cairns)

@@ -473,6 +473,51 @@ def compute_trips_locations(feed, date, times):
     
     return h.groupby('shape_id').apply(get_lonlat)
     
+def build_trip_geojson(feed, trip_id, include_stops=False):
+    """
+    Given a feed and a trip ID (string), return a (decoded) GeoJSON feature collection comprising a Linestring feature of representing the trip's shape.
+    If ``include_stops``, then also include one Point feature for each stop  visited by the trip. 
+    The Linestring feature will contain as properties all the columns in ``feed.trips`` pertaining to the given trip, and each Point feature will contain as properties all the columns in ``feed.stops`` pertaining    to the stop, except the ``stop_lat`` and ``stop_lon`` properties.
+
+    Assume the following feed attributes are not ``None``:
+
+    - ``feed.trips``
+    - ``feed.shapes``
+    - ``feed.stops``
+
+    """
+    # Get the relevant shapes
+    t = feed.trips.copy()
+    t = t[t['trip_id'] == trip_id].copy()
+    shid = t['shape_id'].iat[0]
+    geometry_by_shape = build_geometry_by_shape(feed, use_utm=False, 
+      shape_ids=[shid])
+
+    if geometry_by_shape is None:
+        return
+
+    features = [{
+        'type': 'Feature',
+        'properties': json.loads(t.to_json(orient='records')),
+        'geometry': mapping(LineString(geometry_by_shape[shid])),
+        }]
+
+    if include_stops:
+        # Get relevant stops and geometrys
+        s = get_stops(feed, trip_id=trip_id)
+        cols = set(s.columns) - set(['stop_lon', 'stop_lat'])
+        s = s[list(cols)].copy()
+        stop_ids = s['stop_id'].tolist()
+        geometry_by_stop = build_geometry_by_stop(feed, stop_ids=stop_ids)
+        features.extend([{
+            'type': 'Feature',
+            'properties': json.loads(s[s['stop_id'] == stop_id].to_json(
+              orient='records')),
+            'geometry': mapping(geometry_by_stop[stop_id]),
+            } for stop_id in stop_ids])
+
+    return {'type': 'FeatureCollection', 'features': features}
+
 # -------------------------------------
 # Functions about routes
 # -------------------------------------
@@ -972,13 +1017,12 @@ def build_route_geojson(feed, route_id, include_stops=False):
 # -------------------------------------
 # Functions about stops
 # -------------------------------------
-def get_stops(feed, date=None, route_id=None):
+def get_stops(feed, date=None, trip_id=None, route_id=None):
     """
     Return ``feed.stops``.
-    If a date is given, then restrict the output to stops that 
-    are visits by trips active on the given date.
-    If a route ID (string) is given, then restrict the output to stops
-    that are visited by at least one trip on the route.
+    If a date is given, then restrict the output to stops that are visited by trips active on the given date.
+    If a trip ID (string) is given, then restrict the output possibly further to stops that are visited by the trip.
+    Eles if a route ID (string) is given, then restrict the output possibly further to stops that are visited by at least one trip on the route.
 
     Assume the following feed attributes are not ``None``:
 
@@ -990,7 +1034,11 @@ def get_stops(feed, date=None, route_id=None):
     if date is not None:
         A = get_stop_times(feed, date)['stop_id']
         s = s[s['stop_id'].isin(A)].copy()
-    if route_id is not None:
+    if trip_id is not None:
+        st = feed.stop_times.copy()
+        B = st[st['trip_id'] == trip_id]['stop_id']
+        s = s[s['stop_id'].isin(B)].copy()
+    elif route_id is not None:
         A = feed.trips[feed.trips['route_id'] == route_id]['trip_id']
         st = feed.stop_times.copy()
         B = st[st['trip_id'].isin(A)]['stop_id']
