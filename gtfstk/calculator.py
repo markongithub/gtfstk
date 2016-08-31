@@ -23,10 +23,8 @@ from .feed import Feed, copy
 # -------------------------------------
 def get_dates(feed, as_date_obj=False):
     """
-    Return a chronologically ordered list of dates
-    for which this feed is valid.
-    If ``as_date_obj == True``, then return the dates as
-    as ``datetime.date`` objects.  
+    Return a chronologically ordered list of dates for which this feed is valid.
+    If ``as_date_obj == True``, then return the dates as ``datetime.date`` objects.  
 
     If ``feed.calendar`` and ``feed.calendar_dates`` are both 
     ``None``, then return the empty list.
@@ -55,13 +53,9 @@ def get_dates(feed, as_date_obj=False):
 
 def get_first_week(feed, as_date_obj=False):
     """
-    Return a list of date corresponding
-    to the first Monday--Sunday week for which this feed is valid.
-    If the given feed does not cover a full 
-    Monday--Sunday week, then return whatever initial segment of the 
-    week it does cover, which could be the empty list.
-    If ``as_date_obj == True``, then return the dates as
-    as ``datetime.date`` objects.    
+    Return a list of date corresponding to the first Monday--Sunday week for which this feed is valid.
+    If the given feed does not cover a full Monday--Sunday week, then return whatever initial segment of the week it does cover, which could be the empty list.
+    If ``as_date_obj == True``, then return the dates as as ``datetime.date`` objects.    
     """
     dates = get_dates(feed, as_date_obj=True)
     if not dates:

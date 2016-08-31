@@ -14,8 +14,7 @@ from .feed import copy as fcopy
 
 def clean_stop_times(feed):
     """
-    In ``feed.stop_times``, prefix a zero to arrival and 
-    departure times if necessary.
+    In ``feed.stop_times``, prefix a zero to arrival and departure times if necessary.
     This makes sorting by time work as expected.
     Return the resulting stop times data frame.
     """
@@ -37,17 +36,17 @@ def clean_stop_times(feed):
 
 def clean_route_short_names(feed):
     """
-    In ``feed.routes``, assign 'n/a' to missing route short names.
-    Then disambiguate each route short name that is duplicated by
-    appending '-' and its route ID.
+    In ``feed.routes``, assign 'n/a' to missing route short names and strip whitespace from route short names.
+    Then disambiguate each route short name that is duplicated by appending '-' and its route ID.
     Return the resulting routes data frame.
     """
     routes = feed.routes.copy()
     if routes is None:
         return routes
 
-    # Fill NaNs
-    routes['route_short_name'] = routes['route_short_name'].fillna('n/a')
+    # Fill NaNs and strip whitespace
+    routes['route_short_name'] = routes['route_short_name'].fillna('n/a'
+      ).str.strip()
     # Disambiguate
     def disambiguate(row):
         rsn, rid = row
@@ -63,8 +62,7 @@ def clean_route_short_names(feed):
 
 def prune_dead_routes(feed):
     """
-    Remove all routes from ``feed.routes`` that do not have
-    trips listed in ``feed.trips``.
+    Remove all routes from ``feed.routes`` that do not have trips listed in ``feed.trips``.
     Return a new routes data frame.
     """
     live_routes = feed.trips['route_id'].unique()
@@ -73,15 +71,13 @@ def prune_dead_routes(feed):
 
 def aggregate_routes(feed, by='route_short_name'):
     """
-    Given a GTFSTK Feed object, group routes by the ``by`` column of 
-    ``feed.routes`` and for each group, 
+    Given a GTFSTK Feed object, group routes by the ``by`` column of ``feed.routes`` and for each group, 
 
     1. choose the first route in the group,
     2. use that route's ID to assign to the whole group
     3. assign all the trips associated with routes in the group to that first route.
 
-    Update ``feed.routes`` and ``feed.trips`` with the new routes, 
-    and return the resulting feed.
+    Update ``feed.routes`` and ``feed.trips`` with the new routes, and return the resulting feed.
     """
     if by not in feed.routes.columns:
         raise ValueError("Column {0} not in feed.routes".format(
@@ -111,8 +107,7 @@ def aggregate_routes(feed, by='route_short_name'):
 
 def assess(feed):
     """
-    Return a Pandas series containing various feed assessments, such as
-    the number of trips missing shapes.
+    Return a Pandas series containing various feed assessments, such as the number of trips missing shapes.
     This is not a GTFS validator.
     """
     d = OrderedDict()

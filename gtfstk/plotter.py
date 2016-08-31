@@ -7,18 +7,15 @@ import pandas as pd
 
 def plot_headways(stats, max_headway_limit=60):
     """
-    Given a stops or routes stats data frame, 
-    return bar charts of the max and mean headways as a Matplotlib figure.
-    Only include the stops/routes with max headways at most 
-    ``max_headway_limit`` minutes.
+    Given a stops or routes stats data frame, return bar charts of the max and mean headways as a Matplotlib figure.
+    Only include the stops/routes with max headways at most    ``max_headway_limit`` minutes.
     If ``max_headway_limit is None``, then include them all in a giant plot. 
     If there are no stops/routes within the max headway limit, then return 
     ``None``.
 
     NOTES:
 
-    Take the resulting figure ``f`` and do ``f.tight_layout()``
-    for a nice-looking plot.
+    Take the resulting figure ``f`` and do ``f.tight_layout()`` for a nice-looking plot.
     """
     import matplotlib.pyplot as plt
 
@@ -67,15 +64,11 @@ def plot_headways(stats, max_headway_limit=60):
 
 def plot_feed_time_series(feed_time_series):
     """
-    Given a routes time series data frame,
-    sum each time series indicator over all routes, 
-    plot each series indicator using Matplotlib, 
-    and return the resulting figure of subplots.
+    Given a routes time series data frame, sum each time series indicator over all routes, plot each series indicator using Matplotlib, and return the resulting figure of subplots.
 
     NOTES:
 
-    Take the resulting figure ``f`` and do ``f.tight_layout()``
-    for a nice-looking plot.
+    Take the resulting figure ``f`` and do ``f.tight_layout()`` for a nice-looking plot.
     """
     import matplotlib.pyplot as plt
 

@@ -36,10 +36,11 @@ Authors
 Changelog
 =========
 
-5.1.0, ?
+5.1.0, 2016-08-31
 -----------------
 - Added trip ID parameter to ``calculator.get_stops``
 - Created ``calculator.build_trip_geojson``
+- Added whitespace stripping to ``cleaner.clean_route_short_names``
 
 
 5.0.0, 2016-07-08

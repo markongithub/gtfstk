@@ -30,7 +30,7 @@ class TestCleaner(unittest.TestCase):
         
         # Make route short name duplicates
         feed.routes.loc[1:5, 'route_short_name'] = np.nan
-        feed.routes.loc[6:, 'route_short_name'] = 'hello'
+        feed.routes.loc[6:, 'route_short_name'] = '  hello  '
         routes = clean_route_short_names(feed)
         # Should have unique route short names
         self.assertEqual(routes['route_short_name'].nunique(), routes.shape[0])
@@ -38,6 +38,9 @@ class TestCleaner(unittest.TestCase):
         expect_rsns = ('n/a-' + cairns.routes.ix[1:5]['route_id']).tolist()
         self.assertEqual(routes.ix[1:5]['route_short_name'].values.tolist(),
           expect_rsns)
+        # Should have names without leading or trailing whitespace
+        self.assertFalse(routes['route_short_name'].str.startswith(' ').any())
+        self.assertFalse(routes['route_short_name'].str.endswith(' ').any())
 
     def test_prune_dead_routes(self):
         # Should not change Cairns routes
