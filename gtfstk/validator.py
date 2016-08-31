@@ -6,8 +6,7 @@ The latter module checks if GFTS feeds adhere to the `GTFS specification <https:
 
 class GTFSError(Exception):
     """
-    Exception raised for Feed objects that do not conform to the
-    GTFS specification.
+    Exception raised for Feed objects that do not conform to the GTFS specification.
 
     Attributes:
     

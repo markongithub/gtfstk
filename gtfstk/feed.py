@@ -1,6 +1,5 @@
 """
-This module defines the Feed class, which represents GTFS files as data frames,
-and defines some basic operations on Feed objects.
+This module defines the Feed class, which represents GTFS files as data frames, and defines some basic operations on Feed objects.
 Almost all operations on Feed objects are functions that live outside of the Feed class and are not methods of the Feed class.
 Every function that acts on a Feed object assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or is a data frame with the columns required in the `GTFS <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
 """
@@ -19,8 +18,7 @@ class Feed(object):
     """
     A class that represents GTFS files as data frames.
 
-    Warning: the stop times data frame can be big (several gigabytes), 
-    so make sure you have enough memory to handle it.
+    Warning: the stop times data frame can be big (several gigabytes), so make sure you have enough memory to handle it.
 
     Attributes, almost all of which default to ``None``:
 
@@ -28,28 +26,21 @@ class Feed(object):
     - ``stops``
     - ``routes``
     - ``trips``
-    - ``trips_i``: ``trips`` reindexed by its ``'trip_id'`` column;
-      speeds up ``is_active_trip()``
+    - ``trips_i``: ``trips`` reindexed by its ``'trip_id'`` column; speeds up ``is_active_trip()``
     - ``stop_times``
     - ``calendar``
-    - ``calendar_i``: ``calendar`` reindexed by its ``'service_id'`` column;
-      speeds up ``is_active_trip()``
+    - ``calendar_i``: ``calendar`` reindexed by its ``'service_id'`` column;  speeds up ``is_active_trip()``
     - ``calendar_dates`` 
-    - ``calendar_dates_g``: ``calendar_dates`` grouped by 
-      ``['service_id', 'date']``; speeds up ``is_active_trip()``
+    - ``calendar_dates_g``: ``calendar_dates`` grouped by ``['service_id', 'date']``; speeds up ``is_active_trip()``
     - ``fare_attributes``
     - ``fare_rules``
     - ``shapes``
     - ``frequencies``
     - ``transfers``
     - ``feed_info``
-    - ``dist_units_in``: a string in ``constants.DISTANCE_UNITS``;
-      specifies the native distance units of the feed; default is 'km'
-    - ``dist_units_out``: a string in ``constants.DISTANCE_UNITS``;
-      specifies the output distance units for functions that operate
-      on Feed objects; default is ``dist_units_in``
-    - ``convert_dist``: function that converts from ``dist_units_in`` to
-      ``dist_units_out``
+    - ``dist_units_in``: a string in ``constants.DISTANCE_UNITS``; specifies the native distance units of the feed; default is 'km'
+    - ``dist_units_out``: a string in ``constants.DISTANCE_UNITS``; specifies the output distance units for functions that operate on Feed objects; default is ``dist_units_in``
+    - ``convert_dist``: function that converts from ``dist_units_in`` to ``dist_units_out``
     """
     def __init__(self, agency=None, stops=None, routes=None, trips=None, 
       stop_times=None, calendar=None, calendar_dates=None, 
@@ -57,23 +48,14 @@ class Feed(object):
       frequencies=None, transfers=None, feed_info=None,
       dist_units_in=None, dist_units_out=None):
         """
-        Assume that every non-None input is a Pandas data frame,
-        except for ``dist_units_in`` and ``dist_units_out`` which 
-        should be strings.
+        Assume that every non-None input is a Pandas data frame, except for ``dist_units_in`` and ``dist_units_out`` which should be strings.
 
-        If the ``shapes`` or ``stop_times`` data frame has the optional
-        column ``shape_dist_traveled``,
-        then the native distance units used in those data frames must be 
-        specified with ``dist_units_in``. 
+        If the ``shapes`` or ``stop_times`` data frame has the optional  column ``shape_dist_traveled``, then the native distance units used in those data frames must be specified with ``dist_units_in``. 
         Supported distance units are listed in ``constants.DISTANCE_UNITS``.
         
-        If ``shape_dist_traveled`` column does not exist, then 
-        ``dist_units_in`` is not required and will be set to ``'km'``.
-        The parameter ``dist_units_out`` specifies the distance units for 
-        the outputs of functions that act on feeds, 
-        e.g. ``compute_trips_stats()``.
-        If ``dist_units_out`` is not specified, then it will be set to
-        ``dist_units_in``.
+        If ``shape_dist_traveled`` column does not exist, then ``dist_units_in`` is not required and will be set to ``'km'``.
+        The parameter ``dist_units_out`` specifies the distance units for     the outputs of functions that act on feeds, e.g. ``compute_trips_stats()``.
+        If ``dist_units_out`` is not specified, then it will be set to       ``dist_units_in``.
 
         No other format checking is performed.
         In particular, a Feed instance need not represent a valid GTFS feed.
@@ -140,10 +122,8 @@ class Feed(object):
     def __eq__(self, other):
         """
         Define equality between two feeds as follows.
-        Two feeds are equal if and only if their ``contsants.FEED_INPUTS``
-        attributes are equal, or almost equal in the case of data frames.
-        Almost equality is checked via :func:`utilities.almost_equal`, which
-        canonically sorts data frame rows and columns.
+        Two feeds are equal if and only if their ``contsants.FEED_INPUTS``    attributes are equal, or almost equal in the case of data frames.
+        Almost equality is checked via :func:`utilities.almost_equal`, which   canonically sorts data frame rows and columns.
         """
         # Return False if failures
         for key in cs.FEED_INPUTS:
@@ -166,8 +146,7 @@ class Feed(object):
 # -------------------------------------
 def copy(feed):
     """
-    Return a copy of the given feed, using Pandas's copy method to 
-    properly copy feed attributes that are data frames.
+    Return a copy of the given feed, using Pandas's copy method to properly copy feed attributes that are data frames.
     """
     # Copy feed attributes necessary to create new feed
     new_feed_input = dict()
@@ -251,11 +230,8 @@ def copy(feed):
 # -------------------------------------
 def read_gtfs(path, dist_units_in=None, dist_units_out=None):
     """
-    Create a Feed object from the given path and 
-    given distance units.
-    The path points to a directory containing GTFS text files or 
-    a zip file that unzips as a collection of GTFS text files
-    (but not as a directory containing GTFS text files).
+    Create a Feed object from the given path and given distance units.
+    The path points to a directory containing GTFS text files or a zip file that unzips as a collection of GTFS text files (but not as a directory containing GTFS text files).
     """
     p = Path(path)
     if not p.exists():
