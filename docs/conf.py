@@ -57,7 +57,7 @@ project = 'GTFSTK'
 # built documents.
 #
 # The short X.Y version.
-version = '5.0'
+version = '5.1'
 # The full version, including alpha/beta/rc tags.
 #release = '5.0'
 
