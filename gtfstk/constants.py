@@ -38,6 +38,8 @@ DTYPE = {
   'origin_id': str,
   'destination_id': str,
   'contains_id': str,
+  'from_stop_id': str,
+  'to_stop_id': str,
 }
 
 # Columns that must be formatted as integers when outputting GTFS
@@ -69,21 +71,6 @@ INT_COLUMNS = [
   'transfer_duration',
   'min_transfer_time',
 ]
-
-#:
-ID_COLUMNS = [
-  'agency_id',
-  'stop_id',
-  'zone_id',
-  'route_id',
-  'trip_id',
-  'service_id',
-  'fare_id',
-  'origin_id',
-  'destination_id',
-  'contains_id',
-  'shape_id',
-  ]
 
 #:
 DISTANCE_UNITS = ['ft', 'mi', 'm', 'km']
