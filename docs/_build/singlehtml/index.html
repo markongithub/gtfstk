@@ -83,7 +83,7 @@ Pandas data frames and series, respectively.</p>
 <span id="constants-module"></span><h2>constants Module<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="gtfstk.constants.CRS_WGS84">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'no_defs': True, 'datum': 'WGS84', 'ellps': 'WGS84', 'proj': 'longlat'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'no_defs': True, 'proj': 'longlat', 'ellps': 'WGS84', 'datum': 'WGS84'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -93,17 +93,12 @@ Pandas data frames and series, respectively.</p>
 
 <dl class="data">
 <dt id="gtfstk.constants.DTYPE">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'zone_id': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'agency_id': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'destination_id': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'from_stop_id': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'to_stop_id': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'zone_id': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'agency_id': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
 <dt id="gtfstk.constants.FEED_INPUTS">
 <code class="descclassname">gtfstk.constants.</code><code class="descname">FEED_INPUTS</code><em class="property"> = ['agency', 'stops', 'routes', 'trips', 'stop_times', 'calendar', 'calendar_dates', 'fare_attributes', 'fare_rules', 'shapes', 'frequencies', 'transfers', 'feed_info', 'dist_units_in', 'dist_units_out']</em><a class="headerlink" href="#gtfstk.constants.FEED_INPUTS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="gtfstk.constants.ID_COLUMNS">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">ID_COLUMNS</code><em class="property"> = ['agency_id', 'stop_id', 'zone_id', 'route_id', 'trip_id', 'service_id', 'fare_id', 'origin_id', 'destination_id', 'contains_id', 'shape_id']</em><a class="headerlink" href="#gtfstk.constants.ID_COLUMNS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
