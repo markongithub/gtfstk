@@ -216,24 +216,3 @@ def linestring_to_utm(linestring):
     proj = lambda x, y: utm.from_latlon(y, x)[:2]
 
     return transform(proj, linestring) 
-
-# def prefix_ids(data_frame, prefix):
-#     """
-#     Prefix the all GTFS IDs (stop IDs, trip IDs, etc.) in the given data frame
-#     by the given string if and only if the ID values are not NaN.
-#     For instance, every non-NaN stop ID ``x`` will become ``prefix + x`` and 
-#     every NaN stop ID will remain NaN.
-#     Return the resulting data frame.
-#     """
-#     f = data_frame.copy()
-
-#     def prefix_it(x):
-#         if pd.notnull(x):
-#             x = prefix + x
-#         return x
-
-#     for col in cs.ID_COLUMNS:
-#         if col in f.columns:
-#             f[col] = f[col].map(prefix_it)
-    
-#     return f 

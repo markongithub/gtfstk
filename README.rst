@@ -36,6 +36,11 @@ Authors
 Changelog
 =========
 
+5.1.1, 2016-09-01
+-----------------
+- Bugfix: Added ``'from_stop_id'`` and ``'to_stop_id'`` to list of string data types in ``constants.py``. Previously, they were sometimes getting interpreted as floats, which stripped leading zeros from the IDs, which then did not match the IDs in the stops data frame
+
+
 5.1.0, 2016-08-31
 -----------------
 - Added trip ID parameter to ``calculator.get_stops``
