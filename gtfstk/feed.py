@@ -54,7 +54,7 @@ class Feed(object):
         Supported distance units are listed in ``constants.DISTANCE_UNITS``.
         
         If ``shape_dist_traveled`` column does not exist, then ``dist_units_in`` is not required and will be set to ``'km'``.
-        The parameter ``dist_units_out`` specifies the distance units for     the outputs of functions that act on feeds, e.g. ``compute_trips_stats()``.
+        The parameter ``dist_units_out`` specifies the distance units for     the outputs of functions that act on feeds, e.g. ``compute_trip_stats()``.
         If ``dist_units_out`` is not specified, then it will be set to       ``dist_units_in``.
 
         No other format checking is performed.

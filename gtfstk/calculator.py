@@ -184,7 +184,7 @@ def get_trips(feed, date=None, time=None):
 
     return f
 
-def compute_trips_activity(feed, dates):
+def compute_trip_activity(feed, dates):
     """
     Return a  data frame with the columns
 
@@ -223,14 +223,14 @@ def compute_busiest_date(feed, dates):
 
     Assume the following feed attributes are not ``None``:
 
-    - Those used in :func:`compute_trips_activity`
+    - Those used in :func:`compute_trip_activity`
         
     """
-    f = compute_trips_activity(feed, dates)
+    f = compute_trip_activity(feed, dates)
     s = [(f[date].sum(), date) for date in dates]
     return max(s)[1]
 
-def compute_trips_stats(feed, compute_dist_from_shapes=False):
+def compute_trip_stats(feed, compute_dist_from_shapes=False):
     """
     Return a data frame with the following columns:
 
@@ -383,7 +383,7 @@ def compute_trips_stats(feed, compute_dist_from_shapes=False):
     
     return h.sort_values(['route_id', 'direction_id', 'start_time'])
 
-def compute_trips_locations(feed, date, times):
+def compute_trip_locations(feed, date, times):
     """
     Return a  data frame of the positions of all trips
     active on the given date and times 
@@ -467,7 +467,7 @@ def compute_trips_locations(feed, date, times):
     
     return h.groupby('shape_id').apply(get_lonlat)
     
-def build_trip_geojson(feed, trip_id, include_stops=False):
+def trip_to_geojson(feed, trip_id, include_stops=False):
     """
     Given a feed and a trip ID (string), return a (decoded) GeoJSON feature collection comprising a Linestring feature of representing the trip's shape.
     If ``include_stops``, then also include one Point feature for each stop  visited by the trip. 
@@ -537,10 +537,10 @@ def get_routes(feed, date=None, time=None):
     R = trips['route_id'].unique()
     return feed.routes[feed.routes['route_id'].isin(R)]
 
-def compute_routes_stats_base(trips_stats_subset, split_directions=False,
+def compute_route_stats_base(trips_stats_subset, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Given a subset of the output of ``Feed.compute_trips_stats()``, 
+    Given a subset of the output of ``Feed.compute_trip_stats()``, 
     calculate stats for the routes in that subset.
     
     Return a data frame with the following columns:
@@ -736,25 +736,25 @@ def compute_routes_stats_base(trips_stats_subset, split_directions=False,
 
     return g
 
-def compute_routes_stats(feed, trips_stats, date, split_directions=False,
+def compute_route_stats(feed, trips_stats, date, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
     Take ``trips_stats``, which is the output of 
-    ``compute_trips_stats()``, cut it down to the subset ``S`` of trips
+    ``compute_trip_stats()``, cut it down to the subset ``S`` of trips
     that are active on the given date, and then call
-    ``compute_routes_stats_base()`` with ``S`` and the keyword arguments
+    ``compute_route_stats_base()`` with ``S`` and the keyword arguments
     ``split_directions``, ``headway_start_time``, and 
     ``headway_end_time``.
 
-    See ``compute_routes_stats_base()`` for a description of the output.
+    See ``compute_route_stats_base()`` for a description of the output.
 
     Assume the following feed attributes are not ``None``:
 
-    - Those used in :func:`compute_routes_stats_base`
+    - Those used in :func:`compute_route_stats_base`
         
     NOTES:
 
-    This is a more user-friendly version of ``compute_routes_stats_base()``.
+    This is a more user-friendly version of ``compute_route_stats_base()``.
     The latter function works without a feed, though.
 
     Return ``None`` if the date does not lie in this feed's date range.
@@ -762,15 +762,15 @@ def compute_routes_stats(feed, trips_stats, date, split_directions=False,
     # Get the subset of trips_stats that contains only trips active
     # on the given date
     trips_stats_subset = pd.merge(trips_stats, get_trips(feed, date))
-    return compute_routes_stats_base(trips_stats_subset, 
+    return compute_route_stats_base(trips_stats_subset, 
       split_directions=split_directions,
       headway_start_time=headway_start_time, 
       headway_end_time=headway_end_time)
 
-def compute_routes_time_series_base(trips_stats_subset,
+def compute_route_time_series_base(trips_stats_subset,
   split_directions=False, freq='5Min', date_label='20010101'):
     """
-    Given a subset of the output of ``Feed.compute_trips_stats()``, 
+    Given a subset of the output of ``Feed.compute_trip_stats()``, 
     calculate time series for the routes in that subset.
 
     Return a time series version of the following route stats:
@@ -898,17 +898,17 @@ def compute_routes_time_series_base(trips_stats_subset,
       split_directions=split_directions)
     return downsample(g, freq=freq)
 
-def compute_routes_time_series(feed, trips_stats, date, 
+def compute_route_time_series(feed, trips_stats, date, 
   split_directions=False, freq='5Min'):
     """
     Take ``trips_stats``, which is the output of 
-    ``compute_trips_stats()``, cut it down to the subset ``S`` of trips
+    ``compute_trip_stats()``, cut it down to the subset ``S`` of trips
     that are active on the given date, and then call
-    ``compute_routes_time_series_base()`` with ``S`` and the given 
+    ``compute_route_time_series_base()`` with ``S`` and the given 
     keyword arguments ``split_directions`` and ``freq``
     and with ``date_label = ut.date_to_str(date)``.
 
-    See ``compute_routes_time_series_base()`` for a description of the output.
+    See ``compute_route_time_series_base()`` for a description of the output.
 
     If there are no active trips on the date, then return ``None``.
 
@@ -920,11 +920,11 @@ def compute_routes_time_series(feed, trips_stats, date,
     NOTES:
 
     This is a more user-friendly version of 
-    ``compute_routes_time_series_base()``.
+    ``compute_route_time_series_base()``.
     The latter function works without a feed, though.
     """  
     trips_stats_subset = pd.merge(trips_stats, get_trips(feed, date))
-    return compute_routes_time_series_base(trips_stats_subset, 
+    return compute_route_time_series_base(trips_stats_subset, 
       split_directions=split_directions, freq=freq, 
       date_label=date)
 
@@ -954,7 +954,7 @@ def get_route_timetable(feed, route_id, date):
     return f.sort_values(['min_dt', 'stop_sequence']).drop(
       ['min_dt', 'dt'], axis=1)
 
-def build_route_geojson(feed, route_id, include_stops=False):
+def route_to_geojson(feed, route_id, include_stops=False):
     """
     Given a feed and a route ID (string), return a (decoded) GeoJSON 
     feature collection comprising a MultiLinestring feature of distinct shapes
@@ -1136,7 +1136,7 @@ def get_stops_intersecting_polygon(feed, polygon, geo_stops=None):
     f = f[f['hit']][cols]
     return ungeometrize_stops(f)
 
-def compute_stops_activity(feed, dates):
+def compute_stop_activity(feed, dates):
     """
     Return a  data frame with the columns
 
@@ -1155,14 +1155,14 @@ def compute_stops_activity(feed, dates):
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stop_times``
-    - Those used in :func:`compute_trips_activity`
+    - Those used in :func:`compute_trip_activity`
         
 
     """
     if not dates:
         return pd.DataFrame(columns=['stop_id'])
 
-    trips_activity = compute_trips_activity(feed, dates)
+    trips_activity = compute_trip_activity(feed, dates)
     g = pd.merge(trips_activity, feed.stop_times).groupby('stop_id')
     # Pandas won't allow me to simply return g[dates].max().reset_index().
     # I get ``TypeError: unorderable types: datetime.date() < str()``.
@@ -1174,7 +1174,7 @@ def compute_stops_activity(feed, dates):
             f = f.merge(g[date].max().reset_index())
     return f
 
-def compute_stops_stats_base(stop_times, trips_subset, split_directions=False,
+def compute_stop_stats_base(stop_times, trips_subset, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
     Given a stop times data frame and a subset of a trips data frame,
@@ -1265,14 +1265,14 @@ def compute_stops_stats_base(stop_times, trips_subset, split_directions=False,
 
     return result
 
-def compute_stops_stats(feed, date, split_directions=False,
+def compute_stop_stats(feed, date, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Call ``compute_stops_stats_base()`` with the subset of trips active on 
+    Call ``compute_stop_stats_base()`` with the subset of trips active on 
     the given date and with the keyword arguments ``split_directions``,
     ``headway_start_time``, and ``headway_end_time``.
 
-    See ``compute_stops_stats_base()`` for a description of the output.
+    See ``compute_stop_stats_base()`` for a description of the output.
 
     Assume the following feed attributes are not ``None``:
 
@@ -1281,16 +1281,16 @@ def compute_stops_stats(feed, date, split_directions=False,
         
     NOTES:
 
-    This is a more user-friendly version of ``compute_stops_stats_base()``.
+    This is a more user-friendly version of ``compute_stop_stats_base()``.
     The latter function works without a feed, though.
     """
     # Get stop times active on date and direction IDs
-    return compute_stops_stats_base(feed.stop_times, get_trips(feed, date),
+    return compute_stop_stats_base(feed.stop_times, get_trips(feed, date),
       split_directions=split_directions,
       headway_start_time=headway_start_time, 
       headway_end_time=headway_end_time)
 
-def compute_stops_time_series_base(stop_times, trips_subset, 
+def compute_stop_time_series_base(stop_times, trips_subset, 
   split_directions=False, freq='5Min', date_label='20010101'):
     """
     Given a stop times data frame and a subset of a trips data frame,
@@ -1366,13 +1366,13 @@ def compute_stops_time_series_base(stop_times, trips_subset,
       split_directions=split_directions)
     return downsample(g, freq=freq)
 
-def compute_stops_time_series(feed, date, split_directions=False,
+def compute_stop_time_series(feed, date, split_directions=False,
   freq='5Min'):
     """
     Call ``compute_stops_times_series_base()`` with the subset of trips 
     active on the given date and with the keyword arguments
     ``split_directions``and ``freq`` and with ``date_label`` equal to ``date``.
-    See ``compute_stops_time_series_base()`` for a description of the output.
+    See ``compute_stop_time_series_base()`` for a description of the output.
 
     Assume the following feed attributes are not ``None``:
 
@@ -1382,10 +1382,10 @@ def compute_stops_time_series(feed, date, split_directions=False,
     NOTES:
 
     This is a more user-friendly version of 
-    ``compute_stops_time_series_base()``.
+    ``compute_stop_time_series_base()``.
     The latter function works without a feed, though.
     """  
-    return compute_stops_time_series_base(feed.stop_times, 
+    return compute_stop_time_series_base(feed.stop_times, 
       get_trips(feed, date), split_directions=split_directions, 
       freq=freq, date_label=date)
 
@@ -1425,12 +1425,12 @@ def get_stops_in_stations(feed):
     f = feed.stops
     return f[(f['location_type'] != 1) & (f['parent_station'].notnull())]
 
-def compute_stations_stats(feed, date, split_directions=False,
+def compute_station_stats(feed, date, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
     If this feed has station data, that is, ``location_type`` and
     ``parent_station`` columns in ``feed.stops``, then compute
-    the same stats that ``feed.compute_stops_stats()`` does, but for
+    the same stats that ``feed.compute_stop_stats()`` does, but for
     stations.
     Otherwise, return an empty data frame with the specified columns.
 
@@ -1535,7 +1535,7 @@ def build_geometry_by_shape(feed, use_utm=False, shape_ids=None):
             d[shape] = LineString(lonlats)
     return d
 
-def build_shapes_geojson(feed):
+def shapes_to_geojson(feed):
     """
     Return a (decoded) GeoJSON feature collection of 
     linestring features representing ``feed.shapes``.
@@ -1874,7 +1874,7 @@ def add_dist_to_stop_times(feed, trips_stats):
 def compute_feed_stats(feed, trips_stats, date):
     """
     Given ``trips_stats``, which is the output of 
-    ``feed.compute_trips_stats()`` and a date,
+    ``feed.compute_trip_stats()`` and a date,
     return a  data frame including the following feed
     stats for the date.
 
@@ -1943,7 +1943,7 @@ def compute_feed_stats(feed, trips_stats, date):
 
 def compute_feed_time_series(feed, trips_stats, date, freq='5Min'):
     """
-    Given trips stats (output of ``feed.compute_trips_stats()``),
+    Given trips stats (output of ``feed.compute_trip_stats()``),
     a date, and a Pandas frequency string,
     return a time series of stats for this feed on the given date
     at the given frequency with the following columns
@@ -1961,7 +1961,7 @@ def compute_feed_time_series(feed, trips_stats, date, freq='5Min'):
 
     Assume the following feed attributes are not ``None``:
 
-    - Those used in :func:`compute_routes_time_series`
+    - Those used in :func:`compute_route_time_series`
 
     """
     cols = [
@@ -1971,7 +1971,7 @@ def compute_feed_time_series(feed, trips_stats, date, freq='5Min'):
       'service_duration',
       'service_speed',
       ]
-    rts = compute_routes_time_series(feed, trips_stats, date, freq=freq)
+    rts = compute_route_time_series(feed, trips_stats, date, freq=freq)
     if rts.empty:
         return pd.DataFrame(columns=cols)
 
@@ -2218,8 +2218,8 @@ def restrict_by_polygon(feed, polygon):
 def downsample(time_series, freq):
     """
     Downsample the given route, stop, or feed time series, 
-    (outputs of ``Feed.compute_routes_time_series()``, 
-    ``Feed.compute_stops_time_series()``, or ``Feed.compute_feed_time_series()``,
+    (outputs of ``Feed.compute_route_time_series()``, 
+    ``Feed.compute_stop_time_series()``, or ``Feed.compute_feed_time_series()``,
     respectively) to the given Pandas frequency.
     Return the given time series unchanged if the given frequency is 
     shorter than the original frequency.
@@ -2493,7 +2493,7 @@ def compute_center(feed, num_busiest_stops=None):
     if num_busiest_stops is not None:
         n = num_busiest_stops
         date = get_first_week(feed)[0]
-        ss = compute_stops_stats(feed, date).sort_values(
+        ss = compute_stop_stats(feed, date).sort_values(
           'num_trips', ascending=False)
         f = ss.head(num_busiest_stops)
         f = s.merge(f)

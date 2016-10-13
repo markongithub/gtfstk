@@ -36,6 +36,11 @@ Authors
 Changelog
 =========
 
+6.0.0, 2016
+-----------------
+- Improved function names, e.g. ``compute_trips_stats`` -> ``compute_trip_stats``
+
+
 5.1.1, 2016-09-01
 -----------------
 - Bugfix: Added ``'from_stop_id'`` and ``'to_stop_id'`` to list of string data types in ``constants.py``. Previously, they were sometimes getting interpreted as floats, which stripped leading zeros from the IDs, which then did not match the IDs in the stops data frame
@@ -44,7 +49,7 @@ Changelog
 5.1.0, 2016-08-31
 -----------------
 - Added trip ID parameter to ``calculator.get_stops``
-- Created ``calculator.build_trip_geojson``
+- Created ``calculator.trip_to_geojson``
 - Added whitespace stripping to ``cleaner.clean_route_short_names``
 
 
@@ -61,7 +66,7 @@ Changelog
 
 4.2.0, 2016-07-04
 -----------------
-- Added the functions ``calculator.compute_center``, ``calculator. compute_bounds``, ``calculator.build_route_geojson``
+- Added the functions ``calculator.compute_center``, ``calculator. compute_bounds``, ``calculator.route_to_geojson``
 - Extended the function ``calculator.get_stops`` to accept an optional route ID
 - Extended the function ``calculator.build_geometry_by_shape`` to accept and optional set of shape IDs
 - Extended the function ``calculator.build_geometry_by_stop`` to accept and optional set of stop IDs
@@ -69,13 +74,13 @@ Changelog
 
 4.1.2, 2016-07-01
 ------------------
-- Improved distance sanity checks in ``calculator.compute_trips_stats`` and ``calculator.add_dist_to_stop_times``
+- Improved distance sanity checks in ``calculator.compute_trip_stats`` and ``calculator.add_dist_to_stop_times``
 
 
 4.1.1, 2016-07-01
 ------------------
 - Bugfixed ``feed.copy`` so that the ``dist_units_in`` of the copy equals ``dist_units_out`` of the original
-- Added some more distance sanity checks to ``calculator.compute_trips_stats`` and ``calculator.add_dist_to_stop_times``
+- Added some more distance sanity checks to ``calculator.compute_trip_stats`` and ``calculator.add_dist_to_stop_times``
 
 
 4.1.0, 2016-05-23
@@ -90,7 +95,7 @@ Changelog
 ------------------
 - Deleted an extraneous print statement in ``calculator.create_shapes``
 - Added ``utilities.is_not_null``
-- Changed ``calculator.build_shapes_geojson`` to return a dictionary instead of a string
+- Changed ``calculator.shapes_to_geojson`` to return a dictionary instead of a string
 - Upgraded to Pandas 0.18.1 and fixed ``calculator.downsample`` accordingly
 - Added ``cleaner.aggregate_routes``
 

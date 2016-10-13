@@ -30,7 +30,7 @@ class TestCleaner(unittest.TestCase):
         
         # Make route short name duplicates
         feed.routes.loc[1:5, 'route_short_name'] = np.nan
-        feed.routes.loc[6:, 'route_short_name'] = '  hello  '
+        feed.routes.loc[6:, 'route_short_name'] = '  he llo  '
         routes = clean_route_short_names(feed)
         # Should have unique route short names
         self.assertEqual(routes['route_short_name'].nunique(), routes.shape[0])
