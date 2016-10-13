@@ -45,13 +45,10 @@ class TestFeed(unittest.TestCase):
           dist_units_in='mi')
         self.assertNotEqual(feed1, feed2)
 
-    # --------------------------------------------
-    # Test functions about basics
-    # --------------------------------------------
     def test_copy(self):
         feed1 = read_gtfs(DATA_DIR/'cairns_gtfs.zip',
           dist_units_in='mi', dist_units_out='km')
-        feed2 = copy(feed1)
+        feed2 = feed1.copy()
 
         # Check distance units
         self.assertEqual(feed2.dist_units_in, feed1.dist_units_out)
@@ -71,50 +68,6 @@ class TestFeed(unittest.TestCase):
                 continue
             else:
                 self.assertEqual(value, expect_value)
-
-    # def test_concatenate(self):
-    #     import re 
-
-
-    #     # Trivial cases
-    #     cat = concatenate([])
-    #     self.assertEqual(cat, Feed())
-
-    #     feed = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
-    #     cat = concatenate([feed])
-    #     self.assertEqual(cat, feed)
-        
-    #     # Nontrivial cases
-    #     n = 3
-    #     feeds = [feed for i in range(n)]
-    #     prefixes = ['{!s}_'.format(i) for i in range(n)]
-
-    #     def strip_prefix(x):
-    #         if pd.notnull(x):
-    #             x = re.sub(r'^\d\_', '', x)
-    #         return x
-
-    #     cat = concatenate(feeds, prefixes)
-    #     for key in cs.FEED_INPUTS:
-    #         x = getattr(feed, key)
-    #         y = getattr(cat, key)
-    #         if isinstance(x, pd.DataFrame):
-    #             # Data frames should be the correct shape
-    #             self.assertEqual(y.shape[0], n*x.shape[0])
-    #             self.assertEqual(y.shape[1], x.shape[1])
-    #             # Stripping prefixes should yield original data frame
-    #             print(y.dtypes)
-    #             for col in cs.ID_COLUMNS:
-    #                 if col in y.columns:    
-    #                     y[col] = y[col].map(strip_prefix)
-    #             y = y.drop_duplicates()
-    #             print(ut.almost_equal(y, x), y.equals(x))
-    #             print(y.dtypes)
-    #             print(x.dtypes)
-    #             self.assertTrue(ut.almost_equal(y, x))
-    #         else:
-    #             # Non data frame values should be equal
-    #             self.assertEqual(x, y)
 
     # --------------------------------------------
     # Test functions about inputs and outputs

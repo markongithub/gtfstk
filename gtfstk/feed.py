@@ -141,89 +141,27 @@ class Feed(object):
         # No failures
         return True
 
-# -------------------------------------
-# Functions about basics
-# -------------------------------------
-def copy(feed):
-    """
-    Return a copy of the given feed, using Pandas's copy method to properly copy feed attributes that are data frames.
-    """
-    # Copy feed attributes necessary to create new feed
-    new_feed_input = dict()
+    def copy(self):
+        """
+        Return a copy of the given feed, using Pandas's copy method to properly copy feed attributes that are data frames.
+        """
+        # Copy feed attributes necessary to create new feed
+        new_feed_input = dict()
 
-    # New distance units in/out should be old distance units out
-    new_feed_input['dist_units_in'] = feed.dist_units_out
-    new_feed_input['dist_units_out'] = feed.dist_units_out
+        # New distance units in/out should be old distance units out
+        new_feed_input['dist_units_in'] = self.dist_units_out
+        new_feed_input['dist_units_out'] = self.dist_units_out
 
-    # Set remaining attributes
-    input_keys = set(cs.FEED_INPUTS) - set(['dist_units_in', 'dist_units_out'])
-    for key in input_keys:
-        value = getattr(feed, key)
-        if isinstance(value, pd.DataFrame):
-            # Pandas copy data frame
-            value = value.copy()
-        new_feed_input[key] = value
-    
-    return Feed(**new_feed_input)
-
-# def concatenate(feeds, prefixes=None):
-#     """
-#     Given a list of feeds, concatenate or set equal their attributes.
-#     To avoid GTFS ID collisions when doing so, prefix the GTFS IDs
-#     of the data frames in ``feeds[j]`` with the string ``prefixes[j]``
-#     via :func:`prefix_ids`.
-#     Return the resulting feed.
-
-#     If ``feeds`` is empty, then return the empty feed.
-#     If there is only one feed in ``feeds``, then return ``feeds[0]``.
-#     Raise a ``ValueError`` if the given feeds have different 
-#     ``dist_units_in`` or ``dist_units_out`` attributes.
-#     If ``prefixes is None``, then set it to ``['feed0_', 'feed1_', ...]``.
-#     Raise a ``ValueError`` if ``prefixes`` is not ``None`` and 
-#     the lengths of ``feeds`` and ``prefixes`` differ.
-#     """
-#     # Trivial cases
-#     n = len(feeds)
-#     if not n:
-#         return Feed()
-#     if n == 1:
-#         return feeds[0]
-
-#     # Raise error if conflicting distance units
-#     for i in range(n - 1):
-#         if feeds[i].dist_units_in != feeds[i + 1].dist_units_in or\
-#           feeds[i].dist_units_out != feeds[i + 1].dist_units_out:
-#             raise ValueError('The given feeds must have the same '\
-#               'dist_units_in and dist_units_out attributes')
-
-#     # Initialize prefixes if necessary
-#     if prefixes is None:
-#         prefixes = ['feed{!s}_'.format(i) for i in range(n)]
-#     elif len(prefixes) != n:
-#         raise ValueError('prefixes must be None or '\
-#           'have the same length as feeds')
-
-#     # Ready to go now
-#     new_feed_input = dict()
-#     for key in cs.FEED_INPUTS:
-#         value = None
-#         for feed, prefix in zip(feeds, prefixes):
-#             v = getattr(feed, key)
-#             if isinstance(v, pd.DataFrame):
-#                 # Prefix IDs of v
-#                 v = ut.prefix_ids(v, prefix)
-#                 # Overwrite/concatenate value with v
-#                 if value is None:
-#                     value = v.copy()
-#                 else:
-#                     value = pd.concat([value, v])
-#             else:
-#                 # Set/reset value to v
-#                 value = v
-
-#         new_feed_input[key] = value
-
-#     return Feed(**new_feed_input)
+        # Set remaining attributes
+        input_keys = set(cs.FEED_INPUTS) - set(['dist_units_in', 'dist_units_out'])
+        for key in input_keys:
+            value = getattr(self, key)
+            if isinstance(value, pd.DataFrame):
+                # Pandas copy data frame
+                value = value.copy()
+            new_feed_input[key] = value
+        
+        return Feed(**new_feed_input)
 
 # -------------------------------------
 # Functions about input and output

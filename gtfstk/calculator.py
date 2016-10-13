@@ -15,7 +15,7 @@ import utm
 
 from . import constants as cs
 from . import utilities as ut
-from .feed import Feed, copy
+from .feed import Feed
 
 
 # -------------------------------------
@@ -2013,7 +2013,7 @@ def create_shapes(feed, all_trips=False):
     - ``feed.trips``
     - ``feed.stops``
     """
-    feed = copy(feed)
+    feed = feed.copy()
 
     if all_trips:
         trip_ids = feed.trips['trip_id']
@@ -2077,7 +2077,7 @@ def restrict_by_routes(feed, route_ids):
     """
     # Initialize the new feed as the old feed.
     # Restrict its data frames below.
-    feed = copy(feed)
+    feed = feed.copy()
     
     # Slice routes
     feed.routes = feed.routes[feed.routes['route_id'].isin(route_ids)].copy()
@@ -2152,7 +2152,7 @@ def restrict_by_polygon(feed, polygon):
     """
     # Initialize the new feed as the old feed.
     # Restrict its data frames below.
-    feed = copy(feed)
+    feed = feed.copy()
     
     # Get IDs of stops within the polygon
     stop_ids = get_stops_intersecting_polygon(

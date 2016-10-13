@@ -35,7 +35,7 @@ class TestCalculator(unittest.TestCase):
     # Test functions about calendars
     # --------------------------------------------
     def test_get_dates(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         for as_date_obj in [True, False]:
             dates = get_dates(feed, as_date_obj=as_date_obj)
             d1 = '20140526'
@@ -48,7 +48,7 @@ class TestCalculator(unittest.TestCase):
             self.assertEqual(dates[-1], d2)
 
     def test_get_first_week(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         dates = get_first_week(feed)
         d1 = '20140526'
         d2 = '20140601'
@@ -60,7 +60,7 @@ class TestCalculator(unittest.TestCase):
     # Test functions about trips
     # --------------------------------------------
     def test_is_active(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         trip = 'CNS2014-CNS_MUL-Weekday-00-4165878'
         date1 = '20140526'
         date2 = '20120322'
@@ -81,7 +81,7 @@ class TestCalculator(unittest.TestCase):
         self.assertFalse(is_active_trip(feed, trip, date2))
 
     def test_get_trips(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         trips1 = get_trips(feed, date)
         # Should be a data frame
@@ -102,7 +102,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(trips2.columns), set(feed.trips.columns))
 
     def test_compute_trip_activity(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         dates = get_first_week(feed)
         trips_activity = compute_trip_activity(feed, dates)
         # Should be a data frame
@@ -114,14 +114,14 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(trips_activity[dates].values.flatten()), {0, 1})
 
     def test_compute_busiest_date(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         dates = get_first_week(feed) + ['19000101']
         date = compute_busiest_date(feed, dates)
         # Busiest day should lie in first week
         self.assertTrue(date in dates)
 
     def test_compute_trip_stats(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         trips_stats = compute_trip_stats(feed)
         
         # Should be a data frame with the correct number of rows
@@ -149,7 +149,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(trips_stats.columns), expect_cols)
         
         # Shapeless feeds should have null entries for distance column
-        feed2 = copy(cairns_shapeless)
+        feed2 = cairns_shapeless.copy()
         trips_stats = compute_trip_stats(feed2)
         self.assertEqual(len(trips_stats['distance'].unique()), 1)
         self.assertTrue(np.isnan(trips_stats['distance'].unique()[0]))   
@@ -160,7 +160,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(get_trips, expect_trips)
 
     def test_compute_trip_locations(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         trips_stats = compute_trip_stats(feed)
         feed.stop_times = add_dist_to_stop_times(feed, trips_stats)
         date = get_dates(feed)[0]
@@ -185,7 +185,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(f.columns), expect_cols)
     
     def test_trip_to_geojson(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         trip_id = feed.trips['trip_id'].values[0]
         g0 = trip_to_geojson(feed, trip_id)      
         g1 = trip_to_geojson(feed, trip_id, include_stops=True)
@@ -202,7 +202,7 @@ class TestCalculator(unittest.TestCase):
     # Test functions about routes
     # ----------------------------------
     def test_get_routes(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         f = get_routes(feed, date)
         # Should be a data frame
@@ -223,7 +223,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(g.columns), set(feed.routes.columns))
 
     def test_compute_route_stats_base(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         f = compute_trip_stats(feed)
         for split_directions in [True, False]:
             rs = compute_route_stats_base(f, 
@@ -269,7 +269,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(rs.empty)
 
     def test_compute_route_stats(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         trips_stats = compute_trip_stats(feed)
         f = pd.merge(trips_stats, get_trips(feed, date))
@@ -317,7 +317,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(f.empty)
 
     def test_compute_route_time_series_base(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         f = compute_trip_stats(feed)
         for split_directions in [True, False]:
             rs = compute_route_stats_base(f, 
@@ -352,7 +352,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(rts.empty)
 
     def test_compute_route_time_series(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         trips_stats = compute_trip_stats(feed)
         ats = pd.merge(trips_stats, get_trips(feed, date))
@@ -389,7 +389,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(rts.empty)
 
     def test_get_route_timetable(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         route = feed.routes['route_id'].values[0]
         date = get_dates(feed)[0]
         f = get_route_timetable(feed, route, date)
@@ -401,7 +401,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(f.columns), expect_cols)
 
     def test_route_to_geojson(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         route_id = feed.routes['route_id'].values[0]
         g0 = route_to_geojson(feed, route_id)      
         g1 = route_to_geojson(feed, route_id, include_stops=True)
@@ -418,7 +418,7 @@ class TestCalculator(unittest.TestCase):
     # Test functions about stops
     # ----------------------------------
     def test_get_stops(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         trip_id = feed.trips['trip_id'].iat[0]
         route_id = feed.routes['route_id'].iat[0]
@@ -445,7 +445,7 @@ class TestCalculator(unittest.TestCase):
         self.assertSequenceEqual(frames[4].shape, frames[6].shape)
 
     def test_build_geometry_by_stop(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         stop_ids = feed.stops['stop_id'][:2].values
         d0 = build_geometry_by_stop(feed)
         d1 = build_geometry_by_stop(feed, stop_ids=stop_ids)
@@ -488,7 +488,7 @@ class TestCalculator(unittest.TestCase):
 
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
     def test_get_stops_intersecting_polygon(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
             polygon = sh_shape(json.load(src)['features'][0]['geometry'])
         pstops = get_stops_intersecting_polygon(feed, polygon)
@@ -496,7 +496,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(pstops['stop_id'].values, stop_ids)
 
     def test_compute_stop_activity(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         dates = get_first_week(feed)
         stops_activity = compute_stop_activity(feed, dates)
         # Should be a data frame
@@ -508,7 +508,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(stops_activity[dates].values.flatten()), {0, 1})
 
     def test_compute_stop_stats_base(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         for split_directions in [True, False]:
             stops_stats = compute_stop_stats_base(feed.stop_times,
               feed.trips, split_directions=split_directions)
@@ -538,7 +538,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(stats.empty)
 
     def test_compute_stop_stats(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         stops_stats = compute_stop_stats(feed, date)
         # Should be a data frame
@@ -554,7 +554,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(f.empty)
 
     def test_compute_stop_time_series_base(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         for split_directions in [True, False]:
             ss = compute_stop_stats_base(feed.stop_times, 
               feed.trips, split_directions=split_directions)
@@ -591,7 +591,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(stops_ts.empty)
 
     def test_compute_stop_time_series(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         ast = pd.merge(get_trips(feed, date), feed.stop_times)
         for split_directions in [True, False]:
@@ -629,7 +629,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(stops_ts.empty)
 
     def test_get_stop_timetable(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         stop = feed.stops['stop_id'].values[0]
         date = get_dates(feed)[0]
         f = get_stop_timetable(feed, stop, date)
@@ -644,7 +644,7 @@ class TestCalculator(unittest.TestCase):
     # Test functions about shapes
     # ----------------------------------
     def test_build_geometry_by_shape(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         shape_ids = feed.shapes['shape_id'].unique()[:2]
         d0 = build_geometry_by_shape(feed)
         d1 = build_geometry_by_shape(feed, shape_ids=shape_ids)
@@ -660,11 +660,11 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(len(d0), feed.shapes['shape_id'].nunique())
         self.assertEqual(len(d1), len(shape_ids))
         # Should be None if feed.shapes is None
-        feed2 = copy(cairns_shapeless)
+        feed2 = cairns_shapeless.copy()
         self.assertIsNone(build_geometry_by_shape(feed2))
 
     def test_shapes_to_geojson(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         collection = shapes_to_geojson(feed)
         geometry_by_shape = build_geometry_by_shape(feed, use_utm=False)
         for f in collection['features']:
@@ -702,7 +702,7 @@ class TestCalculator(unittest.TestCase):
 
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
     def test_get_shapes_intersecting_geometry(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         path = DATA_DIR/'cairns_square_stop_750070.geojson'
         polygon = sh_shape(json.load(path.open())['features'][0]['geometry'])
         pshapes = get_shapes_intersecting_geometry(feed, polygon)
@@ -710,7 +710,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(pshapes['shape_id'].unique()), set(shape_ids))
 
     def test_add_dist_to_shapes(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         s1 = feed.shapes.copy()
         feed.shapes = add_dist_to_shapes(feed)
         s2 = feed.shapes
@@ -727,7 +727,7 @@ class TestCalculator(unittest.TestCase):
             self.assertEqual(sdt, sorted(sdt))
 
     def test_add_route_type_to_shapes(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         shapes = add_route_type_to_shapes(feed)
         # Should contain correct columns
         self.assertEqual(set(shapes.columns), 
@@ -737,7 +737,7 @@ class TestCalculator(unittest.TestCase):
     # Test functions about stop times
     # ----------------------------------
     def test_get_stop_times(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         f = get_stop_times(feed, date)
         # Should be a data frame
@@ -748,7 +748,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(f.columns), set(feed.stop_times.columns))
 
     def test_get_start_and_end_times(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         st = get_stop_times(feed, date)
         times = get_start_and_end_times(feed, date)
@@ -768,7 +768,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(pd.isnull(times[0]))
 
     def test_add_dist_to_stop_times(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         st1 = feed.stop_times
         trips_stats = compute_trip_stats(feed)
         st2 = add_dist_to_stop_times(feed, trips_stats)
@@ -790,7 +790,7 @@ class TestCalculator(unittest.TestCase):
     # Test functions about feeds
     # ----------------------------------
     def test_compute_feed_stats(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         trips_stats = compute_trip_stats(feed)
         f = compute_feed_stats(feed, trips_stats, date)
@@ -817,7 +817,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(f.empty)
 
     def test_compute_feed_time_series(self):
-        feed = copy(cairns)
+        feed = cairns.copy()
         date = get_dates(feed)[0]
         trips_stats = compute_trip_stats(feed)
         f = compute_feed_time_series(feed, trips_stats, date, freq='1H')
@@ -840,7 +840,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(f.empty)
 
     def test_create_shapes(self):
-        feed1 = copy(cairns)
+        feed1 = cairns.copy()
         # Remove a trip shape
         trip_id = 'CNS2014-CNS_MUL-Weekday-00-4165878'
         feed1.trips.loc[feed1.trips['trip_id'] == trip_id, 'shape_id'] = np.nan
@@ -857,7 +857,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(feed2.shapes['shape_id'].nunique(), len(stop_seqs))
 
     def test_restrict_by_routes(self):
-        feed1 = copy(cairns) 
+        feed1 = cairns.copy() 
         route_ids = feed1.routes['route_id'][:2].tolist()
         feed2 = restrict_by_routes(feed1, route_ids)
         # Should have correct routes
@@ -877,7 +877,7 @@ class TestCalculator(unittest.TestCase):
 
     @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
     def test_restrict_by_polygon(self):
-        feed1 = copy(cairns) 
+        feed1 = cairns.copy() 
         with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
             polygon = sh_shape(json.load(src)['features'][0]['geometry'])
         feed2 = restrict_by_polygon(feed1, polygon)
@@ -903,7 +903,7 @@ class TestCalculator(unittest.TestCase):
     # Test miscellanous functions
     # ----------------------------------
     def test_compute_screen_line_counts(self):
-        feed = copy(cairns) 
+        feed = cairns.copy() 
         # Add distances to feed
         trips_stats = compute_trip_stats(feed, compute_dist_from_shapes=True)
         feed.stop_times = add_dist_to_stop_times(feed, trips_stats)
@@ -942,7 +942,7 @@ class TestCalculator(unittest.TestCase):
               expect_num_trips)
 
     def test_compute_bounds(self):
-        feed = copy(cairns) 
+        feed = cairns.copy() 
         minlon, minlat, maxlon, maxlat = compute_bounds(feed)
         # Bounds should be in the ball park
         self.assertTrue(145 < minlon < 146)
@@ -951,7 +951,7 @@ class TestCalculator(unittest.TestCase):
         self.assertTrue(-18 < maxlat < -15)
 
     def test_compute_center(self):
-        feed = copy(cairns) 
+        feed = cairns.copy() 
         centers = [compute_center(feed), compute_center(feed, 20)]
         bounds = compute_bounds(feed)
         for lon, lat in centers:

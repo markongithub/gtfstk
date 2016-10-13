@@ -9,7 +9,6 @@ import pandas as pd
 from . import utilities as ut
 from . import constants as cs
 from .feed import Feed
-from .feed import copy as fcopy
 
 
 def clean_stop_times(feed):
@@ -18,7 +17,7 @@ def clean_stop_times(feed):
     This makes sorting by time work as expected.
     Return the resulting feed.
     """
-    feed = fcopy(feed)
+    feed = feed.copy()
     st = feed.stop_times
 
     def reformat(t):
@@ -41,7 +40,7 @@ def clean_route_ids(feed):
     Strip whitespace from route IDs and then replace every whitespace chunk with an underscore.
     Return the resulting feed.  
     """
-    feed = fcopy(feed)
+    feed = feed.copy()
     for f in [feed.routes, feed.trips, feed.fare_rules]:
         if f is None:
             continue
@@ -55,7 +54,7 @@ def clean_route_short_names(feed):
     Then disambiguate each route short name that is duplicated by appending '-' and its route ID.
     Return the resulting feed.
     """
-    feed = fcopy(feed)
+    feed = feed.copy()
     r = feed.routes
     if r is None:
         return feed
@@ -82,7 +81,7 @@ def prune_dead_routes(feed):
     Remove all routes from ``feed.routes`` that do not have trips listed in ``feed.trips``.
     Return the result feed.
     """
-    feed = fcopy(feed)
+    feed = feed.copy()
     live_routes = feed.trips['route_id'].unique()
     r = feed.routes 
     feed.routes = r[r['route_id'].isin(live_routes)]
@@ -102,7 +101,7 @@ def aggregate_routes(feed, by='route_short_name'):
         raise ValueError("Column {0} not in feed.routes".format(
           by))
 
-    feed = fcopy(feed)
+    feed = feed.copy()
 
     # Create new route IDs
     routes = feed.routes
@@ -133,7 +132,7 @@ def clean(feed):
     #. :func:`clean_route_short_names`
     #. :func:`prune_dead_routes`
     """
-    feed = fcopy(feed)
+    feed = feed.copy()
     ops = [
       'clean_stop_times',
       'clean_route_ids',
