@@ -39,6 +39,7 @@ Changelog
 6.0.0, 2016
 -----------------
 - Improved function names, e.g. ``compute_trips_stats`` -> ``compute_trip_stats``
+- Added functions to ``cleaner.py`` and change cleaning function outputs to feed instances
 
 
 5.1.1, 2016-09-01
