@@ -20,12 +20,15 @@ cairns = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
 
 class TestCleaner(unittest.TestCase):
 
-    def test_clean_route_ids(self):
+    def test_clean_ids(self):
         f1 = cairns.copy()
         f1.routes.ix[0, 'route_id'] = '  ho   ho ho '
-        f2 = clean_route_ids(f1)
+        f2 = clean_ids(f1)
         expect_rid = 'ho_ho_ho'
         self.assertEqual(f2.routes.ix[0, 'route_id'], expect_rid)
+
+        f3 = clean_ids(f2)
+        self.assertEqual(f3, f2)
 
     def test_clean_route_short_names(self):
         f1  = cairns.copy()

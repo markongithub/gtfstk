@@ -87,8 +87,8 @@ Pandas data frames and series, respectively.</p>
 <dd></dd></dl>
 
 <dl class="data">
-<dt id="gtfstk.constants.DISTANCE_UNITS">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DISTANCE_UNITS</code><em class="property"> = ['ft', 'mi', 'm', 'km']</em><a class="headerlink" href="#gtfstk.constants.DISTANCE_UNITS" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.constants.DIST_UNITS">
+<code class="descclassname">gtfstk.constants.</code><code class="descname">DIST_UNITS</code><em class="property"> = ['ft', 'mi', 'm', 'km']</em><a class="headerlink" href="#gtfstk.constants.DIST_UNITS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -97,8 +97,8 @@ Pandas data frames and series, respectively.</p>
 <dd></dd></dl>
 
 <dl class="data">
-<dt id="gtfstk.constants.FEED_INPUTS">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">FEED_INPUTS</code><em class="property"> = ['agency', 'stops', 'routes', 'trips', 'stop_times', 'calendar', 'calendar_dates', 'fare_attributes', 'fare_rules', 'shapes', 'frequencies', 'transfers', 'feed_info', 'dist_units_in', 'dist_units_out']</em><a class="headerlink" href="#gtfstk.constants.FEED_INPUTS" title="Permalink to this definition">¶</a></dt>
+<dt id="gtfstk.constants.FEED_ATTRS_PRIMARY">
+<code class="descclassname">gtfstk.constants.</code><code class="descname">FEED_ATTRS_PRIMARY</code><em class="property"> = ['agency', 'stops', 'routes', 'trips', 'stop_times', 'calendar', 'calendar_dates', 'fare_attributes', 'fare_rules', 'shapes', 'frequencies', 'transfers', 'feed_info', 'dist_units_in', 'dist_units_out']</em><a class="headerlink" href="#gtfstk.constants.FEED_ATTRS_PRIMARY" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -139,7 +139,7 @@ If <code class="docutils literal"><span class="pre">inverse</span> <span class="
 <blockquote>
 <div>distance in the units <code class="docutils literal"><span class="pre">dist_units_in</span></code> -&gt; 
 distance in the units <code class="docutils literal"><span class="pre">dist_units_out</span></code></div></blockquote>
-<p>Only supports distance units in <code class="docutils literal"><span class="pre">DISTANCE_UNITS</span></code>.</p>
+<p>Only supports distance units in <code class="docutils literal"><span class="pre">DIST_UNITS</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -249,8 +249,8 @@ Every function that acts on a Feed object assumes that every attribute of the fe
 <li><code class="docutils literal"><span class="pre">frequencies</span></code></li>
 <li><code class="docutils literal"><span class="pre">transfers</span></code></li>
 <li><code class="docutils literal"><span class="pre">feed_info</span></code></li>
-<li><code class="docutils literal"><span class="pre">dist_units_in</span></code>: a string in <code class="docutils literal"><span class="pre">constants.DISTANCE_UNITS</span></code>; specifies the native distance units of the feed; default is &#8216;km&#8217;</li>
-<li><code class="docutils literal"><span class="pre">dist_units_out</span></code>: a string in <code class="docutils literal"><span class="pre">constants.DISTANCE_UNITS</span></code>; specifies the output distance units for functions that operate on Feed objects; default is <code class="docutils literal"><span class="pre">dist_units_in</span></code></li>
+<li><code class="docutils literal"><span class="pre">dist_units_in</span></code>: a string in <code class="docutils literal"><span class="pre">constants.DIST_UNITS</span></code>; specifies the native distance units of the feed; default is &#8216;km&#8217;</li>
+<li><code class="docutils literal"><span class="pre">dist_units_out</span></code>: a string in <code class="docutils literal"><span class="pre">constants.DIST_UNITS</span></code>; specifies the output distance units for functions that operate on Feed objects; default is <code class="docutils literal"><span class="pre">dist_units_in</span></code></li>
 <li><code class="docutils literal"><span class="pre">convert_dist</span></code>: function that converts from <code class="docutils literal"><span class="pre">dist_units_in</span></code> to <code class="docutils literal"><span class="pre">dist_units_out</span></code></li>
 </ul>
 </dd></dl>

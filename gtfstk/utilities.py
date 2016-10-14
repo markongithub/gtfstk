@@ -158,10 +158,10 @@ def get_convert_dist(dist_units_in, dist_units_out):
       distance in the units ``dist_units_in`` -> 
       distance in the units ``dist_units_out``
     
-    Only supports distance units in ``DISTANCE_UNITS``.
+    Only supports distance units in ``DIST_UNITS``.
     """
     di, do = dist_units_in, dist_units_out
-    DU = cs.DISTANCE_UNITS
+    DU = cs.DIST_UNITS
     if not (di in DU and do in DU):
         raise ValueError(
           'Distance units must lie in {!s}'.format(DU))

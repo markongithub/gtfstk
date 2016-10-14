@@ -51,7 +51,7 @@ class TestFeed(unittest.TestCase):
         feed2 = feed1.copy()
 
         # Check distance units
-        self.assertEqual(feed2.dist_units_in, feed1.dist_units_out)
+        self.assertEqual(feed2.dist_units_in, feed1.dist_units_in)
         self.assertEqual(feed2.dist_units_out, feed1.dist_units_out)
 
         # Check other attributes

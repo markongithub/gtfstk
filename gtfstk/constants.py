@@ -43,7 +43,7 @@ DTYPE = {
 }
 
 # From the GTFS reference at https://developers.google.com/transit/gtfs/reference/
-VALID_COLUMNS = {
+VALID_COLUMNS_BY_TABLE = {
     'agency': [
         'agency_id',  
         'agency_name',    
@@ -165,6 +165,36 @@ VALID_COLUMNS = {
         ],
     }
 
+#:
+DIST_UNITS = ['ft', 'mi', 'm', 'km']
+
+#:
+FEED_ATTRS_PRIMARY = [
+  'agency', 
+  'stops', 
+  'routes', 
+  'trips', 
+  'stop_times', 
+  'calendar', 
+  'calendar_dates', 
+  'fare_attributes', 
+  'fare_rules', 
+  'shapes', 
+  'frequencies', 
+  'transfers', 
+  'feed_info',
+  'dist_units',
+  ]
+
+#:
+FEED_ATTRS_SECONDARY = [
+  'trips_i', 
+  'calendar_i', 
+  'calendar_dates_g',
+  ]
+  
+FEED_ATTRS = FEED_ATTRS_PRIMARY + FEED_ATTRS_SECONDARY
+
 # Columns that must be formatted as integers when outputting GTFS
 #:
 INT_COLUMNS = [
@@ -195,28 +225,6 @@ INT_COLUMNS = [
   'min_transfer_time',
 ]
 
-#:
-DISTANCE_UNITS = ['ft', 'mi', 'm', 'km']
-
-#:
-FEED_INPUTS = [
-  'agency', 
-  'stops', 
-  'routes', 
-  'trips', 
-  'stop_times', 
-  'calendar', 
-  'calendar_dates', 
-  'fare_attributes', 
-  'fare_rules', 
-  'shapes', 
-  'frequencies', 
-  'transfers', 
-  'feed_info',
-  'dist_units_in', 
-  'dist_units_out',
-  ]
-  
 #:
 CRS_WGS84 = {'no_defs': True, 'ellps': 'WGS84', 'datum': 
   'WGS84', 'proj': 'longlat'}

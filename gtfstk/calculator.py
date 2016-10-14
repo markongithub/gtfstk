@@ -1871,6 +1871,35 @@ def add_dist_to_stop_times(feed, trips_stats):
 # -------------------------------------
 # Functions about feeds
 # -------------------------------------
+def convert_dist(feed, new_dist_units):
+    """
+    Convert the distances recorded in the ``shape_dist_traveled`` columns of the given feed from the feeds native distance units (recorded in ``feed.dist_units``) to the given new distance units.
+    New distance units must lie in ``constants.DIST_UNITS``
+    """       
+    feed = feed.copy()
+
+    if feed.dist is None or feed.dist == new_dist_units:
+        # Nothing to do
+        return feed
+
+    if new_dist_units not in cs.DIST_UNITS:
+        raise ValueError('Given distance units must lie in {!s}'.format(
+          cs.DIST_UNITS))
+
+    converter = ut.get_convert_dist(feed.dist_units, new_dist_units)
+
+    if ut.is_not_null(feed.stop_times, 'shape_dist_traveled'):
+        feed.stop_times['shape_dist_traveled'] =\
+          feed.stop_times['shape_dist_traveled'].map(converter)
+
+    if ut.is_not_null(feed.shapes, 'shape_dist_traveled'):
+        feed.shapes['shape_dist_traveled'] =\
+          feed.shapes['shape_dist_traveled'].map(converter)
+
+    feed.dist_units = new_dist_units
+    
+    return feed
+
 def compute_feed_stats(feed, trips_stats, date):
     """
     Given ``trips_stats``, which is the output of 

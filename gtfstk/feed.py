@@ -16,93 +16,69 @@ from . import utilities as ut
 
 class Feed(object):
     """
-    A class that represents GTFS files as data frames.
+    A class that represents a GTFS feed, where GTFS files/tables are stored as as data frames.
 
     Warning: the stop times data frame can be big (several gigabytes), so make sure you have enough memory to handle it.
 
-    Attributes, almost all of which default to ``None``:
+    Feed attributes, almost all of which default to ``None``, are
 
     - ``agency``
     - ``stops``
     - ``routes``
     - ``trips``
-    - ``trips_i``: ``trips`` reindexed by its ``'trip_id'`` column; speeds up ``is_active_trip()``
+    - ``trips_i``: ``trips`` reindexed by its ``'trip_id'`` column; speeds up :func:`calculator.is_active_trip`
     - ``stop_times``
     - ``calendar``
-    - ``calendar_i``: ``calendar`` reindexed by its ``'service_id'`` column;  speeds up ``is_active_trip()``
+    - ``calendar_i``: ``calendar`` reindexed by its ``'service_id'`` column;  speeds up :func:`calculator.is_active_trip`
     - ``calendar_dates`` 
-    - ``calendar_dates_g``: ``calendar_dates`` grouped by ``['service_id', 'date']``; speeds up ``is_active_trip()``
+    - ``calendar_dates_g``: ``calendar_dates`` grouped by ``['service_id', 'date']``; speeds up :func:`calculator.is_active_trip`
     - ``fare_attributes``
     - ``fare_rules``
     - ``shapes``
     - ``frequencies``
     - ``transfers``
     - ``feed_info``
-    - ``dist_units_in``: a string in ``constants.DISTANCE_UNITS``; specifies the native distance units of the feed; default is 'km'
-    - ``dist_units_out``: a string in ``constants.DISTANCE_UNITS``; specifies the output distance units for functions that operate on Feed objects; default is ``dist_units_in``
-    - ``convert_dist``: function that converts from ``dist_units_in`` to ``dist_units_out``
+    - ``dist_units``: a string in ``constants.DIST_UNITS``; specifies the distance units of the feed; defaults to 'km' if no ``shape_dist_traveled`` columns are present in the input data frames
     """
     def __init__(self, agency=None, stops=None, routes=None, trips=None, 
       stop_times=None, calendar=None, calendar_dates=None, 
       fare_attributes=None, fare_rules=None, shapes=None, 
       frequencies=None, transfers=None, feed_info=None,
-      dist_units_in=None, dist_units_out=None):
+      dist_units=None):
         """
-        Assume that every non-None input is a Pandas data frame, except for ``dist_units_in`` and ``dist_units_out`` which should be strings.
+        Assume that every non-None input is a Pandas data frame, except for ``dist_units`` which should be a string in ``constants.DIST_UNITS``.
 
-        If the ``shapes`` or ``stop_times`` data frame has the optional  column ``shape_dist_traveled``, then the native distance units used in those data frames must be specified with ``dist_units_in``. 
-        Supported distance units are listed in ``constants.DISTANCE_UNITS``.
-        
-        If ``shape_dist_traveled`` column does not exist, then ``dist_units_in`` is not required and will be set to ``'km'``.
-        The parameter ``dist_units_out`` specifies the distance units for     the outputs of functions that act on feeds, e.g. ``compute_trip_stats()``.
-        If ``dist_units_out`` is not specified, then it will be set to       ``dist_units_in``.
+        If the ``shapes`` or ``stop_times`` data frame has the optional  column ``shape_dist_traveled``, then the native distance units used in those data frames must be specified with ``dist_units``.
+        Otherwise, ``dist_units`` will be set to ``'km'`` (kilometers). 
 
         No other format checking is performed.
         In particular, a Feed instance need not represent a valid GTFS feed.
         """
-        # Set attributes
+        # Set primary attributes
         for kwarg, value in locals().items():
-            if kwarg == 'self':
-                continue
-            setattr(self, kwarg, value)
+            if kwarg in cs.FEED_ATTRS_PRIMARY:
+                setattr(self, kwarg, value)
 
-        # Check for valid distance units.
-        # Require dist_units_in if feed has distances.
-        stop_times_has_dist = ut.is_not_null(self.stop_times, 
+        # Check for valid distance units
+        if self.dist_units is not None and\
+          self.dist_units not in cs.DIST_UNITS:
+            raise ValueError('Distance units must lie in {!s}'.format(
+              cs.DIST_UNITS))
+
+        st_has_dist = ut.is_not_null(self.stop_times, 
           'shape_dist_traveled')
-        shapes_has_dist = ut.is_not_null(self.shapes, 
+        sh_has_dist = ut.is_not_null(self.shapes, 
           'shape_dist_traveled')
 
-        if (stop_times_has_dist or shapes_has_dist) and\
-          self.dist_units_in is None:
+        if self.dist_units is None and (st_has_dist or sh_has_dist):
             raise ValueError(
-              'This feed has distances, so you must specify dist_units_in')    
+              'This feed has distances, so you must specify dist_units')    
         
-        DU = cs.DISTANCE_UNITS
-        for du in [self.dist_units_in, self.dist_units_out]:
-            if du is not None and du not in DU:
-                raise ValueError('Distance units must lie in {!s}'.format(DU))
+        # Set default distance units
+        if self.dist_units is None:
+            self.dist_units = 'km'
 
-        # Set defaults
-        if self.dist_units_in is None:
-            self.dist_units_in = 'km'
-        if self.dist_units_out is None:
-            self.dist_units_out = self.dist_units_in
-        
-        # Set distance conversion function
-        self.convert_dist = ut.get_convert_dist(self.dist_units_in,
-          self.dist_units_out)
-
-        # Convert distances to dist_units_out if necessary
-        if stop_times_has_dist:
-            self.stop_times['shape_dist_traveled'] =\
-              self.stop_times['shape_dist_traveled'].map(self.convert_dist)
-
-        if shapes_has_dist:
-            self.shapes['shape_dist_traveled'] =\
-              self.shapes['shape_dist_traveled'].map(self.convert_dist)
-
-        # Create some extra data frames for fast searching
+        # Create secondary attributes for fast searching
         if self.trips is not None and not self.trips.empty:
             self.trips_i = self.trips.set_index('trip_id')
         else:
@@ -122,11 +98,11 @@ class Feed(object):
     def __eq__(self, other):
         """
         Define equality between two feeds as follows.
-        Two feeds are equal if and only if their ``contsants.FEED_INPUTS``    attributes are equal, or almost equal in the case of data frames.
+        Two feeds are equal if and only if their ``constants.FEED_ATTRS``    attributes are equal, or almost equal in the case of data frames.
         Almost equality is checked via :func:`utilities.almost_equal`, which   canonically sorts data frame rows and columns.
         """
         # Return False if failures
-        for key in cs.FEED_INPUTS:
+        for key in cs.FEED_ATTRS:
             x = getattr(self, key)
             y = getattr(other, key)
             # Data frame case
@@ -141,26 +117,77 @@ class Feed(object):
         # No failures
         return True
 
+    # TODO: Finish this
+    def __setattr__(self, k, v):
+        if k not in cs.FEED_ATTRS_PRIMARY:
+            raise ValueError('Can only change attributes {!s}'.format(
+              cs.FEED_ATTRS_PRIMARY))
+            
+        setattr(self, k, v)
+
+        # Recompile secondary attributes if necessary
+        Create secondary attributes for fast searching
+        if self.trips is not None and not self.trips.empty:
+            self.trips_i = self.trips.set_index('trip_id')
+        else:
+            self.trips_i = None
+
+        if self.calendar is not None and not self.calendar.empty:
+            self.calendar_i = self.calendar.set_index('service_id')
+        else:
+            self.calendar_i = None 
+
+        if self.calendar_dates is not None and not self.calendar_dates.empty:
+            self.calendar_dates_g = self.calendar_dates.groupby(
+              ['service_id', 'date'])
+        else:
+            self.calendar_dates_g = None
+
     def copy(self):
         """
-        Return a copy of the given feed, using Pandas's copy method to properly copy feed attributes that are data frames.
+        Return a copy of this feed.
         """
-        # Copy feed attributes necessary to create new feed
-        new_feed_input = dict()
-
-        # New distance units in/out should be old distance units out
-        new_feed_input['dist_units_in'] = self.dist_units_out
-        new_feed_input['dist_units_out'] = self.dist_units_out
-
-        # Set remaining attributes
-        input_keys = set(cs.FEED_INPUTS) - set(['dist_units_in', 'dist_units_out'])
-        for key in input_keys:
+        other = Feed()
+        for key in cs.FEED_ATTRS:
             value = getattr(self, key)
             if isinstance(value, pd.DataFrame):
                 # Pandas copy data frame
                 value = value.copy()
-            new_feed_input[key] = value
+            setattr(other, key, value)
         
+        return other
+
+    # def copy(self):
+    #     """
+    #     Return a copy of this feed.
+    #     """
+    #     # Copy feed attributes necessary to create new feed
+    #     new_feed_input = dict()
+
+    #     # New distance units in/out should be old distance units out
+    #     new_feed_input['dist_units_in'] = self.dist_units_out
+    #     new_feed_input['dist_units_out'] = self.dist_units_out
+
+    #     # Set remaining attributes
+    #     input_keys = set(cs.FEED_ATTRS_PRIMARY) - set(['dist_units_in', 'dist_units_out'])
+    #     for key in input_keys:
+    #         value = getattr(self, key)
+    #         if isinstance(value, pd.DataFrame):
+    #             # Pandas copy data frame
+    #             value = value.copy()
+    #         new_feed_input[key] = value
+        
+    #     return Feed(**new_feed_input)
+
+    def recompile(self):
+        """
+        Return a new feed created from the primary attributes of this feed (those listed in ``constants.FEED_ATTRS_PRIMARY``).
+        In particular, this method creates anew secondary feed attributes (those listed in ``constants.FEED_ATTRS_SECONDARY``) from the primary ones, thereby resyncing the secondary attributes to the primary ones.
+        Primary and secondary attributes can get out of sync if a user changes one and not the other correspondingly. 
+        """
+        new_feed_input = dict()
+        for key, value in cs.FEED_ATTRS_PRIMARY.items():
+            new_feed_input[key] = value
         return Feed(**new_feed_input)
 
 # -------------------------------------
