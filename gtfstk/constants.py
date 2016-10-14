@@ -188,9 +188,9 @@ FEED_ATTRS_PRIMARY = [
 
 #:
 FEED_ATTRS_SECONDARY = [
-  'trips_i', 
-  'calendar_i', 
-  'calendar_dates_g',
+  '_trips_i', 
+  '_calendar_i', 
+  '_calendar_dates_g',
   ]
   
 FEED_ATTRS = FEED_ATTRS_PRIMARY + FEED_ATTRS_SECONDARY

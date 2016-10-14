@@ -112,16 +112,16 @@ def is_active_trip(feed, trip, date):
 
     Assume the following feed attributes are not ``None``:
 
-    - ``feed.trips_i``
+    - ``feed.trips``
 
     NOTES: 
 
     This function is key for getting all trips, routes, 
     etc. that are active on a given date, so the function needs to be fast. 
     """
-    service = feed.trips_i.at[trip, 'service_id']
-    # Check feed.calendar_dates_g.
-    caldg = feed.calendar_dates_g
+    service = feed._trips_i.at[trip, 'service_id']
+    # Check feed._calendar_dates_g.
+    caldg = feed._calendar_dates_g
     if caldg is not None:
         if (service, date) in caldg.groups:
             et = caldg.get_group((service, date))['exception_type'].iat[0]
@@ -130,8 +130,8 @@ def is_active_trip(feed, trip, date):
             else:
                 # Exception type is 2
                 return False
-    # Check feed.calendar_i
-    cali = feed.calendar_i
+    # Check feed._calendar_i
+    cali = feed._calendar_i
     if cali is not None:
         if service in cali.index:
             weekday_str = ut.weekday_to_str(
@@ -1897,7 +1897,7 @@ def convert_dist(feed, new_dist_units):
           feed.shapes['shape_dist_traveled'].map(converter)
 
     feed.dist_units = new_dist_units
-    
+
     return feed
 
 def compute_feed_stats(feed, trips_stats, date):

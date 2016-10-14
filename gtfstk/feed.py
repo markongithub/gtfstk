@@ -54,51 +54,71 @@ class Feed(object):
         No other format checking is performed.
         In particular, a Feed instance need not represent a valid GTFS feed.
         """
-        # Set primary attributes
-        for kwarg, value in locals().items():
-            if kwarg in cs.FEED_ATTRS_PRIMARY:
-                setattr(self, kwarg, value)
-
-        # Check for valid distance units
-        if self.dist_units is not None and\
-          self.dist_units not in cs.DIST_UNITS:
+        # Validate some
+        if dist_units not in [None] + cs.DIST_UNITS:
             raise ValueError('Distance units must lie in {!s}'.format(
               cs.DIST_UNITS))
 
-        st_has_dist = ut.is_not_null(self.stop_times, 
-          'shape_dist_traveled')
-        sh_has_dist = ut.is_not_null(self.shapes, 
-          'shape_dist_traveled')
+        if dist_units is None:
+            if ut.is_not_null(stop_times, 'shape_dist_traveled') or\
+              ut.is_not_null(shapes, 'shape_dist_traveled'):
+                raise ValueError('This feed has a shape_dist_traveled field, '\
+                  'so you must specify dist_units')
+            else:    
+                # Set default distance units now
+                dist_units = 'km'
 
-        if self.dist_units is None and (st_has_dist or sh_has_dist):
-            raise ValueError(
-              'This feed has distances, so you must specify dist_units')    
-        
-        # Set default distance units
-        if self.dist_units is None:
-            self.dist_units = 'km'
+        # Set primary attributes; the @property magic below will then
+        # automatically set secondary attributes
+        print(locals()['dist_units'])
+        for prop, val in locals().items():
+            if prop in cs.FEED_ATTRS_PRIMARY:
+                setattr(self, prop, val)        
 
-        # Create secondary attributes for fast searching
-        if self.trips is not None and not self.trips.empty:
-            self.trips_i = self.trips.set_index('trip_id')
+    # If ``self.trips`` changes then update ``self._trips_i``
+    @property
+    def trips(self):
+        return self._trips
+
+    @trips.setter
+    def trips(self, val):
+        self._trips = val 
+        if val is not None and not val.empty:
+            self._trips_i = self._trips.set_index('trip_id')
         else:
-            self.trips_i = None
+            self._trips_i = None
 
-        if self.calendar is not None and not self.calendar.empty:
-            self.calendar_i = self.calendar.set_index('service_id')
+    # If ``self.calendar`` changes, then update ``self._calendar_i``
+    @property
+    def calendar(self):
+        return self._calendar
+
+    @calendar.setter
+    def calendar(self, val):
+        self._calendar = val 
+        if val is not None and not val.empty:
+            self._calendar_i = self._calendar.set_index('service_id')
         else:
-            self.calendar_i = None 
+            self._calendar_i = None 
 
-        if self.calendar_dates is not None and not self.calendar_dates.empty:
-            self.calendar_dates_g = self.calendar_dates.groupby(
+    # If ``self.calendar_dates`` changes, 
+    # then update ``self._calendar_dates_g``
+    @property 
+    def calendar_dates(self):
+        return self._calendar_dates 
+
+    @calendar_dates.setter
+    def calendar_dates(self, val):
+        self._calendar_dates = val
+        if val is not None and not val.empty:
+            self._calendar_dates_g = self._calendar_dates.groupby(
               ['service_id', 'date'])
         else:
-            self.calendar_dates_g = None
+            self._calendar_dates_g = None
 
     def __eq__(self, other):
         """
-        Define equality between two feeds as follows.
-        Two feeds are equal if and only if their ``constants.FEED_ATTRS``    attributes are equal, or almost equal in the case of data frames.
+        Define two feeds be equal if and only if their ``constants.FEED_ATTRS`` attributes are equal, or almost equal in the case of data frames.
         Almost equality is checked via :func:`utilities.almost_equal`, which   canonically sorts data frame rows and columns.
         """
         # Return False if failures
@@ -117,32 +137,6 @@ class Feed(object):
         # No failures
         return True
 
-    # TODO: Finish this
-    def __setattr__(self, k, v):
-        if k not in cs.FEED_ATTRS_PRIMARY:
-            raise ValueError('Can only change attributes {!s}'.format(
-              cs.FEED_ATTRS_PRIMARY))
-            
-        setattr(self, k, v)
-
-        # Recompile secondary attributes if necessary
-        Create secondary attributes for fast searching
-        if self.trips is not None and not self.trips.empty:
-            self.trips_i = self.trips.set_index('trip_id')
-        else:
-            self.trips_i = None
-
-        if self.calendar is not None and not self.calendar.empty:
-            self.calendar_i = self.calendar.set_index('service_id')
-        else:
-            self.calendar_i = None 
-
-        if self.calendar_dates is not None and not self.calendar_dates.empty:
-            self.calendar_dates_g = self.calendar_dates.groupby(
-              ['service_id', 'date'])
-        else:
-            self.calendar_dates_g = None
-
     def copy(self):
         """
         Return a copy of this feed.
@@ -157,43 +151,10 @@ class Feed(object):
         
         return other
 
-    # def copy(self):
-    #     """
-    #     Return a copy of this feed.
-    #     """
-    #     # Copy feed attributes necessary to create new feed
-    #     new_feed_input = dict()
-
-    #     # New distance units in/out should be old distance units out
-    #     new_feed_input['dist_units_in'] = self.dist_units_out
-    #     new_feed_input['dist_units_out'] = self.dist_units_out
-
-    #     # Set remaining attributes
-    #     input_keys = set(cs.FEED_ATTRS_PRIMARY) - set(['dist_units_in', 'dist_units_out'])
-    #     for key in input_keys:
-    #         value = getattr(self, key)
-    #         if isinstance(value, pd.DataFrame):
-    #             # Pandas copy data frame
-    #             value = value.copy()
-    #         new_feed_input[key] = value
-        
-    #     return Feed(**new_feed_input)
-
-    def recompile(self):
-        """
-        Return a new feed created from the primary attributes of this feed (those listed in ``constants.FEED_ATTRS_PRIMARY``).
-        In particular, this method creates anew secondary feed attributes (those listed in ``constants.FEED_ATTRS_SECONDARY``) from the primary ones, thereby resyncing the secondary attributes to the primary ones.
-        Primary and secondary attributes can get out of sync if a user changes one and not the other correspondingly. 
-        """
-        new_feed_input = dict()
-        for key, value in cs.FEED_ATTRS_PRIMARY.items():
-            new_feed_input[key] = value
-        return Feed(**new_feed_input)
-
 # -------------------------------------
 # Functions about input and output
 # -------------------------------------
-def read_gtfs(path, dist_units_in=None, dist_units_out=None):
+def read_gtfs(path, dist_units=None):
     """
     Create a Feed object from the given path and given distance units.
     The path points to a directory containing GTFS text files or a zip file that unzips as a collection of GTFS text files (but not as a directory containing GTFS text files).
@@ -226,8 +187,7 @@ def read_gtfs(path, dist_units_in=None, dist_units_out=None):
         else:
             feed_dict[f] = None
         
-    feed_dict['dist_units_in'] = dist_units_in
-    feed_dict['dist_units_out'] = dist_units_out
+    feed_dict['dist_units'] = dist_units
 
     # Remove extracted zip directory
     if zipped:
