@@ -1,5 +1,5 @@
 """
-This module contains functions for calculating things about Feed objects, such as daily service duration per route. 
+This module contains functions for calculating properties of Feed objects, such as daily service duration per route. 
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -23,7 +23,7 @@ from .feed import Feed
 def get_dates(feed, as_date_obj=False):
     """
     Return a chronologically ordered list of dates for which this feed is valid.
-    If ``as_date_obj == True``, then return the dates as ``datetime.date`` objects.  
+    If ``as_date_obj``, then return the dates as ``datetime.date`` objects.  
 
     If ``feed.calendar`` and ``feed.calendar_dates`` are both ``None``, then return the empty list.
     """
@@ -53,7 +53,7 @@ def get_first_week(feed, as_date_obj=False):
     """
     Return a list of date corresponding to the first Monday--Sunday week for which this feed is valid.
     If the given feed does not cover a full Monday--Sunday week, then return whatever initial segment of the week it does cover, which could be the empty list.
-    If ``as_date_obj == True``, then return the dates as as ``datetime.date`` objects.    
+    If ``as_date_obj``, then return the dates as as ``datetime.date`` objects.    
     """
     dates = get_dates(feed, as_date_obj=True)
     if not dates:
@@ -383,7 +383,7 @@ def compute_trip_locations(feed, date, times):
         raise ValueError(
           "feed.stop_times needs to have a non-null shape_dist_traveled "\
           "column. You can create it, possibly with some inaccuracies, "\
-          "via feed.stop_times = feed.add_dist_to_stop_times().")
+          "via feed2 = feed.append_dist_to_stop_times().")
     
     # Start with stop times active on date
     f = get_stop_times(feed, date)
@@ -463,7 +463,7 @@ def trip_to_geojson(feed, trip_id, include_stops=False):
 
     features = [{
         'type': 'Feature',
-        'properties': json.loads(t.to_json(orient='records')),
+        'properties': json.loads(t.to_json(orient='records'))[0],
         'geometry': mapping(LineString(geometry_by_shape[shid])),
         }]
 
@@ -477,7 +477,7 @@ def trip_to_geojson(feed, trip_id, include_stops=False):
         features.extend([{
             'type': 'Feature',
             'properties': json.loads(s[s['stop_id'] == stop_id].to_json(
-              orient='records')),
+              orient='records'))[0],
             'geometry': mapping(geometry_by_stop[stop_id]),
             } for stop_id in stop_ids])
 
@@ -909,7 +909,7 @@ def route_to_geojson(feed, route_id, include_stops=False):
     features = [{
         'type': 'Feature',
         'properties': json.loads(r[r['route_id'] == route_id].to_json(
-          orient='records')),
+          orient='records'))[0],
         'geometry': mapping(MultiLineString(
           [linestring for linestring in geometry_by_shape.values()]))
         }]
@@ -924,7 +924,7 @@ def route_to_geojson(feed, route_id, include_stops=False):
         features.extend([{
             'type': 'Feature',
             'properties': json.loads(s[s['stop_id'] == stop_id].to_json(
-              orient='records')),
+              orient='records'))[0],
             'geometry': mapping(geometry_by_stop[stop_id]),
             } for stop_id in stop_ids])
 
@@ -963,14 +963,10 @@ def get_stops(feed, date=None, trip_id=None, route_id=None):
 
 def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
     """
-    Return a dictionary with structure
-    stop_id -> Shapely point object.
-    If ``use_utm == True``, then return each point in
-    in UTM coordinates.
-    Otherwise, return each point in WGS84 longitude-latitude
-    coordinates.
-    If a list of stop IDs ``stop_ids`` is given, then only include
-    the given stop IDs.
+    Return a dictionary with structure stop_id -> Shapely point object.
+    If ``use_utm``, then return each point in in UTM coordinates.
+    Otherwise, return each point in WGS84 longitude-latitude coordinates.
+    If a list of stop IDs ``stop_ids`` is given, then only include the given stop IDs.
 
     Assume the following feed attributes are not ``None``:
 
@@ -994,12 +990,9 @@ def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
 
 def geometrize_stops(stops, use_utm=False):
     """
-    Given a stops data frame, 
-    convert it to a GeoPandas GeoDataFrame and return the result.
-    The result has a 'geometry' column of WGS84 points 
-    instead of 'stop_lon' and 'stop_lat' columns.
-    If ``use_utm == True``, then use UTM coordinates for the geometries.
-
+    Given a stops data frame, convert it to a GeoPandas GeoDataFrame and return the result.
+    The result has a 'geometry' column of WGS84 points instead of 'stop_lon' and 'stop_lat' columns.
+    If ``use_utm``, then use UTM coordinates for the geometries.
     Requires GeoPandas.
     """
     import geopandas as gpd 
@@ -1022,8 +1015,7 @@ def geometrize_stops(stops, use_utm=False):
 def ungeometrize_stops(geo_stops):
     """
     The inverse of :func:`geometrize_stops`.    
-    If ``geo_stops`` is in UTM (has a UTM CRS property),
-    then convert UTM coordinates back to WGS84 coordinates,
+    If ``geo_stops`` is in UTM (has a UTM CRS property), then convert UTM coordinates back to WGS84 coordinates,
     """
     f = geo_stops.copy().to_crs(cs.CRS_WGS84)
     f['stop_lon'] = f['geometry'].map(
@@ -1035,8 +1027,7 @@ def ungeometrize_stops(geo_stops):
 
 def get_stops_intersecting_polygon(feed, polygon, geo_stops=None):
     """
-    Return the slice of ``feed.stops`` that contains all stops
-    that intersect the given Shapely Polygon object.
+    Return the slice of ``feed.stops`` that contains all stops that intersect the given Shapely Polygon object.
     Assume the polygon specified in WGS84 longitude-latitude coordinates.
     
     To do this, first geometrize ``feed.stops`` via :func:`geometrize_stops`.
@@ -1063,16 +1054,12 @@ def compute_stop_activity(feed, dates):
     Return a  data frame with the columns
 
     - stop_id
-    - ``dates[0]``: 1 if the stop has at least one trip visiting it 
-      on ``dates[0]``; 0 otherwise 
-    - ``dates[1]``: 1 if the stop has at least one trip visiting it 
-      on ``dates[1]``; 0 otherwise 
+    - ``dates[0]``: 1 if the stop has at least one trip visiting it on ``dates[0]``; 0 otherwise 
+    - ``dates[1]``: 1 if the stop has at least one trip visiting it on ``dates[1]``; 0 otherwise 
     - etc.
-    - ``dates[-1]``: 1 if the stop has at least one trip visiting it 
-      on ``dates[-1]``; 0 otherwise 
+    - ``dates[-1]``: 1 if the stop has at least one trip visiting it on ``dates[-1]``; 0 otherwise 
 
-    If ``dates`` is ``None`` or the empty list, 
-    then return an empty data frame with the column 'stop_id'.
+    If ``dates`` is ``None`` or the empty list, then return an empty data frame with the column 'stop_id'.
 
     Assume the following feed attributes are not ``None``:
 
@@ -1099,31 +1086,23 @@ def compute_stop_activity(feed, dates):
 def compute_stop_stats_base(stop_times, trips_subset, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Given a stop times data frame and a subset of a trips data frame,
-    return a data frame that provides summary stats about
-    the stops in the (inner) join of the two data frames.
+    Given a stop times data frame and a subset of a trips data frame, return a data frame that provides summary stats about the stops in the (inner) join of the two data frames.
 
     The columns of the output data frame are:
 
     - stop_id
-    - direction_id: present iff ``split_directions == True``
+    - direction_id: present if and only if ``split_directions``
     - num_routes: number of routes visiting stop (in the given direction)
     - num_trips: number of trips visiting stop (in the givin direction)
-    - max_headway: maximum of the durations (in minutes) between 
-      trip departures at the stop between ``headway_start_time`` and 
-      ``headway_end_time`` on the given date
+    - max_headway: maximum of the durations (in minutes) between trip departures at the stop between ``headway_start_time`` and      ``headway_end_time`` on the given date
     - min_headway: minimum of the durations (in minutes) mentioned above
     - mean_headway: mean of the durations (in minutes) mentioned above
-    - start_time: earliest departure time of a trip from this stop
-      on the given date
-    - end_time: latest departure time of a trip from this stop
-      on the given date
+    - start_time: earliest departure time of a trip from this stop on the given date
+    - end_time: latest departure time of a trip from this stop on the given date
 
-    If ``split_directions == False``, then compute each stop's stats
-    using trips visiting it from both directions.
+    If ``split_directions == False``, then compute each stop's stats using trips visiting it from both directions.
 
-    If ``trips_subset`` is empty, then return an empty data frame
-    with the columns specified above.
+    If ``trips_subset`` is empty, then return an empty data frame with the columns specified above.
     """
     cols = [
       'stop_id',
@@ -1132,7 +1111,7 @@ def compute_stop_stats_base(stop_times, trips_subset, split_directions=False,
       'max_headway',
       'min_headway',
       'mean_headway',
-       'start_time',
+      'start_time',
       'end_time',
       ]
 
@@ -1190,9 +1169,7 @@ def compute_stop_stats_base(stop_times, trips_subset, split_directions=False,
 def compute_stop_stats(feed, date, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Call ``compute_stop_stats_base()`` with the subset of trips active on 
-    the given date and with the keyword arguments ``split_directions``,
-    ``headway_start_time``, and ``headway_end_time``.
+    Call ``compute_stop_stats_base()`` with the subset of trips active on the given date and with the keyword arguments ``split_directions``,   ``headway_start_time``, and ``headway_end_time``.
 
     See ``compute_stop_stats_base()`` for a description of the output.
 
@@ -1215,15 +1192,11 @@ def compute_stop_stats(feed, date, split_directions=False,
 def compute_stop_time_series_base(stop_times, trips_subset, 
   split_directions=False, freq='5Min', date_label='20010101'):
     """
-    Given a stop times data frame and a subset of a trips data frame,
-    return a data frame that provides summary stats about
-    the stops in the (inner) join of the two data frames.
+    Given a stop times data frame and a subset of a trips data frame, return a data frame that provides summary stats about the stops in the (inner) join of the two data frames.
 
-    The time series is a data frame with a timestamp index 
-    for a 24-hour period sampled at the given frequency.
+    The time series is a data frame with a timestamp index for a 24-hour period sampled at the given frequency.
     The maximum allowable frequency is 1 minute.
-    The timestamp includes the date given by ``date_label``,
-    a date string of the form '%Y%m%d'.
+    The timestamp includes the date given by ``date_label``, a date string of the form '%Y%m%d'.
     
     The columns of the data frame are hierarchical (multi-index) with
 
@@ -1233,15 +1206,12 @@ def compute_stop_time_series_base(stop_times, trips_subset,
 
     If ``split_directions == False``, then don't include the bottom level.
     
-    If ``trips_subset`` is empty, then return an empty data frame
-    with the indicator columns.
+    If ``trips_subset`` is empty, then return an empty data frame with the indicator columns.
 
     NOTES:
 
     - 'num_trips' should be resampled with ``how=np.sum``
-    - To remove the date and seconds from 
-      the time series f, do ``f.index = [t.time().strftime('%H:%M') 
-      for t in f.index.to_datetime()]``
+    - To remove the date and seconds from the time series f, do ``f.index = [t.time().strftime('%H:%M') for t in f.index.to_datetime()]``
     """  
     cols = ['num_trips']
     if trips_subset.empty:
@@ -1291,9 +1261,7 @@ def compute_stop_time_series_base(stop_times, trips_subset,
 def compute_stop_time_series(feed, date, split_directions=False,
   freq='5Min'):
     """
-    Call ``compute_stops_times_series_base()`` with the subset of trips 
-    active on the given date and with the keyword arguments
-    ``split_directions``and ``freq`` and with ``date_label`` equal to ``date``.
+    Call ``compute_stops_times_series_base()`` with the subset of trips  active on the given date and with the keyword arguments ``split_directions``and ``freq`` and with ``date_label`` equal to ``date``.
     See ``compute_stop_time_series_base()`` for a description of the output.
 
     Assume the following feed attributes are not ``None``:
@@ -1303,8 +1271,7 @@ def compute_stop_time_series(feed, date, split_directions=False,
         
     NOTES:
 
-    This is a more user-friendly version of 
-    ``compute_stop_time_series_base()``.
+    This is a more user-friendly version of ``compute_stop_time_series_base()``.
     The latter function works without a feed, though.
     """  
     return compute_stop_time_series_base(feed.stop_times, 
@@ -1313,10 +1280,8 @@ def compute_stop_time_series(feed, date, split_directions=False,
 
 def get_stop_timetable(feed, stop_id, date):
     """
-    Return a  data frame encoding the timetable
-    for the given stop ID on the given date.
-    The columns are all those in ``feed.trips`` plus those in
-    ``feed.stop_times``.
+    Return a  data frame encoding the timetable for the given stop ID on the given date.
+    The columns are all those in ``feed.trips`` plus those in ``feed.stop_times``.
     The result is sorted by departure time.
 
     Assume the following feed attributes are not ``None``:
@@ -1332,11 +1297,8 @@ def get_stop_timetable(feed, stop_id, date):
 
 def get_stops_in_stations(feed):
     """
-    If this feed has station data, that is, ``location_type`` and
-    ``parent_station`` columns in ``feed.stops``, then return a 
-    data frame that has the same columns as ``feed.stops``
-    but only includes stops with parent stations, that is, stops with
-    location type 0 or blank and non-blank parent station.
+    If this feed has station data, that is, ``location_type`` and    ``parent_station`` columns in ``feed.stops``, then return a data frame that has the same columns as ``feed.stops``
+    but only includes stops with parent stations, that is, stops with    location type 0 or blank and non-blank parent station.
     Otherwise, return an empty data frame with the specified columns.
 
     Assume the following feed attributes are not ``None``:
@@ -1350,10 +1312,7 @@ def get_stops_in_stations(feed):
 def compute_station_stats(feed, date, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    If this feed has station data, that is, ``location_type`` and
-    ``parent_station`` columns in ``feed.stops``, then compute
-    the same stats that ``feed.compute_stop_stats()`` does, but for
-    stations.
+    If this feed has station data, that is, ``location_type`` and    ``parent_station`` columns in ``feed.stops``, then compute the same stats that ``feed.compute_stop_stats()`` does, but for stations.
     Otherwise, return an empty data frame with the specified columns.
 
     Assume the following feed attributes are not ``None``:
@@ -1415,15 +1374,11 @@ def compute_station_stats(feed, date, split_directions=False,
 # -------------------------------------
 def build_geometry_by_shape(feed, use_utm=False, shape_ids=None):
     """
-    Return a dictionary with structure
-    shape_id -> Shapely linestring of shape.
+    Return a dictionary with structure shape_id -> Shapely linestring of shape.
     If ``feed.shapes is None``, then return ``None``.
-    If ``use_utm == True``, then return each linestring in
-    in UTM coordinates.
-    Otherwise, return each linestring in WGS84 longitude-latitude
-    coordinates.
-    If a list of shape IDs ``shape_ids`` is given, then only include
-    the given shape IDs.
+    If ``use_utm``, then return each linestring in in UTM coordinates.
+    Otherwise, return each linestring in WGS84 longitude-latitude    coordinates.
+    If a list of shape IDs ``shape_ids`` is given, then only include the given shape IDs.
 
     Assume the following feed attributes are not ``None``:
 
@@ -1459,12 +1414,10 @@ def build_geometry_by_shape(feed, use_utm=False, shape_ids=None):
 
 def shapes_to_geojson(feed):
     """
-    Return a (decoded) GeoJSON feature collection of 
-    linestring features representing ``feed.shapes``.
+    Return a (decoded) GeoJSON feature collection of linestring features representing ``feed.shapes``.
     Each feature will have a ``shape_id`` property. 
     If ``feed.shapes`` is ``None``, then return ``None``.
-    The coordinates reference system is the default one for GeoJSON,
-    namely WGS84.
+    The coordinates reference system is the default one for GeoJSON, namely WGS84.
 
     Assume the following feed attributes are not ``None``:
 
@@ -1488,12 +1441,9 @@ def shapes_to_geojson(feed):
 
 def geometrize_shapes(shapes, use_utm=False):
     """
-    Given a shapes data frame, convert it to a GeoPandas 
-    GeoDataFrame and return the result.
-    The result has a 'geometry' column of WGS84 line strings
-    instead of 'shape_pt_sequence', 'shape_pt_lon', 'shape_pt_lat',  
-    and 'shape_dist_traveled' columns.
-    If ``use_utm == True``, then use UTM coordinates for the geometries.
+    Given a shapes data frame, convert it to a GeoPandas GeoDataFrame and return the result.
+    The result has a 'geometry' column of WGS84 line strings instead of 'shape_pt_sequence', 'shape_pt_lon', 'shape_pt_lat', and 'shape_dist_traveled' columns.
+    If ``use_utm``, then use UTM coordinates for the geometries.
 
     Requires GeoPandas.
     """
@@ -1528,8 +1478,7 @@ def ungeometrize_shapes(geo_shapes):
     - shape_pt_lon
     - shape_pt_lat
 
-    If ``geo_shapes`` is in UTM (has a UTM CRS property),
-    then convert UTM coordinates back to WGS84 coordinates,
+    If ``geo_shapes`` is in UTM (has a UTM CRS property), then convert UTM coordinates back to WGS84 coordinates,
     """
     geo_shapes = geo_shapes.to_crs(cs.CRS_WGS84)
 
@@ -1545,9 +1494,7 @@ def ungeometrize_shapes(geo_shapes):
 def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None,
   geometrized=False):
     """
-    Return the slice of ``feed.shapes`` that contains all shapes
-    that intersect the given Shapely geometry object 
-    (e.g. a Polygon or LineString).
+    Return the slice of ``feed.shapes`` that contains all shapes that intersect the given Shapely geometry object (e.g. a Polygon or LineString).
     Assume the geometry is specified in WGS84 longitude-latitude coordinates.
     
     To do this, first geometrize ``feed.shapes`` via :func:`geometrize_shapes`.
@@ -1575,9 +1522,10 @@ def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None,
     else:
         return ungeometrize_shapes(f)
 
-def add_dist_to_shapes(feed):
+def append_dist_to_shapes(feed):
     """
-    Copy ``feed.shapes``, calculate the optional ``shape_dist_traveled`` GTFS field, and return the resulting shapes data frame.
+    Calculate and append the optional ``shape_dist_traveled`` field in ``feed.shapes`` in terms of the distance units ``feed.dist_units``.
+    Return the resulting feed.
 
     Assume the following feed attributes are not ``None``:
 
@@ -1590,6 +1538,7 @@ def add_dist_to_shapes(feed):
         raise ValueError(
           "This function requires the feed to have a shapes.txt file")
 
+    feed = feed.copy()
     f = feed.shapes
     m_to_dist = ut.get_convert_dist('m', feed.dist_units)
 
@@ -1616,17 +1565,14 @@ def add_dist_to_shapes(feed):
     # Convert from meters
     g['shape_dist_traveled'] = g['shape_dist_traveled'].map(m_to_dist)
 
-    return g
+    feed.shapes = g
+    return feed
 
-def add_route_type_to_shapes(feed):
+def append_route_type_to_shapes(feed):
     """
-    Append a ``route_type`` column to a copy of ``feed.shapes`` and return
-    the resulting shapes data frame.
-
-    Note that a single shape can be linked to multiple trips on 
-    multiple routes of multiple route types.
-    In that case the route type of the shape is the route type of the last
-    route (sorted by ID) with a trip with that shape.
+    Append a ``route_type`` column to a copy of ``feed.shapes`` and return    the resulting shapes data frame.
+    Note that a single shape can be linked to multiple trips on multiple routes of multiple route types.
+    In that case the route type of the shape is the route type of the last    route (sorted by ID) with a trip with that shape.
 
     Assume the following feed attributes are not ``None``:
 
@@ -1648,8 +1594,7 @@ def add_route_type_to_shapes(feed):
 # -------------------------------------
 def get_stop_times(feed, date=None):
     """
-    Return the section of ``feed.stop_times`` that contains
-    only trips active on the given date.
+    Return the section of ``feed.stop_times`` that contains only trips active on the given date.
     If no date is given, then return all stop times.
 
     Assume the following feed attributes are not ``None``:
@@ -1667,10 +1612,8 @@ def get_stop_times(feed, date=None):
 
 def get_start_and_end_times(feed, date=None):
     """
-    Return the first departure time and last arrival time (time strings)
-    listed in ``feed.stop_times``, respectively.
+    Return the first departure time and last arrival time (time strings) listed in ``feed.stop_times``, respectively.
     Restrict to the given date if specified.
-    Return 
     """
     st = get_stop_times(feed, date)
     # if st.empty:
@@ -1680,11 +1623,11 @@ def get_start_and_end_times(feed, date=None):
        st['arrival_time'].dropna().max()
     return a, b 
 
-def add_dist_to_stop_times(feed, trips_stats):
+def append_dist_to_stop_times(feed, trips_stats):
     """
-    Copy ``feed.stop_times``, compute its optional 
-    ``shape_dist_traveled`` GTFS field, and return the resulting
-    data frame.
+    Calculate and append the optional ``shape_dist_traveled`` field in ``feed.stop_times`` in terms of the distance units ``feed.dist_units``.
+    Need trip stats in the form output by :func:`compute_trip_stats` for this.
+    Return the resulting feed.
     Does not always give accurate results, as described below.
 
     Assume the following feed attributes are not ``None``:
@@ -1694,27 +1637,15 @@ def add_dist_to_stop_times(feed, trips_stats):
     - Those used in :func:`build_geometry_by_stop`
 
     ALGORITHM:
-
-    Compute the ``shape_dist_traveled`` field by using Shapely to measure 
-    the distance of a stop along its trip linestring.
-    If for a given trip this process produces a non-monotonically 
-    increasing, hence incorrect, list of (cumulative) distances, then
-    fall back to estimating the distances as follows.
-    
-    Get the average speed of the trip via ``trips_stats`` and
-    use is to linearly interpolate distances for stop times, 
-    assuming that the first stop is at shape_dist_traveled = 0
-    (the start of the shape) and the last stop is 
-    at shape_dist_traveled = the length of the trip 
-    (taken from trips_stats and equal to the length of the shape,
-    unless trips_stats was called with ``get_dist_from_shapes == False``).
-    This fallback method usually kicks in on trips with feed-intersecting
-    linestrings.
-    Unfortunately, this fallback method will produce incorrect results
-    when the first stop does not start at the start of its shape
-    (so shape_dist_traveled != 0).
-    This is the case for several trips in the Portland feed at https://transitfeeds.com/p/trimet/43/1400947517, for example. 
+        Compute the ``shape_dist_traveled`` field by using Shapely to measure the distance of a stop along its trip linestring.
+        If for a given trip this process produces a non-monotonically    increasing, hence incorrect, list of (cumulative) distances, then   fall back to estimating the distances as follows.
+        
+        Get the average speed of the trip via ``trips_stats`` and use is to linearly interpolate distances for stop times, assuming that the first stop is at shape_dist_traveled = 0 (the start of the shape) and the last stop is at shape_dist_traveled = the length of the trip (taken from trips_stats and equal to the length of the shape, unless trips_stats was called with ``get_dist_from_shapes == False``).
+        This fallback method usually kicks in on trips with feed-intersecting    linestrings.
+        Unfortunately, this fallback method will produce incorrect results when the first stop does not start at the start of its shape (so shape_dist_traveled != 0).
+        This is the case for several trips in the Portland feed at https://transitfeeds.com/p/trimet/43/1400947517, for example. 
     """
+    feed = feed.copy()
     geometry_by_shape = build_geometry_by_shape(feed, use_utm=True)
     geometry_by_stop = build_geometry_by_stop(feed, use_utm=True)
 
@@ -1779,32 +1710,33 @@ def add_dist_to_stop_times(feed, trips_stats):
         group['shape_dist_traveled'] = distances
         return group
 
-    result = f.groupby('trip_id', group_keys=False).apply(compute_dist)
+    g = f.groupby('trip_id', group_keys=False).apply(compute_dist)
     # Convert departure times back to time strings
-    result['departure_time'] = result['departure_time'].map(lambda x: 
+    g['departure_time'] = g['departure_time'].map(lambda x: 
       ut.timestr_to_seconds(x, inverse=True))
-    
-    return result.drop(['shape_id', 'distance', 'duration'], axis=1)
+    g = g.drop(['shape_id', 'distance', 'duration'], axis=1)
+    feed.stop_times = g 
+
+    return feed 
 
 # -------------------------------------
 # Functions about feeds
 # -------------------------------------
 def convert_dist(feed, new_dist_units):
     """
-    Convert the distances recorded in the ``shape_dist_traveled`` columns of the given feed from the feeds native distance units (recorded in ``feed.dist_units``) to the given new distance units.
+    Convert the distances recorded in the ``shape_dist_traveled`` columns of the given feed from the feed's native distance units (recorded in ``feed.dist_units``) to the given new distance units.
     New distance units must lie in ``constants.DIST_UNITS``
     """       
     feed = feed.copy()
 
-    if feed.dist is None or feed.dist == new_dist_units:
+    if feed.dist_units == new_dist_units:
         # Nothing to do
         return feed
 
-    if new_dist_units not in cs.DIST_UNITS:
-        raise ValueError('Given distance units must lie in {!s}'.format(
-          cs.DIST_UNITS))
+    old_dist_units = feed.dist_units
+    feed.dist_units = new_dist_units
 
-    converter = ut.get_convert_dist(feed.dist_units, new_dist_units)
+    converter = ut.get_convert_dist(old_dist_units, new_dist_units)
 
     if ut.is_not_null(feed.stop_times, 'shape_dist_traveled'):
         feed.stop_times['shape_dist_traveled'] =\
@@ -1813,8 +1745,6 @@ def convert_dist(feed, new_dist_units):
     if ut.is_not_null(feed.shapes, 'shape_dist_traveled'):
         feed.shapes['shape_dist_traveled'] =\
           feed.shapes['shape_dist_traveled'].map(converter)
-
-    feed.dist_units = new_dist_units
 
     return feed
 
@@ -1951,7 +1881,7 @@ def create_shapes(feed, all_trips=False):
     Do this by connecting the stops on the trip with straight lines.
     Return the resulting feed which has updated shapes and trips data frames.
 
-    If ``all_trips == True``, then create new shapes for all trips 
+    If ``all_trips``, then create new shapes for all trips 
     by connecting stops, and remove the old shapes.
     
     Assume the following feed attributes are not ``None``:
@@ -2273,57 +2203,31 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
     return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
       names=subcolumns)
 
-@ut.time_it
 def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     """
-    Compute all the trips active in the given feed on the given date 
-    that intersect the given Shapely LineString 
-    (with WGS84 longitude-latitude coordinates),
-    and return a data frame with the columns:
+    Compute all the trips active in the given feed on the given date that intersect the given Shapely LineString (with WGS84 longitude-latitude coordinates), and return a data frame with the columns:
 
     - ``'trip_id'``
     - ``'route_id'``
     - ``'route_short_name'``
-    - ``'crossing_time'``: time that the trip's vehicle crosses the linestring;
-      one trip could cross multiple times
-    - ``'orientation'``: 1 or -1; 1 indicates trip travel from the left side
-     to the right side of the screen line; -1 indicates trip travel in the 
-     opposite direction
+    - ``'crossing_time'``: time that the trip's vehicle crosses the linestring; one trip could cross multiple times
+    - ``'orientation'``: 1 or -1; 1 indicates trip travel from the left side to the right side of the screen line; -1 indicates trip travel in the  opposite direction
 
-    Requires GeoPandas.
-
-    The first step is to geometrize ``feed.shapes`` via
-    :func:`geometrize_shapes`.
-    Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
-
-    Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled``
-    column.
-    Assume the following feed attributes are not ``None``:
-
-    - ``feed.shapes``, if ``geo_shapes`` is not given
-
-    Assume that trips travel in the same direction as their shapes.
-    That restriction is part of GTFS, by the way.
-    To calculate direction quickly and accurately, assume that the 
-    screen line is straight and doesn't double back on itself.
-
-    WARNING:
-
-    Probably does not give correct results for trips with self-intersecting
-    shapes.
+    NOTES:
+        - Requires GeoPandas.
+        - The first step is to geometrize ``feed.shapes`` via   :func:`geometrize_shapes`. Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
+        - Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled`` column.
+        - Assume the following feed attributes are not ``None``:
+             * ``feed.shapes``, if ``geo_shapes`` is not given
+        - Assume that trips travel in the same direction as their shapes. That restriction is part of GTFS, by the way. To calculate direction quickly and accurately, assume that the screen line is straight and doesn't double back on itself.
+        - Probably does not give correct results for trips with self-intersecting shapes.
     
     ALGORITHM:
-
-    Compute all the shapes that intersect the linestring.
-    For each such shape, compute the intersection points.
-    For each point p, scan through all the trips in the feed that have 
-    that shape and are active on the given date.
-    Interpolate a stop time for p by assuming that the feed has
-    the shape_dist_traveled field in stop times.
-    Use that interpolated time as the crossing time of the trip vehicle,
-    and compute the trip orientation to the screen line via a cross product
-    of a vector in the direction of the screen line and a tiny vector in the 
-    direction of trip travel.
+        #. Compute all the shapes that intersect the linestring.
+        #. For each such shape, compute the intersection points.
+        #. For each point p, scan through all the trips in the feed that have that shape and are active on the given date.
+        #. Interpolate a stop time for p by assuming that the feed has the shape_dist_traveled field in stop times.
+        #. Use that interpolated time as the crossing time of the trip vehicle, and compute the trip orientation to the screen line via a cross product of a vector in the direction of the screen line and a tiny vector in the direction of trip travel.
     """  
     # Get all shapes that intersect the screen line
     shapes = get_shapes_intersecting_geometry(feed, linestring, geo_shapes,
@@ -2419,22 +2323,15 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
 
 def compute_bounds(feed):   
     """
-    Return the tuple 
-    (min longitude, min latitude, max longitude, max latitude)
-    where the longitudes and latitude vary across all the stop (WGS84) 
-    coordinates.
+    Return the tuple (min longitude, min latitude, max longitude, max latitude) where the longitudes and latitude vary across all the stop (WGS84)coordinates.
     """
     lons, lats = feed.stops['stop_lon'], feed.stops['stop_lat']
     return lons.min(), lats.min(), lons.max(), lats.max()
     
 def compute_center(feed, num_busiest_stops=None):
     """
-    Compute the convex hull of all the given feed's stop coordinates and
-    return the centroid.
-    If an integer ``num_busiest_stops`` is given, then compute
-    the ``num_busiest_stops`` busiest stops in the feed on the first
-    Monday of the feed and return the mean of the longitudes and the 
-    mean of the latitudes of these stops, respectively.
+    Compute the convex hull of all the given feed's stop coordinates and return the centroid.
+    If an integer ``num_busiest_stops`` is given, then compute the ``num_busiest_stops`` busiest stops in the feed on the first Monday of the feed and return the mean of the longitudes and the mean of the latitudes of these stops, respectively.
     """
     s = feed.stops.copy()
     if num_busiest_stops is not None:

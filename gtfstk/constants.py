@@ -1,5 +1,5 @@
 #:
-REQUIRED_GTFS_FILES = [
+GTFS_TABLES_REQUIRED = [
   'agency',  
   'stops',   
   'routes',
@@ -9,7 +9,7 @@ REQUIRED_GTFS_FILES = [
   ]
 
 #:
-OPTIONAL_GTFS_FILES = [
+GTFS_TABLES_OPTIONAL = [
   'calendar_dates',  
   'fare_attributes',    
   'fare_rules',  

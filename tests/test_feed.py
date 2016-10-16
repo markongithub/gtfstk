@@ -89,7 +89,7 @@ class TestFeed(unittest.TestCase):
         path = DATA_DIR/'test_gtfs.zip'
         write_gtfs(feed1, path)
         feed2 = read_gtfs(path, dist_units='km')
-        names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
+        names = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
         for name in names:
             f1 = getattr(feed1, name)
             f2 = getattr(feed2, name)
@@ -97,6 +97,7 @@ class TestFeed(unittest.TestCase):
                 self.assertIsNone(f2)
             else:
                 assert_frame_equal(f1, f2)
+
 
         # Test that integer columns with NaNs get output properly.
         # To this end, put a NaN, 1.0, and 0.0 in the direction_id column 
@@ -116,6 +117,7 @@ class TestFeed(unittest.TestCase):
         t = pd.read_csv(dir_name/'trips.txt', dtype={'direction_id': str})
         self.assertTrue(t[~t['direction_id'].isin([np.nan, '0', '1'])].empty)
         
-        # Remove extracted directory
+        # Clean up
         shutil.rmtree(str(dir_name))
+        path.unlink()
 

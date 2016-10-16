@@ -116,11 +116,11 @@ class TestCalculator(unittest.TestCase):
 
     def test_compute_trip_stats(self):
         feed = cairns.copy()
-        trips_stats = compute_trip_stats(feed)
+        trip_stats = compute_trip_stats(feed)
         
         # Should be a data frame with the correct number of rows
-        self.assertIsInstance(trips_stats, pd.core.frame.DataFrame)
-        self.assertEqual(trips_stats.shape[0], feed.trips.shape[0])
+        self.assertIsInstance(trip_stats, pd.core.frame.DataFrame)
+        self.assertEqual(trip_stats.shape[0], feed.trips.shape[0])
         
         # Should contain the correct columns
         expect_cols = set([
@@ -140,23 +140,23 @@ class TestCalculator(unittest.TestCase):
           'speed',
           'is_loop',
           ])
-        self.assertEqual(set(trips_stats.columns), expect_cols)
+        self.assertEqual(set(trip_stats.columns), expect_cols)
         
         # Shapeless feeds should have null entries for distance column
         feed2 = cairns_shapeless.copy()
-        trips_stats = compute_trip_stats(feed2)
-        self.assertEqual(len(trips_stats['distance'].unique()), 1)
-        self.assertTrue(np.isnan(trips_stats['distance'].unique()[0]))   
+        trip_stats = compute_trip_stats(feed2)
+        self.assertEqual(len(trip_stats['distance'].unique()), 1)
+        self.assertTrue(np.isnan(trip_stats['distance'].unique()[0]))   
         
         # Should contain the correct trips
-        get_trips = set(trips_stats['trip_id'].values)
+        get_trips = set(trip_stats['trip_id'].values)
         expect_trips = set(feed.trips['trip_id'].values)
         self.assertEqual(get_trips, expect_trips)
 
     def test_compute_trip_locations(self):
         feed = cairns.copy()
-        trips_stats = compute_trip_stats(feed)
-        feed.stop_times = add_dist_to_stop_times(feed, trips_stats)
+        trip_stats = compute_trip_stats(feed)
+        feed = append_dist_to_stop_times(feed, trip_stats)
         date = get_dates(feed)[0]
         times = ['08:00:00']
         f = compute_trip_locations(feed, date, times)
@@ -265,10 +265,10 @@ class TestCalculator(unittest.TestCase):
     def test_compute_route_stats(self):
         feed = cairns.copy()
         date = get_dates(feed)[0]
-        trips_stats = compute_trip_stats(feed)
-        f = pd.merge(trips_stats, get_trips(feed, date))
+        trip_stats = compute_trip_stats(feed)
+        f = pd.merge(trip_stats, get_trips(feed, date))
         for split_directions in [True, False]:
-            rs = compute_route_stats(feed, trips_stats, date, 
+            rs = compute_route_stats(feed, trip_stats, date, 
               split_directions=split_directions)
 
             # Should be a data frame of the correct shape
@@ -307,7 +307,7 @@ class TestCalculator(unittest.TestCase):
             self.assertEqual(set(rs.columns), expect_cols)
 
         # Empty check
-        f = compute_route_stats(feed, trips_stats, '20010101')
+        f = compute_route_stats(feed, trip_stats, '20010101')
         self.assertTrue(f.empty)
 
     def test_compute_route_time_series_base(self):
@@ -348,12 +348,12 @@ class TestCalculator(unittest.TestCase):
     def test_compute_route_time_series(self):
         feed = cairns.copy()
         date = get_dates(feed)[0]
-        trips_stats = compute_trip_stats(feed)
-        ats = pd.merge(trips_stats, get_trips(feed, date))
+        trip_stats = compute_trip_stats(feed)
+        ats = pd.merge(trip_stats, get_trips(feed, date))
         for split_directions in [True, False]:
-            f = compute_route_stats(feed ,trips_stats, date, 
+            f = compute_route_stats(feed ,trip_stats, date, 
               split_directions=split_directions)
-            rts = compute_route_time_series(feed, trips_stats, date, 
+            rts = compute_route_time_series(feed, trip_stats, date, 
               split_directions=split_directions, freq='1H')
             
             # Should be a data frame of the correct shape
@@ -378,7 +378,7 @@ class TestCalculator(unittest.TestCase):
 
         # Empty check
         date = '19000101'
-        rts = compute_route_time_series(feed, trips_stats, date, 
+        rts = compute_route_time_series(feed, trip_stats, date, 
           split_directions=split_directions, freq='1H')
         self.assertTrue(rts.empty)
 
@@ -703,11 +703,11 @@ class TestCalculator(unittest.TestCase):
         shape_ids = ['120N0005', '1200010', '1200001']
         self.assertEqual(set(pshapes['shape_id'].unique()), set(shape_ids))
 
-    def test_add_dist_to_shapes(self):
-        feed = cairns.copy()
-        s1 = feed.shapes.copy()
-        feed.shapes = add_dist_to_shapes(feed)
-        s2 = feed.shapes
+    def test_append_dist_to_shapes(self):
+        feed1 = cairns.copy()
+        s1 = feed1.shapes
+        feed2 = append_dist_to_shapes(feed1)
+        s2 = feed2.shapes
         # Check that colums of st2 equal the columns of st1 plus
         # a shape_dist_traveled column
         cols1 = list(s1.columns.values) + ['shape_dist_traveled']
@@ -720,9 +720,9 @@ class TestCalculator(unittest.TestCase):
             sdt = list(group['shape_dist_traveled'].values)
             self.assertEqual(sdt, sorted(sdt))
 
-    def test_add_route_type_to_shapes(self):
+    def test_append_route_type_to_shapes(self):
         feed = cairns.copy()
-        shapes = add_route_type_to_shapes(feed)
+        shapes = append_route_type_to_shapes(feed)
         # Should contain correct columns
         self.assertEqual(set(shapes.columns), 
           set(feed.shapes.columns) | {'route_type'})
@@ -761,12 +761,13 @@ class TestCalculator(unittest.TestCase):
         times = get_start_and_end_times(feed)
         self.assertTrue(pd.isnull(times[0]))
 
-    def test_add_dist_to_stop_times(self):
-        feed = cairns.copy()
-        st1 = feed.stop_times
-        trips_stats = compute_trip_stats(feed)
-        st2 = add_dist_to_stop_times(feed, trips_stats)
-        
+    def test_append_dist_to_stop_times(self):
+        feed1 = cairns.copy()
+        st1 = feed1.stop_times
+        trip_stats = compute_trip_stats(feed1)
+        feed2 = append_dist_to_stop_times(feed1, trip_stats)
+        st2 = feed2.stop_times 
+
         # Check that colums of st2 equal the columns of st1 plus
         # a shape_dist_traveled column
         cols1 = list(st1.columns.values) + ['shape_dist_traveled']
@@ -783,11 +784,27 @@ class TestCalculator(unittest.TestCase):
     # ----------------------------------
     # Test functions about feeds
     # ----------------------------------
+    def test_convert_dist(self):
+        # Test with no distances
+        feed1 = cairns.copy() # No distances here
+        feed2 = convert_dist(feed1, 'mi')
+        self.assertTrue(feed2.dist_units, 'mi')
+
+        # Test with distances and identity conversion
+        feed1 = append_dist_to_shapes(feed1) 
+        feed2 = convert_dist(feed1, feed1.dist_units)
+        self.assertEqual(feed1, feed2)
+
+        # Test with proper conversion
+        feed2 = convert_dist(feed1, 'm')
+        assert_series_equal(feed2.shapes['shape_dist_traveled']/1000,
+          feed1.shapes['shape_dist_traveled'])
+
     def test_compute_feed_stats(self):
         feed = cairns.copy()
         date = get_dates(feed)[0]
-        trips_stats = compute_trip_stats(feed)
-        f = compute_feed_stats(feed, trips_stats, date)
+        trip_stats = compute_trip_stats(feed)
+        f = compute_feed_stats(feed, trip_stats, date)
         # Should be a data frame
         self.assertIsInstance(f, pd.core.frame.DataFrame)
         # Should have the correct number of rows
@@ -807,14 +824,14 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(f.columns), expect_cols)
 
         # Empty check
-        f = compute_feed_stats(feed, trips_stats, '20010101')
+        f = compute_feed_stats(feed, trip_stats, '20010101')
         self.assertTrue(f.empty)
 
     def test_compute_feed_time_series(self):
         feed = cairns.copy()
         date = get_dates(feed)[0]
-        trips_stats = compute_trip_stats(feed)
-        f = compute_feed_time_series(feed, trips_stats, date, freq='1H')
+        trip_stats = compute_trip_stats(feed)
+        f = compute_feed_time_series(feed, trip_stats, date, freq='1H')
         # Should be a data frame 
         self.assertIsInstance(f, pd.core.frame.DataFrame)
         # Should have the correct number of rows
@@ -830,7 +847,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(f.columns), expect_cols)
 
         # Empty check
-        f = compute_feed_time_series(feed, trips_stats, '20010101')
+        f = compute_feed_time_series(feed, trip_stats, '20010101')
         self.assertTrue(f.empty)
 
     def test_create_shapes(self):
@@ -894,13 +911,13 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(set(feed2.stop_times['stop_id']), set(stop_ids))
 
     # ----------------------------------
-    # Test miscellanous functions
+    # Test miscellaneous functions
     # ----------------------------------
     def test_compute_screen_line_counts(self):
         feed = cairns.copy() 
         # Add distances to feed
-        trips_stats = compute_trip_stats(feed, compute_dist_from_shapes=True)
-        feed.stop_times = add_dist_to_stop_times(feed, trips_stats)
+        trip_stats = compute_trip_stats(feed, compute_dist_from_shapes=True)
+        feed = append_dist_to_stop_times(feed, trip_stats)
         
         # Pick date
         date = get_first_week(feed)[0]

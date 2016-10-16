@@ -26,7 +26,7 @@ def time_it(f):
 def datestr_to_date(x, format_str='%Y%m%d', inverse=False):
     """
     Given a string object ``x`` representing a date in the given format,     convert it to a datetime.date object and return the result.
-    If ``inverse == True``, then assume that ``x`` is a date object and return its corresponding string in the given format.
+    If ``inverse``, then assume that ``x`` is a date object and return its corresponding string in the given format.
     """
     if x is None:
         return None
@@ -40,9 +40,9 @@ def timestr_to_seconds(x, inverse=False, mod24=False):
     """
     Given a time string of the form '%H:%M:%S', return the number of seconds  past midnight that it represents.
     In keeping with GTFS standards, the hours entry may be greater than 23.
-    If ``mod24 == True``, then return the number of seconds modulo ``24*3600``.
-    If ``inverse == True``, then do the inverse operation.
-    In this case, if ``mod24 == True`` also, then first take the number of  seconds modulo ``24*3600``.
+    If ``mod24``, then return the number of seconds modulo ``24*3600``.
+    If ``inverse``, then do the inverse operation.
+    In this case, if ``mod24`` also, then first take the number of  seconds modulo ``24*3600``.
     """
     if not inverse:
         try:
@@ -80,7 +80,7 @@ def weekday_to_str(weekday, inverse=False):
     """
     Given a weekday, that is, an integer in ``range(7)``, return it's corresponding weekday name as a lowercase string.
     Here 0 -> 'monday', 1 -> 'tuesday', and so on.
-    If ``inverse == True``, then perform the inverse operation.
+    If ``inverse``, then perform the inverse operation.
     """
     s = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 
       'saturday', 'sunday']
@@ -211,7 +211,7 @@ def get_utm_crs(lat, lon):
 def linestring_to_utm(linestring):
     """
     Given a Shapely LineString in WGS84 coordinates, convert it to the appropriate UTM coordinates. 
-    If ``inverse == True``, then do the inverse.
+    If ``inverse``, then do the inverse.
     """
     proj = lambda x, y: utm.from_latlon(y, x)[:2]
 

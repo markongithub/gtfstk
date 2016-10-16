@@ -7,7 +7,7 @@ setup(
     packages=['gtfstk', 'tests'],
     url='https://github.com/araichev/gtfstk',
     license='LICENSE',
-    description='A Python 3.4+ tool kit for processing General Transit Feed Specification (GTFS) data',
+    description='A Python 3.5 tool kit for processing General Transit Feed Specification (GTFS) data',
     long_description=open('README.rst').read(),
     install_requires=[
         'Shapely>=1.5.1, <=1.5.15',

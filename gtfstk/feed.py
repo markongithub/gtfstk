@@ -1,7 +1,7 @@
 """
-This module defines the Feed class, which represents GTFS files as data frames, and defines some basic operations on Feed objects.
-Almost all operations on Feed objects are functions that live outside of the Feed class and are not methods of the Feed class.
-Every function that acts on a Feed object assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or is a data frame with the columns required in the `GTFS <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
+This module defines the Feed class, which represents a GTFS feed as a collection of data frames, and defines some basic operations on Feed objects.
+Almost all other operations on Feed objects are defined as functions living outside of the Feed class rather than methods of the Feed class.
+Every function that acts on a Feed object assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or a data frame with the columns required in the `GTFS <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
 """
 from pathlib import Path
 import zipfile
@@ -17,10 +17,8 @@ from . import utilities as ut
 
 class Feed(object):
     """
-    A class that represents a GTFS feed, where GTFS files/tables are stored as as data frames.
-
-    Warning: the stop times data frame can be big (several gigabytes), so make sure you have enough memory to handle it.
-
+    A class that represents a GTFS feed, where GTFS tables are stored as data frames.
+    Beware, the stop times data frame can be big (several gigabytes), so make sure you have enough memory to handle it.
     Feed (public) attributes are
 
     - ``dist_units``: a string in ``constants.DIST_UNITS``; specifies the distance units to use when calculating various stats, such as route service distance; should match the implicit distance units of the  ``shape_dist_traveled`` column values, if present
@@ -28,12 +26,9 @@ class Feed(object):
     - ``stops``
     - ``routes``
     - ``trips``
-    - ``trips_i``: ``trips`` reindexed by its ``'trip_id'`` column; speeds up :func:`calculator.is_active_trip`
     - ``stop_times``
     - ``calendar``
-    - ``calendar_i``: ``calendar`` reindexed by its ``'service_id'`` column;  speeds up :func:`calculator.is_active_trip`
     - ``calendar_dates`` 
-    - ``calendar_dates_g``: ``calendar_dates`` grouped by ``['service_id', 'date']``; speeds up :func:`calculator.is_active_trip`
     - ``fare_attributes``
     - ``fare_rules``
     - ``shapes``
@@ -42,16 +37,16 @@ class Feed(object):
     - ``feed_info``
 
     There are also a few private Feed attributes that are derived from some public attributes and are automatically updated when those public attributes change.
-    But, you have to properly change the primary attributes like this:
+    However, for this update to work, you must properly update the primary attributes like this::
 
-        >>> feed.trips['route_short_name'] = 'bingo'
-        >>> feed.trips = feed.trips
+        feed.trips['route_short_name'] = 'bingo'
+        feed.trips = feed.trips
 
-    and **not** like this
+    and **not** like this::
 
-        >>> feed.trips['route_short_name'] = 'bingo'
+        feed.trips['route_short_name'] = 'bingo'
 
-    The first way ensures that altered trips data frame is saved as the new ``trips`` attribute.
+    The first way ensures that the altered trips data frame is saved as the new ``trips`` attribute, but the second way does not.
     """
     def __init__(self, dist_units, agency=None, stops=None, routes=None, 
       trips=None, stop_times=None, calendar=None, calendar_dates=None, 
@@ -71,6 +66,9 @@ class Feed(object):
 
     @property 
     def dist_units(self):
+        """
+        A public Feed attribute made into a property for easy validation.
+        """
         return self._dist_units
 
     @dist_units.setter
@@ -84,6 +82,9 @@ class Feed(object):
     # If ``self.trips`` changes then update ``self._trips_i``
     @property
     def trips(self):
+        """
+        A public Feed attribute made into a property for easy auto-updating of private feed attributes based on the trips data frame.
+        """
         return self._trips
 
     @trips.setter
@@ -97,6 +98,9 @@ class Feed(object):
     # If ``self.calendar`` changes, then update ``self._calendar_i``
     @property
     def calendar(self):
+        """
+        A public Feed attribute made into a property for easy auto-updating of private feed attributes based on the calendar data frame.
+        """
         return self._calendar
 
     @calendar.setter
@@ -111,6 +115,9 @@ class Feed(object):
     # then update ``self._calendar_dates_g``
     @property 
     def calendar_dates(self):
+        """
+        A public Feed attribute made into a property for easy auto-updating of private feed attributes based on the calendar dates data frame.
+        """        
         return self._calendar_dates 
 
     @calendar_dates.setter
@@ -185,7 +192,7 @@ def read_gtfs(path, dist_units=None):
 
     # Read files into feed dictionary of data frames
     feed_dict = {}
-    for f in cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES:
+    for f in cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL:
         ff = f + '.txt'
         pp = Path(p, ff)
         if pp.exists():
@@ -218,7 +225,7 @@ def write_gtfs(feed, path, ndigits=6):
 
     # Write files to a temporary directory 
     tmp_dir = tempfile.mkdtemp()
-    names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
+    names = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
     for name in names:
         f = getattr(feed, name)
         if f is None:
