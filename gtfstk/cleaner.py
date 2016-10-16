@@ -9,16 +9,40 @@ import pandas as pd
 from . import utilities as ut
 from . import constants as cs
 from .feed import Feed
-from .feed import copy as fcopy
 
+
+def clean_ids(feed):
+    """
+    Strip whitespace from all string IDs and then replace every remaining whitespace chunk with an underscore.
+    Return the resulting feed.  
+    """
+    # Alter feed inputs only, and build a new feed from them.
+    # The derived feed attributes, such as feed.trips_i, 
+    # will be automatically handled when creating the new feed.
+    feed = feed.copy()
+
+    for key in cs.FEED_ATTRS_PUBLIC:
+        f = getattr(feed, key)
+        # Alter ID columns
+        if f is not None and key in cs.VALID_COLUMNS_BY_TABLE:
+            for col in cs.VALID_COLUMNS_BY_TABLE[key]:
+                if col.endswith('_id') and col in f.columns:
+                    try:
+                        f[col] = f[col].str.strip().str.replace(r'\s+', '_')
+                        setattr(feed, key, f)
+                    except AttributeError:
+                        # Column is not of string type
+                        continue
+    return feed
 
 def clean_stop_times(feed):
     """
     In ``feed.stop_times``, prefix a zero to arrival and departure times if necessary.
     This makes sorting by time work as expected.
-    Return the resulting stop times data frame.
+    Return the resulting feed.
     """
-    st = feed.stop_times.copy()
+    feed = feed.copy()
+    st = feed.stop_times
 
     def reformat(t):
         if pd.isnull(t):
@@ -32,67 +56,84 @@ def clean_stop_times(feed):
         st[['arrival_time', 'departure_time']] = st[['arrival_time', 
           'departure_time']].applymap(reformat)
 
-    return st
+    feed.stop_times = st 
+    return feed
 
 def clean_route_short_names(feed):
     """
     In ``feed.routes``, assign 'n/a' to missing route short names and strip whitespace from route short names.
     Then disambiguate each route short name that is duplicated by appending '-' and its route ID.
-    Return the resulting routes data frame.
+    Return the resulting feed.
     """
-    routes = feed.routes.copy()
-    if routes is None:
-        return routes
+    feed = feed.copy()
+    r = feed.routes
+    if r is None:
+        return feed
 
     # Fill NaNs and strip whitespace
-    routes['route_short_name'] = routes['route_short_name'].fillna('n/a'
+    r['route_short_name'] = r['route_short_name'].fillna('n/a'
       ).str.strip()
     # Disambiguate
     def disambiguate(row):
         rsn, rid = row
         return rsn + '-' + rid
 
-    routes['dup'] = routes['route_short_name'].duplicated(keep=False)
-    routes.loc[routes['dup'], 'route_short_name'] = routes.loc[
-      routes['dup'], ['route_short_name', 'route_id']].apply(
+    r['dup'] = r['route_short_name'].duplicated(keep=False)
+    r.loc[r['dup'], 'route_short_name'] = r.loc[
+      r['dup'], ['route_short_name', 'route_id']].apply(
       disambiguate, axis=1)
-    del routes['dup']
+    del r['dup']
 
-    return routes
+    feed.routes = r
+    return feed
 
 def prune_dead_routes(feed):
     """
     Remove all routes from ``feed.routes`` that do not have trips listed in ``feed.trips``.
-    Return a new routes data frame.
+    Return the result feed.
     """
+    feed = feed.copy()
     live_routes = feed.trips['route_id'].unique()
     r = feed.routes 
-    return r[r['route_id'].isin(live_routes)]
+    feed.routes = r[r['route_id'].isin(live_routes)]
+    return feed 
 
-def aggregate_routes(feed, by='route_short_name'):
+def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
     """
     Given a GTFSTK Feed object, group routes by the ``by`` column of ``feed.routes`` and for each group, 
 
     1. choose the first route in the group,
-    2. use that route's ID to assign to the whole group
+    2. assign a new route ID based on the given ``route_id_prefix`` string and a running count, e.g. ``'route_013'``
     3. assign all the trips associated with routes in the group to that first route.
 
     Update ``feed.routes`` and ``feed.trips`` with the new routes, and return the resulting feed.
     """
     if by not in feed.routes.columns:
-        raise ValueError("Column {0} not in feed.routes".format(
+        raise ValueError("Column {!s} not in feed.routes".format(
           by))
 
-    feed = fcopy(feed)
+    feed = feed.copy()
 
     # Create new route IDs
     routes = feed.routes
     n = routes.groupby(by).ngroups
+    k = int(math.log10(n)) + 1 # Number of digits for padding IDs 
     nrid_by_orid = dict()
+    i = 1
     for col, group in routes.groupby(by):
-        nrid = group['route_id'].iat[0]
+        nrid = 'route_{num:0{pad}d}'.format(num=i, pad=k)
         d = {orid: nrid for orid in group['route_id'].values}
         nrid_by_orid.update(d)
+        i += 1
+
+    # # Create new route IDs
+    # routes = feed.routes
+    # n = routes.groupby(by).ngroups
+    # nrid_by_orid = dict()
+    # for col, group in routes.groupby(by):
+    #     nrid = group['route_id'].iat[0]
+    #     d = {orid: nrid for orid in group['route_id'].values}
+    #     nrid_by_orid.update(d)
 
     routes['route_id'] = routes['route_id'].map(lambda x: nrid_by_orid[x])
     routes = routes.groupby(by).first().reset_index()
@@ -103,7 +144,51 @@ def aggregate_routes(feed, by='route_short_name'):
     trips['route_id'] = trips['route_id'].map(lambda x: nrid_by_orid[x])
     feed.trips = trips
 
+    # Update route IDs of transfers
+    if feed.transfers is not None:
+        transfers = feed.transfers
+        transfers['route_id'] = transfers['route_id'].map(
+          lambda x: nrid_by_orid[x])
+        feed.transfers = transfers
+
     return feed 
+
+def clean(feed):
+    """
+    Given a GTFSTK Feed instance, apply the following functions to it and return the resulting feed.
+
+    #. :func:`clean_ids`
+    #. :func:`clean_stop_times`
+    #. :func:`clean_route_short_names`
+    #. :func:`prune_dead_routes`
+    """
+    feed = feed.copy()
+    ops = [
+      'clean_ids',
+      'clean_stop_times',
+      'clean_route_short_names',
+      'prune_dead_routes',
+    ]
+    for op in ops:
+        feed = globals()[op](feed)
+
+    return feed
+
+def drop_invalid_columns(feed):
+    """
+    Given a GTFSTK Feed instance, drop all data frame columns not listed in ``constants.VALID_COLS``.
+    Return the resulting feed.
+    """
+    for key, vcols in cs.VALID_COLUMNS_BY_TABLE.items():
+        f = getattr(feed, key)
+        if f is None:
+            continue
+        for col in f.columns:
+            if col not in vcols:
+                print('{!s}: dropping invalid column {!s}'.format(key, col))
+                del f[col]
+
+    return feed
 
 def assess(feed):
     """
@@ -164,8 +249,15 @@ def assess(feed):
     d['num_missing_first_departure_times'] = n
     d['frac_missing_first_departure_times'] = n/g.shape[0]
 
-    # Express opinion
-    if d['frac_missing_departure_times'] >= 0.8 or\
+    # Count missing last departure times
+    g = st.groupby('trip_id').agg(lambda x: x.iloc[-1]).reset_index()
+    n = g[g['departure_time'].isnull()].shape[0]
+    d['num_missing_last_departure_times'] = n
+    d['frac_missing_last_departure_times'] = n/g.shape[0]
+
+    # Express an opinion
+    if (d['frac_missing_first_departure_times'] >= 0.1) or\
+      (d['frac_missing_last_departure_times'] >= 0.1) or\
       d['frac_trips_missing_shapes'] >= 0.8:
         d['assessment'] = 'bad feed'
     elif d['frac_missing_directions'] or\
