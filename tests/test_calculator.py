@@ -23,12 +23,13 @@ else:
 
 # Load/create test feeds
 DATA_DIR = Path('data')
-cairns = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
-cairns_shapeless = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
+cairns = read_gtfs(DATA_DIR/'cairns_gtfs.zip', dist_units='km')
+cairns_shapeless = cairns.copy()
 cairns_shapeless.shapes = None
-trips = cairns_shapeless.trips.copy()
-trips['shape_id'] = np.nan
-cairns_shapeless.trips = trips
+t = cairns_shapeless.trips
+t['shape_id'] = np.nan
+cairns_shapeless.trips = t
+
 
 class TestCalculator(unittest.TestCase):
     # --------------------------------------------
@@ -70,13 +71,6 @@ class TestCalculator(unittest.TestCase):
         trip = 'CNS2014-CNS_MUL-Sunday-00-4165971'
         date1 = '20140601'
         date2 = '20120602'
-        self.assertTrue(is_active_trip(feed, trip, date1))
-        self.assertFalse(is_active_trip(feed, trip, date2))
-
-        feed = read_gtfs(DATA_DIR/'portland_gtfs.zip', dist_units_in='ft')
-        trip = '4526377'
-        date1 = '20140518'
-        date2 = '20120517'
         self.assertTrue(is_active_trip(feed, trip, date1))
         self.assertFalse(is_active_trip(feed, trip, date2))
 

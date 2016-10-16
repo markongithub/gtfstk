@@ -6,6 +6,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np 
 
+import gtfstk.constants as cs
 from gtfstk.feed import *
 
 
@@ -14,60 +15,52 @@ DATA_DIR = Path('data')
 class TestFeed(unittest.TestCase):
 
     def test_feed(self):
-        feed = Feed(agency=pd.DataFrame())
-        for key, value in feed.__dict__.items():
-            if key in ['dist_units_in', 'dist_units_out']:
-                self.assertEqual(value, 'km')
-            elif key == 'convert_dist':
-                self.assertIsInstance(value, FunctionType)
+        feed = Feed(agency=pd.DataFrame(), dist_units='km')
+        for key in cs.FEED_ATTRS:
+            val = getattr(feed, key)
+            if key == 'dist_units':
+                self.assertEqual(val, 'km')
             elif key == 'agency':
-                self.assertIsInstance(value, pd.DataFrame)
+                self.assertIsInstance(val, pd.DataFrame)
             else:
-                self.assertIsNone(value)
+                self.assertIsNone(val)
 
     def test_eq(self):  
-        self.assertEqual(Feed(), Feed())
+        self.assertEqual(Feed(dist_units='m'), Feed(dist_units='m'))
 
-        feed1 = Feed(stops=pd.DataFrame([[1, 2], [3, 4]], columns=['a', 'b']))
+        feed1 = Feed(dist_units='m', 
+          stops=pd.DataFrame([[1, 2], [3, 4]], columns=['a', 'b']))
         self.assertEqual(feed1, feed1)
 
-        feed2 = Feed(stops=pd.DataFrame([[4, 3], [2, 1]], columns=['b', 'a']))
+        feed2 = Feed(dist_units='m', 
+          stops=pd.DataFrame([[4, 3], [2, 1]], columns=['b', 'a']))
         self.assertEqual(feed1, feed2)
         
-        feed2 = Feed(stops=pd.DataFrame([[3, 4], [2, 1]], columns=['b', 'a']))
+        feed2 = Feed(dist_units='m',
+          stops=pd.DataFrame([[3, 4], [2, 1]], columns=['b', 'a']))
         self.assertNotEqual(feed1, feed2)
     
-        feed2 = Feed(stops=pd.DataFrame([[4, 3], [2, 1]], columns=['b', 'a']),
-          dist_units_in='km')
+        feed2 = Feed(dist_units='m', 
+          stops=pd.DataFrame([[4, 3], [2, 1]], columns=['b', 'a']))
         self.assertEqual(feed1, feed2)
 
-        feed2 = Feed(stops=pd.DataFrame([[4, 3], [2, 1]], columns=['b', 'a']),
-          dist_units_in='mi')
+        feed2 = Feed(dist_units='mi', stops=feed1.stops)
         self.assertNotEqual(feed1, feed2)
 
     def test_copy(self):
-        feed1 = read_gtfs(DATA_DIR/'cairns_gtfs.zip',
-          dist_units_in='mi', dist_units_out='km')
+        feed1 = read_gtfs(DATA_DIR/'sample_gtfs.zip', dist_units='km')
         feed2 = feed1.copy()
 
-        # Check distance units
-        self.assertEqual(feed2.dist_units_in, feed1.dist_units_in)
-        self.assertEqual(feed2.dist_units_out, feed1.dist_units_out)
-
-        # Check other attributes
-        for key, value in feed2.__dict__.items():
-            if key in ['dist_units_in', 'dist_units_out']:
-                continue
-            expect_value = getattr(feed1, key)            
-            if isinstance(value, pd.DataFrame):
-                assert_frame_equal(value, expect_value)
-            elif isinstance(value, pd.core.groupby.DataFrameGroupBy):
-                self.assertEqual(value.groups, expect_value.groups)
-            elif isinstance(value, FunctionType):
-                # No need to check this
-                continue
+        # Check attributes
+        for key in cs.FEED_ATTRS:
+            val = getattr(feed2, key)
+            expect_val = getattr(feed1, key)            
+            if isinstance(val, pd.DataFrame):
+                assert_frame_equal(val, expect_val)
+            elif isinstance(val, pd.core.groupby.DataFrameGroupBy):
+                self.assertEqual(val.groups, expect_val.groups)
             else:
-                self.assertEqual(value, expect_value)
+                self.assertEqual(val, expect_val)
 
     # --------------------------------------------
     # Test functions about inputs and outputs
@@ -77,25 +70,25 @@ class TestFeed(unittest.TestCase):
         self.assertRaises(ValueError, read_gtfs,
           path='bad_path!')
         
-        feed = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
-
-        # Bad dist_units_in:
+        # Bad dist_units:
         self.assertRaises(ValueError, read_gtfs, 
-          path=DATA_DIR/'cairns_gtfs.zip',  
-          dist_units_in='bingo')
+          path=DATA_DIR/'sample_gtfs.zip',  dist_units='bingo')
 
-        # Requires dist_units_in:
+        # Requires dist_units:
         self.assertRaises(ValueError, read_gtfs,
-          path=DATA_DIR/'portland_gtfs.zip')
+          path=DATA_DIR/'sample_gtfs.zip')
+
+        # Success
+        feed = read_gtfs(DATA_DIR/'sample_gtfs.zip',  dist_units='m')
 
     def test_write_gtfs(self):
-        feed1 = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
+        feed1 = read_gtfs(DATA_DIR/'sample_gtfs.zip', dist_units='km')
 
         # Export feed1, import it as feed2, and then test that the
         # attributes of the two feeds are equal.
         path = DATA_DIR/'test_gtfs.zip'
         write_gtfs(feed1, path)
-        feed2 = read_gtfs(path)
+        feed2 = read_gtfs(path, dist_units='km')
         names = cs.REQUIRED_GTFS_FILES + cs.OPTIONAL_GTFS_FILES
         for name in names:
             f1 = getattr(feed1, name)
@@ -109,7 +102,7 @@ class TestFeed(unittest.TestCase):
         # To this end, put a NaN, 1.0, and 0.0 in the direction_id column 
         # of trips.txt, export it, and import the column as strings.
         # Should only get np.nan, '0', and '1' entries.
-        feed3 = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
+        feed3 = read_gtfs(DATA_DIR/'sample_gtfs.zip', dist_units='km')
         f = feed3.trips.copy()
         f['direction_id'] = f['direction_id'].astype(object)
         f.loc[0, 'direction_id'] = np.nan

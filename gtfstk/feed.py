@@ -7,6 +7,7 @@ from pathlib import Path
 import zipfile
 import tempfile
 import shutil
+from copy import deepcopy
 
 import pandas as pd 
 
@@ -20,8 +21,9 @@ class Feed(object):
 
     Warning: the stop times data frame can be big (several gigabytes), so make sure you have enough memory to handle it.
 
-    Feed attributes, almost all of which default to ``None``, are
+    Feed (public) attributes are
 
+    - ``dist_units``: a string in ``constants.DIST_UNITS``; specifies the distance units to use when calculating various stats, such as route service distance; should match the implicit distance units of the  ``shape_dist_traveled`` column values, if present
     - ``agency``
     - ``stops``
     - ``routes``
@@ -38,42 +40,46 @@ class Feed(object):
     - ``frequencies``
     - ``transfers``
     - ``feed_info``
-    - ``dist_units``: a string in ``constants.DIST_UNITS``; specifies the distance units of the feed; defaults to 'km' if no ``shape_dist_traveled`` columns are present in the input data frames
+
+    There are also a few private Feed attributes that are derived from some public attributes and are automatically updated when those public attributes change.
+    But, you have to properly change the primary attributes like this:
+
+        >>> feed.trips['route_short_name'] = 'bingo'
+        >>> feed.trips = feed.trips
+
+    and **not** like this
+
+        >>> feed.trips['route_short_name'] = 'bingo'
+
+    The first way ensures that altered trips data frame is saved as the new ``trips`` attribute.
     """
-    def __init__(self, agency=None, stops=None, routes=None, trips=None, 
-      stop_times=None, calendar=None, calendar_dates=None, 
+    def __init__(self, dist_units, agency=None, stops=None, routes=None, 
+      trips=None, stop_times=None, calendar=None, calendar_dates=None, 
       fare_attributes=None, fare_rules=None, shapes=None, 
-      frequencies=None, transfers=None, feed_info=None,
-      dist_units=None):
+      frequencies=None, transfers=None, feed_info=None):
         """
         Assume that every non-None input is a Pandas data frame, except for ``dist_units`` which should be a string in ``constants.DIST_UNITS``.
-
-        If the ``shapes`` or ``stop_times`` data frame has the optional  column ``shape_dist_traveled``, then the native distance units used in those data frames must be specified with ``dist_units``.
-        Otherwise, ``dist_units`` will be set to ``'km'`` (kilometers). 
 
         No other format checking is performed.
         In particular, a Feed instance need not represent a valid GTFS feed.
         """
-        # Validate some
-        if dist_units not in [None] + cs.DIST_UNITS:
-            raise ValueError('Distance units must lie in {!s}'.format(
-              cs.DIST_UNITS))
-
-        if dist_units is None:
-            if ut.is_not_null(stop_times, 'shape_dist_traveled') or\
-              ut.is_not_null(shapes, 'shape_dist_traveled'):
-                raise ValueError('This feed has a shape_dist_traveled field, '\
-                  'so you must specify dist_units')
-            else:    
-                # Set default distance units now
-                dist_units = 'km'
-
         # Set primary attributes; the @property magic below will then
-        # automatically set secondary attributes
-        print(locals()['dist_units'])
+        # validate some and automatically set secondary attributes
         for prop, val in locals().items():
-            if prop in cs.FEED_ATTRS_PRIMARY:
+            if prop in cs.FEED_ATTRS_PUBLIC:
                 setattr(self, prop, val)        
+
+    @property 
+    def dist_units(self):
+        return self._dist_units
+
+    @dist_units.setter
+    def dist_units(self, val):
+        if val not in cs.DIST_UNITS:
+            raise ValueError('Distance units are required and '\
+              'must lie in {!s}'.format(cs.DIST_UNITS))
+        else:
+            self._dist_units = val
 
     # If ``self.trips`` changes then update ``self._trips_i``
     @property
@@ -118,11 +124,11 @@ class Feed(object):
 
     def __eq__(self, other):
         """
-        Define two feeds be equal if and only if their ``constants.FEED_ATTRS`` attributes are equal, or almost equal in the case of data frames.
+        Define two feeds be equal if and only if their ``constants.FEED_ATTRS`` attributes are equal, or almost equal in the case of data frames (but not groupby data frames).
         Almost equality is checked via :func:`utilities.almost_equal`, which   canonically sorts data frame rows and columns.
         """
         # Return False if failures
-        for key in cs.FEED_ATTRS:
+        for key in cs.FEED_ATTRS_PUBLIC:
             x = getattr(self, key)
             y = getattr(other, key)
             # Data frame case
@@ -139,14 +145,18 @@ class Feed(object):
 
     def copy(self):
         """
-        Return a copy of this feed.
+        Return a copy of this feed, that is, a feed with all the same public and private attributes.
         """
-        other = Feed()
-        for key in cs.FEED_ATTRS:
+        other = Feed(dist_units=self.dist_units)
+        for key in set(cs.FEED_ATTRS) - set(['dist_units']):
             value = getattr(self, key)
             if isinstance(value, pd.DataFrame):
                 # Pandas copy data frame
                 value = value.copy()
+            elif isinstance(value, pd.core.groupby.DataFrameGroupBy):
+                # Pandas does not have a copy method for groupby objects
+                # as far as i know
+                value = deepcopy(value)
             setattr(other, key, value)
         
         return other
@@ -172,7 +182,6 @@ def read_gtfs(path, dist_units=None):
         # Strip off .zip extension
         p = p.parent / p.stem
         archive.extractall(p.as_posix())
-
 
     # Read files into feed dictionary of data frames
     feed_dict = {}
@@ -200,9 +209,7 @@ def write_gtfs(feed, path, ndigits=6):
     """
     Export the given feed to a zip archive located at ``path``.
     Round all decimals to ``ndigits`` decimal places.
-    All distances will be displayed in units ``feed.dist_units_out``.
-
-    Assume the following feed attributes are not ``None``: none.
+    All distances will be displayed in units ``feed.dist_units``.
     """
     # Remove '.zip' extension from path, because it gets added
     # automatically below

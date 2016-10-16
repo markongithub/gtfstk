@@ -1,6 +1,5 @@
 """
-This module contains functions for calculating things about Feed objects, 
-such as daily service duration per route. 
+This module contains functions for calculating things about Feed objects, such as daily service duration per route. 
 """
 import datetime as dt
 import dateutil.relativedelta as rd
@@ -26,8 +25,7 @@ def get_dates(feed, as_date_obj=False):
     Return a chronologically ordered list of dates for which this feed is valid.
     If ``as_date_obj == True``, then return the dates as ``datetime.date`` objects.  
 
-    If ``feed.calendar`` and ``feed.calendar_dates`` are both 
-    ``None``, then return the empty list.
+    If ``feed.calendar`` and ``feed.calendar_dates`` are both ``None``, then return the empty list.
     """
     if feed.calendar is not None:
         start_date = feed.calendar['start_date'].min()
@@ -94,30 +92,23 @@ def count_active_trips(trip_times, time):
     - start_time: start time of the trip in seconds past midnight
     - end_time: end time of the trip in seconds past midnight
 
-    and a time in seconds past midnight, return the number of 
-    trips in the data frame that are active at the given time.
-    A trip is a considered active at time t if 
-    start_time <= t < end_time.        
+    and a time in seconds past midnight, return the number of trips in the data frame that are active at the given time.
+    A trip is a considered active at time t if start_time <= t < end_time.
     """
     t = trip_times
     return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
 
 def is_active_trip(feed, trip, date):
     """
-    If the given trip (trip ID) is active on the given date,
-    then return ``True``; otherwise return ``False``.
-    To avoid error checking in the interest of speed, 
-    assume ``trip`` is a valid trip ID in the given feed and 
-    ``date`` is a valid date object.
+    If the given trip (trip ID) is active on the given date, then return ``True``; otherwise return ``False``.
+    To avoid error checking in the interest of speed, assume ``trip`` is a valid trip ID in the given feed and ``date`` is a valid date object.
 
     Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
 
     NOTES: 
-
-    This function is key for getting all trips, routes, 
-    etc. that are active on a given date, so the function needs to be fast. 
+        - This function is key for getting all trips, routes, etc. that are active on a given date, so the function needs to be fast. 
     """
     service = feed._trips_i.at[trip, 'service_id']
     # Check feed._calendar_dates_g.
@@ -146,12 +137,9 @@ def is_active_trip(feed, trip, date):
 
 def get_trips(feed, date=None, time=None):
     """
-    Return the section of ``feed.trips`` that contains
-    only trips active on the given date.
-    If ``feed.trips`` is ``None`` or the date is ``None``, 
-    then return all ``feed.trips``.
-    If a date and time are given, 
-    then return only those trips active at that date and time.
+    Return the section of ``feed.trips`` that contains only trips active on the given date.
+    If ``feed.trips`` is ``None`` or the date is ``None``, then return all ``feed.trips``.
+    If a date and time are given, then return only those trips active at that date and time.
     Do not take times modulo 24.
     """
     if feed.trips is None or date is None:
@@ -189,16 +177,12 @@ def compute_trip_activity(feed, dates):
     Return a  data frame with the columns
 
     - trip_id
-    - ``dates[0]``: 1 if the trip is active on ``dates[0]``; 
-      0 otherwise
-    - ``dates[1]``: 1 if the trip is active on ``dates[1]``; 
-      0 otherwise
+    - ``dates[0]``: 1 if the trip is active on ``dates[0]``; 0 otherwise
+    - ``dates[1]``: 1 if the trip is active on ``dates[1]``; 0 otherwise
     - etc.
-    - ``dates[-1]``: 1 if the trip is active on ``dates[-1]``; 
-      0 otherwise
+    - ``dates[-1]``: 1 if the trip is active on ``dates[-1]``; 0 otherwise
 
-    If ``dates`` is ``None`` or the empty list, then return an 
-    empty data frame with the column 'trip_id'.
+    If ``dates`` is ``None`` or the empty list, then return an empty data frame with the column 'trip_id'.
 
     Assume the following feed attributes are not ``None``:
 
@@ -217,8 +201,7 @@ def compute_trip_activity(feed, dates):
 
 def compute_busiest_date(feed, dates):
     """
-    Given a list of dates, return the first date that has the 
-    maximum number of active trips.
+    Given a list of dates, return the first date that has the maximum number of active trips.
     If the list of dates is empty, then raise a ``ValueError``.
 
     Assume the following feed attributes are not ``None``:
@@ -247,7 +230,7 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
     - end_stop_id: stop ID of the last stop of the trip
     - is_loop: 1 if the start and end stop are less than 400m apart and
       0 otherwise
-    - distance: distance of the trip in ``feed.dist_units_out``; 
+    - distance: distance of the trip in ``feed.dist_units``; 
       contains all ``np.nan`` entries if ``feed.shapes is None``
     - duration: duration of the trip in hours
     - speed: distance/duration
@@ -261,19 +244,12 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
     - Those used in :func:`build_geometry_by_stop`
 
     NOTES:
+        If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at least one non-NaN value and ``compute_dist_from_shapes == False``, then use that column to compute the distance column.
+        Else if ``feed.shapes is not None``, then compute the distance column using the shapes and Shapely. 
+        Otherwise, set the distances to ``np.nan``.
 
-    If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at least
-    one non-NaN value and ``compute_dist_from_shapes == False``,
-    then use that column to compute the distance column.
-    Else if ``feed.shapes is not None``, then compute the distance 
-    column using the shapes and Shapely. 
-    Otherwise, set the distances to ``np.nan``.
-
-    Calculating trip distances with ``compute_dist_from_shapes=True``
-    seems pretty accurate.
-    For example, calculating trip distances on the Portland feed using
-    ``compute_dist_from_shapes=False`` and ``compute_dist_from_shapes=True``,
-    yields a difference of at most 0.83km.
+        Calculating trip distances with ``compute_dist_from_shapes=True`` seems pretty accurate.
+        For example, calculating trip distances on the Portland feed at https://transitfeeds.com/p/trimet/43/1400947517 using ``compute_dist_from_shapes=False`` and ``compute_dist_from_shapes=True``, yields a difference of at most 0.83km.
     """        
     # Start with stop times and extra trip info.
     # Convert departure times to seconds past midnight to 
@@ -322,15 +298,12 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
         # Compute distances using the shapes and Shapely
         geometry_by_shape = build_geometry_by_shape(feed, use_utm=True)
         geometry_by_stop = build_geometry_by_stop(feed, use_utm=True)
-        m_to_dist = ut.get_convert_dist('m', feed.dist_units_out)
+        m_to_dist = ut.get_convert_dist('m', feed.dist_units)
 
         def compute_dist(group):
             """
-            Return the distance traveled along the trip between the first
-            and last stops.
-            If that distance is negative or if the trip's linestring 
-            intersects itfeed, then return the length of the trip's 
-            linestring instead.
+            Return the distance traveled along the trip between the first and last stops.
+            If that distance is negative or if the trip's linestring  intersects itfeed, then return the length of the trip's linestring instead.
             """
             shape = group['shape_id'].iat[0]
             try:
@@ -385,8 +358,7 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
 
 def compute_trip_locations(feed, date, times):
     """
-    Return a  data frame of the positions of all trips
-    active on the given date and times 
+    Return a  data frame of the positions of all trips active on the given date and times 
     Include the columns:
 
     - trip_id
@@ -398,8 +370,7 @@ def compute_trip_locations(feed, date, times):
     - lon: longitude of trip at given time
     - lat: latitude of trip at given time
 
-    Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled``
-    column.
+    Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled`` column.
 
     Assume the following feed attributes are not ``None``:
 
@@ -517,11 +488,9 @@ def trip_to_geojson(feed, trip_id, include_stops=False):
 # -------------------------------------
 def get_routes(feed, date=None, time=None):
     """
-    Return the section of ``feed.routes`` that contains
-    only routes active on the given date.
+    Return the section of ``feed.routes`` that contains only routes active on the given date.
     If no date is given, then return all routes.
-    If a date and time are given, then return only those routes with
-    trips active at that date and time.
+    If a date and time are given, then return only those routes with trips active at that date and time.
     Do not take times modulo 24.
 
     Assume the following feed attributes are not ``None``:
@@ -540,8 +509,7 @@ def get_routes(feed, date=None, time=None):
 def compute_route_stats_base(trips_stats_subset, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Given a subset of the output of ``Feed.compute_trip_stats()``, 
-    calculate stats for the routes in that subset.
+    Given a subset of the output of ``Feed.compute_trip_stats()``, calculate stats for the routes in that subset.
     
     Return a data frame with the following columns:
 
@@ -550,47 +518,26 @@ def compute_route_stats_base(trips_stats_subset, split_directions=False,
     - route_type
     - direction_id
     - num_trips: number of trips
-    - is_loop: 1 if at least one of the trips on the route has its
-      ``is_loop`` field equal to 1; 0 otherwise
-    - is_bidirectional: 1 if the route has trips in both directions;
-      0 otherwise
-    - start_time: start time of the earliest trip on 
-      the route
+    - is_loop: 1 if at least one of the trips on the route has its ``is_loop`` field equal to 1; 0 otherwise
+    - is_bidirectional: 1 if the route has trips in both directions; 0 otherwise
+    - start_time: start time of the earliest trip on the route
     - end_time: end time of latest trip on the route
-    - max_headway: maximum of the durations (in minutes) between 
-      trip starts on the route between ``headway_start_time`` and 
-      ``headway_end_time`` on the given dates
+    - max_headway: maximum of the durations (in minutes) between trip starts on the route between ``headway_start_time`` and ``headway_end_time`` on the given dates
     - min_headway: minimum of the durations (in minutes) mentioned above
     - mean_headway: mean of the durations (in minutes) mentioned above
-    - peak_num_trips: maximum number of simultaneous trips in service
-      (for the given direction, or for both directions when 
-      ``split_directions==False``)
-    - peak_start_time: start time of first longest period during which
-      the peak number of trips occurs
-    - peak_end_time: end time of first longest period during which
-      the peak number of trips occurs
-    - service_duration: total of the duration of each trip on 
-      the route in the given subset of trips; measured in hours
-    - service_distance: total of the distance traveled by each trip on 
-      the route in the given subset of trips;
-      measured in wunits, that is, 
-      whatever distance units are present in trips_stats_subset; 
-      contains all ``np.nan`` entries if ``feed.shapes is None``  
-    - service_speed: service_distance/service_duration;
-      measured in wunits per hour
+    - peak_num_trips: maximum number of simultaneous trips in service (for the given direction, or for both directions when ``split_directions==False``)
+    - peak_start_time: start time of first longest period during which the peak number of trips occurs
+    - peak_end_time: end time of first longest period during which the peak number of trips occurs
+    - service_duration: total of the duration of each trip on the route in the given subset of trips; measured in hours
+    - service_distance: total of the distance traveled by each trip on the route in the given subset of trips; measured in wunits, that is, whatever distance units are present in trips_stats_subset; contains all ``np.nan`` entries if ``feed.shapes is None``  
+    - service_speed: service_distance/service_duration; measured in wunits per hour
     - mean_trip_distance: service_distance/num_trips
     - mean_trip_duration: service_duration/num_trips
 
-    If ``split_directions == False``, then remove the direction_id column
-    and compute each route's stats, except for headways, using its trips
-    running in both directions. 
-    In this case, (1) compute max headway by taking the max of the max 
-    headways in both directions; 
-    (2) compute mean headway by taking the weighted mean of the mean
-    headways in both directions. 
+    If ``split_directions == False``, then remove the direction_id column and compute each route's stats, except for headways, using its trips running in both directions. 
+    In this case, (1) compute max headway by taking the max of the max headways in both directions; (2) compute mean headway by taking the weighted mean of the mean headways in both directions. 
 
-    If ``trips_stats_subset`` is empty, return an empty data frame with
-    the columns specified above.
+    If ``trips_stats_subset`` is empty, return an empty data frame with the columns specified above.
 
     Assume the following feed attributes are not ``None``: none.
     """        
@@ -739,12 +686,7 @@ def compute_route_stats_base(trips_stats_subset, split_directions=False,
 def compute_route_stats(feed, trips_stats, date, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Take ``trips_stats``, which is the output of 
-    ``compute_trip_stats()``, cut it down to the subset ``S`` of trips
-    that are active on the given date, and then call
-    ``compute_route_stats_base()`` with ``S`` and the keyword arguments
-    ``split_directions``, ``headway_start_time``, and 
-    ``headway_end_time``.
+    Take ``trips_stats``, which is the output of ``compute_trip_stats()``, cut it down to the subset ``S`` of trips that are active on the given date, and then call ``compute_route_stats_base()`` with ``S`` and the keyword arguments ``split_directions``, ``headway_start_time``, and  ``headway_end_time``.
 
     See ``compute_route_stats_base()`` for a description of the output.
 
@@ -753,11 +695,8 @@ def compute_route_stats(feed, trips_stats, date, split_directions=False,
     - Those used in :func:`compute_route_stats_base`
         
     NOTES:
-
-    This is a more user-friendly version of ``compute_route_stats_base()``.
-    The latter function works without a feed, though.
-
-    Return ``None`` if the date does not lie in this feed's date range.
+        - This is a more user-friendly version of ``compute_route_stats_base()``. The latter function works without a feed, though.
+        - Return ``None`` if the date does not lie in this feed's date range.
     """
     # Get the subset of trips_stats that contains only trips active
     # on the given date
@@ -770,8 +709,7 @@ def compute_route_stats(feed, trips_stats, date, split_directions=False,
 def compute_route_time_series_base(trips_stats_subset,
   split_directions=False, freq='5Min', date_label='20010101'):
     """
-    Given a subset of the output of ``Feed.compute_trip_stats()``, 
-    calculate time series for the routes in that subset.
+    Given a subset of the output of ``Feed.compute_trip_stats()``, calculate time series for the routes in that subset.
 
     Return a time series version of the following route stats:
     
@@ -781,15 +719,13 @@ def compute_route_time_series_base(trips_stats_subset,
     - service distance in kilometers by route ID
     - service speed in kilometers per hour
 
-    The time series is a data frame with a timestamp index 
-    for a 24-hour period sampled at the given frequency.
-    The maximum allowable frequency is 1 minute.
+    The time series is a data frame with a timestamp index for a 24-hour period sampled at the given frequency.
+    The maximum allowable frequency is 1 minute. 
     ``date_label`` is used as the date for the timestamp index.
 
     The columns of the data frame are hierarchical (multi-index) with
 
-    - top level: name = 'indicator', values = ['service_distance',
-      'service_duration', 'num_trip_starts', 'num_trips', 'service_speed']
+    - top level: name = 'indicator', values = ['service_distance', 'service_duration', 'num_trip_starts', 'num_trips', 'service_speed']
     - middle level: name = 'route_id', values = the active routes
     - bottom level: name = 'direction_id', values = 0s and 1s
 
@@ -799,15 +735,11 @@ def compute_route_time_series_base(trips_stats_subset,
     with the indicator columns.
 
     NOTES:
-
-    - To resample the resulting time series use the following methods:
-        - for 'num_trips' series, use ``how=np.mean``
-        - for the other series, use ``how=np.sum`` 
-        - 'service_speed' can't be resampled and must be recalculated
-          from 'service_distance' and 'service_duration' 
-    - To remove the date and seconds from the 
-      time series f, do ``f.index = [t.time().strftime('%H:%M') 
-      for t in f.index.to_datetime()]``
+        - To resample the resulting time series use the following methods:
+            * for 'num_trips' series, use ``how=np.mean``
+            * for the other series, use ``how=np.sum`` 
+            * 'service_speed' can't be resampled and must be recalculated from 'service_distance' and 'service_duration' 
+        - To remove the date and seconds from the time series f, do ``f.index = [t.time().strftime('%H:%M') for t in f.index.to_datetime()]``
     """  
     cols = [
       'service_distance',
@@ -901,12 +833,7 @@ def compute_route_time_series_base(trips_stats_subset,
 def compute_route_time_series(feed, trips_stats, date, 
   split_directions=False, freq='5Min'):
     """
-    Take ``trips_stats``, which is the output of 
-    ``compute_trip_stats()``, cut it down to the subset ``S`` of trips
-    that are active on the given date, and then call
-    ``compute_route_time_series_base()`` with ``S`` and the given 
-    keyword arguments ``split_directions`` and ``freq``
-    and with ``date_label = ut.date_to_str(date)``.
+    Take ``trips_stats``, which is the output of ``compute_trip_stats()``, cut it down to the subset ``S`` of trips that are active on the given date, and then call ``compute_route_time_series_base()`` with ``S`` and the given keyword arguments ``split_directions`` and ``freq`` and with ``date_label = ut.date_to_str(date)``.
 
     See ``compute_route_time_series_base()`` for a description of the output.
 
@@ -918,10 +845,8 @@ def compute_route_time_series(feed, trips_stats, date,
         
 
     NOTES:
-
-    This is a more user-friendly version of 
-    ``compute_route_time_series_base()``.
-    The latter function works without a feed, though.
+        This is a more user-friendly version of ``compute_route_time_series_base()``.
+        The latter function works without a feed, though.
     """  
     trips_stats_subset = pd.merge(trips_stats, get_trips(feed, date))
     return compute_route_time_series_base(trips_stats_subset, 
@@ -930,12 +855,9 @@ def compute_route_time_series(feed, trips_stats, date,
 
 def get_route_timetable(feed, route_id, date):
     """
-    Return a data frame encoding the timetable
-    for the given route ID on the given date.
-    The columns are all those in ``feed.trips`` plus those in 
-    ``feed.stop_times``.
-    The result is sorted by grouping by trip ID and
-    sorting the groups by their first departure time.
+    Return a data frame encoding the timetable for the given route ID on the given date.
+    The columns are all those in ``feed.trips`` plus those in ``feed.stop_times``.
+    The result is sorted by grouping by trip ID and sorting the groups by their first departure time.
 
     Assume the following feed attributes are not ``None``:
 
@@ -1655,25 +1577,21 @@ def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None,
 
 def add_dist_to_shapes(feed):
     """
-    Copy ``feed.shapes``, calculate the optional ``shape_dist_traveled`` 
-    GTFS field, and return the resulting shapes data frame.
+    Copy ``feed.shapes``, calculate the optional ``shape_dist_traveled`` GTFS field, and return the resulting shapes data frame.
 
     Assume the following feed attributes are not ``None``:
 
     - ``feed.shapes``
 
-    NOTE: 
-
-    All of the calculated ``shape_dist_traveled`` values 
-    for the Portland feed differ by at most 0.016 km in absolute values
-    from of the original values. 
+    NOTES: 
+        - All of the calculated ``shape_dist_traveled`` values for the Portland feed https://transitfeeds.com/p/trimet/43/1400947517 differ by at most 0.016 km in absolute values from of the original values. 
     """
     if feed.shapes is None:
         raise ValueError(
           "This function requires the feed to have a shapes.txt file")
 
     f = feed.shapes
-    m_to_dist = ut.get_convert_dist('m', feed.dist_units_out)
+    m_to_dist = ut.get_convert_dist('m', feed.dist_units)
 
     def compute_dist(group):
         # Compute the distances of the stops along this trip
@@ -1795,7 +1713,7 @@ def add_dist_to_stop_times(feed, trips_stats):
     Unfortunately, this fallback method will produce incorrect results
     when the first stop does not start at the start of its shape
     (so shape_dist_traveled != 0).
-    This is the case for several trips in the Portland feed, for example. 
+    This is the case for several trips in the Portland feed at https://transitfeeds.com/p/trimet/43/1400947517, for example. 
     """
     geometry_by_shape = build_geometry_by_shape(feed, use_utm=True)
     geometry_by_stop = build_geometry_by_stop(feed, use_utm=True)
@@ -1808,7 +1726,7 @@ def add_dist_to_stop_times(feed, trips_stats):
     # Convert departure times to seconds past midnight to ease calculations
     f['departure_time'] = f['departure_time'].map(ut.timestr_to_seconds)
     dist_by_stop_by_shape = {shape: {} for shape in geometry_by_shape}
-    m_to_dist = ut.get_convert_dist('m', feed.dist_units_out)
+    m_to_dist = ut.get_convert_dist('m', feed.dist_units)
 
     def compute_dist(group):
         # Compute the distances of the stops along this trip
@@ -2436,7 +2354,7 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     # Assume here that trips travel in the same direction as their shapes.
     dv_by_shape = {}
     eps = 1
-    convert_dist = ut.get_convert_dist('m', feed.dist_units_out)
+    convert_dist = ut.get_convert_dist('m', feed.dist_units)
     for __, sid, geom, intersection in shapes.itertuples():
         # Get distances along shape of intersection points (in meters)
         distances = [geom.project(p) for p in intersection]

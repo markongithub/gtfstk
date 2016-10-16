@@ -169,7 +169,7 @@ VALID_COLUMNS_BY_TABLE = {
 DIST_UNITS = ['ft', 'mi', 'm', 'km']
 
 #:
-FEED_ATTRS_PRIMARY = [
+FEED_ATTRS_PUBLIC = [
   'agency', 
   'stops', 
   'routes', 
@@ -187,13 +187,13 @@ FEED_ATTRS_PRIMARY = [
   ]
 
 #:
-FEED_ATTRS_SECONDARY = [
+FEED_ATTRS_PRIVATE = [
   '_trips_i', 
   '_calendar_i', 
   '_calendar_dates_g',
   ]
   
-FEED_ATTRS = FEED_ATTRS_PRIMARY + FEED_ATTRS_SECONDARY
+FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
 
 # Columns that must be formatted as integers when outputting GTFS
 #:

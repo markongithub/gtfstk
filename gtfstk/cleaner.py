@@ -19,11 +19,9 @@ def clean_ids(feed):
     # Alter feed inputs only, and build a new feed from them.
     # The derived feed attributes, such as feed.trips_i, 
     # will be automatically handled when creating the new feed.
-    new_feed_input = dict()
-    new_feed_input['dist_units_in'] = feed.dist_units_in
-    new_feed_input['dist_units_out'] = feed.dist_units_out
+    feed = feed.copy()
 
-    for key in cs.FEED_ATTRS_PRIMARY:
+    for key in cs.FEED_ATTRS_PUBLIC:
         f = getattr(feed, key)
         # Alter ID columns
         if f is not None and key in cs.VALID_COLUMNS_BY_TABLE:
@@ -31,12 +29,11 @@ def clean_ids(feed):
                 if col.endswith('_id') and col in f.columns:
                     try:
                         f[col] = f[col].str.strip().str.replace(r'\s+', '_')
+                        setattr(feed, key, f)
                     except AttributeError:
                         # Column is not of string type
                         continue
-        new_feed_input[key] = f
-
-    return Feed(**new_feed_input)
+    return feed
 
 def clean_stop_times(feed):
     """
