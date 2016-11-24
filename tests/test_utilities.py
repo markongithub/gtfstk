@@ -9,12 +9,7 @@ from numpy.testing import assert_array_equal
 from shapely.geometry import Point, LineString, mapping
 from shapely.geometry import shape as sh_shape
 
-from gtfstk.feed import read_gtfs
 from gtfstk.utilities import *
-
-# Load test feeds
-DATA_DIR = Path('data')
-cairns = read_gtfs(DATA_DIR/'cairns_gtfs.zip')
 
 class TestUtilities(unittest.TestCase):
     # Test utils functions
@@ -96,6 +91,7 @@ class TestUtilities(unittest.TestCase):
 
         f = pd.DataFrame([[1, np.nan], [2, 2]], columns=['bar', c])
         self.assertTrue(is_not_null(f, c))
+
 
 if __name__ == '__main__':
     unittest.main()
