@@ -23,15 +23,13 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="None" href="index.html#document-index" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK  documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK  documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -59,7 +57,7 @@
           <div class="body" role="main">
             
   <div class="section" id="gtfstk-version-documentation">
-<h1>GTFSTK 6.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>GTFSTK 6.1 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <span id="document-introduction"></span><p>GTFSTK is a Python 3.5 tool kit for processing <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
 It is mostly for computing statistics, such as daily service distance per route and daily number of trips per stop.
@@ -81,7 +79,7 @@ Unless specified otherwise, &#8216;data frame&#8217; and &#8216;series&#8217; re
 <span id="constants-module"></span><h2>constants Module<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="gtfstk.constants.CRS_WGS84">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'ellps': 'WGS84', 'no_defs': True, 'proj': 'longlat', 'datum': 'WGS84'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'proj': 'longlat', 'no_defs': True, 'datum': 'WGS84', 'ellps': 'WGS84'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -91,7 +89,7 @@ Unless specified otherwise, &#8216;data frame&#8217; and &#8216;series&#8217; re
 
 <dl class="data">
 <dt id="gtfstk.constants.DTYPE">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'zone_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'to_stop_id': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'agency_id': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'from_stop_id': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'parent_station': &lt;class 'str'&gt;, 'service_id': &lt;class 'str'&gt;, 'agency_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'from_stop_id': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'to_stop_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'zone_id': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -150,7 +148,7 @@ distance in the units <code class="docutils literal"><span class="pre">dist_unit
 <code class="descclassname">gtfstk.utilities.</code><code class="descname">get_max_runs</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.utilities.get_max_runs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a list of numbers, return a NumPy array of pairs (start index, end index + 1) of the runs of max value.</p>
 <p>EXAMPLES:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_max_runs</span><span class="p">([</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_max_runs</span><span class="p">([</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 <span class="go">array([[0, 1],</span>
 <span class="go">       [3, 5]])</span>
 </pre></div>
@@ -253,12 +251,12 @@ Feed (public) attributes are</p>
 </ul>
 <p>There are also a few private Feed attributes that are derived from some public attributes and are automatically updated when those public attributes change.
 However, for this update to work, you must properly update the primary attributes like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">feed</span><span class="o">.</span><span class="n">trips</span><span class="p">[</span><span class="s1">&#39;route_short_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;bingo&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">feed</span><span class="o">.</span><span class="n">trips</span><span class="p">[</span><span class="s1">&#39;route_short_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;bingo&#39;</span>
 <span class="n">feed</span><span class="o">.</span><span class="n">trips</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">trips</span>
 </pre></div>
 </div>
 <p>and <strong>not</strong> like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">feed</span><span class="o">.</span><span class="n">trips</span><span class="p">[</span><span class="s1">&#39;route_short_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;bingo&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">feed</span><span class="o">.</span><span class="n">trips</span><span class="p">[</span><span class="s1">&#39;route_short_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;bingo&#39;</span>
 </pre></div>
 </div>
 <p>The first way ensures that the altered trips data frame is saved as the new <code class="docutils literal"><span class="pre">trips</span></code> attribute, but the second way does not.</p>
@@ -298,15 +296,17 @@ However, for this update to work, you must properly update the primary attribute
 <dt id="gtfstk.feed.read_gtfs">
 <code class="descclassname">gtfstk.feed.</code><code class="descname">read_gtfs</code><span class="sig-paren">(</span><em>path</em>, <em>dist_units=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.read_gtfs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Feed object from the given path and given distance units.
-The path points to a directory containing GTFS text files or a zip file that unzips as a collection of GTFS text files (but not as a directory containing GTFS text files).</p>
+The path should be a directory containing GTFS text files or a zip file that unzips as a collection of GTFS text files (and not as a directory containing GTFS text files).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.feed.write_gtfs">
 <code class="descclassname">gtfstk.feed.</code><code class="descname">write_gtfs</code><span class="sig-paren">(</span><em>feed</em>, <em>path</em>, <em>ndigits=6</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.write_gtfs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Export the given feed to a zip archive located at <code class="docutils literal"><span class="pre">path</span></code>.
+<dd><p>Export the given feed to the given path.
+If the path end in &#8216;.zip&#8217;, then write the feed as a zip archive.
+Otherwise assume the path is a directory, and write the feed as a collection of CSV files to that directory, creating the directory if it does not exist.
 Round all decimals to <code class="docutils literal"><span class="pre">ndigits</span></code> decimal places.
-All distances will be displayed in units <code class="docutils literal"><span class="pre">feed.dist_units</span></code>.</p>
+All distances will be the distance units <code class="docutils literal"><span class="pre">feed.dist_units</span></code>.</p>
 </dd></dl>
 
 </div>
@@ -1282,9 +1282,9 @@ If there are no stops/routes within the max headway limit, then return
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span>Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
 </ul>
 </div>
 
@@ -1297,12 +1297,12 @@ If there are no stops/routes within the max headway limit, then return
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK  documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK  documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright .
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+        &copy; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.
     </div>
   </body>
 </html>

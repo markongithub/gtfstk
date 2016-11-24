@@ -24,8 +24,8 @@ Notes
 =====
 - Development status is Alpha
 - This project uses `semantic versioning <http://semver.org/>`_
-- This project has been funded in part by `MRCagney <http://www.mrcagney.com/>`_
-- Constructive comments are welcome and are best filed in this repository's issues section with an appropriate label, e.g. 'feature-request'.
+- Thanks to `MRCagney <http://www.mrcagney.com/>`_ for partially funding this project
+- Constructive feedback is welcome and is best placed in this repository's issues section with an appropriate label, e.g. 'feature request'.
 
 
 Authors
@@ -33,8 +33,14 @@ Authors
 - Alex Raichev (2014-05)
 
 
-Changelog
+History
 =========
+
+6.1.0, 2016-11-24
+-----------------
+- Changed ``feed.read_gtfs`` to unzip to temporary directory
+- Enabled ``feed.write_gtfs`` to write to a directory
+
 
 6.0.0, 2016-10-17
 -----------------

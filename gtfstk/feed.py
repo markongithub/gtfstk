@@ -4,7 +4,6 @@ Almost all other operations on Feed objects are defined as functions living outs
 Every function that acts on a Feed object assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or a data frame with the columns required in the `GTFS <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
 """
 from pathlib import Path
-import zipfile
 import tempfile
 import shutil
 from copy import deepcopy
@@ -174,60 +173,66 @@ class Feed(object):
 def read_gtfs(path, dist_units=None):
     """
     Create a Feed object from the given path and given distance units.
-    The path points to a directory containing GTFS text files or a zip file that unzips as a collection of GTFS text files (but not as a directory containing GTFS text files).
+    The path should be a directory containing GTFS text files or a zip file that unzips as a collection of GTFS text files (and not as a directory containing GTFS text files).
     """
-    p = Path(path)
-    if not p.exists():
-        raise ValueError("Path {!s} does not exist".format(p.as_posix()))
+    path = Path(path)
+    if not path.exists():
+        raise ValueError("Path {!s} does not exist".format(path))
 
-    # Unzip path if necessary
-    zipped = False
-    if zipfile.is_zipfile(p.as_posix()):
-        # Extract to temporary location
+    # Unzip path to temporary directory if necessary
+    if path.is_file():
         zipped = True
-        archive = zipfile.ZipFile(p.as_posix())
-        # Strip off .zip extension
-        p = p.parent / p.stem
-        archive.extractall(p.as_posix())
+        tmp_dir = tempfile.TemporaryDirectory()
+        src_path = Path(tmp_dir.name)
+        shutil.unpack_archive(str(path), tmp_dir.name, 'zip')
+    else:
+        zipped = False
+        src_path = path
 
     # Read files into feed dictionary of data frames
-    feed_dict = {}
-    for f in cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL:
-        ff = f + '.txt'
-        pp = Path(p, ff)
-        if pp.exists():
-            feed_dict[f] = pd.read_csv(pp.as_posix(), dtype=cs.DTYPE,
+    tables = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
+    feed_dict = {table: None for table in tables}
+    for p in src_path.iterdir():
+        table = p.stem
+        if p.is_file() and table in tables:
+            feed_dict[table] = pd.read_csv(p, dtype=cs.DTYPE, 
               encoding='utf-8-sig') 
             # utf-8-sig gets rid of the byte order mark (BOM);
             # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string 
-        else:
-            feed_dict[f] = None
         
     feed_dict['dist_units'] = dist_units
 
-    # Remove extracted zip directory
+    # Delete temporary directory
     if zipped:
-        shutil.rmtree(p.as_posix())
+        tmp_dir.cleanup()
 
     # Create feed 
     return Feed(**feed_dict)
 
 def write_gtfs(feed, path, ndigits=6):
     """
-    Export the given feed to a zip archive located at ``path``.
+    Export the given feed to the given path.
+    If the path end in '.zip', then write the feed as a zip archive.
+    Otherwise assume the path is a directory, and write the feed as a collection of CSV files to that directory, creating the directory if it does not exist.
     Round all decimals to ``ndigits`` decimal places.
-    All distances will be displayed in units ``feed.dist_units``.
+    All distances will be the distance units ``feed.dist_units``.
     """
-    # Remove '.zip' extension from path, because it gets added
-    # automatically below
-    p = Path(path)
-    p = p.parent/p.stem
+    path = Path(path)
 
-    # Write files to a temporary directory 
-    tmp_dir = tempfile.mkdtemp()
-    names = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
-    for name in names:
-        f = getattr(feed, name)
+    if path.suffix == '.zip':
+        # Write to temporary directory before zipping
+        zipped = True
+        tmp_dir = tempfile.TemporaryDirectory()
+        new_path = Path(tmp_dir.name)
+    else:
+        zipped = False
+        if not path.exists():
+            path.mkdir()
+        new_path = path 
+
+    tables = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
+    for table in tables:
+        f = getattr(feed, table)
         if f is None:
             continue
 
@@ -239,12 +244,11 @@ def write_gtfs(feed, path, ndigits=6):
         for s in f_int_cols:
             f[s] = f[s].fillna(-1).astype(int).astype(str).\
               replace('-1', '')
-        tmp_path = Path(tmp_dir, name + '.txt')
-        f.to_csv(tmp_path.as_posix(), index=False, 
-          float_format='%.{!s}f'.format(ndigits))
+        p = new_path/(table + '.txt')
+        f.to_csv(str(p), index=False, float_format='%.{!s}f'.format(ndigits))
 
     # Zip directory 
-    shutil.make_archive(p.as_posix(), format='zip', root_dir=tmp_dir)    
-
-    # Delete temporary directory
-    shutil.rmtree(tmp_dir)
+    if zipped:
+        basename = str(path.parent/path.stem)
+        shutil.make_archive(basename, format='zip', root_dir=tmp_dir.name)    
+        tmp_dir.cleanup()

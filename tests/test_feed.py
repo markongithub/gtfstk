@@ -81,23 +81,22 @@ class TestFeed(unittest.TestCase):
         # Success
         feed = read_gtfs(DATA_DIR/'sample_gtfs.zip',  dist_units='m')
 
+        # Success
+        feed = read_gtfs(DATA_DIR/'sample_gtfs',  dist_units='m')
+
     def test_write_gtfs(self):
         feed1 = read_gtfs(DATA_DIR/'sample_gtfs.zip', dist_units='km')
 
-        # Export feed1, import it as feed2, and then test that the
-        # attributes of the two feeds are equal.
-        path = DATA_DIR/'test_gtfs.zip'
-        write_gtfs(feed1, path)
-        feed2 = read_gtfs(path, dist_units='km')
-        names = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
-        for name in names:
-            f1 = getattr(feed1, name)
-            f2 = getattr(feed2, name)
-            if f1 is None:
-                self.assertIsNone(f2)
-            else:
-                assert_frame_equal(f1, f2)
-
+        # Export feed1, import it as feed2, and then test equality
+        for out_path in [DATA_DIR/'bingo.zip', DATA_DIR/'bingo']:
+            write_gtfs(feed1, out_path)
+            feed2 = read_gtfs(out_path, 'km')
+            names = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
+            self.assertEqual(feed1, feed2)
+            try:
+                out_path.unlink()
+            except:
+                shutil.rmtree(str(out_path))
 
         # Test that integer columns with NaNs get output properly.
         # To this end, put a NaN, 1.0, and 0.0 in the direction_id column 
@@ -110,14 +109,13 @@ class TestFeed(unittest.TestCase):
         f.loc[1, 'direction_id'] = 1.0
         f.loc[2, 'direction_id'] = 0.0
         feed3.trips = f
-        write_gtfs(feed3, path)
-        archive = zipfile.ZipFile(str(path))
-        dir_name = Path(path.stem) #rstrip('.zip') + '/'
-        archive.extractall(str(dir_name))
-        t = pd.read_csv(dir_name/'trips.txt', dtype={'direction_id': str})
-        self.assertTrue(t[~t['direction_id'].isin([np.nan, '0', '1'])].empty)
-        
-        # Clean up
-        shutil.rmtree(str(dir_name))
-        path.unlink()
+        q = DATA_DIR/'bingo.zip'
+        write_gtfs(feed3, q)
 
+        tmp_dir = tempfile.TemporaryDirectory()
+        shutil.unpack_archive(str(q), tmp_dir.name, 'zip')
+        qq = Path(tmp_dir.name)/'trips.txt'
+        t = pd.read_csv(qq, dtype={'direction_id': str})
+        self.assertTrue(t[~t['direction_id'].isin([np.nan, '0', '1'])].empty)
+        tmp_dir.cleanup()
+        q.unlink()
