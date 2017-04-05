@@ -190,15 +190,6 @@ class TestCalculator(unittest.TestCase):
         cols = sorted(stops.columns)
         assert_frame_equal(stops2[cols], stops[cols])
 
-    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
-    def test_get_stops_intersecting_polygon(self):
-        feed = cairns.copy()
-        with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
-            polygon = sh_shape(json.load(src)['features'][0]['geometry'])
-        pstops = get_stops_intersecting_polygon(feed, polygon)
-        stop_ids = ['750070']
-        self.assertEqual(pstops['stop_id'].values, stop_ids)
-
     def test_compute_stop_stats_base(self):
         feed = cairns.copy()
         for split_directions in [True, False]:
@@ -299,58 +290,7 @@ class TestCalculator(unittest.TestCase):
         cols = ['shape_id', 'shape_pt_lon', 'shape_pt_lat']
         assert_frame_equal(shapes2[cols], shapes[cols])
 
-    @unittest.skipIf(not HAS_GEOPANDAS, 'geopandas absent; skipping')
-    def test_get_shapes_intersecting_geometry(self):
-        feed = cairns.copy()
-        path = DATA_DIR/'cairns_square_stop_750070.geojson'
-        polygon = sh_shape(json.load(path.open())['features'][0]['geometry'])
-        pshapes = get_shapes_intersecting_geometry(feed, polygon)
-        shape_ids = ['120N0005', '1200010', '1200001']
-        self.assertEqual(set(pshapes['shape_id'].unique()), set(shape_ids))
 
-    def test_append_dist_to_shapes(self):
-        feed1 = cairns.copy()
-        s1 = feed1.shapes
-        feed2 = append_dist_to_shapes(feed1)
-        s2 = feed2.shapes
-        # Check that colums of st2 equal the columns of st1 plus
-        # a shape_dist_traveled column
-        cols1 = list(s1.columns.values) + ['shape_dist_traveled']
-        cols2 = list(s2.columns.values)
-        self.assertEqual(set(cols1), set(cols2))
-
-        # Check that within each trip the shape_dist_traveled column 
-        # is monotonically increasing
-        for name, group in s2.groupby('shape_id'):
-            sdt = list(group['shape_dist_traveled'].values)
-            self.assertEqual(sdt, sorted(sdt))
-
-    def test_append_route_type_to_shapes(self):
-        feed = cairns.copy()
-        shapes = append_route_type_to_shapes(feed)
-        # Should contain correct columns
-        self.assertEqual(set(shapes.columns), 
-          set(feed.shapes.columns) | {'route_type'})
-
-    def test_get_start_and_end_times(self):
-        feed = cairns.copy()
-        date = get_dates(feed)[0]
-        st = get_stop_times(feed, date)
-        times = get_start_and_end_times(feed, date)
-        # Should be strings
-        for t in times:
-            self.assertIsInstance(t, str)
-            # Should lie in stop times
-            self.assertTrue(t in 
-              st[['departure_time', 'arrival_time']].values.flatten())
-
-        # Should get null times in some cases
-        times = get_start_and_end_times(feed, '19690711')
-        for t in times:
-            self.assertTrue(pd.isnull(t))
-        feed.stop_times['departure_time'] = np.nan
-        times = get_start_and_end_times(feed)
-        self.assertTrue(pd.isnull(times[0]))
 
     def test_append_dist_to_stop_times(self):
         feed1 = cairns.copy()
@@ -372,91 +312,7 @@ class TestCalculator(unittest.TestCase):
             sdt = list(group['shape_dist_traveled'].values)
             self.assertEqual(sdt, sorted(sdt))
 
-    # ----------------------------------
-    # Test functions about feeds
-    # ----------------------------------
-    def test_convert_dist(self):
-        # Test with no distances
-        feed1 = cairns.copy() # No distances here
-        feed2 = convert_dist(feed1, 'mi')
-        self.assertTrue(feed2.dist_units, 'mi')
 
-        # Test with distances and identity conversion
-        feed1 = append_dist_to_shapes(feed1) 
-        feed2 = convert_dist(feed1, feed1.dist_units)
-        self.assertEqual(feed1, feed2)
-
-        # Test with proper conversion
-        feed2 = convert_dist(feed1, 'm')
-        assert_series_equal(feed2.shapes['shape_dist_traveled']/1000,
-          feed1.shapes['shape_dist_traveled'])
-
-    def test_compute_feed_stats(self):
-        feed = cairns.copy()
-        date = get_dates(feed)[0]
-        trip_stats = compute_trip_stats(feed)
-        f = compute_feed_stats(feed, trip_stats, date)
-        # Should be a data frame
-        self.assertIsInstance(f, pd.core.frame.DataFrame)
-        # Should have the correct number of rows
-        self.assertEqual(f.shape[0], 1)
-        # Should contain the correct columns
-        expect_cols = set([
-          'num_trips',
-          'num_routes',
-          'num_stops',
-          'peak_num_trips',
-          'peak_start_time',
-          'peak_end_time',
-          'service_duration', 
-          'service_distance',
-          'service_speed',              
-          ])
-        self.assertEqual(set(f.columns), expect_cols)
-
-        # Empty check
-        f = compute_feed_stats(feed, trip_stats, '20010101')
-        self.assertTrue(f.empty)
-
-    def test_compute_feed_time_series(self):
-        feed = cairns.copy()
-        date = get_dates(feed)[0]
-        trip_stats = compute_trip_stats(feed)
-        f = compute_feed_time_series(feed, trip_stats, date, freq='1H')
-        # Should be a data frame 
-        self.assertIsInstance(f, pd.core.frame.DataFrame)
-        # Should have the correct number of rows
-        self.assertEqual(f.shape[0], 24)
-        # Should have the correct columns
-        expect_cols = set([
-          'num_trip_starts',
-          'num_trips',
-          'service_distance',
-          'service_duration',
-          'service_speed',
-          ])
-        self.assertEqual(set(f.columns), expect_cols)
-
-        # Empty check
-        f = compute_feed_time_series(feed, trip_stats, '20010101')
-        self.assertTrue(f.empty)
-
-    def test_create_shapes(self):
-        feed1 = cairns.copy()
-        # Remove a trip shape
-        trip_id = 'CNS2014-CNS_MUL-Weekday-00-4165878'
-        feed1.trips.loc[feed1.trips['trip_id'] == trip_id, 'shape_id'] = np.nan
-        feed2 = create_shapes(feed1)
-        # Should create only 1 new shape
-        self.assertEqual(len(set(feed2.shapes['shape_id']) - set(
-          feed1.shapes['shape_id'])), 1)
-
-        feed2 = create_shapes(feed1, all_trips=True)
-        # Number of shapes should equal number of unique stop sequences
-        st = feed1.stop_times.sort_values(['trip_id', 'stop_sequence'])
-        stop_seqs = set([tuple(group['stop_id'].values)
-          for __, group in st.groupby('trip_id')])
-        self.assertEqual(feed2.shapes['shape_id'].nunique(), len(stop_seqs))
 
     def test_restrict_by_routes(self):
         feed1 = cairns.copy() 
@@ -543,23 +399,6 @@ class TestCalculator(unittest.TestCase):
             self.assertEqual(f[f['orientation'] == 1].shape[0], 
               expect_num_trips)
 
-    def test_compute_bounds(self):
-        feed = cairns.copy() 
-        minlon, minlat, maxlon, maxlat = compute_bounds(feed)
-        # Bounds should be in the ball park
-        self.assertTrue(145 < minlon < 146)
-        self.assertTrue(145 < maxlon < 146)
-        self.assertTrue(-18 < minlat < -15)
-        self.assertTrue(-18 < maxlat < -15)
-
-    def test_compute_center(self):
-        feed = cairns.copy() 
-        centers = [compute_center(feed), compute_center(feed, 20)]
-        bounds = compute_bounds(feed)
-        for lon, lat in centers:
-            # Center should be in the ball park
-            self.assertTrue(bounds[0] < lon < bounds[2])
-            self.assertTrue(bounds[1] < lat < bounds[3])
 
 
 

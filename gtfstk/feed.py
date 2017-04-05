@@ -13,6 +13,7 @@ from copy import deepcopy
 import dateutil.relativedelta as rd
 from collections import OrderedDict
 import json
+import math
 
 import pandas as pd 
 import numpy as np
@@ -320,7 +321,7 @@ class Feed(object):
 
     def compute_trip_activity(self, dates):
         """
-        Return a  data frame with the columns
+        Return a  DataFrame with the columns
 
         - trip_id
         - ``dates[0]``: 1 if the trip is active on ``dates[0]``; 0 otherwise
@@ -328,7 +329,7 @@ class Feed(object):
         - etc.
         - ``dates[-1]``: 1 if the trip is active on ``dates[-1]``; 0 otherwise
 
-        If ``dates`` is ``None`` or the empty list, then return an empty data frame with the column 'trip_id'.
+        If ``dates`` is ``None`` or the empty list, then return an empty DataFrame with the column 'trip_id'.
 
         Assume the following feed attributes are not ``None``:
 
@@ -361,7 +362,7 @@ class Feed(object):
 
     def compute_trip_stats(self, compute_dist_from_shapes=False):
         """
-        Return a data frame with the following columns:
+        Return a DataFrame with the following columns:
 
         - trip_id
         - route_id
@@ -504,7 +505,7 @@ class Feed(object):
 
     def compute_trip_locations(self, date, times):
         """
-        Return a  data frame of the positions of all trips active on the given date and times 
+        Return a  DataFrame of the positions of all trips active on the given date and times 
         Include the columns:
 
         - trip_id
@@ -568,8 +569,8 @@ class Feed(object):
         h = pd.merge(g, self.trips[['trip_id', 'route_id', 'direction_id', 
           'shape_id']])
         if not h.shape[0]:
-            # Return a data frame with the promised headers but no data.
-            # Without this check, result below could be an empty data frame.
+            # Return a DataFrame with the promised headers but no data.
+            # Without this check, result below could be an empty DataFrame.
             h['lon'] = pd.Series()
             h['lat'] = pd.Series()
             return h
@@ -636,7 +637,7 @@ class Feed(object):
 
         Assume the following feed attributes are not ``None``:
 
-        - ``feed.routes``
+        - ``self.routes``
         - Those used in :func:`get_trips`.
             
         """
@@ -655,7 +656,7 @@ class Feed(object):
         Then call :func:`compute_route_stats_base` with ``S`` and the keyword arguments ``split_directions``, ``headway_start_time``, and  ``headway_end_time``.
         See :func:`compute_route_stats_base` for a description of the outphp.
 
-        Return an empty data frame if there are no route stats for the given trip stats and date.
+        Return an empty DataFrame if there are no route stats for the given trip stats and date.
 
         Assume the following feed attributes are not ``None``:
 
@@ -677,9 +678,9 @@ class Feed(object):
         """
         Given a DataFrame of possibly partial trip stats for this Feed in the form output by :func:`compute_trip_stats`, cut the stats down to the subset ``S`` of trips that are active on the given date, then call :func:`compute_route_time_series_base` with ``S`` and the given keyword arguments ``split_directions`` and ``freq`` and with ``date_label = date_to_str(date)``.
 
-        See :func:`compute_route_time_series_base` for a description of the output.
+        See :func:`compute_route_time_series_base` for a description of the outphp.
 
-        Return an empty data frame if there are no route stats for the given trip stats and date.
+        Return an empty DataFrame if there are no route stats for the given trip stats and date.
 
         Assume the following feed attributes are not ``None``:
 
@@ -696,7 +697,7 @@ class Feed(object):
 
     def get_route_timetable(self, route_id, date):
         """
-        Return a data frame encoding the timetable for the given route ID on the given date.
+        Return a DataFrame encoding the timetable for the given route ID on the given date.
         The columns are all those in ``self.trips`` plus those in ``self.stop_times``.
         The result is sorted by grouping by trip ID and sorting the groups by their first departure time.
 
@@ -838,7 +839,7 @@ class Feed(object):
 
     def compute_stop_activity(self, dates):
         """
-        Return a  data frame with the columns
+        Return a  DataFrame with the columns
 
         - stop_id
         - ``dates[0]``: 1 if the stop has at least one trip visiting it on ``dates[0]``; 0 otherwise 
@@ -846,7 +847,7 @@ class Feed(object):
         - etc.
         - ``dates[-1]``: 1 if the stop has at least one trip visiting it on ``dates[-1]``; 0 otherwise 
 
-        If ``dates`` is ``None`` or the empty list, then return an empty data frame with the column 'stop_id'.
+        If ``dates`` is ``None`` or the empty list, then return an empty DataFrame with the column 'stop_id'.
 
         Assume the following feed attributes are not ``None``:
 
@@ -875,11 +876,11 @@ class Feed(object):
         """
         Call ``compute_stop_stats_base()`` with the subset of trips active on the given date and with the keyword arguments ``split_directions``,   ``headway_start_time``, and ``headway_end_time``.
 
-        See ``compute_stop_stats_base()`` for a description of the output.
+        See ``compute_stop_stats_base()`` for a description of the outphp.
 
         Assume the following feed attributes are not ``None``:
 
-        - ``feed.stop_timtes``
+        - ``self.stop_timtes``
         - Those used in :func:`get_trips`
             
         NOTES:
@@ -896,7 +897,7 @@ class Feed(object):
     def compute_stop_time_series(self, date, split_directions=False, freq='5Min'):
         """
         Call :func:`compute_stops_times_series_base` with the subset of trips  active on the given date and with the keyword arguments ``split_directions``and ``freq`` and with ``date_label`` equal to ``date``.
-        See :func:`compute_stop_time_series_base` for a description of the output.
+        See :func:`compute_stop_time_series_base` for a description of the outphp.
 
         Assume the following feed attributes are not ``None``:
 
@@ -912,7 +913,7 @@ class Feed(object):
 
     def get_stop_timetable(self, stop_id, date):
         """
-        Return a  data frame encoding the timetable for the given stop ID on the given date.
+        Return a  DataFrame encoding the timetable for the given stop ID on the given date.
         The columns are all those in ``self.trips`` plus those in ``self.stop_times``.
         The result is sorted by departure time.
 
@@ -927,6 +928,30 @@ class Feed(object):
         f = f[f['stop_id'] == stop_id]
         return f.sort_values('departure_time')
  
+    def get_stops_in_polygon(self, polygon, geo_stops=None):
+        """
+        Return the slice of ``self.stops`` that contains all stops that lie within the given Shapely Polygon object.
+        Assume the polygon specified in WGS84 longitude-latitude coordinates.
+        
+        To do this, first geometrize ``self.stops`` via :func:`geometrize_stops`.
+        Alternatively, use the ``geo_stops`` GeoDataFrame, if given.
+        Requires GeoPandas.
+
+        Assume the following feed attributes are not ``None``:
+
+        - ``self.stops``, if ``geo_stops`` is not given
+            
+        """
+        if geo_stops is not None:
+            f = geo_stops.copy()
+        else:
+            f = hp.geometrize_stops(self.stops)
+        
+        cols = f.columns
+        f['hit'] = f['geometry'].within(polygon)
+        f = f[f['hit']][cols]
+        return hp.ungeometrize_stops(f)
+
     # -------------------------------------
     # Methods about stop times
     # -------------------------------------
@@ -974,7 +999,7 @@ class Feed(object):
         geometry_by_shape = feed.build_geometry_by_shape(use_utm=True)
         geometry_by_stop = feed.build_geometry_by_stop(use_utm=True)
 
-        # Initialize data frame
+        # Initialize DataFrame
         f = pd.merge(self.stop_times,
           trips_stats[['trip_id', 'shape_id', 'distance', 'duration']]).\
           sort_values(['trip_id', 'stop_sequence'])
@@ -1044,6 +1069,15 @@ class Feed(object):
 
         return feed 
 
+    def get_start_and_end_times(self, date=None):
+        """
+        Return the first departure time and last arrival time (time strings) listed in ``self.stop_times``, respectively.
+        Restrict to the given date if specified.
+        """
+        st = self.get_stop_times(date)
+        return st['departure_time'].dropna().min(),\
+          st['arrival_time'].dropna().max()
+
     # -------------------------------------
     # Methods about shapes
     # -------------------------------------
@@ -1106,6 +1140,310 @@ class Feed(object):
         else:
             fc = {}
         return fc 
+
+    def get_shapes_intersecting_geometry(self, geometry, geo_shapes=None,
+      geometrized=False):
+        """
+        Return the slice of ``self.shapes`` that contains all shapes that intersect the given Shapely geometry object (e.g. a Polygon or LineString).
+        Assume the geometry is specified in WGS84 longitude-latitude coordinates.
+        
+        To do this, first geometrize ``self.shapes`` via :func:`geometrize_shapes`.
+        Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
+        Requires GeoPandas.
+
+        Assume the following feed attributes are not ``None``:
+
+        - ``self.shapes``, if ``geo_shapes`` is not given
+
+        If ``geometrized`` is ``True``, then return the 
+        resulting shapes DataFrame in geometrized form.
+        """
+        if geo_shapes is not None:
+            f = geo_shapes.copy()
+        else:
+            f = hp.geometrize_shapes(self.shapes)
+        
+        cols = f.columns
+        f['hit'] = f['geometry'].intersects(geometry)
+        f = f[f['hit']][cols]
+
+        if geometrized:
+            return f
+        else:
+            return hp.ungeometrize_shapes(f)
+
+    def append_dist_to_shapes(self):
+        """
+        Calculate and append the optional ``shape_dist_traveled`` field in ``self.shapes`` in terms of the distance units ``self.dist_units``.
+        Return the resulting Feed.
+
+        Assume the following feed attributes are not ``None``:
+
+        - ``self.shapes``
+
+        NOTES: 
+            - All of the calculated ``shape_dist_traveled`` values for the Portland feed https://transitfeeds.com/p/trimet/43/1400947517 differ by at most 0.016 km in absolute values from of the original values. 
+        """
+        if self.shapes is None:
+            raise ValueError(
+              "This function requires the feed to have a shapes.txt file")
+
+        feed = self.copy()
+        f = feed.shapes
+        m_to_dist = hp.get_convert_dist('m', feed.dist_units)
+
+        def compute_dist(group):
+            # Compute the distances of the stops along this trip
+            group = group.sort_values('shape_pt_sequence')
+            shape = group['shape_id'].iat[0]
+            if not isinstance(shape, str):
+                group['shape_dist_traveled'] = np.nan 
+                return group
+            points = [sg.Point(utm.from_latlon(lat, lon)[:2]) 
+              for lon, lat in group[['shape_pt_lon', 'shape_pt_lat']].values]
+            p_prev = points[0]
+            d = 0
+            distances = [0]
+            for  p in points[1:]:
+                d += p.distance(p_prev)
+                distances.append(d)
+                p_prev = p
+            group['shape_dist_traveled'] = distances
+            return group
+
+        g = f.groupby('shape_id', group_keys=False).apply(compute_dist)
+        # Convert from meters
+        g['shape_dist_traveled'] = g['shape_dist_traveled'].map(m_to_dist)
+
+        feed.shapes = g
+        return feed
+
+    # -------------------------------------
+    # Methods about feeds
+    # -------------------------------------
+    def convert_dist(self, new_dist_units):
+        """
+        Convert the distances recorded in the ``shape_dist_traveled`` columns of the given feed from this Feed's native distance units (recorded in ``feed.dist_units``) to the given new distance units.
+        New distance units must lie in ``constants.DIST_UNITS``
+        """       
+        feed = self.copy()
+
+        if feed.dist_units == new_dist_units:
+            # Nothing to do
+            return feed
+
+        old_dist_units = feed.dist_units
+        feed.dist_units = new_dist_units
+
+        converter = hp.get_convert_dist(old_dist_units, new_dist_units)
+
+        if hp.is_not_null(feed.stop_times, 'shape_dist_traveled'):
+            feed.stop_times['shape_dist_traveled'] =\
+              feed.stop_times['shape_dist_traveled'].map(converter)
+
+        if hp.is_not_null(feed.shapes, 'shape_dist_traveled'):
+            feed.shapes['shape_dist_traveled'] =\
+              feed.shapes['shape_dist_traveled'].map(converter)
+
+        return feed
+
+    def compute_feed_stats(self, trips_stats, date):
+        """
+        Given trip stats of the form output by :func:`compute_trip_stats` and a date, return a DataFrame including the following feed stats for the date.
+
+        - num_trips: number of trips active on the given date
+        - num_routes: number of routes active on the given date
+        - num_stops: number of stops active on the given date
+        - peak_num_trips: maximum number of simultaneous trips in service
+        - peak_start_time: start time of first longest period during which
+          the peak number of trips occurs
+        - peak_end_time: end time of first longest period during which
+          the peak number of trips occurs
+        - service_distance: sum of the service distances for the active routes
+        - service_duration: sum of the service durations for the active routes
+        - service_speed: service_distance/service_duration
+
+        If there are no stats for the given date, return an empty DataFrame with the specified columns.
+
+        Assume the following feed attributes are not ``None``:
+
+        - Those used in :func:`get_trips`
+        - Those used in :func:`get_routes`
+        - Those used in :func:`get_stops`
+
+        """
+        cols = [
+          'num_trips',
+          'num_routes',
+          'num_stops',
+          'peak_num_trips',
+          'peak_start_time',
+          'peak_end_time',
+          'service_distance',
+          'service_duration',
+          'service_speed',
+          ]
+        d = OrderedDict()
+        trips = self.get_trips(date)
+        if trips.empty:
+            return pd.DataFrame(columns=cols)
+
+        d['num_trips'] = trips.shape[0]
+        d['num_routes'] = self.get_routes(date).shape[0]
+        d['num_stops'] = self.get_stops(date).shape[0]
+
+        # Compute peak stats
+        f = trips.merge(trips_stats)
+        f[['start_time', 'end_time']] =\
+          f[['start_time', 'end_time']].applymap(hp.timestr_to_seconds)
+
+        times = np.unique(f[['start_time', 'end_time']].values)
+        counts = [hp.count_active_trips(f, t) for t in times]
+        start, end = hp.get_peak_indices(times, counts)
+        d['peak_num_trips'] = counts[start]
+        d['peak_start_time'] =\
+          hp.timestr_to_seconds(times[start], inverse=True)
+        d['peak_end_time'] =\
+          hp.timestr_to_seconds(times[end], inverse=True)
+
+        # Compute remaining stats
+        d['service_distance'] = f['distance'].sum()
+        d['service_duration'] = f['duration'].sum()
+        d['service_speed'] = d['service_distance']/d['service_duration']
+
+        return pd.DataFrame(d, index=[0])
+
+    def compute_feed_time_series(self, trip_stats, date, freq='5Min'):
+        """
+        Given trips stats (output of ``feed.compute_trip_stats()``), a date, and a Pandas frequency string, return a time series of stats for this feed on the given date at the given frequency with the following columns
+
+        - num_trip_starts: number of trips starting at this time
+        - num_trips: number of trips in service during this time period
+        - service_distance: distance traveled by all active trips during
+          this time period
+        - service_duration: duration traveled by all active trips during this
+          time period
+        - service_speed: service_distance/service_duration
+
+        If there is no time series for the given date, return an empty DataFrame with specified columns.
+
+        Assume the following feed attributes are not ``None``:
+
+        - Those used in :func:`compute_route_time_series`
+
+        """
+        cols = [
+          'num_trip_starts',
+          'num_trips',
+          'service_distance',
+          'service_duration',
+          'service_speed',
+          ]
+        rts = self.compute_route_time_series(trip_stats, date, freq=freq)
+        if rts.empty:
+            return pd.DataFrame(columns=cols)
+
+        stats = rts.columns.levels[0].tolist()
+        f = pd.concat([rts[stat].sum(axis=1) for stat in stats], axis=1, 
+          keys=stats)
+        f['service_speed'] = f['service_distance']/f['service_duration']
+        return f
+
+    def create_shapes(self, all_trips=False):
+        """
+        Given a feed, create a shape for every trip that is missing a shape ID.
+        Do this by connecting the stops on the trip with straight lines.
+        Return the resulting feed which has updated shapes and trips DataFrames.
+
+        If ``all_trips``, then create new shapes for all trips by connecting stops, and remove the old shapes.
+        
+        Assume the following feed attributes are not ``None``:
+
+        - ``feed.stop_times``
+        - ``feed.trips``
+        - ``feed.stops``
+        """
+        feed = self.copy()
+
+        if all_trips:
+            trip_ids = feed.trips['trip_id']
+        else:
+            trip_ids = feed.trips[feed.trips['shape_id'].isnull()]['trip_id']
+
+        # Get stop times for given trips
+        f = feed.stop_times[feed.stop_times['trip_id'].isin(trip_ids)][
+          ['trip_id', 'stop_sequence', 'stop_id']]
+        f = f.sort_values(['trip_id', 'stop_sequence'])
+
+        if f.empty:
+            # Nothing to do
+            return feed 
+
+        # Create new shape IDs for given trips.
+        # To do this, collect unique stop sequences, 
+        # sort them to impose a canonical order, and 
+        # assign shape IDs to them
+        stop_seqs = sorted(set(tuple(group['stop_id'].values) 
+          for trip, group in f.groupby('trip_id')))
+        d = int(math.log10(len(stop_seqs))) + 1  # Digits for padding shape IDs  
+        shape_by_stop_seq = {seq: 'shape_{num:0{pad}d}'.format(num=i, pad=d) 
+          for i, seq in enumerate(stop_seqs)}
+     
+        # Assign these new shape IDs to given trips 
+        shape_by_trip = {trip: shape_by_stop_seq[tuple(group['stop_id'].values)] 
+          for trip, group in f.groupby('trip_id')}
+        trip_cond = feed.trips['trip_id'].isin(trip_ids)
+        feed.trips.loc[trip_cond, 'shape_id'] = feed.trips.loc[trip_cond,
+          'trip_id'].map(lambda x: shape_by_trip[x])
+
+        # Build new shapes for given trips
+        G = [[shape, i, stop] for stop_seq, shape in shape_by_stop_seq.items() 
+          for i, stop in enumerate(stop_seq)]
+        g = pd.DataFrame(G, columns=['shape_id', 'shape_pt_sequence', 
+          'stop_id'])
+        g = g.merge(feed.stops[['stop_id', 'stop_lon', 'stop_lat']]).sort_values(
+          ['shape_id', 'shape_pt_sequence'])
+        g = g.drop(['stop_id'], axis=1)
+        g = g.rename(columns={
+          'stop_lon': 'shape_pt_lon',
+          'stop_lat': 'shape_pt_lat',
+          })
+
+        if feed.shapes is not None and not all_trips:
+            # Update feed shapes with new shapes
+            feed.shapes = pd.concat([feed.shapes, g])
+        else:
+            # Create all new shapes
+            feed.shapes = g
+
+        return feed
+
+    def compute_bounds(self):   
+        """
+        Return the tuple (min longitude, min latitude, max longitude, max latitude) where the longitudes and latitude vary across all the stop (WGS84)coordinates.
+        """
+        lons, lats = self.stops['stop_lon'], self.stops['stop_lat']
+        return lons.min(), lats.min(), lons.max(), lats.max()
+
+    def compute_center(self, num_busiest_stops=None):
+        """
+        Compute the convex hull of all the stop points of this Feed and return the centroid.
+        If an integer ``num_busiest_stops`` is given, then compute the ``num_busiest_stops`` busiest stops in the feed on the first Monday of the feed and return the mean of the longitudes and the mean of the latitudes of these stops, respectively.
+        """
+        s = self.stops.copy()
+        if num_busiest_stops is not None:
+            n = num_busiest_stops
+            date = self.get_first_week()[0]
+            ss = self.compute_stop_stats(date).sort_values(
+              'num_trips', ascending=False)
+            f = ss.head(num_busiest_stops)
+            f = s.merge(f)
+            lon = f['stop_lon'].mean()
+            lat = f['stop_lat'].mean()
+        else:
+            m = sg.MultiPoint(s[['stop_lon', 'stop_lat']].values)
+            lon, lat = list(m.convex_hull.centroid.coords)[0]
+        return lon, lat
 
 # -------------------------------------
 # Functions about input and output

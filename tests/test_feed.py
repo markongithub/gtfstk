@@ -25,7 +25,8 @@ cairns_shapeless.shapes = None
 t = cairns_shapeless.trips
 t['shape_id'] = np.nan
 cairns_shapeless.trips = t
-
+cairns_date = cairns.get_first_week()[0]
+cairns_trip_stats = pd.read_csv(DATA_DIR/'cairns_trip_stats.csv', dtype=DTYPE)
 
 def test_feed():
     feed = Feed(agency=pd.DataFrame(), dist_units='km')
@@ -119,7 +120,7 @@ def test_is_active_trip():
 
 def test_get_trips():
     feed = cairns.copy()
-    date = feed.get_dates()[0]
+    date = cairns_date
     trips1 = feed.get_trips(date)
     # Should be a data frame
     assert isinstance(trips1, pd.core.frame.DataFrame)
@@ -160,9 +161,9 @@ def test_compute_busiest_date():
 @slow
 def test_compute_trip_locations():
     feed = cairns.copy()
-    trip_stats = feed.compute_trip_stats()
+    trip_stats = cairns_trip_stats
     feed = feed.append_dist_to_stop_times(trip_stats)
-    date = feed.get_dates()[0]
+    date = cairns_date
     times = ['08:00:00']
     f = feed.compute_trip_locations(date, times)
     g = feed.get_trips(date, times[0])
@@ -202,7 +203,7 @@ def test_trip_to_geojson():
 # ----------------------------------
 def test_get_routes():
     feed = cairns.copy()
-    date = feed.get_dates()[0]
+    date = cairns_date
     f = feed.get_routes(date)
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
@@ -224,8 +225,8 @@ def test_get_routes():
 @slow
 def test_compute_route_stats():
     feed = cairns.copy()
-    date = feed.get_dates()[0]
-    trip_stats = feed.compute_trip_stats()
+    date = cairns_date
+    trip_stats = cairns_trip_stats
     f = pd.merge(trip_stats, feed.get_trips(date))
     for split_directions in [True, False]:
         rs = feed.compute_route_stats(trip_stats, date, 
@@ -273,8 +274,8 @@ def test_compute_route_stats():
 @slow
 def test_compute_route_time_series():
     feed = cairns.copy()
-    date = feed.get_dates()[0]
-    trip_stats = feed.compute_trip_stats()
+    date = cairns_date
+    trip_stats = cairns_trip_stats
     ats = pd.merge(trip_stats, feed.get_trips(date))
     for split_directions in [True, False]:
         f = feed.compute_route_stats(trip_stats, date, 
@@ -311,7 +312,7 @@ def test_compute_route_time_series():
 def test_get_route_timetable():
     feed = cairns.copy()
     route_id = feed.routes['route_id'].values[0]
-    date = feed.get_dates()[0]
+    date = cairns_date
     f = feed.get_route_timetable(route_id, date)
     # Should be a data frame 
     assert isinstance(f, pd.core.frame.DataFrame)
@@ -339,7 +340,7 @@ def test_route_to_geojson():
 # --------------------------------------------
 def test_get_stops():
     feed = cairns.copy()
-    date = feed.get_dates()[0]
+    date = cairns_date
     trip_id = feed.trips['trip_id'].iat[0]
     route_id = feed.routes['route_id'].iat[0]
     frames = [
@@ -375,7 +376,7 @@ def test_build_geometry_by_stop():
         # The first key should be a valid shape ID
         assert list(d.keys())[0] in feed.stops['stop_id'].values
         # The first value should be a Shapely linestring
-        assert isinstance(list(d.values())[0], Point)
+        assert isinstance(list(d.values())[0], sg.Point)
     # Lengths should be right
     assert len(d0) == feed.stops['stop_id'].nunique()
     assert len(d1) == len(stop_ids)
@@ -394,7 +395,7 @@ def test_compute_stop_activity():
 
 def test_compute_stop_stats():
     feed = cairns.copy()
-    date = feed.get_dates()[0]
+    date = cairns_date
     stop_stats = feed.compute_stop_stats(date)
     # Should be a data frame
     assert isinstance(stop_stats, pd.core.frame.DataFrame)
@@ -411,7 +412,7 @@ def test_compute_stop_stats():
 @slow
 def test_compute_stop_time_series():
     feed = cairns.copy()
-    date = feed.get_dates()[0]
+    date = cairns_date
     ast = pd.merge(feed.get_trips(date), feed.stop_times)
     for split_directions in [True, False]:
         f = feed.compute_stop_stats(date, 
@@ -447,11 +448,10 @@ def test_compute_stop_time_series():
       split_directions=split_directions) 
     assert ts.empty
 
-
 def test_get_stop_timetable():
     feed = cairns.copy()
     stop = feed.stops['stop_id'].values[0]
-    date = feed.get_dates()[0]
+    date = cairns_date
     f = feed.get_stop_timetable(stop, date)
     # Should be a data frame 
     assert isinstance(f, pd.core.frame.DataFrame)
@@ -459,13 +459,22 @@ def test_get_stop_timetable():
     expect_cols = set(feed.trips.columns) |\
       set(feed.stop_times.columns)
     assert set(f.columns) == expect_cols
-    
+
+@pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
+def test_get_stops_in_polygon():
+    feed = cairns.copy()
+    with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
+        polygon = sg.shape(json.load(src)['features'][0]['geometry'])
+    pstops = feed.get_stops_in_polygon(polygon)
+    stop_ids = ['750070']
+    assert pstops['stop_id'].values == stop_ids
+
 # ----------------------------------
 # Test methods about stop times
 # ----------------------------------
 def test_get_stop_times():
     feed = cairns.copy()
-    date = feed.get_dates()[0]
+    date = cairns_date
     f = feed.get_stop_times(date)
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
@@ -473,6 +482,25 @@ def test_get_stop_times():
     assert f.shape[0] <= feed.stop_times.shape[0]
     # Should have correct columns
     assert set(f.columns) == set(feed.stop_times.columns)
+
+def test_get_start_and_end_times():
+    feed = cairns.copy()
+    date = cairns_date
+    st = feed.get_stop_times(date)
+    times = feed.get_start_and_end_times(date)
+    # Should be strings
+    for t in times:
+        assert isinstance(t, str)
+        # Should lie in stop times
+        assert t in st[['departure_time', 'arrival_time']].values.flatten()
+
+    # Should get null times in some cases
+    times = feed.get_start_and_end_times('19690711')
+    for t in times:
+        assert pd.isnull(t)
+    feed.stop_times['departure_time'] = np.nan
+    times = feed.get_start_and_end_times()
+    assert pd.isnull(times[0])
 
 # ----------------------------------
 # Test methods about shapes
@@ -504,6 +532,136 @@ def test_shapes_to_geojson():
         shape = f['properties']['shape_id']
         geom = sg.shape(f['geometry'])
         assert geom.equals(geometry_by_shape[shape])
+
+@pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
+def test_get_shapes_intersecting_geometry():
+    feed = cairns.copy()
+    path = DATA_DIR/'cairns_square_stop_750070.geojson'
+    polygon = sg.shape(json.load(path.open())['features'][0]['geometry'])
+    pshapes = feed.get_shapes_intersecting_geometry(polygon)
+    shape_ids = ['120N0005', '1200010', '1200001']
+    assert set(pshapes['shape_id'].unique()) == set(shape_ids)
+
+def test_append_dist_to_shapes():
+    feed1 = cairns.copy()
+    s1 = feed1.shapes
+    feed2 = feed1.append_dist_to_shapes()
+    s2 = feed2.shapes
+    # Check that colums of st2 equal the columns of st1 plus
+    # a shape_dist_traveled column
+    cols1 = list(s1.columns.values) + ['shape_dist_traveled']
+    cols2 = list(s2.columns.values)
+    assert set(cols1) == set(cols2)
+
+    # Check that within each trip the shape_dist_traveled column 
+    # is monotonically increasing
+    for name, group in s2.groupby('shape_id'):
+        sdt = list(group['shape_dist_traveled'].values)
+        assert sdt == sorted(sdt)
+
+# ----------------------------------
+# Test methods about feeds
+# ----------------------------------
+def test_convert_dist():
+    # Test with no distances
+    feed1 = cairns.copy() # No distances here
+    feed2 = feed1.convert_dist('mi')
+    assert feed2.dist_units == 'mi'
+
+    # Test with distances and identity conversion
+    feed1 = feed1.append_dist_to_shapes() 
+    feed2 = feed1.convert_dist(feed1.dist_units)
+    assert feed1 == feed2
+
+    # Test with proper conversion
+    feed2 = feed1.convert_dist('m')
+    assert_series_equal(feed2.shapes['shape_dist_traveled']/1000,
+      feed1.shapes['shape_dist_traveled'])
+
+def test_compute_feed_stats():
+    feed = cairns.copy()
+    date = cairns_date
+    trip_stats = cairns_trip_stats
+    f = feed.compute_feed_stats(trip_stats, date)
+    # Should be a data frame
+    assert isinstance(f, pd.core.frame.DataFrame)
+    # Should have the correct number of rows
+    assert f.shape[0] == 1
+    # Should contain the correct columns
+    expect_cols = set([
+      'num_trips',
+      'num_routes',
+      'num_stops',
+      'peak_num_trips',
+      'peak_start_time',
+      'peak_end_time',
+      'service_duration', 
+      'service_distance',
+      'service_speed',              
+      ])
+    assert set(f.columns) == expect_cols
+
+    # Empty check
+    f = feed.compute_feed_stats(trip_stats, '20010101')
+    assert f.empty
+
+def test_compute_feed_time_series():
+    feed = cairns.copy()
+    date = cairns_date
+    trip_stats = cairns_trip_stats
+    f = feed.compute_feed_time_series(trip_stats, date, freq='1H')
+    # Should be a data frame 
+    assert isinstance(f, pd.core.frame.DataFrame)
+    # Should have the correct number of rows
+    assert f.shape[0] == 24
+    # Should have the correct columns
+    expect_cols = set([
+      'num_trip_starts',
+      'num_trips',
+      'service_distance',
+      'service_duration',
+      'service_speed',
+      ])
+    assert set(f.columns) == expect_cols
+
+    # Empty check
+    f = feed.compute_feed_time_series(trip_stats, '20010101')
+    assert f.empty
+
+def test_create_shapes():
+    feed1 = cairns.copy()
+    # Remove a trip shape
+    trip_id = 'CNS2014-CNS_MUL-Weekday-00-4165878'
+    feed1.trips.loc[feed1.trips['trip_id'] == trip_id, 'shape_id'] = np.nan
+    feed2 = feed1.create_shapes()
+    # Should create only 1 new shape
+    assert len(set(feed2.shapes['shape_id']) - set(
+      feed1.shapes['shape_id'])) == 1
+
+    feed2 = feed1.create_shapes(all_trips=True)
+    # Number of shapes should equal number of unique stop sequences
+    st = feed1.stop_times.sort_values(['trip_id', 'stop_sequence'])
+    stop_seqs = set([tuple(group['stop_id'].values)
+      for __, group in st.groupby('trip_id')])
+    assert feed2.shapes['shape_id'].nunique() == len(stop_seqs)
+
+def test_compute_bounds():
+    feed = cairns.copy() 
+    minlon, minlat, maxlon, maxlat = feed.compute_bounds()
+    # Bounds should be in the ball park
+    assert 145 < minlon < 146
+    assert 145 < maxlon < 146
+    assert -18 < minlat < -15
+    assert -18 < maxlat < -15
+
+def test_compute_center():
+    feed = cairns.copy() 
+    centers = [feed.compute_center(), feed.compute_center(20)]
+    bounds = feed.compute_bounds()
+    for lon, lat in centers:
+        # Center should be in the ball park
+        assert bounds[0] < lon < bounds[2]
+        assert bounds[1] < lat < bounds[3]
 
 # --------------------------------------------
 # Test functions about inputs and outputs

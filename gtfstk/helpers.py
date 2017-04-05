@@ -4,7 +4,7 @@ from functools import wraps
 
 import pandas as pd
 import numpy as np
-from shapely.geometry import Point
+import shapely.geometry as sg
 from shapely.ops import transform
 import utm
 
@@ -176,7 +176,7 @@ def get_convert_dist(dist_units_in, dist_units_out):
 
 def almost_equal(f, g):
     """
-    Return ``True`` if and only if the given data frames are equal after sorting their columns names, sorting their values, and reseting their indices.
+    Return ``True`` if and only if the given DataFrames are equal after sorting their columns names, sorting their values, and reseting their indices.
     """
     if f.empty or g.empty:
         return f.equals(g)
@@ -190,7 +190,7 @@ def almost_equal(f, g):
 
 def is_not_null(data_frame, column_name):
     """
-    Return ``True`` if the given data frame has a column of the given name (string), and there exists at least one non-NaN value in that column;  return ``False`` otherwise.
+    Return ``True`` if the given DataFrame has a column of the given name (string), and there exists at least one non-NaN value in that column;  return ``False`` otherwise.
     """
     f = data_frame
     c = column_name
@@ -219,13 +219,13 @@ def linestring_to_utm(linestring):
 
 def count_active_trips(trip_times, time):
     """
-    Given a data frame ``trip_times`` containing the columns
+    Given a DataFrame ``trip_times`` containing the columns
 
     - trip_id
     - start_time: start time of the trip in seconds past midnight
     - end_time: end time of the trip in seconds past midnight
 
-    and a time in seconds past midnight, return the number of trips in the data frame that are active at the given time.
+    and a time in seconds past midnight, return the number of trips in the DataFrame that are active at the given time.
     A trip is a considered active at time t if start_time <= t < end_time.
     """
     t = trip_times
@@ -236,7 +236,7 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
     """
     Given a subset of the output of ``Feed.compute_trip_stats()``, calculate stats for the routes in that subset.
     
-    Return a data frame with the following columns:
+    Return a DataFrame with the following columns:
 
     - route_id
     - route_short_name
@@ -262,7 +262,7 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
     If ``split_directions == False``, then remove the direction_id column and compute each route's stats, except for headways, using its trips running in both directions. 
     In this case, (1) compute max headway by taking the max of the max headways in both directions; (2) compute mean headway by taking the weighted mean of the mean headways in both directions. 
 
-    If ``trip_stats_subset`` is empty, return an empty data frame with the columns specified above.
+    If ``trip_stats_subset`` is empty, return an empty DataFrame with the columns specified above.
 
     Assume the following feed attributes are not ``None``: none.
     """        
@@ -421,11 +421,11 @@ def compute_route_time_series_base(trip_stats_subset,
     - service distance in kilometers by route ID
     - service speed in kilometers per hour
 
-    The time series is a data frame with a timestamp index for a 24-hour period sampled at the given frequency.
+    The time series is a DataFrame with a timestamp index for a 24-hour period sampled at the given frequency.
     The maximum allowable frequency is 1 minute. 
     ``date_label`` is used as the date for the timestamp index.
 
-    The columns of the data frame are hierarchical (multi-index) with
+    The columns of the DataFrame are hierarchical (multi-index) with
 
     - top level: name = 'indicator', values = ['service_distance', 'service_duration', 'num_trip_starts', 'num_trips', 'service_speed']
     - middle level: name = 'route_id', values = the active routes
@@ -433,7 +433,7 @@ def compute_route_time_series_base(trip_stats_subset,
 
     If ``split_directions == False``, then don't include the bottom level.
     
-    If ``trip_stats_subset`` is empty, then return an empty data frame
+    If ``trip_stats_subset`` is empty, then return an empty DataFrame
     with the indicator columns.
 
     NOTES:
@@ -535,9 +535,9 @@ def compute_route_time_series_base(trip_stats_subset,
 def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
     headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Given a stop times data frame and a subset of a trips data frame, return a data frame that provides summary stats about the stops in the (inner) join of the two data frames.
+    Given a stop times DataFrame and a subset of a trips DataFrame, return a DataFrame that provides summary stats about the stops in the (inner) join of the two DataFrames.
 
-    The columns of the output data frame are:
+    The columns of the output DataFrame are:
 
     - stop_id
     - direction_id: present if and only if ``split_directions``
@@ -551,7 +551,7 @@ def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
 
     If ``split_directions == False``, then compute each stop's stats using trips visiting it from both directions.
 
-    If ``trip_subset`` is empty, then return an empty data frame with the columns specified above.
+    If ``trip_subset`` is empty, then return an empty DataFrame with the columns specified above.
     """
     cols = [
       'stop_id',
@@ -618,13 +618,13 @@ def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
 def compute_stop_time_series_base(stop_times, trips_subset, 
   split_directions=False, freq='5Min', date_label='20010101'):
     """
-    Given a stop times data frame and a subset of a trips data frame, return a data frame that provides summary stats about the stops in the (inner) join of the two data frames.
+    Given a stop times DataFrame and a subset of a trips DataFrame, return a DataFrame that provides summary stats about the stops in the (inner) join of the two DataFrames.
 
-    The time series is a data frame with a timestamp index for a 24-hour period sampled at the given frequency.
+    The time series is a DataFrame with a timestamp index for a 24-hour period sampled at the given frequency.
     The maximum allowable frequency is 1 minute.
     The timestamp includes the date given by ``date_label``, a date string of the form '%Y%m%d'.
     
-    The columns of the data frame are hierarchical (multi-index) with
+    The columns of the DataFrame are hierarchical (multi-index) with
 
     - top level: name = 'indicator', values = ['num_trips']
     - middle level: name = 'stop_id', values = the active stop IDs
@@ -632,7 +632,7 @@ def compute_stop_time_series_base(stop_times, trips_subset,
 
     If ``split_directions == False``, then don't include the bottom level.
     
-    If ``trips_subset`` is empty, then return an empty data frame with the indicator columns.
+    If ``trips_subset`` is empty, then return an empty DataFrame with the indicator columns.
 
     NOTES:
 
@@ -686,8 +686,8 @@ def compute_stop_time_series_base(stop_times, trips_subset,
 
 def combine_time_series(time_series_dict, kind, split_directions=False):
     """
-    Given a dictionary of time series data frames, combine the time series
-    into one time series data frame with multi-index (hierarchical) columns
+    Given a dictionary of time series DataFrames, combine the time series
+    into one time series DataFrame with multi-index (hierarchical) columns
     and return the result.
     The top level columns are the keys of the dictionary and
     the second and third level columns are 'route_id' and 'direction_id',
@@ -794,3 +794,92 @@ def downsample(time_series, freq):
     if has_multiindex:
         result = result.sortlevel(axis=1)
     return result
+
+def geometrize_stops(stops, use_utm=False):
+    """
+    Given a stops DataFrame, convert it to a GeoPandas GeoDataFrame and return the result.
+    The result has a 'geometry' column of WGS84 points instead of 'stop_lon' and 'stop_lat' columns.
+    If ``use_utm``, then use UTM coordinates for the geometries.
+    Requires GeoPandas.
+    """
+    import geopandas as gpd 
+
+
+    f = stops.copy()
+    s = gpd.GeoSeries([sg.Point(p) for p in 
+      stops[['stop_lon', 'stop_lat']].values])
+    f['geometry'] = s 
+    g = f.drop(['stop_lon', 'stop_lat'], axis=1)
+    g = gpd.GeoDataFrame(g, crs=cs.CRS_WGS84)
+
+    if use_utm:
+        lat, lon = f.ix[0][['stop_lat', 'stop_lon']].values
+        crs = get_utm_crs(lat, lon) 
+        g = g.to_crs(crs)
+
+    return g
+
+def ungeometrize_stops(geo_stops):
+    """
+    The inverse of :func:`geometrize_stops`.    
+    If ``geo_stops`` is in UTM (has a UTM CRS property), then convert UTM coordinates back to WGS84 coordinates,
+    """
+    f = geo_stops.copy().to_crs(cs.CRS_WGS84)
+    f['stop_lon'] = f['geometry'].map(
+      lambda p: p.x)
+    f['stop_lat'] = f['geometry'].map(
+      lambda p: p.y)
+    del f['geometry']
+    return f
+
+def geometrize_shapes(shapes, use_utm=False):
+    """
+    Given a shapes DataFrame, convert it to a GeoPandas GeoDataFrame and return the result.
+    The result has a 'geometry' column of WGS84 line strings instead of 'shape_pt_sequence', 'shape_pt_lon', 'shape_pt_lat', and 'shape_dist_traveled' columns.
+    If ``use_utm``, then use UTM coordinates for the geometries.
+
+    Requires GeoPandas.
+    """
+    import geopandas as gpd
+
+
+    f = shapes.copy().sort_values(['shape_id', 'shape_pt_sequence'])
+    
+    def my_agg(group):
+        d = {}
+        d['geometry'] =\
+          sg.LineString(group[['shape_pt_lon', 'shape_pt_lat']].values)
+        return pd.Series(d)
+
+    g = f.groupby('shape_id').apply(my_agg).reset_index()
+    g = gpd.GeoDataFrame(g, crs=cs.CRS_WGS84)
+
+    if use_utm:
+        lat, lon = f.ix[0][['shape_pt_lat', 'shape_pt_lon']].values
+        crs = get_utm_crs(lat, lon) 
+        g = g.to_crs(crs)
+
+    return g 
+
+def ungeometrize_shapes(geo_shapes):
+    """
+    The inverse of :func:`geometrize_shapes`.
+    Produces the columns:
+
+    - shape_id
+    - shape_pt_sequence
+    - shape_pt_lon
+    - shape_pt_lat
+
+    If ``geo_shapes`` is in UTM (has a UTM CRS property), then convert UTM coordinates back to WGS84 coordinates,
+    """
+    geo_shapes = geo_shapes.to_crs(cs.CRS_WGS84)
+
+    F = []
+    for index, row in geo_shapes.iterrows():
+        F.extend([[row['shape_id'], i, x, y] for 
+        i, (x, y) in enumerate(row['geometry'].coords)])
+
+    return pd.DataFrame(F, 
+      columns=['shape_id', 'shape_pt_sequence', 
+      'shape_pt_lon', 'shape_pt_lat'])
