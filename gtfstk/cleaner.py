@@ -11,81 +11,8 @@ from . import constants as cs
 from .feed import Feed
 
 
-def clean_ids(feed):
-    """
-    Strip whitespace from all string IDs and then replace every remaining whitespace chunk with an underscore.
-    Return the resulting feed.  
-    """
-    # Alter feed inputs only, and build a new feed from them.
-    # The derived feed attributes, such as feed.trips_i, 
-    # will be automatically handled when creating the new feed.
-    feed = feed.copy()
 
-    for key in cs.FEED_ATTRS_PUBLIC:
-        f = getattr(feed, key)
-        # Alter ID columns
-        if f is not None and key in cs.VALID_COLUMNS_BY_TABLE:
-            for col in cs.VALID_COLUMNS_BY_TABLE[key]:
-                if col.endswith('_id') and col in f.columns:
-                    try:
-                        f[col] = f[col].str.strip().str.replace(r'\s+', '_')
-                        setattr(feed, key, f)
-                    except AttributeError:
-                        # Column is not of string type
-                        continue
-    return feed
 
-def clean_stop_times(feed):
-    """
-    In ``feed.stop_times``, prefix a zero to arrival and departure times if necessary.
-    This makes sorting by time work as expected.
-    Return the resulting feed.
-    """
-    feed = feed.copy()
-    st = feed.stop_times
-
-    def reformat(t):
-        if pd.isnull(t):
-            return t
-        t = t.strip()
-        if len(t) == 7:
-            t = '0' + t
-        return t
-
-    if st is not None:
-        st[['arrival_time', 'departure_time']] = st[['arrival_time', 
-          'departure_time']].applymap(reformat)
-
-    feed.stop_times = st 
-    return feed
-
-def clean_route_short_names(feed):
-    """
-    In ``feed.routes``, assign 'n/a' to missing route short names and strip whitespace from route short names.
-    Then disambiguate each route short name that is duplicated by appending '-' and its route ID.
-    Return the resulting feed.
-    """
-    feed = feed.copy()
-    r = feed.routes
-    if r is None:
-        return feed
-
-    # Fill NaNs and strip whitespace
-    r['route_short_name'] = r['route_short_name'].fillna('n/a'
-      ).str.strip()
-    # Disambiguate
-    def disambiguate(row):
-        rsn, rid = row
-        return rsn + '-' + rid
-
-    r['dup'] = r['route_short_name'].duplicated(keep=False)
-    r.loc[r['dup'], 'route_short_name'] = r.loc[
-      r['dup'], ['route_short_name', 'route_id']].apply(
-      disambiguate, axis=1)
-    del r['dup']
-
-    feed.routes = r
-    return feed
 
 def prune_dead_routes(feed):
     """

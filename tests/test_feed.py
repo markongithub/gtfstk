@@ -1,13 +1,16 @@
 import pytest
 import importlib
 from pathlib import Path 
-from types import FunctionType
 
 import pandas as pd 
 from pandas.util.testing import assert_frame_equal, assert_series_equal
+import numpy as np
+import utm
+import shapely.geometry as sg 
 
 from .context import gtfstk, slow
 from gtfstk import *
+
 
 # Check if GeoPandas is installed
 loader = importlib.find_loader('geopandas')
@@ -19,6 +22,7 @@ else:
 
 # Load/create test feeds
 DATA_DIR = Path('data')
+sample = read_gtfs(DATA_DIR/'sample_gtfs.zip', dist_units='km')
 cairns = read_gtfs(DATA_DIR/'cairns_gtfs.zip', dist_units='km')
 cairns_shapeless = cairns.copy()
 cairns_shapeless.shapes = None
@@ -157,6 +161,46 @@ def test_compute_busiest_date():
     date = feed.compute_busiest_date(dates)
     # Busiest day should lie in first week
     assert date in dates
+
+@slow
+def test_compute_trip_stats():
+    feed = cairns.copy()
+    trip_stats = feed.compute_trip_stats()
+    
+    # Should be a data frame with the correct number of rows
+    assert isinstance(trip_stats, pd.core.frame.DataFrame)
+    assert trip_stats.shape[0] == feed.trips.shape[0]
+    
+    # Should contain the correct columns
+    expect_cols = set([
+      'trip_id',
+      'direction_id',
+      'route_id',
+      'route_short_name',
+      'route_type',
+      'shape_id',
+      'num_stops',
+      'start_time', 
+      'end_time',
+      'start_stop_id',
+      'end_stop_id',
+      'distance',
+      'duration',
+      'speed',
+      'is_loop',
+      ])
+    assert set(trip_stats.columns) == expect_cols
+    
+    # Shapeless feeds should have null entries for distance column
+    feed2 = cairns_shapeless.copy()
+    trip_stats = feed2.compute_trip_stats()
+    assert len(trip_stats['distance'].unique()) == 1
+    assert np.isnan(trip_stats['distance'].unique()[0])  
+    
+    # Should contain the correct trips
+    get_trips = set(trip_stats['trip_id'].values)
+    expect_trips = set(feed.trips['trip_id'].values)
+    assert get_trips == expect_trips
 
 @slow
 def test_compute_trip_locations():
@@ -502,6 +546,27 @@ def test_get_start_and_end_times():
     times = feed.get_start_and_end_times()
     assert pd.isnull(times[0])
 
+@slow
+def test_append_dist_to_stop_times():
+    feed1 = cairns.copy()
+    st1 = feed1.stop_times
+    trip_stats = cairns_trip_stats
+    feed2 = feed1.append_dist_to_stop_times(trip_stats)
+    st2 = feed2.stop_times 
+
+    # Check that colums of st2 equal the columns of st1 plus
+    # a shape_dist_traveled column
+    cols1 = list(st1.columns.values) + ['shape_dist_traveled']
+    cols2 = list(st2.columns.values)
+    assert set(cols1) == set(cols2)
+
+    # Check that within each trip the shape_dist_traveled column 
+    # is monotonically increasing
+    for trip, group in st2.groupby('trip_id'):
+        group = group.sort_values('stop_sequence')
+        sdt = list(group['shape_dist_traveled'].values)
+        assert sdt == sorted(sdt)
+
 # ----------------------------------
 # Test methods about shapes
 # ----------------------------------
@@ -560,7 +625,91 @@ def test_append_dist_to_shapes():
         assert sdt == sorted(sdt)
 
 # ----------------------------------
-# Test methods about feeds
+# Test methods about cleaning
+# ----------------------------------
+def test_clean_ids():
+    f1 = sample.copy()
+    f1.routes.ix[0, 'route_id'] = '  ho   ho ho '
+    f2 = f1.clean_ids()
+    expect_rid = 'ho_ho_ho'
+    f2.routes.ix[0, 'route_id'] == expect_rid
+
+    f3 = f2.clean_ids()
+    f3 == f2
+
+def test_clean_route_short_names():
+    f1  = sample.copy()
+    
+    # Should have no effect on a fine feed
+    f2 = f1.clean_route_short_names()
+    assert_series_equal(f2.routes['route_short_name'], 
+      f1.routes['route_short_name'])
+    
+    # Make route short name duplicates
+    f1.routes.loc[1:5, 'route_short_name'] = np.nan
+    f1.routes.loc[6:, 'route_short_name'] = '  he llo  '
+    f2 = f1.clean_route_short_names()
+    # Should have unique route short names
+    assert f2.routes['route_short_name'].nunique() == f2.routes.shape[0]
+    # NaNs should be replaced by n/a and route IDs
+    expect_rsns = ('n/a-' + sample.routes.ix[1:5]['route_id']).tolist()
+    assert f2.routes.ix[1:5]['route_short_name'].values.tolist() == expect_rsns
+    # Should have names without leading or trailing whitespace
+    assert not f2.routes['route_short_name'].str.startswith(' ').any()
+    assert not f2.routes['route_short_name'].str.endswith(' ').any()
+
+def test_prune_dead_routes():
+    # Should not change Cairns routes
+    f1 = sample.copy()
+    f2 = f1.prune_dead_routes()
+    assert_frame_equal(f2.routes, f1.routes)
+
+    # Create a dummy route which should be removed
+    g = pd.DataFrame([[0 for c in f1.routes.columns]], 
+      columns=f1.routes.columns)
+    f3 = f1.copy()
+    f3.routes = pd.concat([f3.routes, g])
+    f4 = f3.prune_dead_routes()
+    assert_frame_equal(f4.routes, f1.routes)
+
+def test_clean():
+    f1 = sample.copy()
+    rid = f1.routes.ix[0, 'route_id']
+    f1.routes.ix[0, 'route_id'] = ' ' + rid + '   '
+    f2 = f1.clean()
+    assert f2.routes.ix[0, 'route_id'] == rid
+    assert_frame_equal(f2.trips, sample.trips)
+
+def test_aggregate_routes():
+    feed1 = sample.copy()
+    # Equalize all route short names
+    feed1.routes['route_short_name'] = 'bingo'
+    feed2 = feed1.aggregate_routes()
+
+    # feed2 should have only one route ID
+    assert feed2.routes.shape[0] == 1
+    
+    # Feeds should have same trip data frames excluding
+    # route IDs
+    feed1.trips['route_id'] = feed2.trips['route_id']
+    assert almost_equal(feed1.trips, feed2.trips)
+
+    # Feeds should have equal attributes excluding
+    # routes and trips data frames
+    feed2.routes = feed1.routes 
+    feed2.trips = feed1.trips
+    assert feed1 == feed2
+
+def test_drop_invalid_columns():
+    f1 = sample.copy()
+    f1.routes['bingo'] = 'bongo'
+    f1.trips['wingo'] = 'wongo'
+    f2 = f1.drop_invalid_columns()
+    assert f2 == sample
+
+
+# ----------------------------------
+# Test methods about miscellany
 # ----------------------------------
 def test_convert_dist():
     # Test with no distances
@@ -662,6 +811,85 @@ def test_compute_center():
         # Center should be in the ball park
         assert bounds[0] < lon < bounds[2]
         assert bounds[1] < lat < bounds[3]
+
+def test_restrict_by_routes():
+    feed1 = cairns.copy() 
+    route_ids = feed1.routes['route_id'][:2].tolist()
+    feed2 = feed1.restrict_to_routes(route_ids)
+    # Should have correct routes
+    assert set(feed2.routes['route_id']) == set(route_ids)
+    # Should have correct trips
+    trip_ids = feed1.trips[feed1.trips['route_id'].isin(
+      route_ids)]['trip_id']
+    assert set(feed2.trips['trip_id']) == set(trip_ids)
+    # Should have correct shapes
+    shape_ids = feed1.trips[feed1.trips['trip_id'].isin(
+      trip_ids)]['shape_id']
+    assert set(feed2.shapes['shape_id']) == set(shape_ids)
+    # Should have correct stops
+    stop_ids = feed1.stop_times[feed1.stop_times['trip_id'].isin(
+      trip_ids)]['stop_id']
+    assert set(feed2.stop_times['stop_id']) == set(stop_ids)
+
+@pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
+def test_restrict_to_polygon():
+    feed1 = cairns.copy() 
+    with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
+        polygon = sg.shape(json.load(src)['features'][0]['geometry'])
+    feed2 = feed1.restrict_to_polygon(polygon)
+    # Should have correct routes
+    rsns = ['120', '120N']
+    assert set(feed2.routes['route_short_name']) == set(rsns)
+    # Should have correct trips
+    route_ids = feed1.routes[feed1.routes['route_short_name'].isin(
+      rsns)]['route_id']
+    trip_ids = feed1.trips[feed1.trips['route_id'].isin(
+      route_ids)]['trip_id']
+    assert set(feed2.trips['trip_id']) == set(trip_ids)
+    # Should have correct shapes
+    shape_ids = feed1.trips[feed1.trips['trip_id'].isin(
+      trip_ids)]['shape_id']
+    assert set(feed2.shapes['shape_id']) == set(shape_ids)
+    # Should have correct stops
+    stop_ids = feed1.stop_times[feed1.stop_times['trip_id'].isin(
+      trip_ids)]['stop_id']
+    assert set(feed2.stop_times['stop_id']) == set(stop_ids)
+
+@slow
+def test_compute_screen_line_counts():
+    feed = cairns.copy() 
+    date = cairns_date
+    trip_stats = cairns_trip_stats
+    feed = feed.append_dist_to_stop_times(trip_stats)
+    
+    # Load screen line
+    with (DATA_DIR/'cairns_screen_line.geojson').open() as src:
+        line = json.load(src)
+        line = sg.shape(line['features'][0]['geometry'])
+    
+    f = feed.compute_screen_line_counts(line, date)
+
+    # Should have correct columns
+    expect_cols = set([
+      'trip_id',
+      'route_id',
+      'route_short_name',
+      'crossing_time',
+      'orientation',
+      ])
+    assert set(f.columns) == expect_cols
+
+    # Should have correct routes
+    rsns = ['120', '120N']
+    assert set(f['route_short_name']) == set(rsns)
+
+    # Should have correct number of trips
+    expect_num_trips = 34
+    assert f['trip_id'].nunique() == expect_num_trips
+
+    # Should have correct orientations
+    for ori in [-1, 1]:
+        assert f[f['orientation'] == ori].shape[0] == expect_num_trips
 
 # --------------------------------------------
 # Test functions about inputs and outputs
