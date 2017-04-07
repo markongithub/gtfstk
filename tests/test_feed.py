@@ -672,14 +672,6 @@ def test_prune_dead_routes():
     f4 = f3.prune_dead_routes()
     assert_frame_equal(f4.routes, f1.routes)
 
-def test_clean():
-    f1 = sample.copy()
-    rid = f1.routes.ix[0, 'route_id']
-    f1.routes.ix[0, 'route_id'] = ' ' + rid + '   '
-    f2 = f1.clean()
-    assert f2.routes.ix[0, 'route_id'] == rid
-    assert_frame_equal(f2.trips, sample.trips)
-
 def test_aggregate_routes():
     feed1 = sample.copy()
     # Equalize all route short names
@@ -700,6 +692,14 @@ def test_aggregate_routes():
     feed2.trips = feed1.trips
     assert feed1 == feed2
 
+def test_clean():
+    f1 = sample.copy()
+    rid = f1.routes.ix[0, 'route_id']
+    f1.routes.ix[0, 'route_id'] = ' ' + rid + '   '
+    f2 = f1.clean()
+    assert f2.routes.ix[0, 'route_id'] == rid
+    assert_frame_equal(f2.trips, sample.trips)
+
 def test_drop_invalid_columns():
     f1 = sample.copy()
     f1.routes['bingo'] = 'bongo'
@@ -711,6 +711,12 @@ def test_drop_invalid_columns():
 # ----------------------------------
 # Test methods about miscellany
 # ----------------------------------
+def test_assess():
+    feed = sample.copy() # No distances here
+    a = feed.assess()
+    assert isinstance(a, pd.DataFrame)
+    assert set(a.columns) == set(['indicator', 'value'])
+
 def test_convert_dist():
     # Test with no distances
     feed1 = cairns.copy() # No distances here

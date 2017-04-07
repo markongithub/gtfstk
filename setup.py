@@ -8,7 +8,7 @@ with open('LICENSE') as f:
 
 setup(
     name='gtfstk',
-    version='6.1.0',
+    version='7.0.0',
     author='Alex Raichev',
     url='https://github.com/araichev/gtfstk',
     license=license,

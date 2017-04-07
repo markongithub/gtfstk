@@ -437,6 +437,7 @@ def compute_route_time_series_base(trip_stats_subset,
     with the indicator columns.
 
     NOTES:
+        - The route stats are all computed a minute frequency and then downsampled to the desired frequency, e.g. hour frequency, but the kind of downsampling depends on the route stat.  For example, ``num_trip_starts`` for the hour is the sum of the (integer) ``num_trip_starts`` for each minute, but ``num_trips`` for the hour is the mean of (integer) ``num_trips`` for each minute. Downsampling by the mean makes sense in the latter case, because ``num_trips`` represents the number of trips in service during the hour, and not all trips that start in the hour run the entire hour.Taking the mean will weight the trip counts by the fraction of the hour for which the trips are in service.  For example, if two trips start in the hour, one runs for the entire hour, and the other runs for half the hour, then ``num_trip_starts`` will be 2 and ``num_trips`` will be 1.5 for that hour.
         - To resample the resulting time series use the following methods:
             * for 'num_trips' series, use ``how=np.mean``
             * for the other series, use ``how=np.sum`` 

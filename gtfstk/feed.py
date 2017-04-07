@@ -1,10 +1,11 @@
 """
-This module defines the Feed class, which represents a GTFS feed as a collection of DataFrames, and defines some basic operations on Feed objects.
-Every Feed method assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or a DataFrame with the columns required in the `GTFS <https://developers.google.com/transit/gtfs/reference?hl=en>`_.
+This module defines the Feed class, which represents a GTFS feed as a collection of DataFrames.
+Every Feed method assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or a DataFrame with the columns required in the GTFS.
 
 CONVENTIONS:
-    - All dates mentioned below are encoded as YYYYMMDD strings, as in the GTFS
-
+    - Dates are encoded as date strings of the form YYMMDD
+    - Times are encoded as time strings of the form HH:MM:SS with the possibility that the hour is greater than 24
+    - 'DataFrame' and 'Series' refer to Pandas DataFrame and Series objects, respectively
 """
 from pathlib import Path
 import tempfile
@@ -26,12 +27,12 @@ from . import helpers as hp
 
 class Feed(object):
     """
-    An instance of this class represents a GTFS feed, where GTFS tables are stored as DataFrames.
+    An instance of this class represents a not-necessarily-valid GTFS feed, where GTFS tables are stored as DataFrames.
     Beware, the stop times DataFrame can be big (several gigabytes), so make sure you have enough memory to handle it.
 
     Public instance attributes:
 
-    - ``dist_units``: a string in ``constants.DIST_UNITS``; specifies the distance units to use when calculating various stats, such as route service distance; should match the implicit distance units of the  ``shape_dist_traveled`` column values, if present
+    - ``dist_units``: a string in :const:`.constants.DIST_UNITS`; specifies the distance units to use when calculating various stats, such as route service distance; should match the implicit distance units of the  ``shape_dist_traveled`` column values, if present
     - ``agency``
     - ``stops``
     - ``routes``
@@ -47,7 +48,7 @@ class Feed(object):
     - ``feed_info``
 
     There are also a few private instance attributes that are derived from public attributes and are automatically updated when those public attributes change.
-    However, for this update to work, you must properly update the primary attributes like this::
+    However, for this update to work, you must update the primary attributes like this::
 
         feed.trips['route_short_name'] = 'bingo'
         feed.trips = feed.trips
@@ -63,7 +64,7 @@ class Feed(object):
       fare_attributes=None, fare_rules=None, shapes=None, 
       frequencies=None, transfers=None, feed_info=None):
         """
-        Assume that every non-None input is a Pandas DataFrame, except for ``dist_units`` which should be a string in ``constants.DIST_UNITS``.
+        Assume that every non-None input is a Pandas DataFrame, except for ``dist_units`` which should be a string in :const:`.constants.DIST_UNITS`.
 
         No other format checking is performed.
         In particular, a Feed instance need not represent a valid GTFS feed.
@@ -121,8 +122,7 @@ class Feed(object):
         else:
             self._calendar_i = None 
 
-    # If ``self.calendar_dates`` changes, 
-    # then update ``self._calendar_dates_g``
+    # If ``self.calendar_dates`` changes, then update ``self._calendar_dates_g``
     @property 
     def calendar_dates(self):
         """
@@ -141,8 +141,8 @@ class Feed(object):
 
     def __eq__(self, other):
         """
-        Define two feeds be equal if and only if their ``constants.FEED_ATTRS`` attributes are equal, or almost equal in the case of DataFrames (but not groupby DataFrames).
-        Almost equality is checked via :func:`utilities.almost_equal`, which   canonically sorts DataFrame rows and columns.
+        Define two feeds be equal if and only if their :const:`.constants.FEED_ATTRS` attributes are equal, or almost equal in the case of DataFrames (but not groupby DataFrames).
+        Almost equality is checked via :func:`.helpers.almost_equal`, which   canonically sorts DataFrame rows and columns.
         """
         # Return False if failures
         for key in cs.FEED_ATTRS_PUBLIC:
@@ -653,17 +653,17 @@ class Feed(object):
       headway_end_time='19:00:00'):
         """
         Given a DataFrame of possibly partial trip stats for this Feed in the form output by :func:`compute_trip_stats`, cut the stats down to the subset ``S`` of trips that are active on the given date.
-        Then call :func:`compute_route_stats_base` with ``S`` and the keyword arguments ``split_directions``, ``headway_start_time``, and  ``headway_end_time``.
-        See :func:`compute_route_stats_base` for a description of the outphp.
+        Then call :func:`.helpers.compute_route_stats_base` with ``S`` and the keyword arguments ``split_directions``, ``headway_start_time``, and  ``headway_end_time``.
+        See :func:`.helpers.compute_route_stats_base` for a description of the output.
 
         Return an empty DataFrame if there are no route stats for the given trip stats and date.
 
         Assume the following feed attributes are not ``None``:
 
-        - Those used in :func:`compute_route_stats_base`
+        - Those used in :func:`.helpers.compute_route_stats_base`
             
         NOTES:
-            - This is a more user-friendly version of :func:`compute_route_stats_base`. The latter function works without a feed, though.
+            - This is a more user-friendly version of :func:`.helpers.compute_route_stats_base`. The latter function works without a feed, though.
         """
         # Get the subset of trips_stats that contains only trips active
         # on the given date
@@ -676,9 +676,9 @@ class Feed(object):
     def compute_route_time_series(self, trip_stats, date, 
       split_directions=False, freq='5Min'):
         """
-        Given a DataFrame of possibly partial trip stats for this Feed in the form output by :func:`compute_trip_stats`, cut the stats down to the subset ``S`` of trips that are active on the given date, then call :func:`compute_route_time_series_base` with ``S`` and the given keyword arguments ``split_directions`` and ``freq`` and with ``date_label = date_to_str(date)``.
+        Given a DataFrame of possibly partial trip stats for this Feed in the form output by :func:`compute_trip_stats`, cut the stats down to the subset ``S`` of trips that are active on the given date, then call :func:`.helpers.compute_route_time_series_base` with ``S`` and the given keyword arguments ``split_directions`` and ``freq`` and with ``date_label = date_to_str(date)``.
 
-        See :func:`compute_route_time_series_base` for a description of the outphp.
+        See :func:`.helpers.compute_route_time_series_base` for a description of the output.
 
         Return an empty DataFrame if there are no route stats for the given trip stats and date.
 
@@ -688,7 +688,7 @@ class Feed(object):
             
 
         NOTES:
-            - This is a more user-friendly version of ``compute_route_time_series_base()``. The latter function works without a feed, though.
+            - This is a more user-friendly version of :func:`.helpers.compute_route_time_series_base`. The latter function works without a feed, though.
         """  
         trip_stats_subset = pd.merge(trip_stats, self.get_trips(date))
         return hp.compute_route_time_series_base(trip_stats_subset, 
@@ -876,7 +876,7 @@ class Feed(object):
         """
         Call ``compute_stop_stats_base()`` with the subset of trips active on the given date and with the keyword arguments ``split_directions``,   ``headway_start_time``, and ``headway_end_time``.
 
-        See ``compute_stop_stats_base()`` for a description of the outphp.
+        See ``compute_stop_stats_base()`` for a description of the output.
 
         Assume the following feed attributes are not ``None``:
 
@@ -896,8 +896,8 @@ class Feed(object):
 
     def compute_stop_time_series(self, date, split_directions=False, freq='5Min'):
         """
-        Call :func:`compute_stops_times_series_base` with the subset of trips  active on the given date and with the keyword arguments ``split_directions``and ``freq`` and with ``date_label`` equal to ``date``.
-        See :func:`compute_stop_time_series_base` for a description of the outphp.
+        Call :func:`.helpers.compute_stops_times_series_base` with the subset of trips  active on the given date and with the keyword arguments ``split_directions``and ``freq`` and with ``date_label`` equal to ``date``.
+        See :func:`.helpers.compute_stop_time_series_base` for a description of the output.
 
         Assume the following feed attributes are not ``None``:
 
@@ -905,7 +905,7 @@ class Feed(object):
         - Those used in :func:`get_trips`
             
         NOTES:
-          - This is a more user-friendly version of ``compute_stop_time_series_base()``. The latter function works without a feed, though.
+          - This is a more user-friendly version of :func:`.helpers.compute_stop_time_series_base`. The latter function works without a feed, though.
         """  
         return hp.compute_stop_time_series_base(self.stop_times, 
           self.get_trips(date), split_directions=split_directions, 
@@ -1270,9 +1270,9 @@ class Feed(object):
         feed.stop_times = st 
         return feed
 
-    def clean_route_short_names(feed):
+    def clean_route_short_names(self):
         """
-        In ``feed.routes``, assign 'n/a' to missing route short names and strip whitespace from route short names.
+        In ``self.routes``, assign 'n/a' to missing route short names and strip whitespace from route short names.
         Then disambiguate each route short name that is duplicated by appending '-' and its route ID.
         Return the resulting feed.
         """
@@ -1298,13 +1298,195 @@ class Feed(object):
         feed.routes = r
         return feed
 
+    def prune_dead_routes(self):
+        """
+        Remove every route from ``self.routes`` that does not have trips listed in ``self.trips``.
+        Return the resulting new feed.
+        """
+        feed = self.copy()
+        live_routes = feed.trips['route_id'].unique()
+        r = feed.routes 
+        feed.routes = r[r['route_id'].isin(live_routes)]
+        return feed 
+
+    def aggregate_routes(self, by='route_short_name', 
+      route_id_prefix='route_'):
+        """
+        Group ``self.routes`` by the ``by`` column, and for each group 
+
+        1. choose the first route in the group,
+        2. assign a new route ID based on the given ``route_id_prefix`` string and a running count, e.g. ``'route_013'``
+        3. assign all the trips associated with routes in the group to that first route.
+
+        Return a new feed with the updated routes and trips.
+        """
+        if by not in self.routes.columns:
+            raise ValueError("Column {!s} not in feed.routes".format(
+              by))
+
+        feed = self.copy()
+
+        # Create new route IDs
+        routes = feed.routes
+        n = routes.groupby(by).ngroups
+        k = int(math.log10(n)) + 1 # Number of digits for padding IDs 
+        nrid_by_orid = dict()
+        i = 1
+        for col, group in routes.groupby(by):
+            nrid = 'route_{num:0{pad}d}'.format(num=i, pad=k)
+            d = {orid: nrid for orid in group['route_id'].values}
+            nrid_by_orid.update(d)
+            i += 1
+
+        routes['route_id'] = routes['route_id'].map(lambda x: nrid_by_orid[x])
+        routes = routes.groupby(by).first().reset_index()
+        feed.routes = routes
+
+        # Update route IDs of trips
+        trips = feed.trips
+        trips['route_id'] = trips['route_id'].map(lambda x: nrid_by_orid[x])
+        feed.trips = trips
+
+        # Update route IDs of transfers
+        if feed.transfers is not None:
+            transfers = feed.transfers
+            transfers['route_id'] = transfers['route_id'].map(
+              lambda x: nrid_by_orid[x])
+            feed.transfers = transfers
+
+        return feed 
+
+    def clean(self):
+        """
+        Apply the following functions to this feed and return the resulting new feed.
+
+        #. :func:`clean_ids`
+        #. :func:`clean_stop_times`
+        #. :func:`clean_route_short_names`
+        #. :func:`prune_dead_routes`
+        """
+        feed = self.copy()
+        ops = [
+          'clean_ids',
+          'clean_stop_times',
+          'clean_route_short_names',
+          'prune_dead_routes',
+        ]
+        for op in ops:
+            feed = getattr(feed, op)()
+
+        return feed
+
+    def drop_invalid_columns(self):
+        """
+        Drop all data frame columns of this feed not listed in :const:`.constants.VALID_COLUMNS_BY_TABLE`.
+        Return the resulting new feed.
+        """
+        feed = self.copy()
+        for key, vcols in cs.VALID_COLUMNS_BY_TABLE.items():
+            f = getattr(feed, key)
+            if f is None:
+                continue
+            for col in f.columns:
+                if col not in vcols:
+                    print('{!s}: dropping invalid column {!s}'.format(key, col))
+                    del f[col]
+
+        return feed
+
     # -------------------------------------
     # Methods about miscellany
     # -------------------------------------
+    def assess(self):
+        """
+        Return a DataFrame of various feed indicators and values, such as the number of trips missing shapes.
+        The columns of the DataFrame are 
+
+        - ``'indicator'``: string; name of an indicator, e.g. 'num_trips_missing_shapes'
+        - ``'value'``: value of the indicator, e.g. 27
+
+        This is not a GTFS validator.
+        """
+        d = OrderedDict()
+
+        # Count duplicate route short names
+        r = self.routes
+        dup = r.duplicated(subset=['route_short_name'])
+        n = dup[dup].count()
+        d['num_duplicated_route_short_names'] = n
+        d['frac_duplicated_route_short_names'] = n/r.shape[0]
+
+        # Has shape_dist_traveled column in stop times?
+        st = self.stop_times
+        if 'shape_dist_traveled' in st.columns:
+            d['has_shape_dist_traveled'] = True
+            # Count missing distances
+            n = st[st['shape_dist_traveled'].isnull()].shape[0]
+            d['num_missing_dists'] = n
+            d['frac_missing_dists'] = n/st.shape[0]
+        else:
+            d['has_shape_dist_traveled'] = False
+            d['num_missing_dists'] = st.shape[0]
+            d['frac_missing_dists'] = 1
+
+        # Has direction ID?
+        t = self.trips
+        if 'direction_id' in t.columns:
+            d['has_direction_id'] = True
+            # Count missing directions
+            n = t[t['direction_id'].isnull()].shape[0]
+            d['num_missing_directions'] = n
+            d['frac_missing_directions'] = n/t.shape[0]
+        else:
+            d['has_direction_id'] = False
+            d['num_missing_directions'] = t.shape[0]
+            d['frac_missing_directions'] = 1
+
+        # Count trips missing shapes
+        if self.shapes is not None:
+            n = t[t['shape_id'].isnull()].shape[0]
+        else:
+            n = t.shape[0]
+        d['num_trips_missing_shapes'] = n
+        d['frac_trips_missing_shapes'] = n/t.shape[0]
+
+        # Count missing departure times
+        n = st[st['departure_time'].isnull()].shape[0]
+        d['num_missing_departure_times'] = n
+        d['frac_missing_departure_times'] = n/st.shape[0]
+
+        # Count missing first departure times
+        g = st.groupby('trip_id').agg(lambda x: x.iloc[0]).reset_index()
+        n = g[g['departure_time'].isnull()].shape[0]
+        d['num_missing_first_departure_times'] = n
+        d['frac_missing_first_departure_times'] = n/g.shape[0]
+
+        # Count missing last departure times
+        g = st.groupby('trip_id').agg(lambda x: x.iloc[-1]).reset_index()
+        n = g[g['departure_time'].isnull()].shape[0]
+        d['num_missing_last_departure_times'] = n
+        d['frac_missing_last_departure_times'] = n/g.shape[0]
+
+        # Opine
+        if (d['frac_missing_first_departure_times'] >= 0.1) or\
+          (d['frac_missing_last_departure_times'] >= 0.1) or\
+          d['frac_trips_missing_shapes'] >= 0.8:
+            d['assessment'] = 'bad feed'
+        elif d['frac_missing_directions'] or\
+          d['frac_missing_dists'] or\
+          d['num_duplicated_route_short_names']:
+            d['assessment'] = 'probably a fixable feed'
+        else:
+            d['assessment'] = 'good feed'
+
+        f = pd.DataFrame(list(d.items()), columns=['indicator', 'value'])
+
+        return f 
+
     def convert_dist(self, new_dist_units):
         """
-        Convert the distances recorded in the ``shape_dist_traveled`` columns of the given feed from this Feed's native distance units (recorded in ``feed.dist_units``) to the given new distance units.
-        New distance units must lie in ``constants.DIST_UNITS``
+        Convert the distances recorded in the ``shape_dist_traveled`` columns of the given feed from this Feed's native distance units (recorded in ``self.dist_units``) to the given new distance units.
+        New distance units must lie in :const:`.constants.DIST_UNITS`.
         """       
         feed = self.copy()
 
