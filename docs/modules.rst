@@ -1,4 +1,4 @@
-constants Module
+Module constants
 ===========================
 
 .. automodule:: gtfstk.constants
@@ -7,55 +7,19 @@ constants Module
     :show-inheritance:
 
 
-utilities Module 
+Module helpers
 ===========================
 
-.. automodule:: gtfstk.utilities
+.. automodule:: gtfstk.helpers
     :members:
     :undoc-members:
     :show-inheritance:
 
 
-feed Module
+Module feed
 ===========================
 
 .. automodule:: gtfstk.feed
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-validator Module
-===========================
-
-.. automodule:: gtfstk.validator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-cleaner Module 
-===========================
-
-.. automodule:: gtfstk.cleaner
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-calculator Module
-===========================
-
-.. automodule:: gtfstk.calculator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-plotter Module
-===========================
-
-.. automodule:: gtfstk.plotter
     :members:
     :undoc-members:
     :show-inheritance:
