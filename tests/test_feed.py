@@ -711,6 +711,12 @@ def test_drop_invalid_columns():
 # ----------------------------------
 # Test methods about miscellany
 # ----------------------------------
+def test_describe():
+    feed = sample.copy() # No distances here
+    a = feed.describe()
+    assert isinstance(a, pd.DataFrame)
+    assert set(a.columns) == set(['indicator', 'value'])
+
 def test_assess():
     feed = sample.copy() # No distances here
     a = feed.assess()

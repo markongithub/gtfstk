@@ -1397,6 +1397,34 @@ class Feed(object):
     # -------------------------------------
     # Methods about miscellany
     # -------------------------------------
+    def describe(self, date=None):
+        """
+        Return a DataFrame of various feed indicators and values, e.g. number of routes.
+        If a date is given, then restrict some of those indicators to the date, e.g. number of routes on the date.
+        The columns of the DataFrame are 
+
+        - ``'indicator'``: string; name of an indicator, e.g. 'num_trips_missing_shapes'
+        - ``'value'``: value of the indicator, e.g. 27
+
+        """
+        d = OrderedDict()
+        dates = self.get_dates()
+        d['start_date'] = dates[0]
+        d['end_date'] = dates[-1]
+        d['stats_date'] = date 
+        d['num_routes'] = self.get_routes(date).shape[0]
+        trips = self.get_trips(date)
+        d['num_trips'] = trips.shape[0]
+        d['num_stops'] = self.get_stops(date).shape[0]
+        if self.shapes is not None:
+            d['num_shapes'] = trips['shape_id'].nunique()
+        else:
+            d['num_shapes'] = 0
+
+        f = pd.DataFrame(list(d.items()), columns=['indicator', 'value'])
+
+        return f 
+
     def assess(self):
         """
         Return a DataFrame of various feed indicators and values, such as the number of trips missing shapes.
