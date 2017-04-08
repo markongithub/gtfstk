@@ -43,6 +43,7 @@ DTYPE = {
 }
 
 # From the GTFS reference at https://developers.google.com/transit/gtfs/reference/
+#:
 VALID_COLUMNS_BY_TABLE = {
     'agency': [
         'agency_id',  
@@ -193,6 +194,7 @@ FEED_ATTRS_PRIVATE = [
   '_calendar_dates_g',
   ]
   
+#:
 FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
 
 # Columns that must be formatted as integers when outputting GTFS

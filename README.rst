@@ -1,7 +1,6 @@
 GTFSTK
 ********
-GTFSTK is a Python 3.5 tool kit for processing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
-It is mostly for computing statistics, such as daily service distance per route and daily number of trips per stop.
+GTFSTK is a Python 3.5 tool kit to analyze `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
 It uses Pandas and Shapely to do the heavy lifting.
 
 
@@ -25,7 +24,7 @@ Notes
 - Development status is Alpha
 - This project uses `semantic versioning <http://semver.org/>`_
 - Thanks to `MRCagney <http://www.mrcagney.com/>`_ for partially funding this project
-- Constructive feedback is welcome and is best placed in this repository's issues section with an appropriate label, e.g. 'feature request'.
+- Constructive feedback is welcome and is best placed in this repository's issues section
 
 
 Authors
@@ -35,6 +34,13 @@ Authors
 
 History
 =========
+
+7.0.0, 2017-04-07
+-----------------
+- Rewrote most feed functions as ``Feed`` methods
+- Rewrote tests for pytest
+- Removed some miscellaneous functions, such as plotting functions
+
 
 6.1.0, 2016-11-24
 -----------------
