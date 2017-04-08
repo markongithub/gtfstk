@@ -700,11 +700,11 @@ def test_clean():
     assert f2.routes.ix[0, 'route_id'] == rid
     assert_frame_equal(f2.trips, sample.trips)
 
-def test_drop_invalid_columns():
+def test_drop_invalid_fields():
     f1 = sample.copy()
     f1.routes['bingo'] = 'bongo'
     f1.trips['wingo'] = 'wongo'
-    f2 = f1.drop_invalid_columns()
+    f2 = f1.drop_invalid_fields()
     assert f2 == sample
 
 
@@ -932,7 +932,6 @@ def test_write_gtfs():
     for out_path in [DATA_DIR/'bingo.zip', DATA_DIR/'bingo']:
         write_gtfs(feed1, out_path)
         feed2 = read_gtfs(out_path, 'km')
-        names = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
         assert feed1 == feed2
         try:
             out_path.unlink()
@@ -940,8 +939,7 @@ def test_write_gtfs():
             shutil.rmtree(str(out_path))
 
     # Test that integer columns with NaNs get output properly.
-    # To this end, put a NaN, 1.0, and 0.0 in the direction_id column 
-    # of trips.txt, export it, and import the column as strings.
+    # To this end, put a NaN, 1.0, and 0.0 in the direction_id column of trips.txt, export it, and import the column as strings.
     # Should only get np.nan, '0', and '1' entries.
     feed3 = read_gtfs(DATA_DIR/'sample_gtfs.zip', dist_units='km')
     f = feed3.trips.copy()

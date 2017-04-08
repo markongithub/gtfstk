@@ -1231,19 +1231,20 @@ class Feed(object):
         # will be automatically handled when creating the new feed.
         feed = self.copy()
 
-        for key in cs.FEED_ATTRS_PUBLIC:
-            f = getattr(feed, key)
-            # Alter ID columns
-            if f is not None and key in cs.GTFS_COLUMNS_BY_TABLE:
-                for col in cs.GTFS_COLUMNS_BY_TABLE[key].keys():
-                    if col.endswith('_id') and col in f.columns:
-                        try:
-                            f[col] = f[col].str.strip().str.replace(
-                              r'\s+', '_')
-                            setattr(feed, key, f)
-                        except AttributeError:
-                            # Column is not of string type
-                            continue
+        for table in cs.GTFS_REF['table']:
+            f = getattr(feed, table)
+            if f is None:
+                continue
+            for field in cs.GTFS_REF.loc[cs.GTFS_REF['table'] == table, 'field']:
+                if field in f.columns and field.endswith('_id'):
+                    try:
+                        f[field] = f[field].str.strip().str.replace(
+                          r'\s+', '_')
+                        setattr(feed, table, f)
+                    except AttributeError:
+                        # Column is not of string type
+                        continue
+    
         return feed
 
     def clean_stop_times(self):
@@ -1377,20 +1378,22 @@ class Feed(object):
 
         return feed
 
-    def drop_invalid_columns(self):
+    def drop_invalid_fields(self):
         """
         Drop all data frame columns of this feed not listed in :const:`.constants.VALID_COLUMNS_BY_TABLE`.
         Return the resulting new feed.
         """
         feed = self.copy()
-        for key, vcols in cs.GTFS_COLUMNS_BY_TABLE.items():
-            f = getattr(feed, key)
+        for table in cs.GTFS_REF['table']:
+            f = getattr(feed, table)
             if f is None:
                 continue
+            fields = cs.GTFS_REF.loc[cs.GTFS_REF['table'] == table, 'field'].values
             for col in f.columns:
-                if col not in vcols:
-                    print('{!s}: dropping invalid column {!s}'.format(key, col))
+                if col not in fields:
+                    print('{!s}: dropping invalid field {!s}'.format(table, col))
                     del f[col]
+            setattr(feed, table, f)
 
         return feed
 
@@ -2016,13 +2019,11 @@ def read_gtfs(path, dist_units=None):
         src_path = path
 
     # Read files into feed dictionary of DataFrames
-    tables = cs.GTFS_TABLES.keys()
-    feed_dict = {table: None for table in tables}
+    feed_dict = {table: None for table in cs.GTFS_REF['table']}
     for p in src_path.iterdir():
         table = p.stem
-        if p.is_file() and table in tables:
-            feed_dict[table] = pd.read_csv(p, dtype=cs.DTYPE, 
-              encoding='utf-8-sig') 
+        if p.is_file() and table in feed_dict:
+            feed_dict[table] = pd.read_csv(p, dtype=cs.DTYPE, encoding='utf-8-sig') 
             # utf-8-sig gets rid of the byte order mark (BOM);
             # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string 
         
@@ -2056,8 +2057,7 @@ def write_gtfs(feed, path, ndigits=6):
             path.mkdir()
         new_path = path 
 
-    tables = cs.GTFS_TABLES.keys()
-    for table in tables:
+    for table in cs.GTFS_REF['table'].unique():
         f = getattr(feed, table)
         if f is None:
             continue
@@ -2066,7 +2066,7 @@ def write_gtfs(feed, path, ndigits=6):
         # Some columns need to be output as integers.
         # If there are NaNs in any such column, 
         # then Pandas will format the column as float, which we don't want.
-        f_int_cols = set(cs.INT_COLUMNS) & set(f.columns)
+        f_int_cols = set(cs.INT_FIELDS) & set(f.columns)
         for s in f_int_cols:
             f[s] = f[s].fillna(-1).astype(int).astype(str).\
               replace('-1', '')
