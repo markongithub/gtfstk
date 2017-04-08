@@ -1234,8 +1234,8 @@ class Feed(object):
         for key in cs.FEED_ATTRS_PUBLIC:
             f = getattr(feed, key)
             # Alter ID columns
-            if f is not None and key in cs.VALID_COLUMNS_BY_TABLE:
-                for col in cs.VALID_COLUMNS_BY_TABLE[key]:
+            if f is not None and key in cs.GTFS_COLUMNS_BY_TABLE:
+                for col in cs.GTFS_COLUMNS_BY_TABLE[key].keys():
                     if col.endswith('_id') and col in f.columns:
                         try:
                             f[col] = f[col].str.strip().str.replace(
@@ -1383,7 +1383,7 @@ class Feed(object):
         Return the resulting new feed.
         """
         feed = self.copy()
-        for key, vcols in cs.VALID_COLUMNS_BY_TABLE.items():
+        for key, vcols in cs.GTFS_COLUMNS_BY_TABLE.items():
             f = getattr(feed, key)
             if f is None:
                 continue
@@ -2016,7 +2016,7 @@ def read_gtfs(path, dist_units=None):
         src_path = path
 
     # Read files into feed dictionary of DataFrames
-    tables = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
+    tables = cs.GTFS_TABLES.keys()
     feed_dict = {table: None for table in tables}
     for p in src_path.iterdir():
         table = p.stem
@@ -2056,7 +2056,7 @@ def write_gtfs(feed, path, ndigits=6):
             path.mkdir()
         new_path = path 
 
-    tables = cs.GTFS_TABLES_REQUIRED + cs.GTFS_TABLES_OPTIONAL
+    tables = cs.GTFS_TABLES.keys()
     for table in tables:
         f = getattr(feed, table)
         if f is None:

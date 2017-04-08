@@ -1,61 +1,56 @@
-#:
-GTFS_TABLES_REQUIRED = [
-  'agency',  
-  'stops',   
-  'routes',
-  'trips',
-  'stop_times',
-  'calendar',
-  ]
-
-#:
-GTFS_TABLES_OPTIONAL = [
-  'calendar_dates',  
-  'fare_attributes',    
-  'fare_rules',  
-  'shapes',  
-  'frequencies',     
-  'transfers',   
-  'feed_info',
-  ]
-
+#: 
+GTFS_TABLES = {
+    'agency': 'required',  
+    'stops': 'required',   
+    'routes': 'required',
+    'trips': 'required',
+    'stop_times': 'required',
+    'calendar': 'required',
+    'calendar_dates': 'optional',  
+    'fare_attributes': 'optional',    
+    'fare_rules': 'optional',  
+    'shapes': 'optional',  
+    'frequencies': 'optional',     
+    'transfers': 'optional',   
+    'feed_info': 'optional',
+    }
 #:
 DTYPE = {
-  'agency_id': str,
-  'stop_id': str, 
-  'stop_code': str,
-  'zone_id': str,
-  'parent_station': str,
-  'route_id': str, 
-  'route_short_name': str,
-  'trip_id': str, 
-  'service_id': str, 
-  'shape_id': str, 
-  'start_date': str, 
-  'end_date': str,
-  'date': str,
-  'fare_id': str,
-  'origin_id': str,
-  'destination_id': str,
-  'contains_id': str,
-  'from_stop_id': str,
-  'to_stop_id': str,
-}
+    'agency_id': str,
+    'stop_id': str, 
+    'stop_code': str,
+    'zone_id': str,
+    'parent_station': str,
+    'route_id': str, 
+    'route_short_name': str,
+    'trip_id': str, 
+    'service_id': str, 
+    'shape_id': str, 
+    'start_date': str, 
+    'end_date': str,
+    'date': str,
+    'fare_id': str,
+    'origin_id': str,
+    'destination_id': str,
+    'contains_id': str,
+    'from_stop_id': str,
+    'to_stop_id': str,
+    }
 
 # From the GTFS reference at https://developers.google.com/transit/gtfs/reference/
 #:
-VALID_COLUMNS_BY_TABLE = {
-    'agency': [
-        'agency_id',  
-        'agency_name',    
-        'agency_url', 
-        'agency_timezone', 
-        'agency_lang',
-        'agency_phone',   
-        'agency_fare_url',
-        'agency_email',   
-        ],
-    'calendar': [
+GTFS_COLUMNS_BY_TABLE = {
+    'agency': {
+        'agency_id': 'optional',  
+        'agency_name': 'required',    
+        'agency_url': 'required', 
+        'agency_timezone': 'required', 
+        'agency_lang': 'optional',
+        'agency_phone': 'optional',   
+        'agency_fare_url': 'optional',
+        'agency_email': 'optional',   
+        },
+    'calendar': {
         'service_id',
         'monday',
         'tuesday',
@@ -66,43 +61,43 @@ VALID_COLUMNS_BY_TABLE = {
         'sunday',
         'start_date',
         'end_date',
-        ],
-    'calendar_dates': [
+        },
+    'calendar_dates': {
         'service_id',
         'date',
         'exception_type',
-        ],
-    'fare_attributes': [
+        },
+    'fare_attributes': {
         'fare_id',
         'price',
         'currency_type',
         'payment_method',
         'transfers',
         'transfer_duration',
-        ],
-    'fare_rules': [
+        },
+    'fare_rules': {
         'fare_id',
         'route_id',
         'origin_id',
         'destination_id',
         'contains_id',
-        ],
-    'feed_info': [
+        },
+    'feed_info': {
         'feed_publisher_name',
         'feed_publisher_url',
         'feed_lang',
         'feed_start_date',
         'feed_end_date',
         'feed_version',
-        ],
-    'frequencies': [
+        },
+    'frequencies': {
         'trip_id',
         'start_time',
         'end_time',
         'headway_secs',
         'exact_times',
-        ],
-    'routes': [
+        },
+    'routes': {
         'route_id',
         'agency_id',
         'route_short_name',
@@ -112,15 +107,15 @@ VALID_COLUMNS_BY_TABLE = {
         'route_url',
         'route_color',
         'route_text_color',
-        ],
-    'shapes': [
+        },
+    'shapes': {
         'shape_id',
         'shape_pt_lat',
         'shape_pt_lon',
         'shape_pt_sequence',
         'shape_dist_traveled',
-        ], 
-    'stops': [
+        }, 
+    'stops': {
         'stop_id',
         'stop_code',
         'stop_name',
@@ -133,8 +128,8 @@ VALID_COLUMNS_BY_TABLE = {
         'parent_station',
         'stop_timezone',
         'wheelchair_boarding',
-        ],
-    'stop_times': [
+        },
+    'stop_times': {
         'trip_id',
         'arrival_time',
         'departure_time',
@@ -145,14 +140,14 @@ VALID_COLUMNS_BY_TABLE = {
         'drop_off_type',
         'shape_dist_traveled',
         'timepoint',
-        ],
-    'transfers': [
+        },
+    'transfers': {
         'from_stop_id',
         'to_stop_id',
         'transfer_type',
         'min_transfer_time',
-        ],
-    'trips': [
+        },
+    'trips': {
         'route_id',
         'service_id',
         'trip_id',
@@ -163,7 +158,7 @@ VALID_COLUMNS_BY_TABLE = {
         'shape_id',
         'wheelchair_accessible',
         'bikes_allowed',
-        ],
+        },
     }
 
 #:
@@ -171,28 +166,28 @@ DIST_UNITS = ['ft', 'mi', 'm', 'km']
 
 #:
 FEED_ATTRS_PUBLIC = [
-  'agency', 
-  'stops', 
-  'routes', 
-  'trips', 
-  'stop_times', 
-  'calendar', 
-  'calendar_dates', 
-  'fare_attributes', 
-  'fare_rules', 
-  'shapes', 
-  'frequencies', 
-  'transfers', 
-  'feed_info',
-  'dist_units',
-  ]
+    'agency', 
+    'stops', 
+    'routes', 
+    'trips', 
+    'stop_times', 
+    'calendar', 
+    'calendar_dates', 
+    'fare_attributes', 
+    'fare_rules', 
+    'shapes', 
+    'frequencies', 
+    'transfers', 
+    'feed_info',
+    'dist_units',
+    ]
 
 #:
 FEED_ATTRS_PRIVATE = [
-  '_trips_i', 
-  '_calendar_i', 
-  '_calendar_dates_g',
-  ]
+    '_trips_i', 
+    '_calendar_i', 
+    '_calendar_dates_g',
+    ]
   
 #:
 FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
@@ -200,32 +195,32 @@ FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
 # Columns that must be formatted as integers when outputting GTFS
 #:
 INT_COLUMNS = [
-  'location_type',
-  'wheelchair_boarding',
-  'route_type',
-  'direction_id',
-  'stop_sequence',
-  'wheelchair_accessible',
-  'bikes_allowed',
-  'pickup_type',
-  'drop_off_type',
-  'timepoint',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-  'exception_type',
-  'payment_method',
-  'transfers',
-  'shape_pt_sequence',
-  'exact_times',
-  'transfer_type',
-  'transfer_duration',
-  'min_transfer_time',
-]
+    'location_type',
+    'wheelchair_boarding',
+    'route_type',
+    'direction_id',
+    'stop_sequence',
+    'wheelchair_accessible',
+    'bikes_allowed',
+    'pickup_type',
+    'drop_off_type',
+    'timepoint',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+    'exception_type',
+    'payment_method',
+    'transfers',
+    'shape_pt_sequence',
+    'exact_times',
+    'transfer_type',
+    'transfer_duration',
+    'min_transfer_time',
+    ]
 
 #:
 CRS_WGS84 = {'no_defs': True, 'ellps': 'WGS84', 'datum': 
