@@ -60,7 +60,7 @@ rows = [
     ['shapes', False, 'shape_pt_lat', True, 'float'],
     ['shapes', False, 'shape_pt_lon', True, 'float'],
     ['shapes', False, 'shape_pt_sequence', True, 'int'],
-    ['shapes', False, 'shape_dist_traveled', True, 'float'],
+    ['shapes', False, 'shape_dist_traveled', False, 'float'],
     ['stops', True, 'stop_id', True, 'str'],
     ['stops', True, 'stop_code', False, 'str'],
     ['stops', True, 'stop_name', True, 'str'],
