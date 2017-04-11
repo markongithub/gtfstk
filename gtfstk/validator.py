@@ -149,6 +149,9 @@ def check_routes(feed):
 
 	return build_errors('routes', msgs)
 
+def check_trips(feed):
+	pass 
+	
 def validate(feed):
 	errors = []
 

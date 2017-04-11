@@ -1,0 +1,149 @@
+import pytest
+import importlib
+from pathlib import Path 
+
+import pandas as pd 
+from pandas.util.testing import assert_frame_equal, assert_series_equal
+import numpy as np
+import utm
+import shapely.geometry as sg 
+
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from gtfstk import *
+if HAS_GEOPANDAS:
+    from geopandas import GeoDataFrame
+
+
+def test_is_active_trip():
+    feed = cairns.copy()
+    trip_id = 'CNS2014-CNS_MUL-Weekday-00-4165878'
+    date1 = '20140526'
+    date2 = '20120322'
+    assert feed.is_active_trip(trip_id, date1)
+    assert not feed.is_active_trip(trip_id, date2)
+
+    trip_id = 'CNS2014-CNS_MUL-Sunday-00-4165971'
+    date1 = '20140601'
+    date2 = '20120602'
+    assert feed.is_active_trip(trip_id, date1)
+    assert not feed.is_active_trip(trip_id, date2)
+
+def test_get_trips():
+    feed = cairns.copy()
+    date = cairns_date
+    trips1 = feed.get_trips(date)
+    # Should be a data frame
+    assert isinstance(trips1, pd.core.frame.DataFrame)
+    # Should have the correct shape
+    assert trips1.shape[0] <= feed.trips.shape[0]
+    assert trips1.shape[1] == feed.trips.shape[1]
+    # Should have correct columns
+    assert set(trips1.columns) == set(feed.trips.columns)
+
+    trips2 = feed.get_trips(date, "07:30:00")
+    # Should be a data frame
+    assert isinstance(trips2, pd.core.frame.DataFrame)
+    # Should have the correct shape
+    assert trips2.shape[0] <= trips2.shape[0]
+    assert trips2.shape[1] == trips1.shape[1]
+    # Should have correct columns
+    assert set(trips2.columns) == set(feed.trips.columns)
+
+def test_compute_trip_activity():
+    feed = cairns.copy()
+    dates = feed.get_first_week()
+    trips_activity = feed.compute_trip_activity(dates)
+    # Should be a data frame
+    assert isinstance(trips_activity, pd.core.frame.DataFrame)
+    # Should have the correct shape
+    assert trips_activity.shape[0] == feed.trips.shape[0]
+    assert trips_activity.shape[1] == 1 + len(dates)
+    # Date columns should contain only zeros and ones
+    assert set(trips_activity[dates].values.flatten()) == {0, 1}
+
+def test_compute_busiest_date():
+    feed = cairns.copy()
+    dates = feed.get_first_week() + ['19000101']
+    date = feed.compute_busiest_date(dates)
+    # Busiest day should lie in first week
+    assert date in dates
+
+@slow
+def test_compute_trip_stats():
+    feed = cairns.copy()
+    trip_stats = feed.compute_trip_stats()
+    
+    # Should be a data frame with the correct number of rows
+    assert isinstance(trip_stats, pd.core.frame.DataFrame)
+    assert trip_stats.shape[0] == feed.trips.shape[0]
+    
+    # Should contain the correct columns
+    expect_cols = set([
+      'trip_id',
+      'direction_id',
+      'route_id',
+      'route_short_name',
+      'route_type',
+      'shape_id',
+      'num_stops',
+      'start_time', 
+      'end_time',
+      'start_stop_id',
+      'end_stop_id',
+      'distance',
+      'duration',
+      'speed',
+      'is_loop',
+      ])
+    assert set(trip_stats.columns) == expect_cols
+    
+    # Shapeless feeds should have null entries for distance column
+    feed2 = cairns_shapeless.copy()
+    trip_stats = feed2.compute_trip_stats()
+    assert len(trip_stats['distance'].unique()) == 1
+    assert np.isnan(trip_stats['distance'].unique()[0])  
+    
+    # Should contain the correct trips
+    get_trips = set(trip_stats['trip_id'].values)
+    expect_trips = set(feed.trips['trip_id'].values)
+    assert get_trips == expect_trips
+
+@slow
+def test_compute_trip_locations():
+    feed = cairns.copy()
+    trip_stats = cairns_trip_stats
+    feed = feed.append_dist_to_stop_times(trip_stats)
+    date = cairns_date
+    times = ['08:00:00']
+    f = feed.compute_trip_locations(date, times)
+    g = feed.get_trips(date, times[0])
+    # Should be a data frame
+    assert isinstance(f, pd.core.frame.DataFrame)
+    # Should have the correct number of rows
+    assert f.shape[0] == g.shape[0]
+    # Should have the correct columns
+    expect_cols = set([
+      'route_id',
+      'trip_id',
+      'direction_id',
+      'shape_id',
+      'time', 
+      'rel_dist', 
+      'lon', 
+      'lat',
+      ])
+    assert set(f.columns) == expect_cols
+
+def test_trip_to_geojson():
+    feed = cairns.copy()
+    trip_id = feed.trips['trip_id'].values[0]
+    g0 = feed.trip_to_geojson(trip_id)      
+    g1 = feed.trip_to_geojson(trip_id, include_stops=True)
+    for g in [g0, g1]:
+        # Should be a dictionary
+        assert isinstance(g, dict)
+
+    # Should have the correct number of features
+    assert len(g0['features']) == 1
+    stop_ids = feed.get_stops(trip_id=trip_id)['stop_id'].values
+    assert len(g1['features']) == 1 + len(stop_ids)

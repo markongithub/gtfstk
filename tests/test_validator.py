@@ -9,12 +9,9 @@ from numpy.testing import assert_array_equal
 import utm
 import shapely.geometry as sg 
 
-from .context import gtfstk, slow
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
 from gtfstk import *
 
-
-DATA_DIR = Path('data')
-sample = read_gtfs(DATA_DIR/'sample_gtfs.zip', dist_units='km')
 
 def test_valid_int():
     assert valid_int(3, [-1, 3])

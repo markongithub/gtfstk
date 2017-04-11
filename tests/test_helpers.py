@@ -9,22 +9,12 @@ from numpy.testing import assert_array_equal
 import utm
 import shapely.geometry as sg 
 
-from .context import gtfstk, slow
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
 from gtfstk import *
-
-# Check if GeoPandas is installed
-loader = importlib.find_loader('geopandas')
-print(loader)
-if loader is None:
-    HAS_GEOPANDAS = False
-else:
-    HAS_GEOPANDAS = True
+if HAS_GEOPANDAS:
     from geopandas import GeoDataFrame
 
-DATA_DIR = Path('data')
-cairns = read_gtfs(DATA_DIR/'cairns_gtfs.zip', dist_units='km')
-cairns_date = cairns.get_first_week()[0]
-cairns_trip_stats = pd.read_csv(DATA_DIR/'cairns_trip_stats.csv', dtype=DTYPE)
+
 
 def test_time_to_seconds():
     timestr1 = '01:01:01'
