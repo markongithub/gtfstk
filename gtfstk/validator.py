@@ -151,9 +151,23 @@ def check_routes(feed):
 
 def check_trips(feed):
 	pass 
-	
-def validate(feed):
+
+def validate(feed, as_df=False):
+	"""
+	Validate the given feed by doing all the checks above.
+	Return the errors found as a possibly empty list of pairs (table name, error message).
+	If ``as_df``, then format the error list as a DataFrame with the columns
+
+	- ``'table'``: name of table where error occurs
+	- ``'error'``: error message.
+
+	Return early if the feed is missing required tables or required fields.
+	"""
 	errors = []
+	if as_df:
+		format = lambda errors: pd.DataFrame(errors, columns=['table', 'error'])
+	else:
+		format = lambda x: x
 
 	# Halt if the following critical checks reveal errors
 	ops = [
@@ -163,7 +177,7 @@ def validate(feed):
 	for op in ops:
 		errors.extend(globals()[op](feed))
 		if errors:
-			return errors
+			return format(errors)
 
 	# Carry on assuming that all the required tables and fields are present
 	ops = [
@@ -172,7 +186,4 @@ def validate(feed):
 	for op in ops:
 		errors.extend(globals()[op](feed))
 
-	return errors
-
-def errors_to_df(errors):
-	return pd.DataFrame(errors, columns=['table', 'error'])
+	return format(errors)
