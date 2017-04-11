@@ -64,6 +64,20 @@ def check_table(messages, table, condition, id_column, message):
         messages.append('{!s}; see {!s}s {!s}'.format(message, id_column, bad_ids))
     return messages 
 
+def check_table_id(messages, table, id_column):
+    """
+    Given a list of messages, a table, and an ID column of the table, do the following.
+    If any of the ID column values are emtpy, blank, or duplicated, then add those errors to the list of messages.
+    Otherwise, return the original list of messages.
+    """
+    cond = table[id_column].isnull() | ~table[id_column].map(valid_string)
+    messages = check_table(messages, table, cond, id_column, 'Empty or blank route_id')
+
+    cond = table[id_column].duplicated()
+    messages = check_table(messages, table, cond, id_column, 'Duplicated route_id')
+
+    return messages
+
 def build_errors(table_name, messages):
     """
     Given the name of a GTFS table and a list of error messages regarding that table, return the list ``[(table_name, m) for m in messages]``.
@@ -104,12 +118,8 @@ def check_routes(feed):
     msgs = []
 
     # Check route_id
-    cond = f['route_id'].isnull() | ~f['route_id'].map(valid_string)
-    msgs = check_table(msgs, f, cond, 'route_id', 'Empty or blank route_id')
+    msgs = check_table_id(msgs, f, 'route_id')
 
-    cond = f['route_id'].duplicated()
-    msgs = check_table(msgs, f, cond, 'route_id', 'Duplicated route_id')
-    
     # Check agency_id
     if 'agency_id' in f:
         if 'agency_id' not in feed.agency.columns:
@@ -150,19 +160,25 @@ def check_routes(feed):
     
     return build_errors('routes', msgs)
 
+def check_stops(feed):
+    """
+    Check ``feed.stops`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('stops', error message).
+    """
+    f = feed.stops.copy()
+    msgs = []
+
+    # Check stop_id
+    msgs = check_table_id(msgs, f, 'stop_id')
+
 def check_trips(feed):
     """
-    Check ``feed.trips`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('routes', error message).
+    Check ``feed.trips`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('trips', error message).
     """
     f = feed.trips.copy()
     msgs = []
 
     # Check trip_id
-    cond = ~(f['trip_id'].notnull() & f['trip_id'].map(valid_string))
-    msgs = check_table(msgs, f, cond, 'trip_id', 'Empty or blank trip_id')
-
-    cond = f['trip_id'].duplicated()
-    msgs = check_table(msgs, f, cond, 'trip_id', 'Duplicated trip_id')
+    msgs = check_table_id(msgs, f, 'trips_id')
 
     # Check route_id present in routes
     cond = ~f['route_id'].isin(feed.routes['route_id'])

@@ -37,6 +37,12 @@ def test_check_table():
     assert not check_table([], feed.routes, cond, 'route_id', 'Bingo')
     assert check_table([], feed.routes, ~cond, 'route_id', 'Bongo')
 
+def test_check_table_id():
+    feed = sample.copy()
+    assert not check_table_id([], feed.routes, 'route_id')
+    feed.routes['route_id'].iat[0] = np.nan
+    assert check_table([], feed.routes, 'route_id')
+
 def test_check_for_required_tables():
     assert not check_for_required_tables(sample)
 
