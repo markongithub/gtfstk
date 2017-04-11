@@ -83,5 +83,40 @@ def test_check_routes():
     feed.routes['route_text_color'].iat[0] = 'FFF'
     assert check_routes(feed)
 
+def test_check_trips():
+    assert not check_trips(sample)
+
+    feed = sample.copy()
+    feed.trips['trip_id'].iat[0] = feed.trips['trip_id'].iat[1]
+    assert check_trips(feed)
+
+    feed = sample.copy()
+    feed.trips['route_id'] = 'Hubba hubba'
+    assert check_trips(feed)
+
+    feed = sample.copy()
+    feed.trips['service_id'] = 'Boom boom'
+    assert check_trips(feed)
+
+    feed = sample.copy()
+    feed.trips['direction_id'].iat[0] = 7
+    assert check_trips(feed)
+
+    feed = sample.copy()
+    feed.trips['block_id'].iat[0] = ''
+    assert check_trips(feed)
+
+    feed = sample.copy()
+    feed.trips['block_id'].iat[0] = 'Bam'
+    assert check_trips(feed)
+
+    feed = sample.copy()
+    feed.trips['shape_id'].iat[0] = 'Hello'
+    assert check_trips(feed)
+
+    feed = sample.copy()
+    feed.trips['wheelchair_accessible'] = ''
+    assert check_trips(feed)
+
 def test_validate():    
     assert not validate(sample)
