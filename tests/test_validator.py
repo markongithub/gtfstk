@@ -13,10 +13,6 @@ from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cair
 from gtfstk import *
 
 
-def test_valid_int():
-    assert valid_int(3, [-1, 3])
-    assert not valid_int(3, [2])
-
 def test_valid_color():
     assert valid_color('00FFFF')
     assert not valid_color('0FF')
@@ -26,22 +22,46 @@ def test_valid_url():
     assert valid_url('http://www.example.com')
     assert not valid_url('www.example.com')
 
-def test_valid_string():
-    assert valid_string('hello3')
-    assert not valid_string(np.nan)
-    assert not valid_string(' ')
+def test_valid_str():
+    assert valid_str('hello3')
+    assert not valid_str(np.nan)
+    assert not valid_str(' ')
+
+def test_valid_timezone():
+    assert valid_timezone('Africa/Abidjan')
+    assert not valid_timezone('zoom')
 
 def test_check_table():
     feed = sample.copy()
     cond = feed.routes['route_id'].isnull() 
-    assert not check_table([], feed.routes, cond, 'route_id', 'Bingo')
-    assert check_table([], feed.routes, ~cond, 'route_id', 'Bongo')
+    assert not check_table([], 'routes', feed.routes, cond, 'Bingo')
+    assert check_table([], 'routes', feed.routes, ~cond, 'Bongo')
 
-def test_check_table_id():
+def test_check_field_id():
     feed = sample.copy()
-    assert not check_table_id([], feed.routes, 'route_id')
+    assert not check_field_id([], 'routes', feed.routes, 'route_id')
     feed.routes['route_id'].iat[0] = np.nan
-    assert check_table([], feed.routes, 'route_id')
+    assert check_field_id([], 'routes', feed.routes, 'route_id')
+
+def test_check_field_str():
+    feed = sample.copy()
+    assert not check_field_str([], 'routes', feed.routes, 'route_desc', False)
+    feed.routes['route_desc'].iat[0] = ''
+    assert check_field_str([], 'routes', feed.routes, 'route_desc', False)
+
+def test_check_field_url():
+    feed = sample.copy()
+    assert not check_field_url([], 'agency', feed.agency, 'agency_url', True)
+    feed.agency['agency_url'].iat[0] = 'example.com'
+    assert check_field_url([], 'agency', feed.agency, 'agency_url', True)
+
+def test_check_field_range():
+    feed = sample.copy()
+    assert not check_field_range([], 'routes', feed.routes, 'route_type', True, 
+      range(19))
+    feed.routes['route_type'].iat[0] = 7
+    assert check_field_range([], 'routes', feed.routes, 'route_type', True, 
+      range(2))
 
 def test_check_for_required_tables():
     assert not check_for_required_tables(sample)
@@ -88,6 +108,39 @@ def test_check_routes():
     feed = sample.copy()
     feed.routes['route_text_color'].iat[0] = 'FFF'
     assert check_routes(feed)
+
+def test_check_stops():
+    assert not check_stops(sample)
+
+    feed = sample.copy()
+    feed.stops['stop_id'].iat[0] = feed.stops['stop_id'].iat[1]
+    assert check_stops(feed)
+
+    for field in ['stop_code', 'stop_desc', 'zone_id', 'parent_station']:
+        feed = sample.copy()
+        feed.stops[field] = ''
+        assert check_stops(feed)    
+
+    for field in ['stop_url', 'stop_timezone']:
+        feed = sample.copy()
+        feed.stops[field] = 'Wa wa'
+        assert check_stops(feed)
+
+    for field in ['stop_lon', 'stop_lat', 'location_type', 'wheelchair_boarding']:
+        feed = sample.copy()
+        feed.stops[field] = 185
+        assert check_stops(feed)
+
+    feed = sample.copy()
+    feed.stops['location_type'] = 1
+    feed.stops['parent_station'] = 'bingo' 
+    assert check_stops(feed)
+
+    feed = sample.copy()
+    feed.stops['location_type'] = 0
+    feed.stops['parent_station'] = feed.stops['stop_id'].iat[1]
+    assert check_stops(feed)
+
 
 def test_check_trips():
     assert not check_trips(sample)

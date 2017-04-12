@@ -1,5 +1,5 @@
 import pandas as pd 
-
+import pytz
 
 # Record some data from the GTFS reference at https://developers.google.com/transit/gtfs/reference/
 columns = ['table', 'table_required', 'field', 'field_required', 'dtype']
@@ -146,3 +146,6 @@ FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
 #:
 CRS_WGS84 = {'no_defs': True, 'ellps': 'WGS84', 'datum': 
   'WGS84', 'proj': 'longlat'}
+
+#: 
+TIMEZONES = set(pytz.all_timezones)
