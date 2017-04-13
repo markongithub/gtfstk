@@ -87,7 +87,7 @@ def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None,
     if geo_shapes is not None:
         f = geo_shapes.copy()
     else:
-        f = hp.geometrize_shapes(feed.shapes)
+        f = geometrize_shapes(feed.shapes)
     
     cols = f.columns
     f['hit'] = f['geometry'].intersects(geometry)
@@ -96,7 +96,7 @@ def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None,
     if geometrized:
         return f
     else:
-        return hp.ungeometrize_shapes(f)
+        return ungeometrize_shapes(f)
 
 def append_dist_to_shapes(feed):
     """
@@ -143,3 +143,55 @@ def append_dist_to_shapes(feed):
 
     feed.shapes = g
     return feed
+
+def geometrize_shapes(shapes, use_utm=False):
+    """
+    Given a shapes DataFrame, convert it to a GeoPandas GeoDataFrame and return the result.
+    The result has a 'geometry' column of WGS84 line strings instead of 'shape_pt_sequence', 'shape_pt_lon', 'shape_pt_lat', and 'shape_dist_traveled' columns.
+    If ``use_utm``, then use UTM coordinates for the geometries.
+
+    Requires GeoPandas.
+    """
+    import geopandas as gpd
+
+
+    f = shapes.copy().sort_values(['shape_id', 'shape_pt_sequence'])
+    
+    def my_agg(group):
+        d = {}
+        d['geometry'] =\
+          sg.LineString(group[['shape_pt_lon', 'shape_pt_lat']].values)
+        return pd.Series(d)
+
+    g = f.groupby('shape_id').apply(my_agg).reset_index()
+    g = gpd.GeoDataFrame(g, crs=cs.CRS_WGS84)
+
+    if use_utm:
+        lat, lon = f.ix[0][['shape_pt_lat', 'shape_pt_lon']].values
+        crs = get_utm_crs(lat, lon) 
+        g = g.to_crs(crs)
+
+    return g 
+
+def ungeometrize_shapes(geo_shapes):
+    """
+    The inverse of :func:`geometrize_shapes`.
+    Produces the columns:
+
+    - shape_id
+    - shape_pt_sequence
+    - shape_pt_lon
+    - shape_pt_lat
+
+    If ``geo_shapes`` is in UTM (has a UTM CRS property), then convert UTM coordinates back to WGS84 coordinates,
+    """
+    geo_shapes = geo_shapes.to_crs(cs.CRS_WGS84)
+
+    F = []
+    for index, row in geo_shapes.iterrows():
+        F.extend([[row['shape_id'], i, x, y] for 
+        i, (x, y) in enumerate(row['geometry'].coords)])
+
+    return pd.DataFrame(F, 
+      columns=['shape_id', 'shape_pt_sequence', 
+      'shape_pt_lon', 'shape_pt_lat'])

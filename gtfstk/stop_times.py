@@ -28,7 +28,7 @@ def get_stop_times(feed, date=None):
     g = feed.get_trips(date)
     return f[f['trip_id'].isin(g['trip_id'])]
 
-def append_dist_to_stop_times(feed, trips_stats):
+def append_dist_to_stop_times(feed, trip_stats):
     """
     Calculate and append the optional ``shape_dist_traveled`` field in ``feed.stop_times`` in terms of the distance units ``feed.dist_units``.
     Need trip stats in the form output by :func:`compute_trip_stats` for this.
@@ -45,7 +45,7 @@ def append_dist_to_stop_times(feed, trips_stats):
         Compute the ``shape_dist_traveled`` field by using Shapely to measure the distance of a stop along its trip linestring.
         If for a given trip this process produces a non-monotonically    increasing, hence incorrect, list of (cumulative) distances, then   fall back to estimating the distances as follows.
         
-        Get the average speed of the trip via ``trips_stats`` and use is to linearly interpolate distances for stop times, assuming that the first stop is at shape_dist_traveled = 0 (the start of the shape) and the last stop is at shape_dist_traveled = the length of the trip (taken from trips_stats and equal to the length of the shape, unless trips_stats was called with ``get_dist_from_shapes == False``).
+        Get the average speed of the trip via ``trip_stats`` and use is to linearly interpolate distances for stop times, assuming that the first stop is at shape_dist_traveled = 0 (the start of the shape) and the last stop is at shape_dist_traveled = the length of the trip (taken from trip_stats and equal to the length of the shape, unless trip_stats was called with ``get_dist_from_shapes == False``).
         This fallback method usually kicks in on trips with feed-intersecting    linestrings.
         Unfortunately, this fallback method will produce incorrect results when the first stop does not start at the start of its shape (so shape_dist_traveled != 0).
         This is the case for several trips in the Portland feed at https://transitfeeds.com/p/trimet/43/1400947517, for example. 
@@ -56,7 +56,7 @@ def append_dist_to_stop_times(feed, trips_stats):
 
     # Initialize DataFrame
     f = pd.merge(feed.stop_times,
-      trips_stats[['trip_id', 'shape_id', 'distance', 'duration']]).\
+      trip_stats[['trip_id', 'shape_id', 'distance', 'duration']]).\
       sort_values(['trip_id', 'stop_sequence'])
 
     # Convert departure times to seconds past midnight to ease calculations

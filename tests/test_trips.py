@@ -8,7 +8,7 @@ import numpy as np
 import utm
 import shapely.geometry as sg 
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_shapeless, cairns_date, cairns_trip_stats
 from gtfstk import *
 if HAS_GEOPANDAS:
     from geopandas import GeoDataFrame
@@ -19,19 +19,19 @@ def test_is_active_trip():
     trip_id = 'CNS2014-CNS_MUL-Weekday-00-4165878'
     date1 = '20140526'
     date2 = '20120322'
-    assert feed.is_active_trip(trip_id, date1)
-    assert not feed.is_active_trip(trip_id, date2)
+    assert is_active_trip(feed, trip_id, date1)
+    assert not is_active_trip(feed, trip_id, date2)
 
     trip_id = 'CNS2014-CNS_MUL-Sunday-00-4165971'
     date1 = '20140601'
     date2 = '20120602'
-    assert feed.is_active_trip(trip_id, date1)
-    assert not feed.is_active_trip(trip_id, date2)
+    assert is_active_trip(feed, trip_id, date1)
+    assert not is_active_trip(feed, trip_id, date2)
 
 def test_get_trips():
     feed = cairns.copy()
     date = cairns_date
-    trips1 = feed.get_trips(date)
+    trips1 = get_trips(feed, date)
     # Should be a data frame
     assert isinstance(trips1, pd.core.frame.DataFrame)
     # Should have the correct shape
@@ -40,7 +40,7 @@ def test_get_trips():
     # Should have correct columns
     assert set(trips1.columns) == set(feed.trips.columns)
 
-    trips2 = feed.get_trips(date, "07:30:00")
+    trips2 = get_trips(feed, date, "07:30:00")
     # Should be a data frame
     assert isinstance(trips2, pd.core.frame.DataFrame)
     # Should have the correct shape
@@ -51,8 +51,8 @@ def test_get_trips():
 
 def test_compute_trip_activity():
     feed = cairns.copy()
-    dates = feed.get_first_week()
-    trips_activity = feed.compute_trip_activity(dates)
+    dates = get_first_week(feed)
+    trips_activity = compute_trip_activity(feed, dates)
     # Should be a data frame
     assert isinstance(trips_activity, pd.core.frame.DataFrame)
     # Should have the correct shape
@@ -63,15 +63,15 @@ def test_compute_trip_activity():
 
 def test_compute_busiest_date():
     feed = cairns.copy()
-    dates = feed.get_first_week() + ['19000101']
-    date = feed.compute_busiest_date(dates)
+    dates = get_first_week(feed) + ['19000101']
+    date = compute_busiest_date(feed, dates)
     # Busiest day should lie in first week
     assert date in dates
 
 @slow
 def test_compute_trip_stats():
     feed = cairns.copy()
-    trip_stats = feed.compute_trip_stats()
+    trip_stats = compute_trip_stats(feed)
     
     # Should be a data frame with the correct number of rows
     assert isinstance(trip_stats, pd.core.frame.DataFrame)
@@ -99,7 +99,7 @@ def test_compute_trip_stats():
     
     # Shapeless feeds should have null entries for distance column
     feed2 = cairns_shapeless.copy()
-    trip_stats = feed2.compute_trip_stats()
+    trip_stats = compute_trip_stats(feed2)
     assert len(trip_stats['distance'].unique()) == 1
     assert np.isnan(trip_stats['distance'].unique()[0])  
     
@@ -112,11 +112,11 @@ def test_compute_trip_stats():
 def test_compute_trip_locations():
     feed = cairns.copy()
     trip_stats = cairns_trip_stats
-    feed = feed.append_dist_to_stop_times(trip_stats)
+    feed = append_dist_to_stop_times(feed, trip_stats)
     date = cairns_date
     times = ['08:00:00']
-    f = feed.compute_trip_locations(date, times)
-    g = feed.get_trips(date, times[0])
+    f = compute_trip_locations(feed, date, times)
+    g = get_trips(feed, date, times[0])
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct number of rows
@@ -137,13 +137,13 @@ def test_compute_trip_locations():
 def test_trip_to_geojson():
     feed = cairns.copy()
     trip_id = feed.trips['trip_id'].values[0]
-    g0 = feed.trip_to_geojson(trip_id)      
-    g1 = feed.trip_to_geojson(trip_id, include_stops=True)
+    g0 = trip_to_geojson(feed, trip_id)      
+    g1 = trip_to_geojson(feed, trip_id, include_stops=True)
     for g in [g0, g1]:
         # Should be a dictionary
         assert isinstance(g, dict)
 
     # Should have the correct number of features
     assert len(g0['features']) == 1
-    stop_ids = feed.get_stops(trip_id=trip_id)['stop_id'].values
+    stop_ids = get_stops(feed, trip_id=trip_id)['stop_id'].values
     assert len(g1['features']) == 1 + len(stop_ids)

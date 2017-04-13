@@ -1,6 +1,7 @@
 """
 Functions about trips
 """
+from collections import OrderedDict
 import json
 
 import pandas as pd 

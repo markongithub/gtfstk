@@ -1,8 +1,11 @@
+"""
+Constants useful across modules.
+"""
+
 import pandas as pd 
-import pytz
 
 # Record some data from the GTFS reference at https://developers.google.com/transit/gtfs/reference/
-columns = ['table', 'table_required', 'field', 'field_required', 'dtype']
+columns = ['table', 'table_required', 'column', 'column_required', 'dtype']
 rows = [
     ['agency', True, 'agency_id', False, 'str'],
     ['agency', True, 'agency_name', True, 'str'],
@@ -103,14 +106,14 @@ GTFS_REF = pd.DataFrame(rows, columns=columns)
 
 # Columns that must be formatted as integers when outputting GTFS
 #:
-INT_FIELDS = GTFS_REF.loc[GTFS_REF['dtype'] == 'int', 'field'].values.tolist()
+INT_COLS = GTFS_REF.loc[GTFS_REF['dtype'] == 'int', 'column'].values.tolist()
 
 # Columns that must be read as strings by Pandas
 #: 
-STR_FIELDS = GTFS_REF.loc[GTFS_REF['dtype'] == 'str', 'field'].values.tolist()
+STR_COLS = GTFS_REF.loc[GTFS_REF['dtype'] == 'str', 'column'].values.tolist()
 
 #: 
-DTYPE = {field: str for field in STR_FIELDS} 
+DTYPE = {col: str for col in STR_COLS} 
 
 #:
 DIST_UNITS = ['ft', 'mi', 'm', 'km']
@@ -146,6 +149,3 @@ FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
 #:
 CRS_WGS84 = {'no_defs': True, 'ellps': 'WGS84', 'datum': 
   'WGS84', 'proj': 'longlat'}
-
-#: 
-TIMEZONES = set(pytz.all_timezones)

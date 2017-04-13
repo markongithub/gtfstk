@@ -14,10 +14,93 @@ if HAS_GEOPANDAS:
     from geopandas import GeoDataFrame
 
 
+@slow
+def test_compute_route_stats_base():
+    feed = cairns.copy()
+    trip_stats = cairns_trip_stats
+    for split_directions in [True, False]:
+        rs = compute_route_stats_base(trip_stats, 
+          split_directions=split_directions)
+
+        # Should be a data frame of the correct shape
+        assert isinstance(rs, pd.core.frame.DataFrame)
+        if split_directions:
+            max_num_routes = 2*feed.routes.shape[0]
+        else:
+            max_num_routes = feed.routes.shape[0]
+        assert rs.shape[0] <= max_num_routes
+
+        # Should contain the correct columns
+        expect_cols = set([
+          'route_id',
+          'route_short_name',
+          'route_type',
+          'num_trips',
+          'is_bidirectional',
+          'is_loop',
+          'start_time',
+          'end_time',
+          'max_headway',
+          'min_headway',
+          'mean_headway', 
+          'peak_num_trips',
+          'peak_start_time',
+          'peak_end_time',
+          'service_duration', 
+          'service_distance',
+          'service_speed',              
+          'mean_trip_distance',
+          'mean_trip_duration',
+          ])
+        if split_directions:
+            expect_cols.add('direction_id')
+        assert set(rs.columns) == expect_cols
+
+    # Empty check
+    rs = compute_route_stats_base(pd.DataFrame(), 
+      split_directions=split_directions)    
+    assert rs.empty
+
+@slow
+def test_compute_route_time_series_base():
+    feed = cairns.copy()
+    trip_stats = cairns_trip_stats
+    for split_directions in [True, False]:
+        rs = compute_route_stats_base(trip_stats, 
+          split_directions=split_directions)
+        rts = compute_route_time_series_base(trip_stats, 
+          split_directions=split_directions, freq='1H')
+        
+        # Should be a data frame of the correct shape
+        assert isinstance(rts, pd.core.frame.DataFrame)
+        assert rts.shape[0] == 24
+        assert rts.shape[1] == 5*rs.shape[0]
+        
+        # Should have correct column names
+        if split_directions:
+            expect = ['indicator', 'route_id', 'direction_id']
+        else:
+            expect = ['indicator', 'route_id']
+        assert rts.columns.names == expect   
+        
+        # Each route have a correct service distance total
+        if split_directions == False:
+            g = trip_stats.groupby('route_id')
+            for route in trip_stats['route_id'].values:
+                get = rts['service_distance'][route].sum() 
+                expect = g.get_group(route)['distance'].sum()
+                assert abs((get - expect)/expect) < 0.001
+
+    # Empty check
+    rts = compute_route_time_series_base(pd.DataFrame(), 
+      split_directions=split_directions, 
+      freq='1H')    
+    assert rts.empty
+
 def test_get_routes():
     feed = cairns.copy()
     date = cairns_date
-    f = feed.get_routes(date)
+    f = get_routes(feed, date)
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct shape
@@ -26,7 +109,7 @@ def test_get_routes():
     # Should have correct columns
     assert set(f.columns) == set(feed.routes.columns)
 
-    g = feed.get_routes(date, "07:30:00")
+    g = get_routes(feed, date, "07:30:00")
     # Should be a data frame
     assert isinstance(g, pd.core.frame.DataFrame)
     # Should have the correct shape
@@ -40,9 +123,9 @@ def test_compute_route_stats():
     feed = cairns.copy()
     date = cairns_date
     trip_stats = cairns_trip_stats
-    f = pd.merge(trip_stats, feed.get_trips(date))
+    f = pd.merge(trip_stats, get_trips(feed, date))
     for split_directions in [True, False]:
-        rs = feed.compute_route_stats(trip_stats, date, 
+        rs = compute_route_stats(feed, trip_stats, date, 
           split_directions=split_directions)
 
         # Should be a data frame of the correct shape
@@ -81,7 +164,7 @@ def test_compute_route_stats():
         assert set(rs.columns) == expect_cols
 
     # Empty check
-    f = feed.compute_route_stats(trip_stats, '20010101')
+    f = compute_route_stats(feed, trip_stats, '20010101')
     assert f.empty
 
 @slow
@@ -89,11 +172,11 @@ def test_compute_route_time_series():
     feed = cairns.copy()
     date = cairns_date
     trip_stats = cairns_trip_stats
-    ats = pd.merge(trip_stats, feed.get_trips(date))
+    ats = pd.merge(trip_stats, get_trips(feed, date))
     for split_directions in [True, False]:
-        f = feed.compute_route_stats(trip_stats, date, 
+        f = compute_route_stats(feed, trip_stats, date, 
           split_directions=split_directions)
-        rts = feed.compute_route_time_series(trip_stats, date, 
+        rts = compute_route_time_series(feed, trip_stats, date, 
           split_directions=split_directions, freq='1H')
         
         # Should be a data frame of the correct shape
@@ -118,7 +201,7 @@ def test_compute_route_time_series():
 
     # Empty check
     date = '19000101'
-    rts = feed.compute_route_time_series(trip_stats, date, 
+    rts = compute_route_time_series(feed, trip_stats, date, 
       split_directions=split_directions, freq='1H')
     assert rts.empty
 
@@ -126,7 +209,7 @@ def test_get_route_timetable():
     feed = cairns.copy()
     route_id = feed.routes['route_id'].values[0]
     date = cairns_date
-    f = feed.get_route_timetable(route_id, date)
+    f = get_route_timetable(feed, route_id, date)
     # Should be a data frame 
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct columns
@@ -137,13 +220,13 @@ def test_get_route_timetable():
 def test_route_to_geojson():
     feed = cairns.copy()
     route_id = feed.routes['route_id'].values[0]
-    g0 = feed.route_to_geojson(route_id)      
-    g1 = feed.route_to_geojson(route_id, include_stops=True)
+    g0 = route_to_geojson(feed, route_id)      
+    g1 = route_to_geojson(feed, route_id, include_stops=True)
     for g in [g0, g1]:
         # Should be a dictionary
         assert isinstance(g, dict)
 
     # Should have the correct number of features
     assert len(g0['features']) == 1
-    stop_ids = feed.get_stops(route_id=route_id)['stop_id'].values
+    stop_ids = get_stops(feed, route_id=route_id)['stop_id'].values
     assert len(g1['features']) == 1 + len(stop_ids)

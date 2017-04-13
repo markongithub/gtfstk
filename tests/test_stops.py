@@ -14,19 +14,87 @@ if HAS_GEOPANDAS:
     from geopandas import GeoDataFrame
 
 
+def test_compute_stop_stats_base():
+    feed = cairns.copy()
+    for split_directions in [True, False]:
+        stops_stats = compute_stop_stats_base(feed.stop_times,
+          feed.trips, split_directions=split_directions)
+        # Should be a data frame
+        assert isinstance(stops_stats, pd.core.frame.DataFrame)
+        # Should contain the correct columns
+        expect_cols = set([
+          'stop_id',
+          'num_routes',
+          'num_trips',
+          'max_headway',
+          'min_headway',
+          'mean_headway',
+          'start_time',
+          'end_time',
+          ])
+        if split_directions:
+            expect_cols.add('direction_id')
+        assert set(stops_stats.columns) == expect_cols
+        # Should contain the correct stops
+        expect_stops = set(feed.stops['stop_id'].values)
+        get_stops = set(stops_stats['stop_id'].values)
+        assert get_stops == expect_stops
+
+    # Empty check
+    stats = compute_stop_stats_base(feed.stop_times, pd.DataFrame())    
+    assert stats.empty
+
+@slow
+def test_compute_stop_time_series_base():
+    feed = cairns.copy()
+    for split_directions in [True, False]:
+        ss = compute_stop_stats_base(feed.stop_times, 
+          feed.trips, split_directions=split_directions)
+        sts = compute_stop_time_series_base(feed.stop_times, 
+          feed.trips, freq='1H',
+          split_directions=split_directions) 
+        
+        # Should be a data frame
+        assert isinstance(sts, pd.core.frame.DataFrame)
+        
+        # Should have the correct shape
+        assert sts.shape[0] == 24
+        assert sts.shape[1] == ss.shape[0]
+        
+        # Should have correct column names
+        if split_directions:
+            expect = ['indicator', 'stop_id', 'direction_id']
+        else:
+            expect = ['indicator', 'stop_id']
+        assert sts.columns.names == expect
+
+        # Each stop should have a correct total trip count
+        if split_directions == False:
+            stg = feed.stop_times.groupby('stop_id')
+            for stop in set(feed.stop_times['stop_id'].values):
+                get = sts['num_trips'][stop].sum() 
+                expect = stg.get_group(stop)['departure_time'].count()
+                assert get == expect
+    
+    # Empty check
+    stops_ts = compute_stop_time_series_base(feed.stop_times,
+      pd.DataFrame(), freq='1H',
+      split_directions=split_directions) 
+    assert stops_ts.empty
+
 def test_get_stops():
     feed = cairns.copy()
     date = cairns_date
     trip_id = feed.trips['trip_id'].iat[0]
     route_id = feed.routes['route_id'].iat[0]
     frames = [
-      feed.get_stops(), 
-      feed.get_stops(date=date),
-      feed.get_stops(trip_id=trip_id),
-      feed.get_stops(route_id=route_id),
-      feed.get_stops(date=date, trip_id=trip_id),
-      feed.get_stops(date=date, route_id=route_id),
-      feed.get_stops(date=date, trip_id=trip_id, route_id=route_id),
+      get_stops(feed), 
+      get_stops(feed, date=date),
+      get_stops(feed, trip_id=trip_id),
+      get_stops(feed, route_id=route_id),
+      get_stops(feed, date=date, trip_id=trip_id),
+      get_stops(feed, date=date, route_id=route_id),
+      get_stops(feed, date=date, trip_id=trip_id, route_id=route_id),
       ]
     for f in frames:
         # Should be a data frame
@@ -44,8 +112,8 @@ def test_get_stops():
 def test_build_geometry_by_stop():
     feed = cairns.copy()
     stop_ids = feed.stops['stop_id'][:2].values
-    d0 = feed.build_geometry_by_stop()
-    d1 = feed.build_geometry_by_stop(stop_ids=stop_ids)
+    d0 = build_geometry_by_stop(feed)
+    d1 = build_geometry_by_stop(feed, stop_ids=stop_ids)
     for d in [d0, d1]:
         # Should be a dictionary
         assert isinstance(d, dict)
@@ -59,8 +127,8 @@ def test_build_geometry_by_stop():
 
 def test_compute_stop_activity():
     feed = cairns.copy()
-    dates = feed.get_first_week()
-    stop_activity = feed.compute_stop_activity(dates)
+    dates = get_first_week(feed)
+    stop_activity = compute_stop_activity(feed, dates)
     # Should be a data frame
     assert isinstance(stop_activity, pd.core.frame.DataFrame)
     # Should have the correct shape
@@ -72,28 +140,28 @@ def test_compute_stop_activity():
 def test_compute_stop_stats():
     feed = cairns.copy()
     date = cairns_date
-    stop_stats = feed.compute_stop_stats(date)
+    stop_stats = compute_stop_stats(feed, date)
     # Should be a data frame
     assert isinstance(stop_stats, pd.core.frame.DataFrame)
     # Should contain the correct stops
     get = set(stop_stats['stop_id'].values)
-    f = feed.get_stops(date)
+    f = get_stops(feed, date)
     expect = set(f['stop_id'].values)
     assert get == expect
     
     # Empty check
-    f = feed.compute_stop_stats('20010101')
+    f = compute_stop_stats(feed, '20010101')
     assert f.empty
 
 @slow
 def test_compute_stop_time_series():
     feed = cairns.copy()
     date = cairns_date
-    ast = pd.merge(feed.get_trips(date), feed.stop_times)
+    ast = pd.merge(get_trips(feed, date), feed.stop_times)
     for split_directions in [True, False]:
-        f = feed.compute_stop_stats(date, 
+        f = compute_stop_stats(feed, date, 
           split_directions=split_directions)
-        ts = feed.compute_stop_time_series(date, freq='1H',
+        ts = compute_stop_time_series(feed, date, freq='1H',
           split_directions=split_directions) 
         
         # Should be a data frame
@@ -120,7 +188,7 @@ def test_compute_stop_time_series():
     
     # Empty check
     date = '19000101'
-    ts = feed.compute_stop_time_series(date, freq='1H',
+    ts = compute_stop_time_series(feed, date, freq='1H',
       split_directions=split_directions) 
     assert ts.empty
 
@@ -128,7 +196,7 @@ def test_get_stop_timetable():
     feed = cairns.copy()
     stop = feed.stops['stop_id'].values[0]
     date = cairns_date
-    f = feed.get_stop_timetable(stop, date)
+    f = get_stop_timetable(feed, stop, date)
     # Should be a data frame 
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct columns
@@ -141,6 +209,31 @@ def test_get_stops_in_polygon():
     feed = cairns.copy()
     with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
         polygon = sg.shape(json.load(src)['features'][0]['geometry'])
-    pstops = feed.get_stops_in_polygon(polygon)
+    pstops = get_stops_in_polygon(feed, polygon)
     stop_ids = ['750070']
     assert pstops['stop_id'].values == stop_ids
+
+@pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
+def test_geometrize_stops():
+    stops = cairns.stops.copy()
+    geo_stops = geometrize_stops(stops)
+    # Should be a GeoDataFrame
+    assert isinstance(geo_stops, GeoDataFrame)
+    # Should have the correct shape
+    assert geo_stops.shape[0] == stops.shape[0]
+    assert geo_stops.shape[1] == stops.shape[1] - 1
+    # Should have the correct columns
+    expect_cols = set(list(stops.columns) + ['geometry']) -\
+      set(['stop_lon', 'stop_lat'])
+    assert set(geo_stops.columns) == expect_cols
+
+@pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
+def test_ungeometrize_stops():
+    stops = cairns.stops.copy()
+    geo_stops = geometrize_stops(stops)
+    stops2 = ungeometrize_stops(geo_stops)
+    # Test columns are correct
+    assert set(stops2.columns) == set(stops.columns)
+    # Data frames should be equal after sorting columns
+    cols = sorted(stops.columns)
+    assert_frame_equal(stops2[cols], stops[cols])
