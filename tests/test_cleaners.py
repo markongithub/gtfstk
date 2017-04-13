@@ -85,9 +85,9 @@ def test_clean():
     assert f2.routes.ix[0, 'route_id'] == rid
     assert_frame_equal(f2.trips, sample.trips)
 
-def test_drop_invalid_fields():
+def test_drop_invalid_columns():
     f1 = sample.copy()
     f1.routes['bingo'] = 'bongo'
     f1.trips['wingo'] = 'wongo'
-    f2 = drop_invalid_fields(f1)
+    f2 = drop_invalid_columns(f1)
     assert f2 == sample

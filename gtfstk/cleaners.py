@@ -23,10 +23,10 @@ def clean_ids(feed):
         f = getattr(feed, table)
         if f is None:
             continue
-        for field in cs.GTFS_REF.loc[cs.GTFS_REF['table'] == table, 'field']:
-            if field in f.columns and field.endswith('_id'):
+        for column in cs.GTFS_REF.loc[cs.GTFS_REF['table'] == table, 'column']:
+            if column in f.columns and column.endswith('_id'):
                 try:
-                    f[field] = f[field].str.strip().str.replace(
+                    f[column] = f[column].str.strip().str.replace(
                       r'\s+', '_')
                     setattr(feed, table, f)
                 except AttributeError:
@@ -166,7 +166,7 @@ def clean(feed):
 
     return feed
 
-def drop_invalid_fields(feed):
+def drop_invalid_columns(feed):
     """
     Drop all data frame columns of this feed not listed in :const:`.constants.VALID_COLUMNS_BY_TABLE`.
     Return the resulting new feed.
@@ -176,10 +176,10 @@ def drop_invalid_fields(feed):
         f = getattr(feed, table)
         if f is None:
             continue
-        fields = cs.GTFS_REF.loc[cs.GTFS_REF['table'] == table, 'field'].values
+        columns = cs.GTFS_REF.loc[cs.GTFS_REF['table'] == table, 'column'].values
         for col in f.columns:
-            if col not in fields:
-                print('{!s}: dropping invalid field {!s}'.format(table, col))
+            if col not in columns:
+                print('{!s}: dropping invalid column {!s}'.format(table, col))
                 del f[col]
         setattr(feed, table, f)
 
