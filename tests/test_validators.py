@@ -30,9 +30,17 @@ def test_valid_timezone():
     assert valid_timezone('Africa/Abidjan')
     assert not valid_timezone('zoom')
 
+def test_valid_lang():
+    assert valid_lang('aa')
+    assert not valid_lang('aaa')
+
 def test_valid_url():
     assert valid_url('http://www.example.com')
     assert not valid_url('www.example.com')
+
+def test_valid_email():
+    assert valid_email('a@b.c.com')
+    assert not valid_email('a@b@c.com')
 
 def test_valid_color():
     assert valid_color('00FFFF')
@@ -81,6 +89,23 @@ def test_check_for_required_columns():
     del feed.routes['route_type']
     assert check_for_required_columns(feed)
 
+def test_check_agency():
+    assert not check_agency(sample)
+
+    feed = sample.copy()
+    feed.agency = feed.agency.append(feed.agency.ix[0])
+    assert check_agency(feed)
+
+    feed = sample.copy()
+    feed.agency['agency_name'] = ''
+    assert check_agency(feed)
+
+    for col in ['agency_timezone', 'agency_url', 'agency_fare_url', 
+      'agency_lang', 'agency_phone', 'agency_email']:
+        feed = sample.copy()
+        feed.agency[col] = ''
+        assert check_agency(feed)
+
 def test_check_calendar():
     assert not check_calendar(sample)
 
@@ -93,6 +118,19 @@ def test_check_calendar():
         feed = sample.copy()
         feed.calendar[col].iat[0] = '5'
         assert check_calendar(feed)
+
+def test_check_calendar_dates():
+    assert not check_calendar_dates(sample)
+
+    feed = sample.copy()
+    feed.calendar_dates = feed.calendar_dates.append(
+      feed.calendar_dates.ix[0])
+    assert check_calendar_dates(feed)
+
+    for col in ['date', 'exception_type']:
+        feed = sample.copy()
+        feed.calendar_dates[col].iat[0] = '5'
+        assert check_calendar_dates(feed)
 
 def test_check_routes():
     assert not check_routes(sample)

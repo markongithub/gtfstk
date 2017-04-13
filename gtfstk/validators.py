@@ -6,6 +6,7 @@ import re
 import pytz
 import datetime as dt 
 
+import pycountry
 import numpy as np
 import pandas as pd
 
@@ -16,6 +17,9 @@ TIME_PATTERN1 = re.compile(r'^[0,1,2]\d:\d\d:\d\d$')
 TIME_PATTERN2 = re.compile(r'^\d:\d\d:\d\d$')
 DATE_FORMAT = '%Y%m%d'
 TIMEZONES = set(pytz.all_timezones)
+# ISO639-1 language codes
+LANGS = set([lang.alpha_2 for lang in pycountry.languages 
+  if hasattr(lang, 'alpha_2')])
 URL_PATTERN = re.compile(
   r'^(?:http)s?://' # http:// or https://
   r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'   #domain...
@@ -23,6 +27,7 @@ URL_PATTERN = re.compile(
   r'(?::\d+)?' # optional port
   r'(?:/?|[/?]\S+)$', 
   re.IGNORECASE)
+EMAIL_PATTERN = re.compile(r'[^@]+@[^@]+\.[^@]+')
 COLOR_PATTERN = re.compile(r'(?:[0-9a-fA-F]{2}){3}$')
 
 
@@ -58,11 +63,23 @@ def valid_timezone(x):
     """
     return x in TIMEZONES
 
+def valid_lang(x):
+    """
+    Retrun ``True`` if ``x`` is a valid two-letter ISO639 language code, e.g. 'aa'; otherwise return ``False``.
+    """
+    return x in LANGS
+
 def valid_url(x):
     """
     Return ``True`` if ``x`` is a valid URL; otherwise return ``False``.
     """
     if re.match(URL_PATTERN, x):
+        return True 
+    else:
+        return False
+
+def valid_email(x):
+    if re.match(EMAIL_PATTERN, x):
         return True 
     else:
         return False
@@ -94,30 +111,36 @@ def check_column(errors, table, df, column, column_required, checker):
     Apply the checker to the column entries and record the indices of the rows on which errors occur, if any.
     Append these errors to the given error list and return the new error list.
     """
-    if column_required:
-        v = lambda x: pd.notnull(x) and checker(x)
-        cond = ~df[column].map(checker)  
-        errors = check_table(errors, table, df, cond, 
-          '{!s} empty or malformed'.format(column))
-    else:
-        if column in df.columns:
-            g = df.dropna(subset=[column])
-            cond = ~g[column].map(checker)
-            errors = check_table(errors, table, g, cond, 
-              '{!s} malformed'.format(column))
+    f = df.copy()
+    if not column_required:
+        if column not in f.columns:
+            f[column] = np.nan
+        f = f.dropna(subset=[column])
+
+    v = lambda x: pd.notnull(x) and checker(x)
+    cond = ~f[column].map(checker)  
+    errors = check_table(errors, table, f, cond, 
+      '{!s} malformed'.format(column))
+
     return errors
 
-def check_column_id(errors, table, df, column):
+def check_column_id(errors, table, df, column, column_required=True):
     """
     A modified verios of :func:`check_column` that applies to a column that must have unduplicated IDs. 
     """
-    v = lambda x: pd.notnull(x) and valid_str(x)
-    cond = ~df[column].map(v)
-    errors = check_table(errors, table, df, cond, 
-      '{!s} empty or blank'.format(column))
+    f = df.copy()
+    if not column_required:
+        if column not in f.columns:
+            f[column] = np.nan
+        f = f.dropna(subset=[column])
 
-    cond = df[column].duplicated()
-    errors = check_table(errors, table, df, cond, 
+    v = lambda x: pd.notnull(x) and valid_str(x)
+    cond = ~f[column].map(v)
+    errors = check_table(errors, table, f, cond, 
+      '{!s} malformed'.format(column))
+
+    cond = f[column].duplicated()
+    errors = check_table(errors, table, f, cond, 
       '{!s} duplicated'.format(column))
 
     return errors 
@@ -126,16 +149,16 @@ def check_column_linked_id(errors, table, df, column, column_required,
   target_df):
     """
     """
-    if column_required:
-        cond = ~(df[column].notnull() & df[column].isin(target_df[column]))  
-        errors = check_table(errors, table, df, cond, 
-          '{!s} undefiend'.format(column))
-    else:
-        if column in df.columns:
-            g = df.dropna(subset=[column])
-            cond = ~g[column].isin(target_df[column])
-            errors = check_table(errors, table, g, cond, 
-              '{!s} undefined'.format(column))
+    f = df.copy()
+    if not column_required:
+        if column not in f.columns:
+            f[column] = np.nan
+        f = f.dropna(subset=[column])
+
+    cond = ~f[column].isin(target_df[column])
+    errors = check_table(errors, table, f, cond, 
+      '{!s} undefined'.format(column))
+
     return errors 
 
 def check_for_required_tables(feed):
@@ -163,9 +186,43 @@ def check_for_required_columns(feed):
                 errors.append([table, 'Missing column {!s}'.format(column), []])
     return errors 
 
+def check_agency(feed):
+    """
+    Check thet ``feed.agency`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('agency', error message, row indices where errors occur).
+    """
+    f = feed.agency.copy()
+    errors = []
+
+    # Check service_id
+    errors = check_column_id(errors, 'agency', f, 'agency_id', False)
+
+    # Check agency_name
+    errors = check_column(errors, 'agency', f, 'agency_name', True, valid_str)
+
+    # Check agency_url
+    errors = check_column(errors, 'agency', f, 'agency_url', True, valid_url)
+
+    # Check agency_timezone
+    errors = check_column(errors, 'agency', f, 'agency_timezone', True,
+      valid_timezone)
+
+    # Check agency_fare_url
+    errors = check_column(errors, 'agency', f, 'agency_fare_url', False, valid_url)
+
+    # Check agency_lang
+    errors = check_column(errors, 'agency', f, 'agency_lang', False, valid_lang)
+    
+    # Check agency_phone
+    errors = check_column(errors, 'agency', f, 'agency_phone', False, valid_str)
+
+    # Check agency_email
+    errors = check_column(errors, 'agency', f, 'agency_email', False, valid_email)
+
+    return errors
+
 def check_calendar(feed):
     """
-    Check thet ``feed.calendar`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('shapes', error message, row indices where errors occur).
+    Analog of :func:`check_agency` for ``feed.calendar``.
     """    
     f = feed.calendar.copy()
     errors = []
@@ -185,10 +242,29 @@ def check_calendar(feed):
 
     return errors 
 
+def check_calendar_dates(feed):
+    """
+    Analog of :func:`check_agency` for ``feed.calendar_dates``.
+    """    
+    f = feed.calendar_dates.copy()
+    errors = []
+
+    # Check service_id
+    errors = check_column_id(errors, 'calendar_dates', f, 'service_id')
+
+    # Check date
+    errors = check_column(errors, 'calendar_dates', f, 'date', True, valid_date)
+
+    # Check exception_type
+    v = lambda x: x in [1, 2]
+    errors = check_column(errors, 'calendar_dates', f, 'exception_type', True, v)
+
+    return errors 
+
 def check_routes(feed):
     """
-    Check that ``feed.routes`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('routes', error message, row indices where errors occur).
-    """
+    Analog of :func:`check_agency` for ``feed.routes``.
+    """    
     f = feed.routes.copy()
     errors = []
 
@@ -231,7 +307,7 @@ def check_routes(feed):
 
 def check_shapes(feed):
     """
-    Check thet ``feed.shapes`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('shapes', error message, row indices where errors occur).
+    Analog of :func:`check_agency` for ``feed.shapes``.
     """    
     f = feed.shapes.copy()
     errors = []
@@ -262,8 +338,8 @@ def check_shapes(feed):
 
 def check_stops(feed):
     """
-    Check that ``feed.stops`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('stops', error message, row indices where errors occur).
-    """
+    Analog of :func:`check_agency` for ``feed.stops``.
+    """    
     f = feed.stops.copy()
     errors = []
 
@@ -318,8 +394,8 @@ def check_stops(feed):
 
 def check_stop_times(feed):
     """
-    Check that ``feed.stop_times`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('stop_times', error message, row indices where errors occur).
-    """
+    Analog of :func:`check_agency` for ``feed.stop_times``.
+    """    
     f = feed.stop_times.copy()
     errors = []
 
@@ -362,8 +438,8 @@ def check_stop_times(feed):
 
 def check_trips(feed):
     """
-    Check ``feed.trips`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('trips', error message).
-    """
+    Analog of :func:`check_agency` for ``feed.trips``.
+    """    
     f = feed.trips.copy()
     errors = []
 
@@ -435,7 +511,7 @@ def validate(feed, as_df=False):
 
     # Check required tables
     checkers = [
-      'check_calendar',
+      'check_agency',
       'check_routes',
       'check_stops',
       'check_stop_times',
@@ -446,6 +522,8 @@ def validate(feed, as_df=False):
 
     # Check optional tables
     checkers = [
+      'check_calendar',
+      'check_calendar_dates',
       'check_shapes',
       ]
     for checker in checkers:
