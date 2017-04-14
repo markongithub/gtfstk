@@ -34,6 +34,10 @@ def test_valid_lang():
     assert valid_lang('aa')
     assert not valid_lang('aaa')
 
+def test_valid_currency():
+    assert valid_currency('AED')
+    assert not valid_currency('aed')
+
 def test_valid_url():
     assert valid_url('http://www.example.com')
     assert not valid_url('www.example.com')
@@ -74,6 +78,14 @@ def test_check_column_linked_id():
     feed.trips['route_id'].iat[0] = 'Hummus!'
     assert check_column_linked_id([], 'trips', feed.trips, 'route_id',
       True, feed.routes)
+
+def test_format_errors():
+    errors = [('ba', 'da', 'boom')]
+    assert errors == format_errors(errors, False)
+
+    e = format_errors(errors, True)
+    assert isinstance(e, pd.DataFrame)
+    assert e.columns.tolist() == ['table', 'error', 'error_row_indices']
 
 def test_check_for_required_tables():
     assert not check_for_required_tables(sample)
@@ -131,6 +143,68 @@ def test_check_calendar_dates():
         feed = sample.copy()
         feed.calendar_dates[col].iat[0] = '5'
         assert check_calendar_dates(feed)
+
+def test_check_fare_attributes():
+    assert not check_fare_attributes(sample)
+
+    feed = sample.copy()
+    feed.fare_attributes = feed.fare_attributes.append(
+      feed.fare_attributes.ix[0])
+    assert check_fare_attributes(feed)
+
+    feed = sample.copy()
+    feed.fare_attributes['currency_type'] = 'jubjub'
+    assert check_fare_attributes(feed)
+
+    for col in ['payment_method', 'transfers', 'transfer_duration']:
+        feed = sample.copy()
+        feed.fare_attributes[col] = -7
+        assert check_fare_attributes(feed)
+
+def test_check_fare_rules():
+    assert not check_fare_rules(sample)
+
+    for col in ['fare_id', 'route_id', 'origin_id', 'destination_id', 'contains_id']:
+        feed = sample.copy()
+        feed.fare_rules[col] = 'tuberosity'
+        print(col)
+        print(feed.fare_rules)
+        assert check_fare_rules(feed)
+
+def test_check_feed_info():
+    # Create feed_info table
+    feed = sample.copy()
+    columns = ['feed_publisher_name', 'feed_publisher_url', 'feed_lang', 
+      'feed_start_date', 'feed_end_date', 'feed_version']
+    rows = [['slurp', 'http://slurp.burp', 'aa', '21110101', '21110102', '69']]
+    feed.feed_info = pd.DataFrame(rows, columns=columns)
+    assert not check_feed_info(feed)
+
+    for col in columns:
+        feed1 = feed.copy()
+        feed1.feed_info[col] = ''
+        assert check_feed_info(feed1)
+
+def test_check_frequencies():
+    assert not check_frequencies(sample)
+
+    feed = sample.copy()
+    feed.frequencies['trip_id'].iat[0] = 'ratatat'
+    assert check_frequencies(feed)
+
+    for col in ['start_time', 'end_time']:
+        feed = sample.copy()
+        feed.frequencies[col] = 'oingo'
+        assert check_frequencies(feed)
+
+    feed = sample.copy()
+    feed.frequencies = feed.frequencies.append(feed.frequencies.ix[0])
+    assert check_frequencies(feed)
+
+    for col in ['headway_secs', 'exact_times']:
+        feed = sample.copy()
+        feed.frequencies[col] = -7
+        assert check_frequencies(feed)
 
 def test_check_routes():
     assert not check_routes(sample)
@@ -256,6 +330,24 @@ def test_check_stop_times():
     feed.stop_times['timepoint'] = 3
     assert check_stop_times(feed)
 
+def test_check_transfers():
+    # Create transfers table
+    feed = sample.copy()
+    columns = ['from_stop_id', 'to_stop_id', 'transfer_type', 'min_transfer_time']
+    rows = [[feed.stops['stop_id'].iat[0], feed.stops['stop_id'].iat[1], 2, 3600]]
+    feed.transfers = pd.DataFrame(rows, columns=columns)
+    assert not check_transfers(feed)
+
+    for col in set(columns) - set(['transfer_type', 'min_transfer_time']):
+        feed1 = feed.copy()
+        feed1.transfers[col].iat[0] = ''
+        assert check_transfers(feed1)
+
+    for col in ['transfer_type', 'min_transfer_time']:
+        feed1 = feed.copy()
+        feed1.transfers[col] = -7
+        assert check_transfers(feed1)
+
 def test_check_trips():
     assert not check_trips(sample)
 
@@ -292,4 +384,4 @@ def test_check_trips():
     assert check_trips(feed)
 
 def test_validate():    
-    assert not validate(sample)
+    assert not validate(sample, as_df=False)

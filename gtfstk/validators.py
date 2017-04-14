@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from . import constants as cs
+from . import helpers as hp
 
 
 TIME_PATTERN1 = re.compile(r'^[0,1,2]\d:\d\d:\d\d$')
@@ -20,6 +21,7 @@ TIMEZONES = set(pytz.all_timezones)
 # ISO639-1 language codes
 LANGS = set([lang.alpha_2 for lang in pycountry.languages 
   if hasattr(lang, 'alpha_2')])
+CURRENCIES = set([c.alpha_3 for c in pycountry.currencies if hasattr(c, 'alpha_3')])
 URL_PATTERN = re.compile(
   r'^(?:http)s?://' # http:// or https://
   r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'   #domain...
@@ -65,9 +67,15 @@ def valid_timezone(x):
 
 def valid_lang(x):
     """
-    Retrun ``True`` if ``x`` is a valid two-letter ISO639 language code, e.g. 'aa'; otherwise return ``False``.
+    Return ``True`` if ``x`` is a valid two-letter ISO 639 language code, e.g. 'aa'; otherwise return ``False``.
     """
     return x in LANGS
+
+def valid_currency(x):
+    """
+    Return ``True`` if ``x`` is a valid three-letter ISO 4217 currency code, e.g. 'AED'; otherwise return ``False``.
+    """
+    return x in CURRENCIES
 
 def valid_url(x):
     """
@@ -103,7 +111,8 @@ def check_table(errors, table, df, condition, message):
     indices = df.loc[condition].index.tolist()
     if indices:
         errors.append([table, message, indices])
-    return errors 
+
+    return errors
 
 def check_column(errors, table, df, column, column_required, checker):
     """
@@ -146,22 +155,35 @@ def check_column_id(errors, table, df, column, column_required=True):
     return errors 
 
 def check_column_linked_id(errors, table, df, column, column_required, 
-  target_df):
+  target_df, target_column=None):
     """
     """
+    if target_column is None:
+        target_column = column 
+
     f = df.copy()
     if not column_required:
         if column not in f.columns:
             f[column] = np.nan
         f = f.dropna(subset=[column])
 
-    cond = ~f[column].isin(target_df[column])
+    cond = ~f[column].isin(target_df[target_column])
     errors = check_table(errors, table, f, cond, 
       '{!s} undefined'.format(column))
 
     return errors 
 
-def check_for_required_tables(feed):
+def format_errors(errors, as_df):
+    """
+    Given a possibly empty list of errors (triples), return a DataFrame with the errors as rows and the columns ['table', 'error', 'error_row_indices'], if ``as_df``.
+    If not ``as_df``, then return the original list of errors.
+    """
+    if as_df:
+        errors = pd.DataFrame(errors, 
+          columns=['table', 'error', 'error_row_indices'])
+    return errors
+
+def check_for_required_tables(feed, as_df=False):
     errors = []
     req_tables = cs.GTFS_REF.loc[cs.GTFS_REF['table_required'], 'table']
     for table in req_tables:
@@ -171,9 +193,9 @@ def check_for_required_tables(feed):
     if feed.calendar is None and feed.calendar_dates is None:
         errors.append(['calendar/calendar_dates', 
           'Both calendar and calendar_dates files are missing', []])
-    return errors 
+    return format_errors(errors, as_df) 
 
-def check_for_required_columns(feed):
+def check_for_required_columns(feed, as_df=False):
     errors = []
     for table, group in cs.GTFS_REF.groupby('table'):
         f = getattr(feed, table)
@@ -184,9 +206,9 @@ def check_for_required_columns(feed):
           index=False):
             if column_required and column not in f.columns:
                 errors.append([table, 'Missing column {!s}'.format(column), []])
-    return errors 
+    return format_errors(errors, as_df) 
 
-def check_agency(feed):
+def check_agency(feed, as_df=False):
     """
     Check thet ``feed.agency`` follows the GTFS and output a possibly empty list of errors found as pairs of the form ('agency', error message, row indices where errors occur).
     """
@@ -218,9 +240,9 @@ def check_agency(feed):
     # Check agency_email
     errors = check_column(errors, 'agency', f, 'agency_email', False, valid_email)
 
-    return errors
+    return format_errors(errors, as_df)
 
-def check_calendar(feed):
+def check_calendar(feed, as_df=False):
     """
     Analog of :func:`check_agency` for ``feed.calendar``.
     """    
@@ -240,28 +262,167 @@ def check_calendar(feed):
     for col in ['start_date', 'end_date']:
         errors = check_column(errors, 'calendar', f, col, True, valid_date)
 
-    return errors 
+    return format_errors(errors, as_df) 
 
-def check_calendar_dates(feed):
+def check_calendar_dates(feed, as_df=False):
     """
     Analog of :func:`check_agency` for ``feed.calendar_dates``.
     """    
     f = feed.calendar_dates.copy()
+    table = 'calendar_dates'
     errors = []
 
     # Check service_id
-    errors = check_column_id(errors, 'calendar_dates', f, 'service_id')
+    if feed.calendar is not None:
+        errors = check_column_linked_id(errors, table, f, 'service_id',
+          True, feed.calendar)
+    else:
+        errors = check_column(errors, table, f, 'service_id', True, valid_str)
 
     # Check date
-    errors = check_column(errors, 'calendar_dates', f, 'date', True, valid_date)
+    errors = check_column(errors, table, f, 'date', True, valid_date)
+
+    # No duplicate (service_id, date) pairs allowed
+    cond = f[['service_id', 'date']].duplicated()
+    errors = check_table(errors, table, f, cond, 
+      '(service_id, date)-pair duplicated')
 
     # Check exception_type
     v = lambda x: x in [1, 2]
-    errors = check_column(errors, 'calendar_dates', f, 'exception_type', True, v)
+    errors = check_column(errors, table, f, 'exception_type', True, v)
 
-    return errors 
+    return format_errors(errors, as_df) 
 
-def check_routes(feed):
+def check_fare_attributes(feed, as_df=False):
+    """
+    Analog of :func:`check_agency` for ``feed.calendar_dates``.
+    """    
+    f = feed.fare_attributes.copy()
+    table = 'fare_attributes'
+    errors = []
+
+    # Check fare_id
+    errors  = check_column_id(errors, table, f, 'fare_id')
+
+    # Check currency_type
+    errors = check_column(errors, table, f, 'currency_type', True, valid_currency)
+
+    # Check payment_method
+    v = lambda x: x in range(2)
+    errors = check_column(errors, table, f, 'payment_method', True, v)
+
+    # Check transfers
+    v = lambda x: x in [np.nan, 0, 1, 2]
+    errors = check_column(errors, table, f, 'transfers', True, v)
+
+    # Check transfer_duration
+    v = lambda x: x >= 0
+    errors = check_column(errors, table, f, 'transfer_duration', False, v)
+
+    return format_errors(errors, as_df)    
+
+def check_fare_rules(feed, as_df=False):
+    """
+    Analog of :func:`check_agency` for ``feed.calendar_dates``.
+    """    
+    f = feed.fare_rules.copy()
+    table = 'fare_rules'
+    errors = []
+
+    # Check fare_id
+    errors  = check_column_linked_id(errors, table, f, 'fare_id', True, 
+      feed.fare_attributes)
+
+    # Check route_id
+    errors  = check_column_linked_id(errors, table, f, 'route_id', False, 
+      feed.routes)
+
+    # Check origin_id, destination_id, contains_id
+    for col in ['origin_id', 'destination_id', 'contains_id']:
+        errors  = check_column_linked_id(errors, table, f, col, False, 
+          feed.stops, 'zone_id')
+    
+    return format_errors(errors, as_df)    
+
+def check_feed_info(feed, as_df=False):
+    """
+    Analog of :func:`check_agency` for ``feed.feed_info``.
+    """    
+    f = feed.feed_info.copy()
+    errors = []
+
+    # Check feed_publisher_name
+    errors = check_column(errors, 'feed_info', f, 'feed_publisher_name', True,
+      valid_str)
+
+    # Check feed_publisher_url
+    errors = check_column(errors, 'feed_info', f, 'feed_publisher_url', True,
+      valid_url)
+
+    # Check feed_lang
+    errors = check_column(errors, 'feed_info', f, 'feed_lang', True,
+      valid_lang)
+
+    # Check feed_start_date and feed_end_date
+    for col in ['feed_start_date', 'feed_end_date']:
+        errors = check_column(errors, 'feed_info', f, col, False, valid_date)
+
+    d1, d2 = f[['feed_start_date', 'feed_end_date']].ix[0].values
+    if pd.notnull(d1) and pd.notnull(d2) and d1 > d1:
+        errors.append(['feed_info', 'feed_start_date later than feed_end_date', 
+          [0]])
+
+    # Check feed_version
+    errors = check_column(errors, 'feed_info', f, 'feed_version', False, valid_str)
+
+    return format_errors(errors, as_df)
+
+def check_frequencies(feed, as_df=False):
+    """
+    Analog of :func:`check_agency` for ``feed.frequencies``.
+    """    
+    f = feed.frequencies.copy()
+    table = 'frequencies'
+    errors = []
+
+    # Check trip_id
+    errors = check_column_linked_id(errors, table, f, 'trip_id', True,
+      feed.trips)
+
+    # Check start_time and end_time
+    time_cols = ['start_time', 'end_time'] 
+    for col in time_cols:
+        errors = check_column(errors, table, f, col, True, valid_time)
+
+    for col in time_cols:
+        f[col] = f[col].map(hp.timestr_to_seconds)
+
+    # start_time should be earlier than end_time
+    cond = f['start_time'] >= f['end_time']
+    errors = check_table(errors, table, f, cond, 'start_time not earlier than end_time')
+
+    # Headway periods should not overlap
+    f = f.sort_values(['trip_id', 'start_time'])
+    for __, group in f.groupby('trip_id'):
+        a = group['start_time'].values
+        b = group['end_time'].values  
+        indices = np.flatnonzero(a[1:] < b[:-1]).tolist()
+        if indices:
+            errors.append([table, 
+             'Headway periods for the same trip overlap', 
+              indices])
+
+    # Check headway_secs
+    v = lambda x: x >= 0
+    errors = check_column(errors, table, f, 'headway_secs', True, v)
+
+    # Check exact_times
+    v = lambda x: x in [np.nan, 0, 1]
+    error = check_column(errors, table, f, 'exact_times', False, v)
+
+    return format_errors(errors, as_df)
+
+def check_routes(feed, as_df=False):
     """
     Analog of :func:`check_agency` for ``feed.routes``.
     """    
@@ -303,9 +464,9 @@ def check_routes(feed):
             errors = check_table(errors, 'routes', f, cond, 
               '{!s} malformed'.format(column))
     
-    return errors
+    return format_errors(errors, as_df)
 
-def check_shapes(feed):
+def check_shapes(feed, as_df=False):
     """
     Analog of :func:`check_agency` for ``feed.shapes``.
     """    
@@ -334,9 +495,9 @@ def check_shapes(feed):
                   'shape_dist_traveled not increasing for shape', 
                   indices])
 
-    return errors
+    return format_errors(errors, as_df)
 
-def check_stops(feed):
+def check_stops(feed, as_df=False):
     """
     Analog of :func:`check_agency` for ``feed.stops``.
     """    
@@ -377,22 +538,24 @@ def check_stops(feed):
     # Check further location_type and parent_station   
     if 'parent_station' in f.columns:
         if 'location_type' not in f.columns:
-            errors.append(['stops', 'location_type column missing', []])
+            errors.append(['stops', 
+              'parent_station column present but location_type column missing', 
+              []])
         else:
-            # A nonnull parent station entry must refer to a stop with location_type 1
-            sids = f.loc[f['parent_station'].notnull(), 'stop_id']
-            cond = ~(f['stop_id'].isin(sids) & f['location_type'] == 1)
+            # Parent stations must have location type 1
+            station_ids = f.loc[f['parent_station'].notnull(), 'parent_station']
+            cond = f['stop_id'].isin(station_ids) & (f['location_type'] != 1)
+            errors = check_table(errors, 'stops', f, cond, 
+              'A parent station must have location_type equal to 1')
+
+            # Parent stations should not have parent stations
+            cond = f['parent_station'].notnull() & (f['location_type'] == 1) 
             errors = check_table(errors, 'stops', f, cond, 
               'location_type must equal 1')
 
-            # A location_type of 1 must have a null parent_station 
-            cond = ~(f['location_type'] == 1 & f['parent_station'].isnull())
-            errors = check_table(errors, 'stops', f, cond, 
-              'location_type must equal 1')
+    return format_errors(errors, as_df) 
 
-    return errors 
-
-def check_stop_times(feed):
+def check_stop_times(feed, as_df=False):
     """
     Analog of :func:`check_agency` for ``feed.stop_times``.
     """    
@@ -405,7 +568,7 @@ def check_stop_times(feed):
 
     # Check arrival_time and departure_time
     for col in ['arrival_time', 'departure_time']:
-        errors = check_column(errors, 'stop_times', f, col, True, valid_time)
+        errors = check_column(errors, 'stop_times', f, col, False, valid_time)
 
     # Check stop_id
     errors = check_column_linked_id(errors, 'stop_times', f, 'stop_id', True, 
@@ -434,9 +597,31 @@ def check_stop_times(feed):
     v = lambda x: x in range(2)
     errors = check_column(errors, 'stop_times', f, 'timepoint', False, v)
 
-    return errors 
+    return format_errors(errors, as_df) 
 
-def check_trips(feed):
+def check_transfers(feed, as_df=False):
+    """
+    Analog of :func:`check_agency` for ``feed.transfers``.
+    """    
+    f = feed.transfers.copy()
+    errors = []
+    
+    # Check from_stop_id and to_stop_id
+    for col in ['from_stop_id', 'to_stop_id']:
+        errors = check_column_linked_id(errors, 'transfers', f, col, True,
+          feed.stops, 'stop_id')
+
+    # Check transfer_type
+    v = lambda x: x in [np.nan, 0, 1, 2, 3, 4]
+    errors = check_column(errors, 'transfers', f, 'transfer_type', True, v)
+
+    # Check min_transfer_time
+    v = lambda x: x >= 0
+    errors = check_column(errors, 'transfers', f, 'min_transfer_time', False, v)
+
+    return format_errors(errors, as_df)
+
+def check_trips(feed, as_df=False):
     """
     Analog of :func:`check_agency` for ``feed.trips``.
     """    
@@ -479,11 +664,11 @@ def check_trips(feed):
     for column in ['wheelchair_accessible', 'bikes_allowed']:
         errors = check_column(errors, 'trips', f, column, False, v)
 
-    return errors
+    return format_errors(errors, as_df)
 
-def validate(feed, as_df=False):
+def validate(feed, as_df=True):
     """
-    Validate the given feed by doing all the checks above.
+    Check whether the given feed is valid by doing all the checks above.
     Return the errors found as a possibly empty list of pairs (table name, error message).
     If ``as_df``, then format the error list as a DataFrame with the columns
 
@@ -493,11 +678,6 @@ def validate(feed, as_df=False):
     Return early if the feed is missing required tables or required columns.
     """
     errors = []
-    if as_df:
-        format = lambda errors: pd.DataFrame(errors, 
-          columns=['table', 'error', 'row indices'])
-    else:
-        format = lambda x: x
 
     # Check for required table and for required columns, and halt if errors
     checkers = [
@@ -507,7 +687,7 @@ def validate(feed, as_df=False):
     for checker in checkers:
         errors.extend(globals()[checker](feed))
         if errors:
-            return format(errors)
+            return format_errors(errors, as_df)
 
     # Check required tables
     checkers = [
@@ -524,6 +704,11 @@ def validate(feed, as_df=False):
     checkers = [
       'check_calendar',
       'check_calendar_dates',
+      'check_fare_attributes',
+      'check_fare_rules',
+      'check_feed_info',
+      'check_frequencies',
+      'check_transfers',
       'check_shapes',
       ]
     for checker in checkers:
@@ -532,4 +717,4 @@ def validate(feed, as_df=False):
         if f is not None:
             errors.extend(globals()[checker](feed))
 
-    return format(errors)
+    return format_errors(errors, as_df)
