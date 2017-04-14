@@ -640,10 +640,11 @@ def check_trips(feed, as_df=False):
     # Check service_id 
     sids = []
     if feed.calendar is not None:
-        sids 
-        cond = ~f['service_id'].isin(feed.calendar['service_id'])
-    else:
-        cond = ~f['service_id'].isin(feed.calendar_dates['service_id'])
+        sids.extend(feed.calendar['service_id'].unique().tolist())
+    if feed.calendar_dates is not None:
+        sids.extend(feed.calendar_dates['service_id'].unique().tolist())
+    # Assume sids is nonempty now
+    cond = ~f['service_id'].isin(sids)
     errors = check_table(errors, 'trips', f, cond, 'service_id undefined')
 
     # Check direction_id
