@@ -14,13 +14,14 @@ from . import constants as cs
 from . import helpers as hp
 
 
-TIME_PATTERN1 = re.compile(r'^[0,1,2]\d:\d\d:\d\d$')
+TIME_PATTERN1 = re.compile(r'^[0,1,2,3]\d:\d\d:\d\d$')
 TIME_PATTERN2 = re.compile(r'^\d:\d\d:\d\d$')
 DATE_FORMAT = '%Y%m%d'
 TIMEZONES = set(pytz.all_timezones)
-# ISO639-1 language codes
+# ISO639-1 language codes, both lower and upper case
 LANGS = set([lang.alpha_2 for lang in pycountry.languages 
   if hasattr(lang, 'alpha_2')])
+LANGS |= set(x.upper() for x in LANGS)
 CURRENCIES = set([c.alpha_3 for c in pycountry.currencies if hasattr(c, 'alpha_3')])
 URL_PATTERN = re.compile(
   r'^(?:http)s?://' # http:// or https://
@@ -273,11 +274,7 @@ def check_calendar_dates(feed, as_df=False):
     errors = []
 
     # Check service_id
-    if feed.calendar is not None:
-        errors = check_column_linked_id(errors, table, f, 'service_id',
-          True, feed.calendar)
-    else:
-        errors = check_column(errors, table, f, 'service_id', True, valid_str)
+    errors = check_column(errors, table, f, 'service_id', True, valid_str)
 
     # Check date
     errors = check_column(errors, table, f, 'date', True, valid_date)
@@ -312,8 +309,8 @@ def check_fare_attributes(feed, as_df=False):
     errors = check_column(errors, table, f, 'payment_method', True, v)
 
     # Check transfers
-    v = lambda x: x in [np.nan, 0, 1, 2]
-    errors = check_column(errors, table, f, 'transfers', True, v)
+    v = lambda x: x in range(3)
+    errors = check_column(errors, table, f, 'transfers', False, v)
 
     # Check transfer_duration
     v = lambda x: x >= 0
@@ -417,7 +414,7 @@ def check_frequencies(feed, as_df=False):
     errors = check_column(errors, table, f, 'headway_secs', True, v)
 
     # Check exact_times
-    v = lambda x: x in [np.nan, 0, 1]
+    v = lambda x: x in range(2)
     error = check_column(errors, table, f, 'exact_times', False, v)
 
     return format_errors(errors, as_df)
@@ -487,12 +484,14 @@ def check_shapes(feed, as_df=False):
     if 'shape_dist_traveled' in f.columns:
         g = f.dropna(subset=['shape_dist_traveled']).sort_values(
           ['shape_id', 'shape_pt_sequence'])
-        for __, group in g.groupby('shape_id'):
+        for shape_id, group in g.groupby('shape_id', sort=False):
             a = group['shape_dist_traveled'].values  
-            indices = np.flatnonzero(a[1:] <= a[:-1]).tolist()
+            indices = np.flatnonzero(a[1:] < a[:-1]) # relative indices
+            indices = group.index[indices].tolist() # absolute indices
             if indices:
                 errors.append(['shapes', 
-                  'shape_dist_traveled not increasing for shape', 
+                  'shape_dist_traveled decreases for shape_id {!s}'.format(
+                  shape_id), 
                   indices])
 
     return format_errors(errors, as_df)
@@ -584,13 +583,16 @@ def check_stop_times(feed, as_df=False):
 
     # Check shape_dist_traveled
     if 'shape_dist_traveled' in f.columns:
-        g = f.dropna(subset=['shape_dist_traveled']).sort_values(['trip_id', 'stop_sequence'])
-        for __, group in g.groupby('trip_id'):
+        g = f.dropna(subset=['shape_dist_traveled']).sort_values(
+          ['trip_id', 'stop_sequence'])
+        for trip_id, group in g.groupby('trip_id', sort=False):
             a = group['shape_dist_traveled'].values  
-            indices = np.flatnonzero(a[1:] <= a[:-1]).tolist()
+            indices = np.flatnonzero(a[1:] < a[:-1]) # relative indices
+            indices = group.index[indices].tolist() # absolute indices
             if indices:
                 errors.append(['stop_times', 
-                  'shape_dist_traveled not increasing for trip', 
+                  'shape_dist_traveled decreases for trip_id {!s}'.format(
+                  trip_id), 
                   indices])
 
     # Check timepoint
@@ -612,8 +614,8 @@ def check_transfers(feed, as_df=False):
           feed.stops, 'stop_id')
 
     # Check transfer_type
-    v = lambda x: x in [np.nan, 0, 1, 2, 3, 4]
-    errors = check_column(errors, 'transfers', f, 'transfer_type', True, v)
+    v = lambda x: x in range(5)
+    errors = check_column(errors, 'transfers', f, 'transfer_type', False, v)
 
     # Check min_transfer_time
     v = lambda x: x >= 0
@@ -636,7 +638,9 @@ def check_trips(feed, as_df=False):
       feed.routes)
     
     # Check service_id 
+    sids = []
     if feed.calendar is not None:
+        sids 
         cond = ~f['service_id'].isin(feed.calendar['service_id'])
     else:
         cond = ~f['service_id'].isin(feed.calendar_dates['service_id'])
