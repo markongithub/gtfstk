@@ -1,0 +1,111 @@
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>FeedValidator: seq_20170310_gtfs.zip</title>
+<style>
+body {font-family: Georgia, serif; background-color: white}
+.path {color: gray}
+div.problem {max-width: 500px}
+table.dump td,th {background-color: khaki; padding: 2px; font-family:monospace}
+table.dump td.problem,th.problem {background-color: dc143c; color: white; padding: 2px; font-family:monospace}
+table.count_outside td {vertical-align: top}
+table.count_outside {border-spacing: 0px; }
+table {border-spacing: 5px 0px; margin-top: 3px}
+h3.issueHeader {padding-left: 0.5em}
+h4.issueHeader {padding-left: 1em}
+.pass {background-color: lightgreen}
+.fail {background-color: yellow}
+.notice {background-color: yellow}
+.pass, .fail {font-size: 16pt}
+.header {background-color: white; font-family: Georgia, serif; padding: 0px}
+th.header {text-align: right; font-weight: normal; color: gray}
+.footer {font-size: 10pt}
+</style>
+</head>
+<body>
+GTFS validation results for feed:<br>
+<code><span class="path">data/</span><b>seq_20170310_gtfs.zip</b></code><br>
+FeedValidator extension used: None
+<br><br>
+<table>
+<tr><th class="header">Agencies:</th><td class="header"><a href="http://www.translink.com.au">TransLink</a></td></tr>
+<tr><th class="header">Routes:</th><td class="header">1086</td></tr>
+<tr><th class="header">Stops:</th><td class="header">12858</td></tr>
+<tr><th class="header">Trips:</th><td class="header">119087</td></tr>
+<tr><th class="header">Shapes:</th><td class="header">1921</td></tr>
+<tr><th class="header">Effective:</th><td class="header">March 08, 2017 to June 30, 2017</td></tr>
+</table>
+<br>
+During the upcoming service dates Fri Apr 14 to Mon Jun 12:
+<table>
+<tr><th class="header">Average trips per date:</th><td class="header">15421</td></tr>
+<tr><th class="header">Most trips on a date:</th><td class="header">18518, on 7 service dates (Fri Apr 28, Fri May 05, Fri May 12, ...)</td></tr>
+<tr><th class="header">Least trips on a date:</th><td class="header">9429, on 3 service dates (Mon Apr 17, Tue Apr 25, Mon May 01)</td></tr>
+</table>
+<br>
+<h3 class="issueHeader">Notices:</h3><h4 class="issueHeader"><a name="NoticeNewVersionAvailable">New Version Available</a></h4><ul>
+<li><div class="problem notice">A new version 1.2.15 of transitfeed is available. Please visit <a href="https://github.com/google/transitfeed">https://github.com/google/transitfeed</a> and download the newest release.</div><br></li>
+</ul>
+<span class="fail">Found these problems:</span>
+<table class="count_outside">
+<tr><td><span class="fail">1299 warnings</span></td></tr>
+<tr><td>
+<table><tr><td>547</td><td><a href="#WarningInvalidValue">Invalid Values</a></td></tr>
+<tr><td>42</td><td><a href="#WarningStopTooFarFromParentStation">Stop Too Far From Parent Stations</a></td></tr>
+<tr><td>9</td><td><a href="#WarningStopsTooClose">Stops Too Closes</a></td></tr>
+<tr><td>420</td><td><a href="#WarningTooFastTravel">Too Fast Travels</a></td></tr>
+<tr><td>280</td><td><a href="#WarningTooManyConsecutiveStopTimesWithSameTime">Too Many Consecutive Stop Times With Same Times</a></td></tr>
+<tr><td>1</td><td><a href="#WarningUnrecognizedColumn">Unrecognized Column</a></td></tr>
+</table>
+</td>
+</table>
+<br><br>
+<h3 class="issueHeader">Warnings:</h3><h4 class="issueHeader"><a name="WarningInvalidValue">Invalid Value</a></h4><ul>
+<li><div class="problem">Invalid value ipswich line - caboolture line in field <code>route_long_name</code><br>The same combination of route_short_name and route_long_name shouldn't be used for more than one route, as it is for the for the two routes with IDs "IPCA-818" and "IPCA-819".</div><br></li>
+<li><div class="problem">Invalid value ipswich line - caboolture line in field <code>route_long_name</code><br>The same combination of route_short_name and route_long_name shouldn't be used for more than one route, as it is for the for the two routes with IDs "IPCA-817" and "IPCA-819".</div><br></li>
+<li><div class="problem">Invalid value ipswich line - caboolture line in field <code>route_long_name</code><br>The same combination of route_short_name and route_long_name shouldn't be used for more than one route, as it is for the for the two routes with IDs "IPCA-816" and "IPCA-819".</div><br></li>
+<li><div class="problem">Invalid value ipswich line - caboolture line in field <code>route_long_name</code><br>The same combination of route_short_name and route_long_name shouldn't be used for more than one route, as it is for the for the two routes with IDs "IPCA-814" and "IPCA-819".</div><br></li>
+<li><div class="problem">Invalid value doomben line - beenleigh line in field <code>route_long_name</code><br>The same combination of route_short_name and route_long_name shouldn't be used for more than one route, as it is for the for the two routes with IDs "DBBN-814" and "DBBN-817".</div><br></li>
+<li>and 542 more of this type.</ul>
+<h4 class="issueHeader"><a name="WarningStopTooFarFromParentStation">Stop Too Far From Parent Station</a></h4><ul>
+<li><div class="problem">Kessels Rd at MacGregor, stop 59 (ID 5609) is too far from its parent station Garden City interchange (ID place_INTGCY) : 569.79 meters.</div><br></li>
+<li><div class="problem">Warrigal Rd at Fruitgrove (ID 5784) is too far from its parent station Fruitgrove station (ID place_frusta) : 392.37 meters.</div><br></li>
+<li><div class="problem">Logan Rd at Palmdale, stop 79c (ID 6479) is too far from its parent station Garden City interchange (ID place_INTGCY) : 372.08 meters.</div><br></li>
+<li><div class="problem">Murrumba Downs, platform 1 (ID 600641) is too far from its parent station Murrumba Downs station (ID place_mudsta) : 354.79 meters.</div><br></li>
+<li><div class="problem">Murrumba Downs station Stop B (ID 319650) is too far from its parent station Murrumba Downs station (ID place_mudsta) : 347.48 meters.</div><br></li>
+<li>and 37 more of this type.</ul>
+<h4 class="issueHeader"><a name="WarningStopsTooClose">Stops Too Close</a></h4><ul>
+<li><div class="problem">The stops "Wulkuraka, platform 1" (ID 600353) and "Wulkuraka, platform 2" (ID 600354) are 0.00m apart and probably represent the same location.</div><br></li>
+<li><div class="problem">The stops "Garden City Shopping Centre station, stop C" (ID 16513) and "Garden City Shopping Centre station, stop C" (ID 6513) are 0.00m apart and probably represent the same location.</div><br></li>
+<li><div class="problem">The stops "Mt Gravatt East Creek Rd Stop 60" (ID 6406) and "Creek Rd at Mt Gravatt East, stop 60" (ID 6417) are 0.00m apart and probably represent the same location.</div><br></li>
+<li><div class="problem">The stops "Creek Street Stop 149A near Adelaide St" (ID 149A) and "Creek Street Stop 149A" (ID 31) are 0.00m apart and probably represent the same location.</div><br></li>
+<li><div class="problem">The stops "Bethania, platform 2" (ID 600233) and "Bethania, platform 3" (ID 600234) are 0.81m apart and probably represent the same location.</div><br></li>
+<li>and 4 more of this type.</ul>
+<h4 class="issueHeader"><a name="WarningTooFastTravel">Too Fast Travel</a></h4><ul>
+<li><div class="problem">High speed travel detected in trip 7625262-LBS 16_17-539-Weekday-01: Turner St at Helidon to Anzac Ave at Grantham. 8275 meters in 240 seconds. (124 km/h).</div><br></li>
+<li><div class="problem">High speed travel detected in trip 7625263-LBS 16_17-539-Weekday-01: Turner St at Helidon to Anzac Ave at Grantham. 8275 meters in 240 seconds. (124 km/h).</div><br></li>
+<li><div class="problem">High speed travel detected in trip 7625278-LBS 16_17-539-Weekday-01: Anzac Ave at Grantham to Turner St at Helidon. 8242 meters in 240 seconds. (124 km/h).</div><br></li>
+<li><div class="problem">High speed travel detected in trip 7625277-LBS 16_17-539-Weekday-01: Anzac Ave at Grantham to Turner St at Helidon. 8242 meters in 240 seconds. (124 km/h).</div><br></li>
+<li><div class="problem">High speed travel detected in trip 7625293-LBS 16_17-539-Sunday-01: Ipswich St at Grandchester to Drayton St at Laidley Pioneer Village. 7327 meters in 240 seconds. (110 km/h).</div><br></li>
+<li>and 415 more of this type.</ul>
+<h4 class="issueHeader"><a name="WarningTooManyConsecutiveStopTimesWithSameTime">Too Many Consecutive Stop Times With Same Time</a></h4><ul>
+<li><div class="problem">Trip 8931249-BT 16_17-JAN_FUL-Weekday-01 has 6 consecutive stop times all with the same arrival/departure time: 19:50:00.</div><br></li>
+<li><div class="problem">Trip 8931311-BT 16_17-JAN_FUL-Weekday-01 has 7 consecutive stop times all with the same arrival/departure time: 19:45:00.</div><br></li>
+<li><div class="problem">Trip 8931311-BT 16_17-JAN_FUL-Weekday-01 has 6 consecutive stop times all with the same arrival/departure time: 19:46:00.</div><br></li>
+<li><div class="problem">Trip 8931124-BT 16_17-JAN_FUL-Weekday-01 has 7 consecutive stop times all with the same arrival/departure time: 19:12:00.</div><br></li>
+<li><div class="problem">Trip 8931124-BT 16_17-JAN_FUL-Weekday-01 has 6 consecutive stop times all with the same arrival/departure time: 19:13:00.</div><br></li>
+<li>and 275 more of this type.</ul>
+<h4 class="issueHeader"><a name="WarningUnrecognizedColumn">Unrecognized Column</a></h4><ul>
+<li><div class="problem">Unrecognized column <code>platform_code</code> in file <code>stops.txt</code>. This might be a misspelled column name (capitalization matters!). Or it could be extra information (such as a proposed feed extension) that the validator doesn't know about yet. Extra information is fine; this warning is here to catch misspelled optional column names.</div>in line 1 of <code>stops.txt</code><br>
+<table class="dump"><tr><th>stop_id</th><th>stop_code</th><th>stop_name</th><th>stop_desc</th><th>stop_lat</th><th>stop_lon</th><th>zone_id</th><th>stop_url</th><th>location_type</th><th>parent_station</th><th class="problem">platform_code</th></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="problem"></td></tr></table>
+<br></li>
+</ul>
+
+<div class="footer">
+Generated by <a href="https://github.com/google/transitfeed/wiki/FeedValidator">
+FeedValidator</a> version 1.2.14 on April 14, 2017 at 09:49 PM NZST.
+</div>
+</body>
+</html>
