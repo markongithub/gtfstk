@@ -1,5 +1,5 @@
 """
-Functions about calendar and calendar_dates
+Functions about calendar and calendar_dates.
 """
 import dateutil.relativedelta as rd
 

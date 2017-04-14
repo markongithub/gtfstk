@@ -1,3 +1,4 @@
+data/seq_*
 *__pycache__*
 dist/
 *.pyc

@@ -1,5 +1,5 @@
 """
-Functions about stop times
+Functions about stop times.
 """
 import pandas as pd 
 import numpy as np

@@ -1,5 +1,5 @@
 """
-Functions about trips
+Functions about trips.
 """
 from collections import OrderedDict
 import json
@@ -271,7 +271,7 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
     
     return h.sort_values(['route_id', 'direction_id', 'start_time'])
 
-def compute_trip_locations(feed, date, times):
+def locate_trips(feed, date, times):
     """
     Return a  DataFrame of the positions of all trips active on the given date and times 
     Include the columns:

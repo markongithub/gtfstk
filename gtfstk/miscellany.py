@@ -1,5 +1,5 @@
 """
-Functions about miscellany
+Functions about miscellany.
 """
 from collections import OrderedDict
 import json
@@ -42,7 +42,7 @@ def describe(feed, date=None):
 
     return f 
 
-def assess(feed):
+def assess_quality(feed):
     """
     Return a DataFrame of various feed indicators and values, such as the number of trips missing shapes.
     The columns of the DataFrame are 
@@ -50,7 +50,9 @@ def assess(feed):
     - ``'indicator'``: string; name of an indicator, e.g. 'num_trips_missing_shapes'
     - ``'value'``: value of the indicator, e.g. 27
 
-    This is not a GTFS validator.
+    NOTES:
+        - Assess quality using only a few indicators. Could be greatly improved.
+        - This function is not a GTFS validator
     """
     d = OrderedDict()
 
@@ -58,34 +60,29 @@ def assess(feed):
     r = feed.routes
     dup = r.duplicated(subset=['route_short_name'])
     n = dup[dup].count()
-    d['num_duplicated_route_short_names'] = n
-    d['frac_duplicated_route_short_names'] = n/r.shape[0]
+    d['num_route_short_names_duplicated'] = n
+    d['frac_route_short_names_duplicated'] = n/r.shape[0]
 
-    # Has shape_dist_traveled column in stop times?
-    st = feed.stop_times
+    # Count stop times missing shape_dist_traveled values
+    st = feed.stop_times.sort_values(['trip_id', 'stop_sequence'])
     if 'shape_dist_traveled' in st.columns:
-        d['has_shape_dist_traveled'] = True
         # Count missing distances
         n = st[st['shape_dist_traveled'].isnull()].shape[0]
-        d['num_missing_dists'] = n
-        d['frac_missing_dists'] = n/st.shape[0]
+        d['num_stop_time_dists_missing'] = n
+        d['frac_stop_time_dists_missing'] = n/st.shape[0]
     else:
-        d['has_shape_dist_traveled'] = False
-        d['num_missing_dists'] = st.shape[0]
-        d['frac_missing_dists'] = 1
+        d['num_stop_time_dists_missing'] = st.shape[0]
+        d['frac_stop_time_dists_missing'] = 1
 
-    # Has direction ID?
+    # Count direction_ids missing
     t = feed.trips
     if 'direction_id' in t.columns:
-        d['has_direction_id'] = True
-        # Count missing directions
         n = t[t['direction_id'].isnull()].shape[0]
-        d['num_missing_directions'] = n
-        d['frac_missing_directions'] = n/t.shape[0]
+        d['num_direction_ids_missing'] = n
+        d['frac_direction_ids_missing'] = n/t.shape[0]
     else:
-        d['has_direction_id'] = False
-        d['num_missing_directions'] = t.shape[0]
-        d['frac_missing_directions'] = 1
+        d['num_direction_ids_missing'] = t.shape[0]
+        d['frac_direction_ids_missing'] = 1
 
     # Count trips missing shapes
     if feed.shapes is not None:
@@ -97,29 +94,29 @@ def assess(feed):
 
     # Count missing departure times
     n = st[st['departure_time'].isnull()].shape[0]
-    d['num_missing_departure_times'] = n
-    d['frac_missing_departure_times'] = n/st.shape[0]
+    d['num_departure_times_missing'] = n
+    d['frac_departure_times_missing'] = n/st.shape[0]
 
-    # Count missing first departure times
-    g = st.groupby('trip_id').agg(lambda x: x.iloc[0]).reset_index()
+    # Count missing first departure times missing
+    g = st.groupby('trip_id').first().reset_index()
     n = g[g['departure_time'].isnull()].shape[0]
-    d['num_missing_first_departure_times'] = n
-    d['frac_missing_first_departure_times'] = n/g.shape[0]
+    d['num_first_departure_times_missing'] = n
+    d['frac_first_departure_times_missing'] = n/st.shape[0]
 
     # Count missing last departure times
-    g = st.groupby('trip_id').agg(lambda x: x.iloc[-1]).reset_index()
+    g = st.groupby('trip_id').last().reset_index()
     n = g[g['departure_time'].isnull()].shape[0]
-    d['num_missing_last_departure_times'] = n
-    d['frac_missing_last_departure_times'] = n/g.shape[0]
+    d['num_last_departure_times_missing'] = n
+    d['frac_last_departure_times_missing'] = n/st.shape[0]
 
     # Opine
-    if (d['frac_missing_first_departure_times'] >= 0.1) or\
-      (d['frac_missing_last_departure_times'] >= 0.1) or\
+    if (d['frac_first_departure_times_missing'] >= 0.1) or\
+      (d['frac_last_departure_times_missing'] >= 0.1) or\
       d['frac_trips_missing_shapes'] >= 0.8:
         d['assessment'] = 'bad feed'
-    elif d['frac_missing_directions'] or\
-      d['frac_missing_dists'] or\
-      d['num_duplicated_route_short_names']:
+    elif d['frac_direction_ids_missing'] or\
+      d['frac_stop_time_dists_missing'] or\
+      d['num_route_short_names_duplicated']:
         d['assessment'] = 'probably a fixable feed'
     else:
         d['assessment'] = 'good feed'

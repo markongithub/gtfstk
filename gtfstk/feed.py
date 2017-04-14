@@ -1,8 +1,14 @@
 """
-This module defines the Feed class, which represents a GTFS feed as a collection of DataFrames.
-Every Feed method assumes that every attribute of the feed that represents a GTFS file, such as ``agency`` or ``stops``, is either ``None`` or a DataFrame with the columns required in the GTFS.
+This module defines a ``Feed`` class to represent GTFS feeds.
+There is an instance attribute for every valid GTFS table (routes, stops, etc.), which stores the table as a Pandas DataFrame, or as ``None`` in case that table is missing.
 
-CONVENTIONS:
+The ``Feed`` class also has heaps of methods: a method to compute route stats, a method to compute screen line counts, validations methods, etc.
+To ease reading, almost all of these methods are defined in other modules and grouped by theme (``routes.py``, ``stops.py``, etc.).
+These methods, or rather functions that operate on feeds, are then imported within the ``Feed`` class.
+However, this separation of methods messes up the ``Feed`` class documentation slightly by introducing an extra leading ``feed`` parameter in the method signatures.
+Ignore that extra parameter; it refers to the ``Feed`` instance, usually called ``self`` and usually hidden automatically by documentation tools. 
+
+Conventions in the code below:
     - Dates are encoded as date strings of the form YYMMDD
     - Times are encoded as time strings of the form HH:MM:SS with the possibility that the hour is greater than 24
     - 'DataFrame' and 'Series' refer to Pandas DataFrame and Series objects, respectively
@@ -64,9 +70,9 @@ class Feed(object):
     from .shapes import build_geometry_by_shape, shapes_to_geojson, get_shapes_intersecting_geometry, append_dist_to_shapes
     from .stops import get_stops, build_geometry_by_stop, compute_stop_activity, compute_stop_stats, compute_stop_time_series, get_stop_timetable, get_stops_in_polygon
     from .stop_times import get_stop_times, append_dist_to_stop_times, get_start_and_end_times 
-    from .trips import is_active_trip, get_trips, compute_trip_activity, compute_busiest_date, compute_trip_stats, compute_trip_locations, trip_to_geojson
-    from .miscellany import describe, assess, convert_dist, compute_feed_stats, compute_feed_time_series, create_shapes, compute_bounds, compute_center, restrict_to_routes, restrict_to_polygon, compute_screen_line_counts
-    from .cleaners import clean_ids, clean_stop_times, clean_route_short_names, prune_dead_routes, aggregate_routes, clean, drop_invalid_columns
+    from .trips import is_active_trip, get_trips, compute_trip_activity, compute_busiest_date, compute_trip_stats, locate_trips, trip_to_geojson
+    from .miscellany import describe, assess_quality, convert_dist, compute_feed_stats, compute_feed_time_series, create_shapes, compute_bounds, compute_center, restrict_to_routes, restrict_to_polygon, compute_screen_line_counts
+    from .cleaners import clean_ids, clean_stop_times, clean_route_short_names, drop_dead_routes, aggregate_routes, clean, drop_invalid_columns
     from .validators import validate, check_for_required_tables, check_for_required_columns, check_agency, check_calendar, check_calendar_dates, check_fare_attributes, check_fare_rules, check_feed_info, check_frequencies, check_routes, check_shapes, check_stops, check_stop_times, check_transfers, check_trips 
 
 

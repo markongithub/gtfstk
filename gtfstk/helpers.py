@@ -1,3 +1,6 @@
+"""
+Functions useful across modules.
+"""
 import datetime as dt
 from collections import OrderedDict, Counter
 from functools import wraps

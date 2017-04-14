@@ -18,9 +18,9 @@ def test_describe():
     assert isinstance(a, pd.DataFrame)
     assert set(a.columns) == set(['indicator', 'value'])
 
-def test_assess():
+def test_assess_quality():
     feed = sample.copy() # No distances here
-    a = assess(feed)
+    a = assess_quality(feed)
     assert isinstance(a, pd.DataFrame)
     assert set(a.columns) == set(['indicator', 'value'])
 

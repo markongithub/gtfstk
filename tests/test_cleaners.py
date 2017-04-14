@@ -43,10 +43,10 @@ def test_clean_route_short_names():
     assert not f2.routes['route_short_name'].str.startswith(' ').any()
     assert not f2.routes['route_short_name'].str.endswith(' ').any()
 
-def test_prune_dead_routes():
+def test_drop_dead_routes():
     # Should not change Cairns routes
     f1 = sample.copy()
-    f2 = prune_dead_routes(f1)
+    f2 = drop_dead_routes(f1)
     assert_frame_equal(f2.routes, f1.routes)
 
     # Create a dummy route which should be removed
@@ -54,7 +54,7 @@ def test_prune_dead_routes():
       columns=f1.routes.columns)
     f3 = f1.copy()
     f3.routes = pd.concat([f3.routes, g])
-    f4 = prune_dead_routes(f3)
+    f4 = drop_dead_routes(f3)
     assert_frame_equal(f4.routes, f1.routes)
 
 def test_aggregate_routes():

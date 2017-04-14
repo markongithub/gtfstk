@@ -1,3 +1,6 @@
+"""
+Functions about stops.
+"""
 import json
 from collections import Counter, OrderedDict
 

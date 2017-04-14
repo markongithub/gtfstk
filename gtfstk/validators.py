@@ -1,6 +1,5 @@
 """
 Functions about validation.
-A work in progress.
 """
 import re 
 import pytz
@@ -208,6 +207,19 @@ def check_for_required_columns(feed, as_df=False):
             if column_required and column not in f.columns:
                 errors.append([table, 'Missing column {!s}'.format(column), []])
     return format_errors(errors, as_df) 
+
+def check_for_invalid_columns(feed, as_df=False):
+    errors = []
+    for table, group in cs.GTFS_REF.groupby('table'):
+        f = getattr(feed, table)
+        if f is None:
+            continue
+        valid_columns = group['column'].values
+        for col in f.columns:
+            if col not in valid_columns:
+                errors.append([table, 'Column {!s} not in GTFS'.format(col), []])
+        
+    return format_errors(errors, as_df)
 
 def check_agency(feed, as_df=False):
     """
@@ -681,6 +693,9 @@ def validate(feed, as_df=True):
     - ``'error'``: error message.
 
     Return early if the feed is missing required tables or required columns.
+
+    NOTES:
+        - Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at http://transitfeeds.com/p/translink/21/20170310 in 16 seconds.
     """
     errors = []
 

@@ -1,3 +1,6 @@
+"""
+Functions about cleaning feeds.
+"""
 import math
 
 import pandas as pd 
@@ -87,7 +90,7 @@ def clean_route_short_names(feed):
     feed.routes = r
     return feed
 
-def prune_dead_routes(feed):
+def drop_dead_routes(feed):
     """
     Remove every route from ``feed.routes`` that does not have trips listed in ``feed.trips``.
     Return the resulting new feed.
@@ -152,14 +155,14 @@ def clean(feed):
     #. :func:`clean_ids`
     #. :func:`clean_stop_times`
     #. :func:`clean_route_short_names`
-    #. :func:`prune_dead_routes`
+    #. :func:`drop_dead_routes`
     """
     feed = feed.copy()
     ops = [
       'clean_ids',
       'clean_stop_times',
       'clean_route_short_names',
-      'prune_dead_routes',
+      'drop_dead_routes',
     ]
     for op in ops:
         feed = getattr(feed, op)()
@@ -168,17 +171,17 @@ def clean(feed):
 
 def drop_invalid_columns(feed):
     """
-    Drop all data frame columns of this feed not listed in :const:`.constants.VALID_COLUMNS_BY_TABLE`.
+    Drop all data frame columns of this feed not listed in the GTFS.
     Return the resulting new feed.
     """
     feed = feed.copy()
-    for table in cs.GTFS_REF['table']:
+    for table, group in cs.GTFS_REF.groupby('table'):
         f = getattr(feed, table)
         if f is None:
             continue
-        columns = cs.GTFS_REF.loc[cs.GTFS_REF['table'] == table, 'column'].values
+        valid_columns = group['column'].values
         for col in f.columns:
-            if col not in columns:
+            if col not in valid_columns:
                 print('{!s}: dropping invalid column {!s}'.format(table, col))
                 del f[col]
         setattr(feed, table, f)

@@ -109,13 +109,13 @@ def test_compute_trip_stats():
     assert get_trips == expect_trips
 
 @slow
-def test_compute_trip_locations():
+def test_locate_trips():
     feed = cairns.copy()
     trip_stats = cairns_trip_stats
     feed = append_dist_to_stop_times(feed, trip_stats)
     date = cairns_date
     times = ['08:00:00']
-    f = compute_trip_locations(feed, date, times)
+    f = locate_trips(feed, date, times)
     g = get_trips(feed, date, times[0])
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)

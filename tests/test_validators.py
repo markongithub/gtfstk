@@ -20,7 +20,7 @@ def test_valid_str():
 
 def test_valid_time():
     assert valid_time('2:43:00')
-    assert not valid_time('32:43:00')
+    assert not valid_time('42:43:00')
 
 def test_valid_date():
     assert valid_date('20140310')
@@ -100,6 +100,13 @@ def test_check_for_required_columns():
     feed = sample.copy()
     del feed.routes['route_type']
     assert check_for_required_columns(feed)
+
+def test_check_for_invalid_columns():
+    assert not check_for_invalid_columns(sample)
+
+    feed = sample.copy()
+    feed.routes['bingo'] = 'snoop'
+    assert check_for_invalid_columns(feed)
 
 def test_check_agency():
     assert not check_agency(sample)

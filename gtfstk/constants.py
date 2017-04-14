@@ -121,18 +121,18 @@ DIST_UNITS = ['ft', 'mi', 'm', 'km']
 #:
 FEED_ATTRS_PUBLIC = [
     'agency', 
-    'stops', 
-    'routes', 
-    'trips', 
-    'stop_times', 
     'calendar', 
     'calendar_dates', 
     'fare_attributes', 
     'fare_rules', 
-    'shapes', 
-    'frequencies', 
-    'transfers', 
     'feed_info',
+    'frequencies', 
+    'routes', 
+    'shapes', 
+    'stops', 
+    'stop_times', 
+    'trips', 
+    'transfers', 
     'dist_units',
     ]
 

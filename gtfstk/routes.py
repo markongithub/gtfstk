@@ -1,5 +1,5 @@
 """
-Functions about routes
+Functions about routes.
 """
 from collections import OrderedDict
 import json
