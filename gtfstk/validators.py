@@ -699,7 +699,7 @@ def validate(feed, as_df=True):
     """
     errors = []
 
-    # Check for required table and for required columns, and halt if errors
+    # Check for required tables and for required columns, and halt if errors
     checkers = [
       'check_for_required_tables',
       'check_for_required_columns',
@@ -709,8 +709,9 @@ def validate(feed, as_df=True):
         if errors:
             return format_errors(errors, as_df)
 
-    # Check required tables
+    # Check for invalid columns and check the required tables
     checkers = [
+      'check_for_invalid_columns',
       'check_agency',
       'check_routes',
       'check_stops',
