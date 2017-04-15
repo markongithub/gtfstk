@@ -17,26 +17,37 @@ from . import helpers as hp
 def describe(feed, date=None):
     """
     Return a DataFrame of various feed indicators and values, e.g. number of routes.
-    If a date is given, then restrict some of those indicators to the date, e.g. number of routes on the date.
+    Also specialize some those indicators to the given sample date, e.g. number of routes active on the date.
+    If a sample date is not given, then set it to the first Thursday of the feed.
+
     The columns of the DataFrame are 
 
-    - ``'indicator'``: string; name of an indicator, e.g. 'num_trips_missing_shapes'
+    - ``'indicator'``: string; name of an indicator, e.g. 'num_routes'
     - ``'value'``: value of the indicator, e.g. 27
 
     """
+    from . import calendar as cl
+
+
     d = OrderedDict()
-    dates = feed.get_dates()
+    dates = cl.get_dates(feed)
     d['start_date'] = dates[0]
     d['end_date'] = dates[-1]
-    d['stats_date'] = date 
-    d['num_routes'] = feed.get_routes(date).shape[0]
-    trips = feed.get_trips(date)
-    d['num_trips'] = trips.shape[0]
-    d['num_stops'] = feed.get_stops(date).shape[0]
+    d['num_routes'] = feed.routes.shape[0]
+    d['num_trips'] = feed.trips.shape[0]
+    d['num_stops'] = feed.stops.shape[0]
     if feed.shapes is not None:
-        d['num_shapes'] = trips['shape_id'].nunique()
+        d['num_shapes'] = feed.shapes['shape_id'].nunique()
     else:
         d['num_shapes'] = 0
+
+    if date is None:
+        date = cl.get_first_week(feed)[3]
+    d['sample_date'] = date
+    d['num_routes_active_on_sample_date'] = feed.get_routes(date).shape[0]
+    trips = feed.get_trips(date)
+    d['num_trips_active_on_sample_date'] = trips.shape[0]
+    d['num_stops_active_on_sample_date'] = feed.get_stops(date).shape[0]
 
     f = pd.DataFrame(list(d.items()), columns=['indicator', 'value'])
 
@@ -51,8 +62,8 @@ def assess_quality(feed):
     - ``'value'``: value of the indicator, e.g. 27
 
     NOTES:
-        - Assess quality using only a few indicators. Could be greatly improved.
-        - This function is not a GTFS validator
+        - This is an odd function, but i use it to see roughly how broken a feed, which helps me decide if i can fix it
+        - This is not a GTFS validator
     """
     d = OrderedDict()
 

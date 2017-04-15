@@ -28,7 +28,7 @@ import shapely.geometry as sg
 
 from . import constants as cs
 from . import helpers as hp
-
+from . import cleaners as cn
 
 class Feed(object):
     """
@@ -72,8 +72,8 @@ class Feed(object):
     from .stop_times import get_stop_times, append_dist_to_stop_times, get_start_and_end_times 
     from .trips import is_active_trip, get_trips, compute_trip_activity, compute_busiest_date, compute_trip_stats, locate_trips, trip_to_geojson
     from .miscellany import describe, assess_quality, convert_dist, compute_feed_stats, compute_feed_time_series, create_shapes, compute_bounds, compute_center, restrict_to_routes, restrict_to_polygon, compute_screen_line_counts
-    from .cleaners import clean_ids, clean_stop_times, clean_route_short_names, drop_dead_routes, aggregate_routes, clean, drop_invalid_columns
     from .validators import validate, check_for_required_tables, check_for_required_columns, check_agency, check_calendar, check_calendar_dates, check_fare_attributes, check_fare_rules, check_feed_info, check_frequencies, check_routes, check_shapes, check_stops, check_stop_times, check_transfers, check_trips 
+    from .cleaners import clean_ids, clean_times, clean_route_short_names, drop_zombies, aggregate_routes, clean, drop_invalid_columns
 
 
     def __init__(self, dist_units, agency=None, stops=None, routes=None, 
@@ -223,9 +223,10 @@ def read_gtfs(path, dist_units=None):
     for p in src_path.iterdir():
         table = p.stem
         if p.is_file() and table in feed_dict:
-            feed_dict[table] = pd.read_csv(p, dtype=cs.DTYPE, encoding='utf-8-sig') 
             # utf-8-sig gets rid of the byte order mark (BOM);
-            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string 
+            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string             
+            df = pd.read_csv(p, dtype=cs.DTYPE, encoding='utf-8-sig') 
+            feed_dict[table] = cn.clean_column_names(df)
         
     feed_dict['dist_units'] = dist_units
 

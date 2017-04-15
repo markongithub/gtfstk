@@ -1,4 +1,4 @@
-data/seq_*
+data/other_feeds
 *__pycache__*
 dist/
 *.pyc

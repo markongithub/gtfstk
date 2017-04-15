@@ -74,7 +74,7 @@ rows = [
     ['stops', True, 'stop_url', False, 'str'],
     ['stops', True, 'location_type', False, 'int'],
     ['stops', True, 'parent_station', False, 'str'],
-    ['stops', True, 'stop_time_zone', False, 'str'],
+    ['stops', True, 'stop_timezone', False, 'str'],
     ['stops', True, 'wheelchair_boarding', False, 'int'],
     ['stop_times', True, 'trip_id', True, 'str'],
     ['stop_times', True, 'arrival_time', True, 'str'],

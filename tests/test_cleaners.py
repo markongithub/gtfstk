@@ -12,6 +12,17 @@ from .context import gtfstk, slow, sample
 from gtfstk import *
 
 
+def test_clean_column_names():
+    f = sample.routes.copy()
+    g = clean_column_names(f)
+    assert_frame_equal(f, g)
+
+    f[' route_id  '] = f['route_id'].copy()
+    del f['route_id']
+    f2 = clean_column_names(f1)
+    assert 'route_id' in f2.columns
+    assert ' route_id  ' not in f2.columns 
+
 def test_clean_ids():
     f1 = sample.copy()
     f1.routes.ix[0, 'route_id'] = '  ho   ho ho '
@@ -21,6 +32,14 @@ def test_clean_ids():
 
     f3 = clean_ids(f2)
     f3 == f2
+
+def test_clean_times():
+    f1 = sample.copy()
+    f1.stop_times['departure_time'].iat[0] = '7:00:00'
+    f1.frequencies['start_time'].iat[0] = '7:00:00'
+    f2 = clean_times(f1)
+    assert f2.stop_times['departure_time'].iat[0] == '07:00:00'
+    assert f2.frequencies['start_time'].iat[0] == '07:00:00'
 
 def test_clean_route_short_names():
     f1  = sample.copy()
@@ -43,19 +62,21 @@ def test_clean_route_short_names():
     assert not f2.routes['route_short_name'].str.startswith(' ').any()
     assert not f2.routes['route_short_name'].str.endswith(' ').any()
 
-def test_drop_dead_routes():
-    # Should not change Cairns routes
+def test_drop_zombies():
+    # Should have no effect on sample feed
     f1 = sample.copy()
-    f2 = drop_dead_routes(f1)
+    f2 = drop_zombies(f1)
     assert_frame_equal(f2.routes, f1.routes)
 
-    # Create a dummy route which should be removed
-    g = pd.DataFrame([[0 for c in f1.routes.columns]], 
-      columns=f1.routes.columns)
-    f3 = f1.copy()
-    f3.routes = pd.concat([f3.routes, g])
-    f4 = drop_dead_routes(f3)
-    assert_frame_equal(f4.routes, f1.routes)
+    # Create all zombie trips for one route
+    rid = f1.routes['route_id'].iat[0]
+    cond = f1.trips['route_id'] == rid
+    f1.trips.loc[cond, 'trip_id'] = 'hoopla'
+    f2 = drop_zombies(f1)
+    # Trips should be gone
+    assert 'hoopla' not in f2.trips['trip_id']
+    # Route should be gone
+    assert rid not in f2.routes['route_id']
 
 def test_aggregate_routes():
     feed1 = sample.copy()

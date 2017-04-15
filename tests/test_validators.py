@@ -85,7 +85,7 @@ def test_format_msgs():
 
     e = format_msgs(msgs, True)
     assert isinstance(e, pd.DataFrame)
-    assert e.columns.tolist() == ['message_type', 'table', 'rows', 'message']
+    assert e.columns.tolist() == ['message_type', 'message', 'table', 'rows']
 
 def test_check_for_required_tables():
     assert not check_for_required_tables(sample)

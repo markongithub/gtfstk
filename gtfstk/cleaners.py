@@ -12,6 +12,53 @@ from . import constants as cs
 from . import helpers as hp
 
 
+def clean_column_names(df):
+    """
+    Strip the whitespace from all column names in the given DataFrame and return the result.
+    """
+    f = df.copy()
+    f.columns = [col.strip() for col in f.columns]
+    return f
+
+def drop_zombies(feed):
+    """
+    Drop stops with no stop times, trips with no stop times, shapes with no trips, routes with no trips, and services with no trips, in that order.
+    Return the resulting new feed.
+    """
+    feed = feed.copy()
+
+    # Drop stops with no stop times
+    ids = feed.stop_times['stop_id'].unique()
+    f = feed.stops 
+    feed.stops = f[f['stop_id'].isin(ids)]
+
+    # Drop trips with no stop times
+    ids = feed.stop_times['trip_id'].unique()
+    f = feed.trips
+    feed.trips = f[f['trip_id'].isin(ids)]
+
+    # Drop shapes with no trips
+    ids = feed.trips['shape_id'].unique()
+    f = feed.shapes
+    if f is not None:
+        feed.shapes = f[f['shape_id'].isin(ids)]
+
+    # Drop routes with no trips
+    ids = feed.trips['route_id'].unique()
+    f = feed.routes 
+    feed.routes = f[f['route_id'].isin(ids)]
+
+    # Drop services with no trips
+    ids = feed.trips['service_id'].unique()
+    if feed.calendar is not None:
+        f = feed.calendar
+        feed.calendar = f[f['service_id'].isin(ids)]
+    if feed.calendar_dates is not None:
+        f = feed.calendar_dates
+        feed.calendar_dates = f[f['service_id'].isin(ids)]
+
+    return feed 
+
 def clean_ids(feed):
     """
     Strip whitespace from all string IDs and then replace every remaining whitespace chunk with an underscore.
@@ -22,7 +69,7 @@ def clean_ids(feed):
     # will be automatically handled when creating the new feed.
     feed = feed.copy()
 
-    for table in cs.GTFS_REF['table']:
+    for table in cs.GTFS_REF['table'].unique():
         f = getattr(feed, table)
         if f is None:
             continue
@@ -38,15 +85,12 @@ def clean_ids(feed):
 
     return feed
 
-def clean_stop_times(feed):
+def clean_times(feed):
     """
-    In ``feed.stop_times``, prefix a zero to arrival and departure times if necessary.
+    Prefix a zero to each H:MM:SS time to make it an HH:MM:SS.
     This makes sorting by time work as expected.
     Return the resulting feed.
     """
-    feed = feed.copy()
-    st = feed.stop_times
-
     def reformat(t):
         if pd.isnull(t):
             return t
@@ -55,11 +99,17 @@ def clean_stop_times(feed):
             t = '0' + t
         return t
 
-    if st is not None:
-        st[['arrival_time', 'departure_time']] = st[['arrival_time', 
-          'departure_time']].applymap(reformat)
+    feed = feed.copy()
+    tables_and_columns = [
+      ('stop_times', ['arrival_time', 'departure_time']),
+      ('frequencies', ['start_time', 'end_time']),
+    ]
+    for table, columns in tables_and_columns:
+        f = getattr(feed, table)
+        if f is not None:
+            f[columns] = f[columns].applymap(reformat)
+        setattr(feed, table, f)
 
-    feed.stop_times = st 
     return feed
 
 def clean_route_short_names(feed):
@@ -90,19 +140,7 @@ def clean_route_short_names(feed):
     feed.routes = r
     return feed
 
-def drop_dead_routes(feed):
-    """
-    Remove every route from ``feed.routes`` that does not have trips listed in ``feed.trips``.
-    Return the resulting new feed.
-    """
-    feed = feed.copy()
-    live_routes = feed.trips['route_id'].unique()
-    r = feed.routes 
-    feed.routes = r[r['route_id'].isin(live_routes)]
-    return feed 
-
-def aggregate_routes(feed, by='route_short_name', 
-  route_id_prefix='route_'):
+def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
     """
     Group ``feed.routes`` by the ``by`` column, and for each group 
 
@@ -150,22 +188,27 @@ def aggregate_routes(feed, by='route_short_name',
 
 def clean(feed):
     """
-    Apply the following functions to this feed and return the resulting new feed.
+    Apply 
 
+    #. :func:`clean_column_names`
+    #. :func:`drop_zombies`
     #. :func:`clean_ids`
-    #. :func:`clean_stop_times`
+    #. :func:`clean_times`
     #. :func:`clean_route_short_names`
-    #. :func:`drop_dead_routes`
+
+    to the given feed in that order.
+    Return the resulting feed.
     """
     feed = feed.copy()
     ops = [
+      'clean_column_names',
       'clean_ids',
-      'clean_stop_times',
+      'clean_times',
       'clean_route_short_names',
-      'drop_dead_routes',
+      'drop_zombies',
     ]
     for op in ops:
-        feed = getattr(feed, op)()
+        feed = globals()[op](feed)
 
     return feed
 

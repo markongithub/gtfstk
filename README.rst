@@ -37,7 +37,7 @@ History
 
 8.0.0, 2017-04-15
 -----------------
-- Finally knuckled down and wrote a GTFS validator: ``validators.py``.  It's basic, easy to read, and, thanks to Pandas, fast.  It checks `this 31 MB Southeast Queensland feed <http://transitfeeds.com/p/translink/21/20170310>` in 17 seconds on my 2.8-GHz-processor-16-GB-memory computer.  With the same computer and feed, `Google's GTFS validator <https://github.com/google/transitfeed>` takes 420 seconds. That's about 24 times slower. Granted, the latter validator is performing additional checks beyond the GTFS, but still.
+- Finally knuckled down and wrote a GTFS validator: ``validators.py``.  It's basic, easy to read, and, thanks to Pandas, fast.  It checks `this 31 MB Southeast Queensland feed <http://transitfeeds.com/p/translink/21/20170310>` in 17 seconds on my 2.8-GHz-processor-16-GB-memory computer.  With the same computer and feed, `Google's GTFS validator <https://github.com/google/transitfeed>` takes 420 seconds. That's about 24 times slower. Granted, the Google validator performs checks above and beyond the GTFS, but still.
 - Moved all but the most basic ``Feed`` methods into other modules grouped by theme, ``routes.py``, ``stops.py``, etc.  Eases reading and additionally exposes the methods as functions on feeds, like in the GTFSTK versions before 7.0.0.
 - Speeded up ``miscellany.py::asssess_quality``
 - Refactored ``constants.py``

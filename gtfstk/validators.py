@@ -35,7 +35,7 @@ COLOR_PATTERN = re.compile(r'(?:[0-9a-fA-F]{2}){3}$')
 
 def valid_str(x):
     """
-    Return ``True`` if ``x`` is a non-blank string; otherwise return False.
+    Return ``True`` if ``x`` is a non-blank string; otherwise return ``False``.
     """
     if isinstance(x, str) and x.strip():
         return True 
@@ -43,6 +43,9 @@ def valid_str(x):
         return False 
 
 def valid_time(x):
+    """
+    Return ``True`` if ``x`` is a valid H:MM:SS or HH:MM:SS time; otherwise return ``False``.
+    """
     if re.match(TIME_PATTERN1, x) or re.match(TIME_PATTERN2, x):
         return True 
     else:
@@ -87,6 +90,9 @@ def valid_url(x):
         return False
 
 def valid_email(x):
+    """
+    Return ``True`` if ``x`` is a valid email address; otherwise return ``False``.
+    """
     if re.match(EMAIL_PATTERN, x):
         return True 
     else:
@@ -103,10 +109,9 @@ def valid_color(x):
 
 def check_table(msgs, table, df, condition, msg, msg_type='error'):
     """
-    Given a list of messages (each a list of length 4), a table (string), the DataFrame corresponding to the table, a boolean condition on the DataFrame, and an message (string), and a message type ('error' or 'warning'), do the following.
-    Record the indices where the DataFrame that statisfy the condition.
-    If this list is nonempty, then append to the list the new item ``[msg_type, msg, table, indices]``.
-    Otherwise, return the original list of messages.
+    Given a list of messages (each a list of length 4), a table (string), the DataFrame corresponding to the table, a boolean condition on the DataFrame, a message (string), and a message type ('error' or 'warning'), do the following.
+    Record the indices where the DataFrame statisfies the condition, then if the list of indices is nonempty, append to the messages the item ``[msg_type, msg, table, indices]``.
+    If the list of indices is empty, then return the original list of messages.
     """
     indices = df.loc[condition].index.tolist()
     if indices:
@@ -117,9 +122,12 @@ def check_table(msgs, table, df, condition, msg, msg_type='error'):
 def check_column(msgs, table, df, column, column_required, checker, 
   msg_type='error'):
     """
-    Given a list of messages, a table name (string), the DataFrame corresponding to the table, a column name (string), a boolean indicating whether the table is required, and a checker (boolean-valued unary function), do the following.
-    Apply the checker to the column entries and record the indices of the rows on which msgs occur, if any.
-    Append these messages to the given error list and return the new messages.
+    Given a list of messages (each a list of length 4), a table name (string), the DataFrame corresponding to the table, a column name (string), a boolean indicating whether the table is required, a checker (boolean-valued unary function), and a message type ('error' or 'warning'), do the following.
+    Apply the checker to the column entries and record the indices of hits.
+    If the list of indices is nonempty, append to the messages the item ``[msg_type, msg, table, indices]``.
+    Otherwise, return the original list of messages.
+
+    If the column is not required, then NaN entries will be ignored in the checking.
     """
     f = df.copy()
     if not column_required:
@@ -135,7 +143,10 @@ def check_column(msgs, table, df, column, column_required, checker,
 
 def check_column_id(msgs, table, df, column, column_required=True):
     """
-    A modified verios of :func:`check_column` that applies to a column that must have unduplicated IDs. 
+    A modified version of :func:`check_column`.
+    The given column must have unduplicated IDs that are valid strings. 
+
+    If the column is not required, then NaN entries will be ignored in the checking.
     """
     f = df.copy()
     if not column_required:
@@ -156,17 +167,29 @@ def check_column_id(msgs, table, df, column, column_required=True):
 def check_column_linked_id(msgs, table, df, column, column_required, 
   target_df, target_column=None):
     """
+    A modified version of :func:`check_column`.
+    The given column must contain IDs that are valid strings and are in the target DataFrame under the target column name, the latter of which defaults to the given column name. 
+
+    If the column is not required, then NaN entries will be ignored in the checking.
     """
     if target_column is None:
         target_column = column 
 
     f = df.copy()
+    if target_df is None:
+        g = pd.DataFrame()
+    else:
+        g = target_df.copy()
+
     if not column_required:
         if column not in f.columns:
             f[column] = np.nan
+        if target_column not in g.columns:
+            g[target_column] = np.nan
         f = f.dropna(subset=[column])
+        g = g.dropna(subset=[target_column])
 
-    cond = ~f[column].isin(target_df[target_column])
+    cond = ~f[column].isin(g[target_column])
     msgs = check_table(msgs, table, f, cond, 
       '{!s} undefined'.format(column))
 
@@ -174,15 +197,19 @@ def check_column_linked_id(msgs, table, df, column, column_required,
 
 def format_msgs(msgs, as_df):
     """
-    Given a possibly empty list of messages (triples), return a DataFrame with the messages as rows and the columns ['incident', 'table', 'rows', 'message'], if ``as_df``.
-    If not ``as_df``, then return the original messages.
+    Given a possibly empty list of messages of the form described in :func:`check_table`, return a DataFrame with the messages as rows and the columns ['message_type', 'message', 'table', 'rows'], if ``as_df``.
+    If not ``as_df``, then return the given list of messages.
     """
     if as_df:
         msgs = pd.DataFrame(msgs, columns=['message_type', 'message', 'table', 
-          'rows'])
+          'rows']).sort_values(['message_type', 'table'])
     return msgs
 
 def check_for_required_tables(feed, as_df=False, include_warnings=False):
+    """
+    Check the given feed for all the required GTFS tables.
+    Return a list of messages of the form described in :func:`check_table`; the list will be empty if no problems are found.
+    """
     msgs = []
     req_tables = cs.GTFS_REF.loc[cs.GTFS_REF['table_required'], 'table']
     for table in req_tables:
@@ -195,6 +222,10 @@ def check_for_required_tables(feed, as_df=False, include_warnings=False):
     return format_msgs(msgs, as_df) 
 
 def check_for_required_columns(feed, as_df=False, include_warnings=False):
+    """
+    Check the given feed for all the required GTFS columns.
+    Return a list of messages of the form described in :func:`check_table`; the list will be empty if no problems are found.
+    """
     msgs = []
     for table, group in cs.GTFS_REF.groupby('table'):
         f = getattr(feed, table)
@@ -210,6 +241,10 @@ def check_for_required_columns(feed, as_df=False, include_warnings=False):
     return format_msgs(msgs, as_df) 
 
 def check_for_invalid_columns(feed, as_df=False, include_warnings=False):
+    """
+    Check the given feed for columns not mentioned in the GTFS.
+    Return a list of messages of the form described in :func:`check_table`; the list will be empty if no problems are found.
+    """
     msgs = []
     for table, group in cs.GTFS_REF.groupby('table'):
         f = getattr(feed, table)
@@ -225,9 +260,8 @@ def check_for_invalid_columns(feed, as_df=False, include_warnings=False):
 
 def check_agency(feed, as_df=False, include_warnings=False):
     """
-    Check thet ``feed.agency`` follows the GTFS and output a possibly empty list of messages found as pairs of the form (incident, 'agency', rows where problem occurs, message).
-    The incident can be an 'error', i.e. a violation of the GTFS, or the incident can be a 'warning', i.e. a strangeness that is not a violation of the GTFS.
-    Only include warnings if ``include_warnings``.
+    Check that ``feed.agency`` follows the GTFS.
+    Return a list of messages of the form described in :func:`check_table`; the list will be empty if no problems are found.
     """
     f = feed.agency.copy()
     table = 'agency'
@@ -284,7 +318,7 @@ def check_calendar(feed, as_df=False, include_warnings=False):
     if include_warnings:
         # Check if feed has expired
         d = f['end_date'].max()
-        if feed.calendar_dates is not None:
+        if feed.calendar_dates is not None and not feed.calendar_dates.empty:
             table += '/calendar_dates'
             d = max(d, feed.calendar_dates['date'].max())
         if d < dt.datetime.today().strftime(DATE_FORMAT):
@@ -520,7 +554,7 @@ def check_shapes(feed, as_df=False, include_warnings=False):
     # Check for duplicated (shape_id, shape_pt_sequence) pairs
     cond = f[['shape_id', 'shape_pt_sequence']].duplicated()
     msgs = check_table(msgs, table, f, cond, 
-      'Duplicated (shape_id, shape_pt_sequence) pair')
+      'Duplicate (shape_id, shape_pt_sequence) pair')
 
     # Check shape_dist_traveled
     if 'shape_dist_traveled' in f.columns:
@@ -606,7 +640,7 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.stop_times``.
     """    
-    f = feed.stop_times.copy()
+    f = feed.stop_times.copy().sort_values(['trip_id', 'stop_sequence'])
     table = 'stop_times'
     msgs = []
 
@@ -615,17 +649,18 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
       feed.trips)
 
     # Check arrival_time and departure_time
+    v = lambda x: pd.isnull(x) or valid_time(x)
     for col in ['arrival_time', 'departure_time']:
-        msgs = check_column(msgs, table, f, col, False, valid_time)
+        msgs = check_column(msgs, table, f, col, True, v)
 
     # Check stop_id
     msgs = check_column_linked_id(msgs, table, f, 'stop_id', True, 
       feed.stops)
 
     # Check for duplicated (trip_id, stop_sequence) pairs
-    cond = f[['trip_id', 'stop_sequence']].duplicated()
+    cond = f[['trip_id', 'stop_sequence']].dropna().duplicated()
     msgs = check_table(msgs, table, f, cond, 
-      'Duplicated (trip_id, stop_sequence) pair')
+      'Duplicate (trip_id, stop_sequence) pair')
 
     # Check stop_headsign
     msgs = check_column(msgs, table, f, 'stop_headsign', False, valid_str)
@@ -637,8 +672,7 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
 
     # Check shape_dist_traveled
     if 'shape_dist_traveled' in f.columns:
-        g = f.dropna(subset=['shape_dist_traveled']).sort_values(
-          ['trip_id', 'stop_sequence'])
+        g = f.dropna(subset=['shape_dist_traveled'])
         for trip_id, group in g.groupby('trip_id', sort=False):
             a = group['shape_dist_traveled'].values  
             indices = np.flatnonzero(a[1:] < a[:-1]) # relative indices
@@ -652,11 +686,15 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
     v = lambda x: x in range(2)
     msgs = check_column(msgs, table, f, 'timepoint', False, v)
 
+    # Check that arrival and departure times exists for the first and last stop of each trip and for each timepoint
+
+
+
     if include_warnings:
         # Check for duplicated (trip_id, departure_time) pairs
         cond = f[['trip_id', 'departure_time']].duplicated()
         msgs = check_table(msgs, table, f, cond, 
-          'Duplicated (trip_id, departure_time) pair', 'warning')
+          'Duplicate (trip_id, departure_time) pair', 'warning')
 
     return format_msgs(msgs, as_df) 
 
@@ -740,7 +778,26 @@ def check_trips(feed, as_df=False, include_warnings=False):
 
 def validate(feed, as_df=True, include_warnings=True):
     """
-    Check whether the given feed is valid by running all the checks above.
+    Check whether the given feed follows the GTFS by running the functions
+
+    #. :func:`check_for_required_tables`
+    #. :func:`check_for_required_columns`
+    #: :func:`check_for_invalid_columns`
+    #: :func:`check_agency`
+    #: :func:`check_routes`
+    #: :func:`check_stops`
+    #: :func:`check_stop_times`
+    #: :func:`check_trips`
+    #: :func:`check_calendar`
+    #: :func:`check_calendar_dates`
+    #: :func:`check_fare_attributes`
+    #: :func:`check_fare_rules`
+    #: :func:`check_feed_info`
+    #: :func:`check_frequencies`
+    #: :func:`check_transfers`
+    #: :func:`check_shapes`
+
+    in that order.
     Return the problems found as a possibly empty list of tuples (message type, message, table, rows).
     If ``as_df``, then format the error list as a DataFrame with the columns
 
@@ -751,7 +808,7 @@ def validate(feed, as_df=True, include_warnings=True):
 
     Return early if the feed is missing required tables or required columns.
 
-    Include warning messages on if ``include_warning``.
+    Include warning messages only if ``include_warning``.
 
     NOTES:
         - This function interprets the GTFS liberally, classifying problems as warnings rather than errors where the GTFS is unclear. For example if a trip_id listed in the trips table is not listed in the stop times table (a trip with no stop times), then that's a warning and not an error. 
