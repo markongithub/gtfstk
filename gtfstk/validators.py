@@ -101,20 +101,21 @@ def valid_color(x):
     else:
         return False
 
-def check_table(msgs, table, df, condition, message, kind='error'):
+def check_table(msgs, table, df, condition, msg, msg_type='error'):
     """
-    Given a list of msgs, a table name (string), the DataFrame corresponding to the table, a boolean condition on the DataFrame, and an error message, do the following.
-    Record the indices of the rows of the DataFrame that statisfy the condition.
-    If this is a nonempty list, then append the given error message to the list of msgs along with the offending table indices.
-    Otherwise, return the original list of msgs.
+    Given a list of messages (each a list of length 4), a table (string), the DataFrame corresponding to the table, a boolean condition on the DataFrame, and an message (string), and a message type ('error' or 'warning'), do the following.
+    Record the indices where the DataFrame that statisfy the condition.
+    If this list is nonempty, then append to the list the new item ``[msg_type, msg, table, indices]``.
+    Otherwise, return the original list of messages.
     """
-    rows = df.loc[condition].index.tolist()
-    if rows:
-        msgs.append([kind, table, rows, message])
+    indices = df.loc[condition].index.tolist()
+    if indices:
+        msgs.append([msg_type, msg, table, indices])
 
     return msgs
 
-def check_column(msgs, table, df, column, column_required, checker, kind='error'):
+def check_column(msgs, table, df, column, column_required, checker, 
+  msg_type='error'):
     """
     Given a list of messages, a table name (string), the DataFrame corresponding to the table, a column name (string), a boolean indicating whether the table is required, and a checker (boolean-valued unary function), do the following.
     Apply the checker to the column entries and record the indices of the rows on which msgs occur, if any.
@@ -128,7 +129,7 @@ def check_column(msgs, table, df, column, column_required, checker, kind='error'
 
     cond = ~f[column].map(checker)  
     msgs = check_table(msgs, table, f, cond, 
-      '{!s} malformed'.format(column), kind)
+      '{!s} malformed'.format(column), msg_type)
 
     return msgs
 
@@ -177,8 +178,8 @@ def format_msgs(msgs, as_df):
     If not ``as_df``, then return the original messages.
     """
     if as_df:
-        msgs = pd.DataFrame(msgs, 
-          columns=['incident', 'table', 'rows', 'message'])
+        msgs = pd.DataFrame(msgs, columns=['message_type', 'message', 'table', 
+          'rows'])
     return msgs
 
 def check_for_required_tables(feed, as_df=False, include_warnings=False):
@@ -186,11 +187,11 @@ def check_for_required_tables(feed, as_df=False, include_warnings=False):
     req_tables = cs.GTFS_REF.loc[cs.GTFS_REF['table_required'], 'table']
     for table in req_tables:
         if getattr(feed, table) is None:
-            msgs.append(['error', table, [], 'Missing file'])
+            msgs.append(['error', 'Missing file', table, []])
     # Calendar check is different
     if feed.calendar is None and feed.calendar_dates is None:
-        msgs.append(['error', 'calendar/calendar_dates', [],
-          'Both calendar and calendar_dates files are missing'])
+        msgs.append(['error', 'Both calendar and calendar_dates tables missing', []])
+
     return format_msgs(msgs, as_df) 
 
 def check_for_required_columns(feed, as_df=False, include_warnings=False):
@@ -203,8 +204,9 @@ def check_for_required_columns(feed, as_df=False, include_warnings=False):
         for column, column_required in group[['column', 'column_required']].itertuples(
           index=False):
             if column_required and column not in f.columns:
-                msgs.append(['error', table, [], 
-                  'Column {!s} is missing'.format(column)])
+                msgs.append(['error', 'Column {!s} is missing'.format(column), 
+                  table, []])
+
     return format_msgs(msgs, as_df) 
 
 def check_for_invalid_columns(feed, as_df=False, include_warnings=False):
@@ -216,8 +218,8 @@ def check_for_invalid_columns(feed, as_df=False, include_warnings=False):
         valid_columns = group['column'].values
         for col in f.columns:
             if col not in valid_columns:
-                msgs.append([table, [], 
-                  '{!s} is not a valid column name'.format(col)])
+                msgs.append(['error', '{!s} is not a valid column name'.format(col),
+                  table, []])
         
     return format_msgs(msgs, as_df)
 
@@ -286,7 +288,7 @@ def check_calendar(feed, as_df=False, include_warnings=False):
             table += '/calendar_dates'
             d = max(d, feed.calendar_dates['date'].max())
         if d < dt.datetime.today().strftime(DATE_FORMAT):
-            msgs.append(['warning', table, [], 'This feed has expired'])
+            msgs.append(['warning', 'This feed has expired', table, []])
 
     return format_msgs(msgs, as_df) 
 
@@ -392,8 +394,8 @@ def check_feed_info(feed, as_df=False, include_warnings=False):
 
     d1, d2 = f[['feed_start_date', 'feed_end_date']].ix[0].values
     if pd.notnull(d1) and pd.notnull(d2) and d1 > d1:
-        msgs.append([table, 'feed_start_date later than feed_end_date', 
-          [0]])
+        msgs.append(['error', 'feed_start_date later than feed_end_date', 
+          table, [0]])
 
     # Check feed_version
     msgs = check_column(msgs, table, f, 'feed_version', False, valid_str)
@@ -431,9 +433,8 @@ def check_frequencies(feed, as_df=False, include_warnings=False):
         b = group['end_time'].values  
         indices = np.flatnonzero(a[1:] < b[:-1]).tolist()
         if indices:
-            msgs.append([table, 
-             'Headway periods for the same trip overlap', 
-              indices])
+            msgs.append(['error', 'Headway periods for the same trip overlap',
+              table, indices])
 
     # Check headway_secs
     v = lambda x: x >= 0
@@ -459,7 +460,8 @@ def check_routes(feed, as_df=False, include_warnings=False):
     # Check agency_id
     if 'agency_id' in f:
         if 'agency_id' not in feed.agency.columns:
-            msgs.append('Column agency_id present in routes but not in agency')
+            msgs.append(['error', 
+              'agency_id column present in routes but not in agency', table, []])
         else:
             g = f.dropna(subset=['agency_id'])
             cond = ~g['agency_id'].isin(feed.agency['agency_id'])
@@ -484,6 +486,17 @@ def check_routes(feed, as_df=False, include_warnings=False):
     for col in ['route_color', 'route_text_color']:
         msgs = check_column(msgs, table, f, col, False, valid_color)
     
+    if include_warnings:
+        # Check for duplicated (route_short_name, route_long_name) pairs
+        cond = f[['route_short_name', 'route_long_name']].duplicated()
+        msgs = check_table(msgs, table, f, cond, 
+          'Duplicate (route_short_name, route_long_name) pair', 'warning')
+
+        # Check for routes without trips
+        s = feed.trips['route_id']
+        cond = ~f['route_id'].isin(s)
+        msgs = check_table(msgs, table, f, cond, 'Route has no trips', 'warning')
+
     return format_msgs(msgs, as_df)
 
 def check_shapes(feed, as_df=False, include_warnings=False):
@@ -504,6 +517,11 @@ def check_shapes(feed, as_df=False, include_warnings=False):
         msgs = check_table(msgs, table, f, cond, 
           '{!s} out of bounds {!s}'.format(column, [-bound, bound]))
 
+    # Check for duplicated (shape_id, shape_pt_sequence) pairs
+    cond = f[['shape_id', 'shape_pt_sequence']].duplicated()
+    msgs = check_table(msgs, table, f, cond, 
+      'Duplicated (shape_id, shape_pt_sequence) pair')
+
     # Check shape_dist_traveled
     if 'shape_dist_traveled' in f.columns:
         g = f.dropna(subset=['shape_dist_traveled']).sort_values(
@@ -513,10 +531,9 @@ def check_shapes(feed, as_df=False, include_warnings=False):
             indices = np.flatnonzero(a[1:] < a[:-1]) # relative indices
             indices = group.index[indices].tolist() # absolute indices
             if indices:
-                msgs.append([table, 
+                msgs.append(['error', 
                   'shape_dist_traveled decreases for shape_id {!s}'.format(
-                  shape_id), 
-                  indices])
+                  shape_id), table, indices])
 
     return format_msgs(msgs, as_df)
 
@@ -562,9 +579,9 @@ def check_stops(feed, as_df=False, include_warnings=False):
     # Check further location_type and parent_station   
     if 'parent_station' in f.columns:
         if 'location_type' not in f.columns:
-            msgs.append([table, 
+            msgs.append(['error', 
               'parent_station column present but location_type column missing', 
-              []])
+              table, []])
         else:
             # Parent stations must have location type 1
             station_ids = f.loc[f['parent_station'].notnull(), 'parent_station']
@@ -576,6 +593,12 @@ def check_stops(feed, as_df=False, include_warnings=False):
             cond = f['parent_station'].notnull() & (f['location_type'] == 1) 
             msgs = check_table(msgs, table, f, cond, 
               'location_type must equal 1')
+
+    if include_warnings:
+        # Check for stops without trips
+        s = feed.stop_times['stop_id']
+        cond = ~feed.stops['stop_id'].isin(s)
+        msgs = check_table(msgs, table, f, cond, 'Stop has no stop times', 'warning')
 
     return format_msgs(msgs, as_df) 
 
@@ -599,6 +622,11 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
     msgs = check_column_linked_id(msgs, table, f, 'stop_id', True, 
       feed.stops)
 
+    # Check for duplicated (trip_id, stop_sequence) pairs
+    cond = f[['trip_id', 'stop_sequence']].duplicated()
+    msgs = check_table(msgs, table, f, cond, 
+      'Duplicated (trip_id, stop_sequence) pair')
+
     # Check stop_headsign
     msgs = check_column(msgs, table, f, 'stop_headsign', False, valid_str)
 
@@ -616,14 +644,19 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
             indices = np.flatnonzero(a[1:] < a[:-1]) # relative indices
             indices = group.index[indices].tolist() # absolute indices
             if indices:
-                msgs.append([table, 
+                msgs.append(['error', 
                   'shape_dist_traveled decreases for trip_id {!s}'.format(
-                  trip_id), 
-                  indices])
+                  trip_id), table, indices])
 
     # Check timepoint
     v = lambda x: x in range(2)
     msgs = check_column(msgs, table, f, 'timepoint', False, v)
+
+    if include_warnings:
+        # Check for duplicated (trip_id, departure_time) pairs
+        cond = f[['trip_id', 'departure_time']].duplicated()
+        msgs = check_table(msgs, table, f, cond, 
+          'Duplicated (trip_id, departure_time) pair', 'warning')
 
     return format_msgs(msgs, as_df) 
 
@@ -697,21 +730,32 @@ def check_trips(feed, as_df=False, include_warnings=False):
     for column in ['wheelchair_accessible', 'bikes_allowed']:
         msgs = check_column(msgs, table, f, column, False, v)
 
+    # Check for trips with no stop times
+    if include_warnings:
+        s = feed.stop_times['trip_id']
+        cond = ~f['trip_id'].isin(s)
+        msgs = check_table(msgs, table, f, cond, 'Trip has no stop times', 'warning')
+
     return format_msgs(msgs, as_df)
 
 def validate(feed, as_df=True, include_warnings=True):
     """
-    Check whether the given feed is valid by doing all the checks above.
-    Return the msgs found as a possibly empty list of pairs (table name, error message).
+    Check whether the given feed is valid by running all the checks above.
+    Return the problems found as a possibly empty list of tuples (message type, message, table, rows).
     If ``as_df``, then format the error list as a DataFrame with the columns
 
-    - ``'table'``: name of table where error occurs
-    - ``'error'``: error message.
+    - ``'message_type'``: 'error' or 'warning'; 'error' means the GTFS is violated; 'warning' means there is a problem but it's not a GTFS violation
+    - ``'message'``: description of the problem
+    - ``'table'``: table in which problem occurs, e.g. 'routes'
+    - ``'rows'``: rows of the table's DataFrame where problem occurs
 
     Return early if the feed is missing required tables or required columns.
 
+    Include warning messages on if ``include_warning``.
+
     NOTES:
-        - Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at http://transitfeeds.com/p/translink/21/20170310 in 16 seconds.
+        - This function interprets the GTFS liberally, classifying problems as warnings rather than errors where the GTFS is unclear. For example if a trip_id listed in the trips table is not listed in the stop times table (a trip with no stop times), then that's a warning and not an error. 
+        - Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at http://transitfeeds.com/p/translink/21/20170310 in 17 seconds (including warnings).
     """
     msgs = []
 

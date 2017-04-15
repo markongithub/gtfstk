@@ -85,7 +85,7 @@ def test_format_msgs():
 
     e = format_msgs(msgs, True)
     assert isinstance(e, pd.DataFrame)
-    assert e.columns.tolist() == ['incident', 'table', 'rows', 'message']
+    assert e.columns.tolist() == ['message_type', 'table', 'rows', 'message']
 
 def test_check_for_required_tables():
     assert not check_for_required_tables(sample)
@@ -246,6 +246,19 @@ def test_check_routes():
     feed.routes['route_text_color'].iat[0] = 'FFF'
     assert check_routes(feed)
 
+    feed = sample.copy()
+    feed.routes['route_short_name'].iat[1] =\
+      feed.routes['route_short_name'].iat[0]
+    feed.routes['route_long_name'].iat[1] =\
+      feed.routes['route_long_name'].iat[0]
+    assert not check_routes(feed)
+    assert check_routes(feed, include_warnings=True)
+
+    feed = sample.copy()
+    feed.routes['route_id'].iat[0] = 'Shwing'
+    assert not check_routes(feed)
+    assert check_routes(feed, include_warnings=True)
+
 def test_check_shapes():
     assert not check_shapes(sample)
 
@@ -267,6 +280,11 @@ def test_check_shapes():
         feed1 = feed.copy()
         feed1.shapes[column] = 185
         assert check_shapes(feed1)
+
+    feed1 = feed.copy()
+    feed.shapes['shape_pt_sequence'].iat[1] =\
+      feed.shapes['shape_pt_sequence'].iat[0]
+    assert check_shapes(feed)
 
     feed1 = feed.copy()
     feed1.shapes['shape_dist_traveled'].iat[1] = 0
@@ -304,6 +322,11 @@ def test_check_stops():
     feed.stops['parent_station'] = feed.stops['stop_id'].iat[1]
     assert check_stops(feed)
 
+    feed = sample.copy()
+    feed.stops['stop_id'].iat[0] = 'Flippity flew'
+    assert not check_stops(feed)
+    assert check_stops(feed, include_warnings=True)
+
 def test_check_stop_times():
     assert not check_stop_times(sample)
 
@@ -324,6 +347,11 @@ def test_check_stop_times():
     feed.stop_times['stop_headsign'].iat[0] = ''
     assert check_stop_times(feed)
 
+    feed = sample.copy()
+    feed.stop_times['stop_sequence'].iat[1] =\
+      feed.stop_times['stop_sequence'].iat[0]
+    assert check_stop_times(feed)
+
     for col in ['pickup_type', 'drop_off_type']:
         feed = sample.copy()
         feed.stop_times[col] = 'bongo'
@@ -337,6 +365,12 @@ def test_check_stop_times():
     feed = sample.copy()
     feed.stop_times['timepoint'] = 3
     assert check_stop_times(feed)
+
+    feed = sample.copy()
+    feed.stop_times['departure_time'].iat[1] =\
+      feed.stop_times['departure_time'].iat[0]
+    assert not check_stop_times(feed)
+    assert check_stop_times(feed, include_warnings=True)
 
 def test_check_transfers():
     # Create transfers table
@@ -390,6 +424,12 @@ def test_check_trips():
     feed = sample.copy()
     feed.trips['wheelchair_accessible'] = ''
     assert check_trips(feed)
+
+    feed = sample.copy()
+    tid = feed.trips['trip_id'].iat[0]
+    feed.stop_times = feed.stop_times[feed.stop_times['trip_id'] != tid].copy()
+    assert not check_trips(feed)
+    assert check_trips(feed, include_warnings=True)
 
 def test_validate():    
     assert not validate(sample, as_df=False, include_warnings=False)
