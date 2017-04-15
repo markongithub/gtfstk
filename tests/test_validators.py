@@ -79,13 +79,13 @@ def test_check_column_linked_id():
     assert check_column_linked_id([], 'trips', feed.trips, 'route_id',
       True, feed.routes)
 
-def test_format_errors():
-    errors = [('ba', 'da', 'boom')]
-    assert errors == format_errors(errors, False)
+def test_format_msgs():
+    msgs = [('ba', 'da', 'boom', 'boom')]
+    assert msgs == format_msgs(msgs, False)
 
-    e = format_errors(errors, True)
+    e = format_msgs(msgs, True)
     assert isinstance(e, pd.DataFrame)
-    assert e.columns.tolist() == ['table', 'error', 'error_row_indices']
+    assert e.columns.tolist() == ['incident', 'table', 'rows', 'message']
 
 def test_check_for_required_tables():
     assert not check_for_required_tables(sample)
@@ -127,6 +127,7 @@ def test_check_agency():
 
 def test_check_calendar():
     assert not check_calendar(sample)
+    assert check_calendar(sample, include_warnings=True) # feed has expired
 
     feed = sample.copy()
     feed.calendar['service_id'].iat[0] = feed.calendar['service_id'].iat[1]
@@ -391,4 +392,4 @@ def test_check_trips():
     assert check_trips(feed)
 
 def test_validate():    
-    assert not validate(sample, as_df=False)
+    assert not validate(sample, as_df=False, include_warnings=False)
