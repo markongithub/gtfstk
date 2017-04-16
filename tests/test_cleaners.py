@@ -17,11 +17,12 @@ def test_clean_column_names():
     g = clean_column_names(f)
     assert_frame_equal(f, g)
 
+    f = sample.routes.copy()
     f[' route_id  '] = f['route_id'].copy()
     del f['route_id']
-    f2 = clean_column_names(f1)
-    assert 'route_id' in f2.columns
-    assert ' route_id  ' not in f2.columns 
+    g = clean_column_names(f)
+    assert 'route_id' in g.columns
+    assert ' route_id  ' not in g.columns 
 
 def test_clean_ids():
     f1 = sample.copy()

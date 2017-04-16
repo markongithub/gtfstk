@@ -190,7 +190,6 @@ def clean(feed):
     """
     Apply 
 
-    #. :func:`clean_column_names`
     #. :func:`drop_zombies`
     #. :func:`clean_ids`
     #. :func:`clean_times`
@@ -201,7 +200,6 @@ def clean(feed):
     """
     feed = feed.copy()
     ops = [
-      'clean_column_names',
       'clean_ids',
       'clean_times',
       'clean_route_short_names',

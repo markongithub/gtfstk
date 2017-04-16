@@ -147,5 +147,4 @@ FEED_ATTRS_PRIVATE = [
 FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
 
 #:
-CRS_WGS84 = {'no_defs': True, 'ellps': 'WGS84', 'datum': 
-  'WGS84', 'proj': 'longlat'}
+CRS_WGS84 = {'proj': 'latlong', 'ellps': 'WGS84', 'datum': 'WGS84', 'no_defs': True}

@@ -52,6 +52,20 @@ def test_valid_color():
     assert not valid_color('0FF')
     assert not valid_color('GGFFFF')
 
+def test_check_for_required_columns():
+    assert not check_for_required_columns([], 'routes', sample.routes)
+
+    feed = sample.copy()
+    del feed.routes['route_type']
+    assert check_for_required_columns([], 'routes', feed.routes)
+
+def test_check_for_invalid_columns():
+    assert not check_for_invalid_columns([], 'routes', sample.routes)
+
+    feed = sample.copy()
+    feed.routes['bingo'] = 'snoop'
+    assert check_for_invalid_columns([], 'routes', feed.routes)
+
 def test_check_table():
     feed = sample.copy()
     cond = feed.routes['route_id'].isnull() 
@@ -80,38 +94,28 @@ def test_check_column_linked_id():
     assert check_column_linked_id([], 'trips', feed.trips, 'route_id',
       True, feed.routes)
 
-def test_format_msgs():
-    msgs = [('ba', 'da', 'boom', 'boom')]
-    assert msgs == format_msgs(msgs, False)
+def test_format_problems():
+    problems = [('ba', 'da', 'boom', 'boom')]
+    assert problems == format_problems(problems, False)
 
-    e = format_msgs(msgs, True)
+    e = format_problems(problems, True)
     assert isinstance(e, pd.DataFrame)
-    assert e.columns.tolist() == ['message_type', 'message', 'table', 'rows']
-
-def test_check_for_required_tables():
-    assert not check_for_required_tables(sample)
-
-    feed = sample.copy()
-    feed.routes = None
-    assert check_for_required_tables(feed)
-
-def test_check_for_required_columns():
-    assert not check_for_required_columns(sample)
-
-    feed = sample.copy()
-    del feed.routes['route_type']
-    assert check_for_required_columns(feed)
-
-def test_check_for_invalid_columns():
-    assert not check_for_invalid_columns(sample)
-
-    feed = sample.copy()
-    feed.routes['bingo'] = 'snoop'
-    assert not check_for_invalid_columns(feed)
-    assert check_for_invalid_columns(feed, include_warnings=True)
+    assert e.columns.tolist() == ['type', 'message', 'table', 'rows']
 
 def test_check_agency():
     assert not check_agency(sample)
+
+    feed = sample.copy()
+    feed.agency = None 
+    assert check_agency(feed)
+
+    feed = sample.copy()
+    del feed.agency['agency_name']
+    assert check_agency(feed)
+
+    feed = sample.copy()
+    feed.agency['b'] = 3
+    assert check_agency(feed, include_warnings=True)
 
     feed = sample.copy()
     feed.agency = feed.agency.append(feed.agency.ix[0])
@@ -132,6 +136,19 @@ def test_check_calendar():
     assert check_calendar(sample, include_warnings=True) # feed has expired
 
     feed = sample.copy()
+    feed.calendar = None 
+    assert not check_calendar(feed)
+
+    feed = sample.copy()
+    del feed.calendar['service_id'] 
+    assert check_calendar(feed)
+
+    feed = sample.copy()
+    feed.calendar['yo'] = 3 
+    assert not check_calendar(feed)
+    assert check_calendar(feed, include_warnings=True)
+
+    feed = sample.copy()
     feed.calendar['service_id'].iat[0] = feed.calendar['service_id'].iat[1]
     assert check_calendar(feed)
 
@@ -145,6 +162,19 @@ def test_check_calendar_dates():
     assert not check_calendar_dates(sample)
 
     feed = sample.copy()
+    feed.calendar_dates = None 
+    assert not check_calendar_dates(feed)
+
+    feed = sample.copy()
+    del feed.calendar_dates['service_id'] 
+    assert check_calendar_dates(feed)
+
+    feed = sample.copy()
+    feed.calendar_dates['yo'] = 3 
+    assert not check_calendar_dates(feed)
+    assert check_calendar_dates(feed, include_warnings=True)
+
+    feed = sample.copy()
     feed.calendar_dates = feed.calendar_dates.append(
       feed.calendar_dates.ix[0])
     assert check_calendar_dates(feed)
@@ -156,6 +186,19 @@ def test_check_calendar_dates():
 
 def test_check_fare_attributes():
     assert not check_fare_attributes(sample)
+
+    feed = sample.copy()
+    feed.fare_attributes = None 
+    assert not check_fare_attributes(feed)
+
+    feed = sample.copy()
+    del feed.fare_attributes['fare_id'] 
+    assert check_fare_attributes(feed)
+
+    feed = sample.copy()
+    feed.fare_attributes['yo'] = 3 
+    assert not check_fare_attributes(feed)
+    assert check_fare_attributes(feed, include_warnings=True)
 
     feed = sample.copy()
     feed.fare_attributes = feed.fare_attributes.append(
@@ -174,6 +217,19 @@ def test_check_fare_attributes():
 def test_check_fare_rules():
     assert not check_fare_rules(sample)
 
+    feed = sample.copy()
+    feed.fare_rules = None 
+    assert not check_fare_rules(feed)
+
+    feed = sample.copy()
+    del feed.fare_rules['fare_id'] 
+    assert check_fare_rules(feed)
+
+    feed = sample.copy()
+    feed.fare_rules['yo'] = 3 
+    assert not check_fare_rules(feed)
+    assert check_fare_rules(feed, include_warnings=True)
+
     for col in ['fare_id', 'route_id', 'origin_id', 'destination_id', 'contains_id']:
         feed = sample.copy()
         feed.fare_rules[col] = 'tuberosity'
@@ -190,6 +246,19 @@ def test_check_feed_info():
     feed.feed_info = pd.DataFrame(rows, columns=columns)
     assert not check_feed_info(feed)
 
+    feed1 = feed.copy()
+    feed1.feed_info = None 
+    assert not check_feed_info(feed1)
+
+    feed1 = feed.copy()
+    del feed1.feed_info['feed_lang'] 
+    assert check_feed_info(feed1)
+
+    feed1 = feed.copy()
+    feed1.feed_info['yo'] = 3 
+    assert not check_feed_info(feed1)
+    assert check_feed_info(feed1, include_warnings=True)
+
     for col in columns:
         feed1 = feed.copy()
         feed1.feed_info[col] = ''
@@ -197,6 +266,19 @@ def test_check_feed_info():
 
 def test_check_frequencies():
     assert not check_frequencies(sample)
+
+    feed = sample.copy()
+    feed.frequencies = None 
+    assert not check_frequencies(feed)
+
+    feed = sample.copy()
+    del feed.frequencies['trip_id'] 
+    assert check_frequencies(feed)
+
+    feed = sample.copy()
+    feed.frequencies['yo'] = 3 
+    assert not check_frequencies(feed)
+    assert check_frequencies(feed, include_warnings=True)
 
     feed = sample.copy()
     feed.frequencies['trip_id'].iat[0] = 'ratatat'
@@ -218,6 +300,18 @@ def test_check_frequencies():
 
 def test_check_routes():
     assert not check_routes(sample)
+
+    feed = sample.copy()
+    feed.routes = None
+    assert check_routes(feed)
+
+    feed = sample.copy()
+    del feed.routes['route_id']
+    assert check_routes(feed)
+
+    feed = sample.copy()
+    feed.routes['bingo'] = 3
+    assert check_routes(feed, include_warnings=True)
 
     feed = sample.copy()
     feed.routes['route_id'].iat[0] = feed.routes['route_id'].iat[1]
@@ -275,6 +369,15 @@ def test_check_shapes():
     assert not check_shapes(feed)
 
     feed1 = feed.copy()
+    del feed1.shapes['shape_id'] 
+    assert check_shapes(feed1)
+
+    feed1 = feed.copy()
+    feed1.shapes['yo'] = 3 
+    assert not check_shapes(feed1)
+    assert check_shapes(feed1, include_warnings=True)
+
+    feed1 = feed.copy()
     feed1.shapes['shape_id'].iat[0] = ''
     assert check_shapes(feed1)
 
@@ -294,6 +397,18 @@ def test_check_shapes():
 
 def test_check_stops():
     assert not check_stops(sample)
+
+    feed = sample.copy()
+    feed.stops = None 
+    assert check_stops(feed)
+
+    feed = sample.copy()
+    del feed.stops['stop_id']
+    assert check_stops(feed)
+
+    feed = sample.copy()
+    feed.stops['b'] = 3
+    assert check_stops(feed, include_warnings=True)
 
     feed = sample.copy()
     feed.stops['stop_id'].iat[0] = feed.stops['stop_id'].iat[1]
@@ -331,6 +446,18 @@ def test_check_stops():
 
 def test_check_stop_times():
     assert not check_stop_times(sample)
+
+    feed = sample.copy()
+    feed.stop_times = None 
+    assert check_stop_times(feed)
+
+    feed = sample.copy()
+    del feed.stop_times['stop_id']
+    assert check_stop_times(feed)
+
+    feed = sample.copy()
+    feed.stop_times['b'] = 3
+    assert check_stop_times(feed, include_warnings=True)
 
     feed = sample.copy()
     feed.stop_times['trip_id'].iat[0] = 'bingo'
@@ -379,12 +506,23 @@ def test_check_stop_times():
     assert check_stop_times(feed, include_warnings=True)
 
 def test_check_transfers():
+    assert not check_transfers(sample)
+
     # Create transfers table
     feed = sample.copy()
     columns = ['from_stop_id', 'to_stop_id', 'transfer_type', 'min_transfer_time']
     rows = [[feed.stops['stop_id'].iat[0], feed.stops['stop_id'].iat[1], 2, 3600]]
     feed.transfers = pd.DataFrame(rows, columns=columns)
     assert not check_transfers(feed)
+
+    feed1 = feed.copy()
+    del feed1.transfers['from_stop_id'] 
+    assert check_transfers(feed1)
+
+    feed1 = feed.copy()
+    feed1.transfers['yo'] = 3 
+    assert not check_transfers(feed1)
+    assert check_transfers(feed1, include_warnings=True)
 
     for col in set(columns) - set(['transfer_type', 'min_transfer_time']):
         feed1 = feed.copy()
@@ -398,6 +536,18 @@ def test_check_transfers():
 
 def test_check_trips():
     assert not check_trips(sample)
+
+    feed = sample.copy()
+    feed.trips = None 
+    assert check_trips(feed)
+
+    feed = sample.copy()
+    del feed.trips['trip_id']
+    assert check_trips(feed)
+
+    feed = sample.copy()
+    feed.trips['b'] = 3
+    assert check_trips(feed, include_warnings=True)
 
     feed = sample.copy()
     feed.trips['trip_id'].iat[0] = feed.trips['trip_id'].iat[1]
