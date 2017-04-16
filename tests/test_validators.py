@@ -20,6 +20,7 @@ def test_valid_str():
 
 def test_valid_time():
     assert valid_time('2:43:00')
+    assert valid_time('22:43:00')
     assert not valid_time('42:43:00')
 
 def test_valid_date():
@@ -106,7 +107,8 @@ def test_check_for_invalid_columns():
 
     feed = sample.copy()
     feed.routes['bingo'] = 'snoop'
-    assert check_for_invalid_columns(feed)
+    assert not check_for_invalid_columns(feed)
+    assert check_for_invalid_columns(feed, include_warnings=True)
 
 def test_check_agency():
     assert not check_agency(sample)
@@ -338,6 +340,10 @@ def test_check_stop_times():
         feed = sample.copy()
         feed.stop_times[col].iat[0] = '1:0:00'
         assert check_stop_times(feed)
+
+    feed = sample.copy()
+    feed.stop_times['arrival_time'].iat[-1] = np.nan
+    assert check_stop_times(feed)
 
     feed = sample.copy()
     feed.stop_times['stop_id'].iat[0] = 'bingo'

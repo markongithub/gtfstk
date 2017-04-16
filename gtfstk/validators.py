@@ -244,17 +244,20 @@ def check_for_invalid_columns(feed, as_df=False, include_warnings=False):
     """
     Check the given feed for columns not mentioned in the GTFS.
     Return a list of messages of the form described in :func:`check_table`; the list will be empty if no problems are found.
+    Invalid columns will be recorded as warnings and not errors.
     """
     msgs = []
-    for table, group in cs.GTFS_REF.groupby('table'):
-        f = getattr(feed, table)
-        if f is None:
-            continue
-        valid_columns = group['column'].values
-        for col in f.columns:
-            if col not in valid_columns:
-                msgs.append(['error', '{!s} is not a valid column name'.format(col),
-                  table, []])
+    if include_warnings:
+        for table, group in cs.GTFS_REF.groupby('table'):
+            f = getattr(feed, table)
+            if f is None:
+                continue
+            valid_columns = group['column'].values
+            for col in f.columns:
+                if col not in valid_columns:
+                    msgs.append(['warning', 
+                      '{!s} is not a valid column name'.format(col),
+                      table, []])
         
     return format_msgs(msgs, as_df)
 
@@ -556,18 +559,23 @@ def check_shapes(feed, as_df=False, include_warnings=False):
     msgs = check_table(msgs, table, f, cond, 
       'Duplicate (shape_id, shape_pt_sequence) pair')
 
-    # Check shape_dist_traveled
+    # Check if shape_dist_traveled does decreases on a trip
     if 'shape_dist_traveled' in f.columns:
-        g = f.dropna(subset=['shape_dist_traveled']).sort_values(
-          ['shape_id', 'shape_pt_sequence'])
-        for shape_id, group in g.groupby('shape_id', sort=False):
-            a = group['shape_dist_traveled'].values  
-            indices = np.flatnonzero(a[1:] < a[:-1]) # relative indices
-            indices = group.index[indices].tolist() # absolute indices
-            if indices:
-                msgs.append(['error', 
-                  'shape_dist_traveled decreases for shape_id {!s}'.format(
-                  shape_id), table, indices])
+        g = f.dropna(subset=['shape_dist_traveled'])
+        indices = []
+        prev_sid = None
+        prev_dist = -1
+        cols = ['shape_id', 'shape_dist_traveled']
+        for i, sid, dist in g[cols].itertuples():
+            if sid == prev_sid and dist < prev_dist:
+                indices.append(i)
+
+            prev_sid = sid 
+            prev_dist = dist 
+            
+        if indices:
+            msgs.append(['error', 'shape_dist_traveled decreases on a trip',
+              table, indices])
 
     return format_msgs(msgs, as_df)
 
@@ -653,6 +661,36 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
     for col in ['arrival_time', 'departure_time']:
         msgs = check_column(msgs, table, f, col, True, v)
 
+    # Check that arrival and departure times exist for the first and last stop of each trip and for each timepoint.
+    # For feeds with many trips, iterating through the stop time rows is faster than uisg groupby.
+    if 'timepoint' not in f.columns:
+        f['timepoint'] = np.nan  # This will not mess up later timepoint check
+
+    indices = []
+    prev_tid = None
+    prev_atime = 1
+    prev_dtime = 1    
+    for i, tid, atime, dtime, tp in f[['trip_id', 'arrival_time', 
+      'departure_time', 'timepoint']].itertuples():
+        if tid != prev_tid:
+            # Check last stop of previous trip
+            if pd.isnull(prev_atime) or pd.isnull(prev_dtime):
+                indices.append(i - 1)
+            # Check first stop of current trip
+            if pd.isnull(atime) or pd.isnull(dtime):
+                indices.append(i)
+        elif tp == 1 and (pd.isnull(atime) or pd.isnull(dtime)):
+            # Failure at timepoint
+            indices.append(i)
+            
+        prev_tid = tid
+        prev_atime = atime
+        prev_dtime = dtime
+
+    if indices:
+        msgs.append(['error', 'First/last/time point arrival/departure time missing',
+          table, indices])
+
     # Check stop_id
     msgs = check_column_linked_id(msgs, table, f, 'stop_id', True, 
       feed.stops)
@@ -670,25 +708,26 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
         v = lambda x: x in range(4)
         msgs = check_column(msgs, table, f, col, False, v)
 
-    # Check shape_dist_traveled
+    # Check if shape_dist_traveled decreases on a trip
     if 'shape_dist_traveled' in f.columns:
         g = f.dropna(subset=['shape_dist_traveled'])
-        for trip_id, group in g.groupby('trip_id', sort=False):
-            a = group['shape_dist_traveled'].values  
-            indices = np.flatnonzero(a[1:] < a[:-1]) # relative indices
-            indices = group.index[indices].tolist() # absolute indices
-            if indices:
-                msgs.append(['error', 
-                  'shape_dist_traveled decreases for trip_id {!s}'.format(
-                  trip_id), table, indices])
+        indices = []
+        prev_tid = None
+        prev_dist = -1
+        for i, tid, dist in g[['trip_id', 'shape_dist_traveled']].itertuples():
+            if tid == prev_tid and dist < prev_dist:
+                indices.append(i)
+
+            prev_tid = tid 
+            prev_dist = dist 
+
+        if indices:
+            msgs.append(['error', 'shape_dist_traveled decreases on a trip',
+              table, indices])
 
     # Check timepoint
     v = lambda x: x in range(2)
     msgs = check_column(msgs, table, f, 'timepoint', False, v)
-
-    # Check that arrival and departure times exists for the first and last stop of each trip and for each timepoint
-
-
 
     if include_warnings:
         # Check for duplicated (trip_id, departure_time) pairs
@@ -812,7 +851,7 @@ def validate(feed, as_df=True, include_warnings=True):
 
     NOTES:
         - This function interprets the GTFS liberally, classifying problems as warnings rather than errors where the GTFS is unclear. For example if a trip_id listed in the trips table is not listed in the stop times table (a trip with no stop times), then that's a warning and not an error. 
-        - Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at http://transitfeeds.com/p/translink/21/20170310 in 17 seconds (including warnings).
+        - Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at http://transitfeeds.com/p/translink/21/20170310 in 23 seconds (including warnings).
     """
     msgs = []
 
