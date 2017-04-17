@@ -169,6 +169,7 @@ def test_restrict_to_polygon():
     assert set(feed2.stop_times['stop_id']) == set(stop_ids)
 
 @slow
+@pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
 def test_compute_screen_line_counts():
     feed = cairns.copy() 
     date = cairns_date

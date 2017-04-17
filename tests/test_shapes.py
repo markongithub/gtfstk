@@ -10,6 +10,7 @@ import shapely.geometry as sg
 
 from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_shapeless, cairns_date, cairns_trip_stats
 from gtfstk import *
+
 if HAS_GEOPANDAS:
     from geopandas import GeoDataFrame
 
