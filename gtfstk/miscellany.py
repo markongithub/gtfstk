@@ -31,6 +31,8 @@ def describe(feed, date=None):
 
     d = OrderedDict()
     dates = cl.get_dates(feed)
+    d['agencies'] = feed.agency['agency_name'].tolist()
+    d['timezone'] = feed.agency['agency_timezone'].iat[0]
     d['start_date'] = dates[0]
     d['end_date'] = dates[-1]
     d['num_routes'] = feed.routes.shape[0]
