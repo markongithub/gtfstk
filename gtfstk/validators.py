@@ -46,7 +46,8 @@ def valid_time(x):
     """
     Return ``True`` if ``x`` is a valid H:MM:SS or HH:MM:SS time; otherwise return ``False``.
     """
-    if re.match(TIME_PATTERN1, x) or re.match(TIME_PATTERN2, x):
+    if isinstance(x, str) and\
+      (re.match(TIME_PATTERN1, x) or re.match(TIME_PATTERN2, x)):
         return True 
     else:
         return False
@@ -84,7 +85,7 @@ def valid_url(x):
     """
     Return ``True`` if ``x`` is a valid URL; otherwise return ``False``.
     """
-    if re.match(URL_PATTERN, x):
+    if isinstance(x, str) and re.match(URL_PATTERN, x):
         return True 
     else:
         return False
@@ -93,7 +94,7 @@ def valid_email(x):
     """
     Return ``True`` if ``x`` is a valid email address; otherwise return ``False``.
     """
-    if re.match(EMAIL_PATTERN, x):
+    if isinstance(x, str) and re.match(EMAIL_PATTERN, x):
         return True 
     else:
         return False
@@ -102,7 +103,7 @@ def valid_color(x):
     """
     Return ``True`` if ``x`` a valid hexadecimal color string without the leading hash; otherwise return ``False``.
     """
-    if re.match(COLOR_PATTERN, x):
+    if isinstance(x, str) and re.match(COLOR_PATTERN, x):
         return True 
     else:
         return False
@@ -131,7 +132,7 @@ def check_for_invalid_columns(problems, table, df):
     for col in df.columns:
         if col not in valid_columns:
             problems.append(['warning', 
-              '{!s} is not a valid column name'.format(col),
+              'Unrecognized column {!s}'.format(col),
               table, []])
         
     return problems 
@@ -166,7 +167,7 @@ def check_column(problems, table, df, column, column_required, checker,
 
     cond = ~f[column].map(checker)  
     problems = check_table(problems, table, f, cond, 
-      '{!s} invalid; maybe has extra space characters'.format(column), type_)
+      'Invalid {!s}; maybe has extra space characters'.format(column), type_)
 
     return problems
 
@@ -185,11 +186,11 @@ def check_column_id(problems, table, df, column, column_required=True):
 
     cond = ~f[column].map(valid_str)
     problems = check_table(problems, table, f, cond, 
-      '{!s} invalid; maybe has extra space characters'.format(column))
+      'Invalid {!s}; maybe has extra space characters'.format(column))
 
     cond = f[column].duplicated()
     problems = check_table(problems, table, f, cond, 
-      '{!s} duplicated'.format(column))
+      'Repeated {!s}'.format(column))
 
     return problems 
 
@@ -205,11 +206,15 @@ def check_column_linked_id(problems, table, df, column, column_required,
         target_column = column 
 
     f = df.copy()
+
     if target_df is None:
         g = pd.DataFrame()
         g[target_column] = np.nan
     else:
         g = target_df.copy()
+
+    if target_column not in g.columns:
+        g[target_column] = np.nan
 
     if not column_required:
         if column not in f.columns:
@@ -217,9 +222,10 @@ def check_column_linked_id(problems, table, df, column, column_required,
         f = f.dropna(subset=[column])
         g = g.dropna(subset=[target_column])
 
-    cond = ~f[column].isin(g[target_column])
+
+    cond = ~f[column].isin(g[target_column])    
     problems = check_table(problems, table, f, cond, 
-      '{!s} undefined'.format(column))
+      'Undefined {!s}'.format(column))
 
     return problems 
 
@@ -319,7 +325,7 @@ def check_calendar(feed, as_df=False, include_warnings=False):
             table += '/calendar_dates'
             d = max(d, feed.calendar_dates['date'].max())
         if d < dt.datetime.today().strftime(DATE_FORMAT):
-            problems.append(['warning', 'This feed has expired', table, []])
+            problems.append(['warning', 'Feed expired', table, []])
 
     return format_problems(problems, as_df) 
 
@@ -351,7 +357,7 @@ def check_calendar_dates(feed, as_df=False, include_warnings=False):
     # No duplicate (service_id, date) pairs allowed
     cond = f[['service_id', 'date']].duplicated()
     problems = check_table(problems, table, f, cond, 
-      '(service_id, date)-pair duplicated')
+      'Repeated pair (service_id, date)')
 
     # Check exception_type
     v = lambda x: x in [1, 2]
@@ -464,13 +470,15 @@ def check_feed_info(feed, as_df=False, include_warnings=False):
       valid_lang)
 
     # Check feed_start_date and feed_end_date
-    for col in ['feed_start_date', 'feed_end_date']:
+    cols = ['feed_start_date', 'feed_end_date']
+    for col in cols:
         problems = check_column(problems, table, f, col, False, valid_date)
 
-    d1, d2 = f[['feed_start_date', 'feed_end_date']].ix[0].values
-    if pd.notnull(d1) and pd.notnull(d2) and d1 > d1:
-        problems.append(['error', 'feed_start_date later than feed_end_date', 
-          table, [0]])
+    if set(cols) <= set(f.columns):
+        d1, d2 = f[['feed_start_date', 'feed_end_date']].ix[0].values
+        if pd.notnull(d1) and pd.notnull(d2) and d1 > d1:
+            problems.append(['error', 'feed_start_date later than feed_end_date', 
+              table, [0]])
 
     # Check feed_version
     problems = check_column(problems, table, f, 'feed_version', False, valid_str)
@@ -562,7 +570,7 @@ def check_routes(feed, as_df=False, include_warnings=False):
         else:
             g = f.dropna(subset=['agency_id'])
             cond = ~g['agency_id'].isin(feed.agency['agency_id'])
-            problems = check_table(problems, table, g, cond, 'agency_id undefined')
+            problems = check_table(problems, table, g, cond, 'Undefined agency_id')
 
     # Check route_short_name and route_long_name
     for column in ['route_short_name', 'route_long_name']:
@@ -587,7 +595,7 @@ def check_routes(feed, as_df=False, include_warnings=False):
         # Check for duplicated (route_short_name, route_long_name) pairs
         cond = f[['route_short_name', 'route_long_name']].duplicated()
         problems = check_table(problems, table, f, cond, 
-          'Duplicate (route_short_name, route_long_name) pair', 'warning')
+          'Repeated pair (route_short_name, route_long_name)', 'warning')
 
         # Check for routes without trips
         s = feed.trips['route_id']
@@ -628,7 +636,7 @@ def check_shapes(feed, as_df=False, include_warnings=False):
     # Check for duplicated (shape_id, shape_pt_sequence) pairs
     cond = f[['shape_id', 'shape_pt_sequence']].duplicated()
     problems = check_table(problems, table, f, cond, 
-      'Duplicate (shape_id, shape_pt_sequence) pair')
+      'Repeated pair (shape_id, shape_pt_sequence)')
 
     # Check if shape_dist_traveled does decreases on a trip
     if 'shape_dist_traveled' in f.columns:
@@ -707,16 +715,16 @@ def check_stops(feed, as_df=False, include_warnings=False):
               'parent_station column present but location_type column missing', 
               table, []])
         else:
-            # Parent stations must have location type 1
+            # Stations must have location type 1
             station_ids = f.loc[f['parent_station'].notnull(), 'parent_station']
             cond = f['stop_id'].isin(station_ids) & (f['location_type'] != 1)
             problems = check_table(problems, table, f, cond, 
-              'A parent station must have location_type equal to 1')
+              'A station must have location_type 1')
 
-            # Parent stations should not have parent stations
-            cond = f['parent_station'].notnull() & (f['location_type'] == 1) 
+            # Stations must not lie in stations
+            cond = (f['location_type'] == 1) & f['parent_station'].notnull() 
             problems = check_table(problems, table, f, cond, 
-              'location_type must equal 1')
+              'A station must not lie in another station')
 
     if include_warnings:
         # Check for stops without trips
@@ -791,7 +799,7 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
     # Check for duplicated (trip_id, stop_sequence) pairs
     cond = f[['trip_id', 'stop_sequence']].dropna().duplicated()
     problems = check_table(problems, table, f, cond, 
-      'Duplicate (trip_id, stop_sequence) pair')
+      'Repeated pair (trip_id, stop_sequence)')
 
     # Check stop_headsign
     problems = check_column(problems, table, f, 'stop_headsign', False, valid_str)
@@ -826,7 +834,7 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
         # Check for duplicated (trip_id, departure_time) pairs
         cond = f[['trip_id', 'departure_time']].duplicated()
         problems = check_table(problems, table, f, cond, 
-          'Duplicate (trip_id, departure_time) pair', 'warning')
+          'Repeated pair (trip_id, departure_time)', 'warning')
 
     return format_problems(problems, as_df) 
 
@@ -907,11 +915,11 @@ def check_trips(feed, as_df=False, include_warnings=False):
     if 'block_id' in f.columns:
         v = lambda x: pd.isnull(x) or valid_str(x)
         cond = ~f['block_id'].map(v)
-        problems = check_table(problems, table, f, cond, 'block_id blank')
+        problems = check_table(problems, table, f, cond, 'Blank block_id')
 
         g = f.dropna(subset=['block_id'])
         cond = ~g['block_id'].duplicated(keep=False)
-        problems = check_table(problems, table, g, cond, 'block_id unduplicated')
+        problems = check_table(problems, table, g, cond, 'Unrepeated block_id')
 
     # Check shape_id
     problems = check_column_linked_id(problems, table, f, 'shape_id', False, feed.shapes)
