@@ -1,6 +1,6 @@
 GTFSTK
 ********
-GTFSTK is a Python 3.5 tool kit to analyze `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
+GTFSTK is a Python 3.5 tool kit that analyzes `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
 It uses Pandas and Shapely to do the heavy lifting.
 
 
@@ -24,7 +24,7 @@ Notes
 - Development status is Alpha
 - This project uses `semantic versioning <http://semver.org/>`_
 - Thanks to `MRCagney <http://www.mrcagney.com/>`_ for partially funding this project
-- Constructive feedback is welcome and is best placed in this repository's issues section
+- Constructive feedback and code contributions welcome
 
 
 Authors
@@ -34,6 +34,15 @@ Authors
 
 History
 =========
+
+8.0.0, 2017-04-15
+-----------------
+- Finally knuckled down and wrote a GTFS validator: ``validators.py``.  It's basic, easy to read, and, thanks to Pandas, fast.  It checks `this 31 MB Southeast Queensland feed <http://transitfeeds.com/p/translink/21/20170310>` in 22 seconds on my 2.8-GHz-processor-16-GB-memory computer.  With the same computer and feed and in fast mode (``--memory_db``), `Google's GTFS validator <https://github.com/google/transitfeed>` takes 420 seconds. That's about 19 times slower. Part of the latter validator's slowness is its many checks beyond the GTFS, such as checks for too fast travel between every pair of stop times.
+- Moved all but the most basic ``Feed`` methods into other modules grouped by theme, ``routes.py``, ``stops.py``, etc.  Eases reading and additionally exposes the methods as functions on feeds, like in the GTFSTK versions before 7.0.0.
+- Speeded up ``miscellany.py::asssess_quality``
+- Refactored ``constants.py``
+- Renamed some functions
+
 
 7.0.0, 2017-04-07
 -----------------
