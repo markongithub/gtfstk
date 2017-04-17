@@ -298,7 +298,7 @@ def compute_stop_time_series(feed, date, split_directions=False, freq='5Min'):
       feed.get_trips(date), split_directions=split_directions, 
       freq=freq, date_label=date)
 
-def get_stop_timetable(feed, stop_id, date):
+def build_stop_timetable(feed, stop_id, date):
     """
     Return a  DataFrame encoding the timetable for the given stop ID on the given date.
     The columns are all those in ``feed.trips`` plus those in ``feed.stop_times``.

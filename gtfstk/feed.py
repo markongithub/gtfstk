@@ -66,9 +66,9 @@ class Feed(object):
     """
     # Import heaps of methods from modules split by functionality; i learned this trick from https://groups.google.com/d/msg/comp.lang.python/goLBrqcozNY/DPgyaZ6gAwAJ
     from .calendar import get_dates, get_first_week
-    from .routes import get_routes, compute_route_stats, compute_route_time_series, get_route_timetable, route_to_geojson
+    from .routes import get_routes, compute_route_stats, compute_route_time_series, build_route_timetable, route_to_geojson
     from .shapes import build_geometry_by_shape, shapes_to_geojson, get_shapes_intersecting_geometry, append_dist_to_shapes
-    from .stops import get_stops, build_geometry_by_stop, compute_stop_activity, compute_stop_stats, compute_stop_time_series, get_stop_timetable, get_stops_in_polygon
+    from .stops import get_stops, build_geometry_by_stop, compute_stop_activity, compute_stop_stats, compute_stop_time_series, build_stop_timetable, get_stops_in_polygon
     from .stop_times import get_stop_times, append_dist_to_stop_times, get_start_and_end_times 
     from .trips import is_active_trip, get_trips, compute_trip_activity, compute_busiest_date, compute_trip_stats, locate_trips, trip_to_geojson
     from .miscellany import describe, assess_quality, convert_dist, compute_feed_stats, compute_feed_time_series, create_shapes, compute_bounds, compute_center, restrict_to_routes, restrict_to_polygon, compute_screen_line_counts

@@ -192,11 +192,11 @@ def test_compute_stop_time_series():
       split_directions=split_directions) 
     assert ts.empty
 
-def test_get_stop_timetable():
+def test_build_stop_timetable():
     feed = cairns.copy()
     stop = feed.stops['stop_id'].values[0]
     date = cairns_date
-    f = get_stop_timetable(feed, stop, date)
+    f = build_stop_timetable(feed, stop, date)
     # Should be a data frame 
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct columns

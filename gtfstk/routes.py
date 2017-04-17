@@ -382,7 +382,7 @@ def compute_route_time_series(feed, trip_stats, date,
       split_directions=split_directions, freq=freq, 
       date_label=date)
 
-def get_route_timetable(feed, route_id, date):
+def build_route_timetable(feed, route_id, date):
     """
     Return a DataFrame encoding the timetable for the given route ID on the given date.
     The columns are all those in ``feed.trips`` plus those in ``feed.stop_times``.

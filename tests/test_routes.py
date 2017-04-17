@@ -205,11 +205,11 @@ def test_compute_route_time_series():
       split_directions=split_directions, freq='1H')
     assert rts.empty
 
-def test_get_route_timetable():
+def test_build_route_timetable():
     feed = cairns.copy()
     route_id = feed.routes['route_id'].values[0]
     date = cairns_date
-    f = get_route_timetable(feed, route_id, date)
+    f = build_route_timetable(feed, route_id, date)
     # Should be a data frame 
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct columns
