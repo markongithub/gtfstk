@@ -6,18 +6,16 @@ import json
 
 import pandas as pd
 import numpy as np
-import utm
 import shapely.geometry as sg
 
-from . import constants as cs
 from . import helpers as hp
 
 
 def compute_route_stats_base(trip_stats_subset, split_directions=False,
-    headway_start_time='07:00:00', headway_end_time='19:00:00'):
+  headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
     Given a subset of the output of ``Feed.compute_trip_stats()``, calculate stats for the routes in that subset.
-   
+
     Return a DataFrame with the following columns:
 
     - route_id
@@ -36,7 +34,7 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
     - peak_start_time: start time of first longest period during which the peak number of trips occurs
     - peak_end_time: end time of first longest period during which the peak number of trips occurs
     - service_duration: total of the duration of each trip on the route in the given subset of trips; measured in hours
-    - service_distance: total of the distance traveled by each trip on the route in the given subset of trips; measured in wunits, that is, whatever distance units are present in trip_stats_subset; contains all ``np.nan`` entries if ``feed.shapes is None`` 
+    - service_distance: total of the distance traveled by each trip on the route in the given subset of trips; measured in wunits, that is, whatever distance units are present in trip_stats_subset; contains all ``np.nan`` entries if ``feed.shapes is None``
     - service_speed: service_distance/service_duration; measured in wunits per hour
     - mean_trip_distance: service_distance/num_trips
     - mean_trip_duration: service_duration/num_trips
@@ -47,7 +45,7 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
     If ``trip_stats_subset`` is empty, return an empty DataFrame with the columns specified above.
 
     Assume the following feed attributes are not ``None``: none.
-    """       
+    """
     cols = [
       'route_id',
       'route_short_name',
@@ -68,7 +66,7 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
       'service_speed',
       'mean_trip_distance',
       'mean_trip_duration',
-      ]
+    ]
 
     if split_directions:
         cols.append('direction_id')
@@ -78,8 +76,8 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
 
     # Convert trip start and end times to seconds to ease calculations below
     f = trip_stats_subset.copy()
-    f[['start_time', 'end_time']] = f[['start_time', 'end_time']].\
-      applymap(hp.timestr_to_seconds)
+    f[['start_time', 'end_time']] = f[['start_time', 'end_time']
+      ].applymap(hp.timestr_to_seconds)
 
     headway_start = hp.timestr_to_seconds(headway_start_time)
     headway_end = hp.timestr_to_seconds(headway_end_time)
@@ -164,13 +162,13 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
     if split_directions:
         g = f.groupby(['route_id', 'direction_id']).apply(
           compute_route_stats_split_directions).reset_index()
-       
+
         # Add the is_bidirectional column
         def is_bidirectional(group):
             d = {}
             d['is_bidirectional'] = int(
               group['direction_id'].unique().size > 1)
-            return pd.Series(d)  
+            return pd.Series(d)
 
         gg = g.groupby('route_id').apply(is_bidirectional).reset_index()
         g = g.merge(gg)
@@ -196,7 +194,7 @@ def compute_route_time_series_base(trip_stats_subset,
     Given a subset of the output of ``Feed.compute_trip_stats()``, calculate time series for the routes in that subset.
 
     Return a time series version of the following route stats:
-   
+
     - number of trips in service by route ID
     - number of trip starts by route ID
     - service duration in hours by route ID
@@ -214,7 +212,7 @@ def compute_route_time_series_base(trip_stats_subset,
     - bottom level: name = 'direction_id', values = 0s and 1s
 
     If ``split_directions == False``, then don't include the bottom level.
-   
+
     If ``trip_stats_subset`` is empty, then return an empty DataFrame
     with the indicator columns.
 
@@ -225,14 +223,14 @@ def compute_route_time_series_base(trip_stats_subset,
             * for the other series, use ``how=np.sum``
             * 'service_speed' can't be resampled and must be recalculated from 'service_distance' and 'service_duration'
         - To remove the date and seconds from the time series f, do ``f.index = [t.time().strftime('%H:%M') for t in f.index.to_datetime()]``
-    """ 
+    """
     cols = [
       'service_distance',
       'service_duration',
       'num_trip_starts',
       'num_trips',
       'service_speed',
-      ]
+    ]
     if trip_stats_subset.empty:
         return pd.DataFrame(columns=cols)
 
@@ -242,10 +240,10 @@ def compute_route_time_series_base(trip_stats_subset,
         # <route ID>-0 and <route ID>-1
         tss['route_id'] = tss['route_id'] + '-' +\
           tss['direction_id'].map(str)
-       
+
     routes = tss['route_id'].unique()
     # Build a dictionary of time series and then merge them all
-    # at the end
+    # at the end.
     # Assign a uniform generic date for the index
     date_str = date_label
     day_start = pd.to_datetime(date_str + ' 00:00:00')
@@ -256,17 +254,17 @@ def compute_route_time_series_base(trip_stats_subset,
       'num_trips',
       'service_duration',
       'service_distance',
-      ]
-   
-    bins = [i for i in range(24*60)] # One bin for each minute
+    ]
+
+    bins = [i for i in range(24*60)]  # One bin for each minute
     num_bins = len(bins)
 
     # Bin start and end times
     def F(x):
         return (hp.timestr_to_seconds(x)//60) % (24*60)
 
-    tss[['start_index', 'end_index']] =\
-      tss[['start_time', 'end_time']].applymap(F)
+    tss[['start_index', 'end_index']] = tss[['start_time', 'end_time']
+      ].applymap(F)
     routes = sorted(set(tss['route_id'].values))
 
     # Bin each trip according to its start and end time and weight
@@ -274,7 +272,6 @@ def compute_route_time_series_base(trip_stats_subset,
       {route: [0 for i in range(num_bins)] for route in routes}
       for indicator in indicators}
     for index, row in tss.iterrows():
-        trip = row['trip_id']
         route = row['route_id']
         start = row['start_index']
         end = row['end_index']
@@ -326,7 +323,7 @@ def get_routes(feed, date=None, time=None):
 
     - ``feed.routes``
     - Those used in :func:`get_trips`.
-       
+
     """
     if date is None:
         return feed.routes.copy()
@@ -348,7 +345,7 @@ def compute_route_stats(feed, trip_stats, date,
     Assume the following feed attributes are not ``None``:
 
     - Those used in :func:`.helpers.compute_route_stats_base`
-       
+
     NOTES:
         - This is a more user-friendly version of :func:`.helpers.compute_route_stats_base`. The latter function works without a feed, though.
     """
@@ -372,11 +369,11 @@ def compute_route_time_series(feed, trip_stats, date,
     Assume the following feed attributes are not ``None``:
 
     - Those used in :func:`get_trips`
-       
+
 
     NOTES:
         - This is a more user-friendly version of :func:`.helpers.compute_route_time_series_base`. The latter function works without a feed, though.
-    """ 
+    """
     trip_stats_subset = pd.merge(trip_stats, feed.get_trips(date))
     return compute_route_time_series_base(trip_stats_subset,
       split_directions=split_directions, freq=freq,
@@ -392,7 +389,7 @@ def build_route_timetable(feed, route_id, date):
 
     - ``feed.stop_times``
     - Those used in :func:`get_trips`
-       
+
     """
     f = feed.get_trips(date)
     f = f[f['route_id'] == route_id].copy()
@@ -443,7 +440,7 @@ def route_to_geojson(feed, route_id, include_stops=False):
           orient='records'))[0],
         'geometry': sg.mapping(sg.MultiLineString(
           [linestring for linestring in geometry_by_shape.values()]))
-        }]
+    }]
 
     if include_stops:
         # Get relevant stops and geometrys
@@ -457,6 +454,6 @@ def route_to_geojson(feed, route_id, include_stops=False):
             'properties': json.loads(s[s['stop_id'] == stop_id].to_json(
               orient='records'))[0],
             'geometry': sg.mapping(geometry_by_stop[stop_id]),
-            } for stop_id in stop_ids])
+        } for stop_id in stop_ids])
 
     return {'type': 'FeatureCollection', 'features': features}

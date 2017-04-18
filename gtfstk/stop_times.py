@@ -3,10 +3,7 @@ Functions about stop times.
 """
 import pandas as pd
 import numpy as np
-import utm
-import shapely.geometry as sg
 
-from . import constants as cs
 from . import helpers as hp
 
 
@@ -44,7 +41,7 @@ def append_dist_to_stop_times(feed, trip_stats):
     ALGORITHM:
         Compute the ``shape_dist_traveled`` field by using Shapely to measure the distance of a stop along its trip linestring.
         If for a given trip this process produces a non-monotonically    increasing, hence incorrect, list of (cumulative) distances, then   fall back to estimating the distances as follows.
-       
+
         Get the average speed of the trip via ``trip_stats`` and use is to linearly interpolate distances for stop times, assuming that the first stop is at shape_dist_traveled = 0 (the start of the shape) and the last stop is at shape_dist_traveled = the length of the trip (taken from trip_stats and equal to the length of the shape, unless trip_stats was called with ``get_dist_from_shapes == False``).
         This fallback method usually kicks in on trips with feed-intersecting    linestrings.
         Unfortunately, this fallback method will produce incorrect results when the first stop does not start at the start of its shape (so shape_dist_traveled != 0).
@@ -56,8 +53,8 @@ def append_dist_to_stop_times(feed, trip_stats):
 
     # Initialize DataFrame
     f = pd.merge(feed.stop_times,
-      trip_stats[['trip_id', 'shape_id', 'distance', 'duration']]).\
-      sort_values(['trip_id', 'stop_sequence'])
+      trip_stats[['trip_id', 'shape_id', 'distance', 'duration']]
+      ).sort_values(['trip_id', 'stop_sequence'])
 
     # Convert departure times to seconds past midnight to ease calculations
     f['departure_time'] = f['departure_time'].map(hp.timestr_to_seconds)
@@ -66,7 +63,6 @@ def append_dist_to_stop_times(feed, trip_stats):
 
     def compute_dist(group):
         # Compute the distances of the stops along this trip
-        trip = group['trip_id'].iat[0]
         shape = group['shape_id'].iat[0]
         if not isinstance(shape, str):
             group['shape_dist_traveled'] = np.nan
@@ -98,8 +94,8 @@ def append_dist_to_stop_times(feed, trip_stats):
             # Totally redo using trip length, first and last stop times,
             # and linear interpolation
             dt = group['departure_time']
-            times = dt.values # seconds
-            t0, t1 = times[0], times[-1]                 
+            times = dt.values  # seconds
+            t0, t1 = times[0], times[-1]
             d0, d1 = 0, group['distance'].iat[0]
             # Get indices of nan departure times and
             # temporarily forward fill them
@@ -130,5 +126,5 @@ def get_start_and_end_times(feed, date=None):
     Restrict to the given date if specified.
     """
     st = feed.get_stop_times(date)
-    return st['departure_time'].dropna().min(),\
-      st['arrival_time'].dropna().max()
+    return st['departure_time'].dropna().min(), st['arrival_time'].dropna(
+      ).max()

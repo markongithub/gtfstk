@@ -1,12 +1,12 @@
 import pytest
 import importlib
-from pathlib import Path 
+from pathlib import Path
 
-import pandas as pd 
+import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
 from gtfstk import *
@@ -48,7 +48,7 @@ def test_append_dist_to_stop_times():
     st1 = feed1.stop_times
     trip_stats = cairns_trip_stats
     feed2 = append_dist_to_stop_times(feed1, trip_stats)
-    st2 = feed2.stop_times 
+    st2 = feed2.stop_times
 
     # Check that colums of st2 equal the columns of st1 plus
     # a shape_dist_traveled column
@@ -56,7 +56,7 @@ def test_append_dist_to_stop_times():
     cols2 = list(st2.columns.values)
     assert set(cols1) == set(cols2)
 
-    # Check that within each trip the shape_dist_traveled column 
+    # Check that within each trip the shape_dist_traveled column
     # is monotonically increasing
     for trip, group in st2.groupby('trip_id'):
         group = group.sort_values('stop_sequence')

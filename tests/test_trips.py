@@ -1,12 +1,12 @@
 import pytest
 import importlib
-from pathlib import Path 
+from pathlib import Path
 
-import pandas as pd 
+import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_shapeless, cairns_date, cairns_trip_stats
 from gtfstk import *
@@ -72,11 +72,11 @@ def test_compute_busiest_date():
 def test_compute_trip_stats():
     feed = cairns.copy()
     trip_stats = compute_trip_stats(feed)
-    
+
     # Should be a data frame with the correct number of rows
     assert isinstance(trip_stats, pd.core.frame.DataFrame)
     assert trip_stats.shape[0] == feed.trips.shape[0]
-    
+
     # Should contain the correct columns
     expect_cols = set([
       'trip_id',
@@ -86,7 +86,7 @@ def test_compute_trip_stats():
       'route_type',
       'shape_id',
       'num_stops',
-      'start_time', 
+      'start_time',
       'end_time',
       'start_stop_id',
       'end_stop_id',
@@ -96,13 +96,13 @@ def test_compute_trip_stats():
       'is_loop',
       ])
     assert set(trip_stats.columns) == expect_cols
-    
+
     # Shapeless feeds should have null entries for distance column
     feed2 = cairns_shapeless.copy()
     trip_stats = compute_trip_stats(feed2)
     assert len(trip_stats['distance'].unique()) == 1
-    assert np.isnan(trip_stats['distance'].unique()[0])  
-    
+    assert np.isnan(trip_stats['distance'].unique()[0])
+
     # Should contain the correct trips
     get_trips = set(trip_stats['trip_id'].values)
     expect_trips = set(feed.trips['trip_id'].values)
@@ -127,9 +127,9 @@ def test_locate_trips():
       'trip_id',
       'direction_id',
       'shape_id',
-      'time', 
-      'rel_dist', 
-      'lon', 
+      'time',
+      'rel_dist',
+      'lon',
       'lat',
       ])
     assert set(f.columns) == expect_cols
@@ -137,7 +137,7 @@ def test_locate_trips():
 def test_trip_to_geojson():
     feed = cairns.copy()
     trip_id = feed.trips['trip_id'].values[0]
-    g0 = trip_to_geojson(feed, trip_id)      
+    g0 = trip_to_geojson(feed, trip_id)
     g1 = trip_to_geojson(feed, trip_id, include_stops=True)
     for g in [g0, g1]:
         # Should be a dictionary

@@ -1,12 +1,12 @@
 import pytest
 import importlib
-from pathlib import Path 
+from pathlib import Path
 
-import pandas as pd 
+import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_shapeless, cairns_date, cairns_trip_stats
 from gtfstk import *
@@ -63,7 +63,7 @@ def test_append_dist_to_shapes():
     cols2 = list(s2.columns.values)
     assert set(cols1) == set(cols2)
 
-    # Check that within each trip the shape_dist_traveled column 
+    # Check that within each trip the shape_dist_traveled column
     # is monotonically increasing
     for name, group in s2.groupby('shape_id'):
         sdt = list(group['shape_dist_traveled'].values)
@@ -72,7 +72,7 @@ def test_append_dist_to_shapes():
 @pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
 def test_geometrize_shapes():
     shapes = cairns.shapes.copy()
-    geo_shapes = geometrize_shapes(shapes)
+    geo_shapes = geometrize_shapes(shapes, use_utm=True)
     # Should be a GeoDataFrame
     assert isinstance(geo_shapes, GeoDataFrame)
     # Should have the correct shape

@@ -4,12 +4,8 @@ Functions about cleaning feeds.
 import math
 
 import pandas as pd
-import numpy as np
-import utm
-import shapely.geometry as sg
 
 from . import constants as cs
-from . import helpers as hp
 
 
 def clean_column_names(df):
@@ -62,7 +58,7 @@ def drop_zombies(feed):
 def clean_ids(feed):
     """
     Strip whitespace from all string IDs and then replace every remaining whitespace chunk with an underscore.
-    Return the resulting feed. 
+    Return the resulting feed.
     """
     # Alter feed inputs only, and build a new feed from them.
     # The derived feed attributes, such as feed.trips_i,
@@ -126,6 +122,7 @@ def clean_route_short_names(feed):
     # Fill NaNs and strip whitespace
     r['route_short_name'] = r['route_short_name'].fillna(
       'n/a').str.strip()
+
     # Disambiguate
     def disambiguate(row):
         rsn, rid = row
@@ -159,7 +156,7 @@ def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
     # Create new route IDs
     routes = feed.routes
     n = routes.groupby(by).ngroups
-    k = int(math.log10(n)) + 1 # Number of digits for padding IDs
+    k = int(math.log10(n)) + 1  # Number of digits for padding IDs
     nrid_by_orid = dict()
     i = 1
     for col, group in routes.groupby(by):

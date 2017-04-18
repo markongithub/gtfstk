@@ -2,15 +2,12 @@
 Functions about miscellany.
 """
 from collections import OrderedDict
-import json
 import math
 
 import pandas as pd
 import numpy as np
-import utm
 import shapely.geometry as sg
 
-from . import constants as cs
 from . import helpers as hp
 
 
@@ -27,7 +24,6 @@ def describe(feed, date=None):
 
     """
     from . import calendar as cl
-
 
     d = OrderedDict()
     dates = cl.get_dates(feed)
@@ -142,7 +138,7 @@ def convert_dist(feed, new_dist_units):
     """
     Convert the distances recorded in the ``shape_dist_traveled`` columns of the given feed from this Feed's native distance units (recorded in ``feed.dist_units``) to the given new distance units.
     New distance units must lie in :const:`.constants.DIST_UNITS`.
-    """      
+    """
     feed = feed.copy()
 
     if feed.dist_units == new_dist_units:
@@ -199,7 +195,7 @@ def compute_feed_stats(feed, trips_stats, date):
       'service_distance',
       'service_duration',
       'service_speed',
-      ]
+    ]
     d = OrderedDict()
     trips = feed.get_trips(date)
     if trips.empty:
@@ -255,7 +251,7 @@ def compute_feed_time_series(feed, trip_stats, date, freq='5Min'):
       'service_distance',
       'service_duration',
       'service_speed',
-      ]
+    ]
     rts = feed.compute_route_time_series(trip_stats, date, freq=freq)
     if rts.empty:
         return pd.DataFrame(columns=cols)
@@ -273,7 +269,7 @@ def create_shapes(feed, all_trips=False):
     Return the resulting feed which has updated shapes and trips DataFrames.
 
     If ``all_trips``, then create new shapes for all trips by connecting stops, and remove the old shapes.
-   
+
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stop_times``
@@ -302,7 +298,7 @@ def create_shapes(feed, all_trips=False):
     # assign shape IDs to them
     stop_seqs = sorted(set(tuple(group['stop_id'].values)
       for trip, group in f.groupby('trip_id')))
-    d = int(math.log10(len(stop_seqs))) + 1  # Digits for padding shape IDs 
+    d = int(math.log10(len(stop_seqs))) + 1  # Digits for padding shape IDs
     shape_by_stop_seq = {seq: 'shape_{num:0{pad}d}'.format(num=i, pad=d)
       for i, seq in enumerate(stop_seqs)}
 
@@ -324,7 +320,7 @@ def create_shapes(feed, all_trips=False):
     g = g.rename(columns={
       'stop_lon': 'shape_pt_lon',
       'stop_lat': 'shape_pt_lat',
-      })
+    })
 
     if feed.shapes is not None and not all_trips:
         # Update feed shapes with new shapes
@@ -335,7 +331,7 @@ def create_shapes(feed, all_trips=False):
 
     return feed
 
-def compute_bounds(feed):  
+def compute_bounds(feed):
     """
     Return the tuple (min longitude, min latitude, max longitude, max latitude) where the longitudes and latitude vary across all the stop (WGS84)coordinates.
     """
@@ -349,7 +345,6 @@ def compute_center(feed, num_busiest_stops=None):
     """
     s = feed.stops.copy()
     if num_busiest_stops is not None:
-        n = num_busiest_stops
         date = feed.get_first_week()[0]
         ss = feed.compute_stop_stats(date).sort_values(
           'num_trips', ascending=False)
@@ -370,7 +365,7 @@ def restrict_to_routes(feed, route_ids):
     # Initialize the new feed as the old feed.
     # Restrict its DataFrames below.
     feed = feed.copy()
-   
+
     # Slice routes
     feed.routes = feed.routes[feed.routes['route_id'].isin(
       route_ids)].copy()
@@ -392,37 +387,37 @@ def restrict_to_routes(feed, route_ids):
     if feed.calendar is not None:
         feed.calendar = feed.calendar[
           feed.calendar['service_id'].isin(service_ids)].copy()
-   
+
     # Get agency for trips
     if 'agency_id' in feed.routes.columns:
         agency_ids = feed.routes['agency_id']
         if len(agency_ids):
             feed.agency = feed.agency[
               feed.agency['agency_id'].isin(agency_ids)].copy()
-           
+
     # Now for the optional files.
     # Get calendar dates for trips.
     if feed.calendar_dates is not None:
         feed.calendar_dates = feed.calendar_dates[
           feed.calendar_dates['service_id'].isin(service_ids)].copy()
-   
+
     # Get frequencies for trips
     if feed.frequencies is not None:
         feed.frequencies = feed.frequencies[
           feed.frequencies['trip_id'].isin(trip_ids)].copy()
-       
+
     # Get shapes for trips
     if feed.shapes is not None:
         shape_ids = feed.trips['shape_id']
         feed.shapes = feed.shapes[
           feed.shapes['shape_id'].isin(shape_ids)].copy()
-       
+
     # Get transfers for stops
     if feed.transfers is not None:
         feed.transfers = feed.transfers[
-          feed.transfers['from_stop_id'].isin(stop_ids) |\
+          feed.transfers['from_stop_id'].isin(stop_ids) |
           feed.transfers['to_stop_id'].isin(stop_ids)].copy()
-       
+
     return feed
 
 def restrict_to_polygon(feed, polygon):
@@ -443,63 +438,63 @@ def restrict_to_polygon(feed, polygon):
     # Initialize the new feed as the old feed.
     # Restrict its DataFrames below.
     feed = feed.copy()
-   
+
     # Get IDs of stops within the polygon
     stop_ids = feed.get_stops_in_polygon(polygon)['stop_id']
-       
+
     # Get all trips that stop at at least one of those stops
     st = feed.stop_times.copy()
     trip_ids = st[st['stop_id'].isin(stop_ids)]['trip_id']
     feed.trips = feed.trips[feed.trips['trip_id'].isin(trip_ids)].copy()
-   
+
     # Get stop times for trips
     feed.stop_times = st[st['trip_id'].isin(trip_ids)].copy()
-   
+
     # Get stops for trips
     stop_ids = feed.stop_times['stop_id']
     feed.stops = feed.stops[feed.stops['stop_id'].isin(stop_ids)].copy()
-   
+
     # Get routes for trips
     route_ids = feed.trips['route_id']
     feed.routes = feed.routes[feed.routes['route_id'].isin(
       route_ids)].copy()
-   
+
     # Get calendar for trips
     service_ids = feed.trips['service_id']
     if feed.calendar is not None:
         feed.calendar = feed.calendar[
           feed.calendar['service_id'].isin(service_ids)].copy()
-   
+
     # Get agency for trips
     if 'agency_id' in feed.routes.columns:
         agency_ids = feed.routes['agency_id']
         if len(agency_ids):
             feed.agency = feed.agency[
               feed.agency['agency_id'].isin(agency_ids)].copy()
-           
+
     # Now for the optional files.
     # Get calendar dates for trips.
     cd = feed.calendar_dates
     if cd is not None:
         feed.calendar_dates = cd[cd['service_id'].isin(service_ids)].copy()
-   
+
     # Get frequencies for trips
     if feed.frequencies is not None:
         feed.frequencies = feed.frequencies[
           feed.frequencies['trip_id'].isin(trip_ids)].copy()
-       
+
     # Get shapes for trips
     if feed.shapes is not None:
         shape_ids = feed.trips['shape_id']
         feed.shapes = feed.shapes[
           feed.shapes['shape_id'].isin(shape_ids)].copy()
-       
+
     # Get transfers for stops
     if feed.transfers is not None:
         t = feed.transfers
-        feed.transfers = t[t['from_stop_id'].isin(stop_ids) |\
+        feed.transfers = t[t['from_stop_id'].isin(stop_ids) |
           t['to_stop_id'].isin(stop_ids)].copy()
-       
+
     return feed
 
 def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
@@ -520,14 +515,14 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
              * ``feed.shapes``, if ``geo_shapes`` is not given
         - Assume that trips travel in the same direction as their shapes. That restriction is part of GTFS, by the way. To calculate direction quickly and accurately, assume that the screen line is straight and doesn't double back on itfeed.
         - Probably does not give correct results for trips with feed-intersecting shapes.
-   
+
     ALGORITHM:
         #. Compute all the shapes that intersect the linestring.
         #. For each such shape, compute the intersection points.
         #. For each point p, scan through all the trips in the feed that have that shape and are active on the given date.
         #. Interpolate a stop time for p by assuming that the feed has the shape_dist_traveled field in stop times.
         #. Use that interpolated time as the crossing time of the trip vehicle, and compute the trip orientation to the screen line via a cross product of a vector in the direction of the screen line and a tiny vector in the direction of trip travel.
-    """ 
+    """
     # Get all shapes that intersect the screen line
     shapes = feed.get_shapes_intersecting_geometry(linestring, geo_shapes,
       geometrized=True)
@@ -608,7 +603,7 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
                 orientation = -1
             # Update G
             G.append([tid, rid, rsn, t, orientation])
-   
+
     # Create DataFrame
     g = pd.DataFrame(G, columns=['trip_id', 'route_id',
       'route_short_name', 'crossing_time', 'orientation']

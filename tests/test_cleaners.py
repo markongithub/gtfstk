@@ -1,12 +1,12 @@
 import pytest
 import importlib
-from pathlib import Path 
+from pathlib import Path
 
-import pandas as pd 
+import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from .context import gtfstk, slow, sample
 from gtfstk import *
@@ -22,7 +22,7 @@ def test_clean_column_names():
     del f['route_id']
     g = clean_column_names(f)
     assert 'route_id' in g.columns
-    assert ' route_id  ' not in g.columns 
+    assert ' route_id  ' not in g.columns
 
 def test_clean_ids():
     f1 = sample.copy()
@@ -44,12 +44,12 @@ def test_clean_times():
 
 def test_clean_route_short_names():
     f1  = sample.copy()
-    
+
     # Should have no effect on a fine feed
     f2 = clean_route_short_names(f1)
-    assert_series_equal(f2.routes['route_short_name'], 
+    assert_series_equal(f2.routes['route_short_name'],
       f1.routes['route_short_name'])
-    
+
     # Make route short name duplicates
     f1.routes.loc[1:5, 'route_short_name'] = np.nan
     f1.routes.loc[6:, 'route_short_name'] = '  he llo  '
@@ -87,7 +87,7 @@ def test_aggregate_routes():
 
     # feed2 should have only one route ID
     assert feed2.routes.shape[0] == 1
-    
+
     # Feeds should have same trip data frames excluding
     # route IDs
     feed1.trips['route_id'] = feed2.trips['route_id']
@@ -95,7 +95,7 @@ def test_aggregate_routes():
 
     # Feeds should have equal attributes excluding
     # routes and trips data frames
-    feed2.routes = feed1.routes 
+    feed2.routes = feed1.routes
     feed2.trips = feed1.trips
     assert feed1 == feed2
 

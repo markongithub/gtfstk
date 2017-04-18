@@ -17,14 +17,8 @@ from pathlib import Path
 import tempfile
 import shutil
 from copy import deepcopy
-import dateutil.relativedelta as rd
-from collections import OrderedDict
-import json
 
 import pandas as pd
-import numpy as np
-import utm
-import shapely.geometry as sg
 
 from . import constants as cs
 from . import helpers as hp
@@ -75,7 +69,6 @@ class Feed(object):
     from .validators import validate, check_agency, check_calendar, check_calendar_dates, check_fare_attributes, check_fare_rules, check_feed_info, check_frequencies, check_routes, check_shapes, check_stops, check_stop_times, check_transfers, check_trips
     from .cleaners import clean_ids, clean_times, clean_route_short_names, drop_zombies, aggregate_routes, clean, drop_invalid_columns
 
-
     def __init__(self, dist_units, agency=None, stops=None, routes=None,
       trips=None, stop_times=None, calendar=None, calendar_dates=None,
       fare_attributes=None, fare_rules=None, shapes=None,
@@ -90,7 +83,7 @@ class Feed(object):
         # validate some and automatically set secondary attributes
         for prop, val in locals().items():
             if prop in cs.FEED_ATTRS_PUBLIC:
-                setattr(self, prop, val)       
+                setattr(self, prop, val)
 
     @property
     def dist_units(self):
@@ -102,7 +95,7 @@ class Feed(object):
     @dist_units.setter
     def dist_units(self, val):
         if val not in cs.DIST_UNITS:
-            raise ValueError('Distance units are required and '\
+            raise ValueError('Distance units are required and '
               'must lie in {!s}'.format(cs.DIST_UNITS))
         else:
             self._dist_units = val
@@ -144,7 +137,7 @@ class Feed(object):
     def calendar_dates(self):
         """
         A public Feed attribute made into a property for easy auto-updating of private feed attributes based on the calendar dates DataFrame.
-        """       
+        """
         return self._calendar_dates
 
     @calendar_dates.setter
@@ -192,7 +185,7 @@ class Feed(object):
                 # as far as i know
                 value = deepcopy(value)
             setattr(other, key, value)
-       
+
         return other
 
 
@@ -224,10 +217,10 @@ def read_gtfs(path, dist_units=None):
         table = p.stem
         if p.is_file() and table in feed_dict:
             # utf-8-sig gets rid of the byte order mark (BOM);
-            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string            
+            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string
             df = pd.read_csv(p, dtype=cs.DTYPE, encoding='utf-8-sig')
             feed_dict[table] = cn.clean_column_names(df)
-       
+
     feed_dict['dist_units'] = dist_units
 
     # Delete temporary directory
@@ -277,5 +270,5 @@ def write_gtfs(feed, path, ndigits=6):
     # Zip directory
     if zipped:
         basename = str(path.parent/path.stem)
-        shutil.make_archive(basename, format='zip', root_dir=tmp_dir.name)   
+        shutil.make_archive(basename, format='zip', root_dir=tmp_dir.name)
         tmp_dir.cleanup()

@@ -100,7 +100,7 @@ rows = [
     ['trips', True, 'shape_id', False, 'str'],
     ['trips', True, 'wheelchair_accessible', False, 'int'],
     ['trips', True, 'bikes_allowed', False, 'int'],
-    ]
+]
 #:
 GTFS_REF = pd.DataFrame(rows, columns=columns)
 
@@ -133,17 +133,22 @@ FEED_ATTRS_PUBLIC = [
     'trips',
     'transfers',
     'dist_units',
-    ]
+]
 
 #:
 FEED_ATTRS_PRIVATE = [
     '_trips_i',
     '_calendar_i',
     '_calendar_dates_g',
-    ]
+]
 
 #:
 FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
 
 #:
-CRS_WGS84 = {'proj': 'latlong', 'ellps': 'WGS84', 'datum': 'WGS84', 'no_defs': True}
+CRS_WGS84 = {
+    'proj': 'latlong',
+    'ellps': 'WGS84',
+    'datum': 'WGS84',
+    'no_defs': True,
+}

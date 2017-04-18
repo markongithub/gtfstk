@@ -1,4 +1,5 @@
 data/other_feeds
+flake8*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,12 +1,12 @@
 import pytest
 import importlib
-from pathlib import Path 
+from pathlib import Path
 
-import pandas as pd 
+import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
 from gtfstk import *
@@ -23,22 +23,22 @@ def test_feed():
         else:
             assert val is None
 
-def test_eq():  
+def test_eq():
     assert Feed(dist_units='m') == Feed(dist_units='m')
 
-    feed1 = Feed(dist_units='m', 
+    feed1 = Feed(dist_units='m',
       stops=pd.DataFrame([[1, 2], [3, 4]], columns=['a', 'b']))
     assert feed1 == feed1
 
-    feed2 = Feed(dist_units='m', 
+    feed2 = Feed(dist_units='m',
       stops=pd.DataFrame([[4, 3], [2, 1]], columns=['b', 'a']))
     assert feed1 == feed2
-    
+
     feed2 = Feed(dist_units='m',
       stops=pd.DataFrame([[3, 4], [2, 1]], columns=['b', 'a']))
     assert feed1 != feed2
 
-    feed2 = Feed(dist_units='m', 
+    feed2 = Feed(dist_units='m',
       stops=pd.DataFrame([[4, 3], [2, 1]], columns=['b', 'a']))
     assert feed1 == feed2
 
@@ -52,7 +52,7 @@ def test_copy():
     # Check attributes
     for key in cs.FEED_ATTRS:
         val = getattr(feed2, key)
-        expect_val = getattr(feed1, key)            
+        expect_val = getattr(feed1, key)
         if isinstance(val, pd.DataFrame):
             assert_frame_equal(val, expect_val)
         elif isinstance(val, pd.core.groupby.DataFrameGroupBy):
@@ -67,7 +67,7 @@ def test_read_gtfs():
     # Bad path
     with pytest.raises(ValueError):
         read_gtfs('bad_path!')
-    
+
     # Bad dist_units:
     with pytest.raises(ValueError):
         read_gtfs(DATA_DIR/'sample_gtfs.zip',  dist_units='bingo')

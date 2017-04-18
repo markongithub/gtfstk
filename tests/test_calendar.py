@@ -1,12 +1,12 @@
 import pytest
 import importlib
-from pathlib import Path 
+from pathlib import Path
 
-import pandas as pd 
+import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from .context import gtfstk, slow, sample, cairns
 from gtfstk import *
@@ -14,7 +14,7 @@ from gtfstk import *
 
 def test_get_dates():
     feed = cairns.copy()
-    for as_date_obj in [True, False]: 
+    for as_date_obj in [True, False]:
         dates = get_dates(feed, as_date_obj=as_date_obj)
         d1 = '20140526'
         d2 = '20141228'

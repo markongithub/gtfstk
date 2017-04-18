@@ -2,12 +2,9 @@
 Functions useful across modules.
 """
 import datetime as dt
-from collections import OrderedDict, Counter
-from functools import wraps
 
 import pandas as pd
 import numpy as np
-import shapely.geometry as sg
 from shapely.ops import transform
 import utm
 
@@ -22,7 +19,7 @@ def time_it(f):
         result = f(*args, **kwargs)
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished in %.2f min' % minutes)   
+        print(t2, 'Finished in %.2f min' % minutes)
         return result
     return wrap
 
@@ -118,7 +115,7 @@ def get_max_runs(x):
     Given a list of numbers, return a NumPy array of pairs (start index, end index + 1) of the runs of max value.
 
     EXAMPLES::
-   
+
         >>> get_max_runs([7, 1, 2, 7, 7, 1, 2])
         array([[0, 1],
                [3, 5]])
@@ -146,7 +143,7 @@ def get_peak_indices(times, counts):
     Given an increasing list of times as seconds past midnight and a list of  trip counts at those times, return a pair of indices i, j such that times[i] to times[j] is the first longest time period such that for all i <= x < j, counts[x] is the max of counts.
     Assume times and counts have the same nonzero length.
     """
-    max_runs = get_max_runs(counts) 
+    max_runs = get_max_runs(counts)
 
     def get_duration(a):
         return times[a[1]] - times[a[0]]
@@ -157,10 +154,10 @@ def get_peak_indices(times, counts):
 def get_convert_dist(dist_units_in, dist_units_out):
     """
     Return a function of the form
-     
+
       distance in the units ``dist_units_in`` ->
       distance in the units ``dist_units_out``
-   
+
     Only supports distance units in ``DIST_UNITS``.
     """
     di, do = dist_units_in, dist_units_out
@@ -170,11 +167,11 @@ def get_convert_dist(dist_units_in, dist_units_out):
           'Distance units must lie in {!s}'.format(DU))
 
     d = {
-      'ft': {'ft': 1, 'm': 0.3048, 'mi': 1/5280, 'km': 0.0003048,},
-      'm':  {'ft': 1/0.3048, 'm': 1, 'mi': 1/1609.344, 'km': 1/1000,},
-      'mi': {'ft': 5280, 'm': 1609.344, 'mi': 1, 'km': 1.609344,},
-      'km': {'ft': 1/0.0003048, 'm': 1000, 'mi': 1/1.609344, 'km': 1,},
-      }
+      'ft': {'ft': 1, 'm': 0.3048, 'mi': 1/5280, 'km': 0.0003048},
+      'm': {'ft': 1/0.3048, 'm': 1, 'mi': 1/1609.344, 'km': 1/1000},
+      'mi': {'ft': 5280, 'm': 1609.344, 'mi': 1, 'km': 1.609344},
+      'km': {'ft': 1/0.0003048, 'm': 1000, 'mi': 1/1.609344, 'km': 1},
+    }
     return lambda x: d[di][do]*x
 
 def almost_equal(f, g):
@@ -208,8 +205,8 @@ def get_utm_crs(lat, lon):
     """
     zone = utm.from_latlon(lat, lon)[2]
     south = lat < 0
-    return {'proj':'utm', 'zone': zone, 'south': south,
-      'ellps':'WGS84', 'datum':'WGS84', 'units':'m', 'no_defs':True}
+    return {'proj': 'utm', 'zone': zone, 'south': south,
+      'ellps': 'WGS84', 'datum': 'WGS84', 'units': 'm', 'no_defs': True}
 
 def linestring_to_utm(linestring):
     """
@@ -217,7 +214,6 @@ def linestring_to_utm(linestring):
     If ``inverse``, then do the inverse.
     """
     proj = lambda x, y: utm.from_latlon(y, x)[:2]
-
     return transform(proj, linestring)
 
 def count_active_trips(trip_times, time):
@@ -233,7 +229,7 @@ def count_active_trips(trip_times, time):
     """
     t = trip_times
     return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
-   
+
 def combine_time_series(time_series_dict, kind, split_directions=False):
     """
     Given a dictionary of time series DataFrames, combine the time series
@@ -283,12 +279,11 @@ def downsample(time_series, freq):
     respectively) to the given Pandas frequency.
     Return the given time series unchanged if the given frequency is
     shorter than the original frequency.
-    """   
+    """
     f = time_series.copy()
 
     # Can't downsample to a shorter frequency
-    if f.empty or\
-      pd.tseries.frequencies.to_offset(freq) < f.index.freq:
+    if f.empty or pd.tseries.frequencies.to_offset(freq) < f.index.freq:
         return f
 
     result = None
@@ -305,7 +300,7 @@ def downsample(time_series, freq):
           ('num_trip_starts', 'sum'),
           ('service_distance', 'sum'),
           ('service_duration', 'sum'),
-          ]
+        ]
         frames = []
         for ind, how in inds_and_hows:
             frames.append(f[ind].resample(freq).agg({ind: how}))
@@ -326,7 +321,7 @@ def downsample(time_series, freq):
           ('num_trip_starts', 'sum'),
           ('service_distance', 'sum'),
           ('service_duration', 'sum'),
-          ]
+        ]
         frames = []
         for ind, how in inds_and_hows:
             frames.append(f[ind].resample(freq).agg({ind: how}))

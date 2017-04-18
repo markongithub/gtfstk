@@ -1,13 +1,13 @@
 import pytest
 import importlib
-from pathlib import Path 
+from pathlib import Path
 
-import pandas as pd 
+import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
 from numpy.testing import assert_array_equal
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
 from gtfstk import *
@@ -68,7 +68,7 @@ def test_check_for_invalid_columns():
 
 def test_check_table():
     feed = sample.copy()
-    cond = feed.routes['route_id'].isnull() 
+    cond = feed.routes['route_id'].isnull()
     assert not check_table([], 'routes', feed.routes, cond, 'Bingo')
     assert check_table([], 'routes', feed.routes, ~cond, 'Bongo')
 
@@ -106,7 +106,7 @@ def test_check_agency():
     assert not check_agency(sample)
 
     feed = sample.copy()
-    feed.agency = None 
+    feed.agency = None
     assert check_agency(feed)
 
     feed = sample.copy()
@@ -125,7 +125,7 @@ def test_check_agency():
     feed.agency['agency_name'] = ''
     assert check_agency(feed)
 
-    for col in ['agency_timezone', 'agency_url', 'agency_fare_url', 
+    for col in ['agency_timezone', 'agency_url', 'agency_fare_url',
       'agency_lang', 'agency_phone', 'agency_email']:
         feed = sample.copy()
         feed.agency[col] = ''
@@ -136,15 +136,15 @@ def test_check_calendar():
     assert check_calendar(sample, include_warnings=True) # feed has expired
 
     feed = sample.copy()
-    feed.calendar = None 
+    feed.calendar = None
     assert not check_calendar(feed)
 
     feed = sample.copy()
-    del feed.calendar['service_id'] 
+    del feed.calendar['service_id']
     assert check_calendar(feed)
 
     feed = sample.copy()
-    feed.calendar['yo'] = 3 
+    feed.calendar['yo'] = 3
     assert not check_calendar(feed)
     assert check_calendar(feed, include_warnings=True)
 
@@ -162,15 +162,15 @@ def test_check_calendar_dates():
     assert not check_calendar_dates(sample)
 
     feed = sample.copy()
-    feed.calendar_dates = None 
+    feed.calendar_dates = None
     assert not check_calendar_dates(feed)
 
     feed = sample.copy()
-    del feed.calendar_dates['service_id'] 
+    del feed.calendar_dates['service_id']
     assert check_calendar_dates(feed)
 
     feed = sample.copy()
-    feed.calendar_dates['yo'] = 3 
+    feed.calendar_dates['yo'] = 3
     assert not check_calendar_dates(feed)
     assert check_calendar_dates(feed, include_warnings=True)
 
@@ -188,15 +188,15 @@ def test_check_fare_attributes():
     assert not check_fare_attributes(sample)
 
     feed = sample.copy()
-    feed.fare_attributes = None 
+    feed.fare_attributes = None
     assert not check_fare_attributes(feed)
 
     feed = sample.copy()
-    del feed.fare_attributes['fare_id'] 
+    del feed.fare_attributes['fare_id']
     assert check_fare_attributes(feed)
 
     feed = sample.copy()
-    feed.fare_attributes['yo'] = 3 
+    feed.fare_attributes['yo'] = 3
     assert not check_fare_attributes(feed)
     assert check_fare_attributes(feed, include_warnings=True)
 
@@ -218,15 +218,15 @@ def test_check_fare_rules():
     assert not check_fare_rules(sample)
 
     feed = sample.copy()
-    feed.fare_rules = None 
+    feed.fare_rules = None
     assert not check_fare_rules(feed)
 
     feed = sample.copy()
-    del feed.fare_rules['fare_id'] 
+    del feed.fare_rules['fare_id']
     assert check_fare_rules(feed)
 
     feed = sample.copy()
-    feed.fare_rules['yo'] = 3 
+    feed.fare_rules['yo'] = 3
     assert not check_fare_rules(feed)
     assert check_fare_rules(feed, include_warnings=True)
 
@@ -240,22 +240,22 @@ def test_check_fare_rules():
 def test_check_feed_info():
     # Create feed_info table
     feed = sample.copy()
-    columns = ['feed_publisher_name', 'feed_publisher_url', 'feed_lang', 
+    columns = ['feed_publisher_name', 'feed_publisher_url', 'feed_lang',
       'feed_start_date', 'feed_end_date', 'feed_version']
     rows = [['slurp', 'http://slurp.burp', 'aa', '21110101', '21110102', '69']]
     feed.feed_info = pd.DataFrame(rows, columns=columns)
     assert not check_feed_info(feed)
 
     feed1 = feed.copy()
-    feed1.feed_info = None 
+    feed1.feed_info = None
     assert not check_feed_info(feed1)
 
     feed1 = feed.copy()
-    del feed1.feed_info['feed_lang'] 
+    del feed1.feed_info['feed_lang']
     assert check_feed_info(feed1)
 
     feed1 = feed.copy()
-    feed1.feed_info['yo'] = 3 
+    feed1.feed_info['yo'] = 3
     assert not check_feed_info(feed1)
     assert check_feed_info(feed1, include_warnings=True)
 
@@ -268,15 +268,15 @@ def test_check_frequencies():
     assert not check_frequencies(sample)
 
     feed = sample.copy()
-    feed.frequencies = None 
+    feed.frequencies = None
     assert not check_frequencies(feed)
 
     feed = sample.copy()
-    del feed.frequencies['trip_id'] 
+    del feed.frequencies['trip_id']
     assert check_frequencies(feed)
 
     feed = sample.copy()
-    feed.frequencies['yo'] = 3 
+    feed.frequencies['yo'] = 3
     assert not check_frequencies(feed)
     assert check_frequencies(feed, include_warnings=True)
 
@@ -369,11 +369,11 @@ def test_check_shapes():
     assert not check_shapes(feed)
 
     feed1 = feed.copy()
-    del feed1.shapes['shape_id'] 
+    del feed1.shapes['shape_id']
     assert check_shapes(feed1)
 
     feed1 = feed.copy()
-    feed1.shapes['yo'] = 3 
+    feed1.shapes['yo'] = 3
     assert not check_shapes(feed1)
     assert check_shapes(feed1, include_warnings=True)
 
@@ -399,7 +399,7 @@ def test_check_stops():
     assert not check_stops(sample)
 
     feed = sample.copy()
-    feed.stops = None 
+    feed.stops = None
     assert check_stops(feed)
 
     feed = sample.copy()
@@ -417,7 +417,7 @@ def test_check_stops():
     for column in ['stop_code', 'stop_desc', 'zone_id', 'parent_station']:
         feed = sample.copy()
         feed.stops[column] = ''
-        assert check_stops(feed)    
+        assert check_stops(feed)
 
     for column in ['stop_url', 'stop_timezone']:
         feed = sample.copy()
@@ -431,7 +431,7 @@ def test_check_stops():
 
     feed = sample.copy()
     feed.stops['location_type'] = 1
-    feed.stops['parent_station'] = 'bingo' 
+    feed.stops['parent_station'] = 'bingo'
     assert check_stops(feed)
 
     feed = sample.copy()
@@ -448,7 +448,7 @@ def test_check_stop_times():
     assert not check_stop_times(sample)
 
     feed = sample.copy()
-    feed.stop_times = None 
+    feed.stop_times = None
     assert check_stop_times(feed)
 
     feed = sample.copy()
@@ -516,11 +516,11 @@ def test_check_transfers():
     assert not check_transfers(feed)
 
     feed1 = feed.copy()
-    del feed1.transfers['from_stop_id'] 
+    del feed1.transfers['from_stop_id']
     assert check_transfers(feed1)
 
     feed1 = feed.copy()
-    feed1.transfers['yo'] = 3 
+    feed1.transfers['yo'] = 3
     assert not check_transfers(feed1)
     assert check_transfers(feed1, include_warnings=True)
 
@@ -538,7 +538,7 @@ def test_check_trips():
     assert not check_trips(sample)
 
     feed = sample.copy()
-    feed.trips = None 
+    feed.trips = None
     assert check_trips(feed)
 
     feed = sample.copy()
@@ -587,5 +587,5 @@ def test_check_trips():
     assert not check_trips(feed)
     assert check_trips(feed, include_warnings=True)
 
-def test_validate():    
+def test_validate():
     assert not validate(sample, as_df=False, include_warnings=False)

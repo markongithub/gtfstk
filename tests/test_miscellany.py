@@ -1,12 +1,12 @@
 import pytest
 import importlib
-from pathlib import Path 
+from pathlib import Path
 
-import pandas as pd 
+import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
 from gtfstk import *
@@ -31,7 +31,7 @@ def test_convert_dist():
     assert feed2.dist_units == 'mi'
 
     # Test with distances and identity conversion
-    feed1 = append_dist_to_shapes(feed1) 
+    feed1 = append_dist_to_shapes(feed1)
     feed2 = convert_dist(feed1, feed1.dist_units)
     assert feed1 == feed2
 
@@ -57,9 +57,9 @@ def test_compute_feed_stats():
       'peak_num_trips',
       'peak_start_time',
       'peak_end_time',
-      'service_duration', 
+      'service_duration',
       'service_distance',
-      'service_speed',              
+      'service_speed',
       ])
     assert set(f.columns) == expect_cols
 
@@ -72,7 +72,7 @@ def test_compute_feed_time_series():
     date = cairns_date
     trip_stats = cairns_trip_stats
     f = compute_feed_time_series(feed, trip_stats, date, freq='1H')
-    # Should be a data frame 
+    # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct number of rows
     assert f.shape[0] == 24
@@ -108,7 +108,7 @@ def test_create_shapes():
     assert feed2.shapes['shape_id'].nunique() == len(stop_seqs)
 
 def test_compute_bounds():
-    feed = cairns.copy() 
+    feed = cairns.copy()
     minlon, minlat, maxlon, maxlat = compute_bounds(feed)
     # Bounds should be in the ball park
     assert 145 < minlon < 146
@@ -117,7 +117,7 @@ def test_compute_bounds():
     assert -18 < maxlat < -15
 
 def test_compute_center():
-    feed = cairns.copy() 
+    feed = cairns.copy()
     centers = [compute_center(feed), compute_center(feed, 20)]
     bounds = compute_bounds(feed)
     for lon, lat in centers:
@@ -126,7 +126,7 @@ def test_compute_center():
         assert bounds[1] < lat < bounds[3]
 
 def test_restrict_by_routes():
-    feed1 = cairns.copy() 
+    feed1 = cairns.copy()
     route_ids = feed1.routes['route_id'][:2].tolist()
     feed2 = restrict_to_routes(feed1, route_ids)
     # Should have correct routes
@@ -146,7 +146,7 @@ def test_restrict_by_routes():
 
 @pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
 def test_restrict_to_polygon():
-    feed1 = cairns.copy() 
+    feed1 = cairns.copy()
     with (DATA_DIR/'cairns_square_stop_750070.geojson').open() as src:
         polygon = sg.shape(json.load(src)['features'][0]['geometry'])
     feed2 = restrict_to_polygon(feed1, polygon)
@@ -171,16 +171,16 @@ def test_restrict_to_polygon():
 @slow
 @pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
 def test_compute_screen_line_counts():
-    feed = cairns.copy() 
+    feed = cairns.copy()
     date = cairns_date
     trip_stats = cairns_trip_stats
     feed = append_dist_to_stop_times(feed, trip_stats)
-    
+
     # Load screen line
     with (DATA_DIR/'cairns_screen_line.geojson').open() as src:
         line = json.load(src)
         line = sg.shape(line['features'][0]['geometry'])
-    
+
     f = compute_screen_line_counts(feed, line, date)
 
     # Should have correct columns
