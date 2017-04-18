@@ -53,7 +53,7 @@ pytz==2017.2
 pyzmq==16.0.0
 qtconsole==4.2.1
 requests==2.6.0
-Rtree==0.8.2
+Rtree==0.8.3
 Shapely==1.5.17.post1
 simplegeneric==0.8.1
 six==1.10.0
