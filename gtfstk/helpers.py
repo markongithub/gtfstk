@@ -22,7 +22,7 @@ def time_it(f):
         result = f(*args, **kwargs)
         t2 = dt.datetime.now()
         minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished in %.2f min' % minutes)    
+        print(t2, 'Finished in %.2f min' % minutes)   
         return result
     return wrap
 
@@ -85,7 +85,7 @@ def weekday_to_str(weekday, inverse=False):
     Here 0 -> 'monday', 1 -> 'tuesday', and so on.
     If ``inverse``, then perform the inverse operation.
     """
-    s = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 
+    s = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday',
       'saturday', 'sunday']
     if not inverse:
         try:
@@ -118,7 +118,7 @@ def get_max_runs(x):
     Given a list of numbers, return a NumPy array of pairs (start index, end index + 1) of the runs of max value.
 
     EXAMPLES::
-    
+   
         >>> get_max_runs([7, 1, 2, 7, 7, 1, 2])
         array([[0, 1],
                [3, 5]])
@@ -139,14 +139,14 @@ def get_max_runs(x):
     return np.array([run_starts, run_ends]).T
     # # Get lengths of runs and find index of longest
     # idx = np.argmax(run_ends - run_starts)
-    # return run_starts[idx], run_ends[idx] 
+    # return run_starts[idx], run_ends[idx]
 
 def get_peak_indices(times, counts):
     """
     Given an increasing list of times as seconds past midnight and a list of  trip counts at those times, return a pair of indices i, j such that times[i] to times[j] is the first longest time period such that for all i <= x < j, counts[x] is the max of counts.
     Assume times and counts have the same nonzero length.
     """
-    max_runs = get_max_runs(counts)  
+    max_runs = get_max_runs(counts) 
 
     def get_duration(a):
         return times[a[1]] - times[a[0]]
@@ -157,10 +157,10 @@ def get_peak_indices(times, counts):
 def get_convert_dist(dist_units_in, dist_units_out):
     """
     Return a function of the form
-      
-      distance in the units ``dist_units_in`` -> 
+     
+      distance in the units ``dist_units_in`` ->
       distance in the units ``dist_units_out``
-    
+   
     Only supports distance units in ``DIST_UNITS``.
     """
     di, do = dist_units_in, dist_units_out
@@ -209,16 +209,16 @@ def get_utm_crs(lat, lon):
     zone = utm.from_latlon(lat, lon)[2]
     south = lat < 0
     return {'proj':'utm', 'zone': zone, 'south': south,
-      'ellps':'WGS84', 'datum':'WGS84', 'units':'m', 'no_defs':True} 
+      'ellps':'WGS84', 'datum':'WGS84', 'units':'m', 'no_defs':True}
 
 def linestring_to_utm(linestring):
     """
-    Given a Shapely LineString in WGS84 coordinates, convert it to the appropriate UTM coordinates. 
+    Given a Shapely LineString in WGS84 coordinates, convert it to the appropriate UTM coordinates.
     If ``inverse``, then do the inverse.
     """
     proj = lambda x, y: utm.from_latlon(y, x)[:2]
 
-    return transform(proj, linestring) 
+    return transform(proj, linestring)
 
 def count_active_trips(trip_times, time):
     """
@@ -233,7 +233,7 @@ def count_active_trips(trip_times, time):
     """
     t = trip_times
     return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
-    
+   
 def combine_time_series(time_series_dict, kind, split_directions=False):
     """
     Given a dictionary of time series DataFrames, combine the time series
@@ -241,7 +241,7 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
     and return the result.
     The top level columns are the keys of the dictionary and
     the second and third level columns are 'route_id' and 'direction_id',
-    if ``kind == 'route'``, or 'stop_id' and 'direction_id', 
+    if ``kind == 'route'``, or 'stop_id' and 'direction_id',
     if ``kind == 'stop'``.
     If ``split_directions == False``, then there is no third column level,
     no 'direction_id' column.
@@ -267,7 +267,7 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
     if split_directions:
         for f in frames:
             ft = f.T
-            ft.index = pd.MultiIndex.from_tuples([process_index(k) 
+            ft.index = pd.MultiIndex.from_tuples([process_index(k)
               for (k, v) in ft.iterrows()])
             new_frames.append(ft.T)
     else:
@@ -277,13 +277,13 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
 
 def downsample(time_series, freq):
     """
-    Downsample the given route, stop, or feed time series, 
-    (outputs of ``Feed.compute_route_time_series()``, 
+    Downsample the given route, stop, or feed time series,
+    (outputs of ``Feed.compute_route_time_series()``,
     ``Feed.compute_stop_time_series()``, or ``Feed.compute_feed_time_series()``,
     respectively) to the given Pandas frequency.
-    Return the given time series unchanged if the given frequency is 
+    Return the given time series unchanged if the given frequency is
     shorter than the original frequency.
-    """    
+    """   
     f = time_series.copy()
 
     # Can't downsample to a shorter frequency

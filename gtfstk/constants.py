@@ -2,7 +2,7 @@
 Constants useful across modules.
 """
 
-import pandas as pd 
+import pandas as pd
 
 # Record some data from the GTFS reference at https://developers.google.com/transit/gtfs/reference/
 columns = ['table', 'table_required', 'column', 'column_required', 'dtype']
@@ -27,7 +27,7 @@ rows = [
     ['calendar', False, 'end_date', True, 'str'],
     ['calendar_dates', False, 'service_id', True, 'str'],
     ['calendar_dates', False, 'date', True, 'str'],
-    ['calendar_dates', False, 'exception_type',True, 'int'],
+    ['calendar_dates', False, 'exception_type', True, 'int'],
     ['fare_attributes', False, 'fare_id', True, 'str'],
     ['fare_attributes', False, 'price', True, 'float'],
     ['fare_attributes', False, 'currency_type', True, 'str'],
@@ -109,40 +109,39 @@ GTFS_REF = pd.DataFrame(rows, columns=columns)
 INT_COLS = GTFS_REF.loc[GTFS_REF['dtype'] == 'int', 'column'].values.tolist()
 
 # Columns that must be read as strings by Pandas
-#: 
+#:
 STR_COLS = GTFS_REF.loc[GTFS_REF['dtype'] == 'str', 'column'].values.tolist()
-
-#: 
-DTYPE = {col: str for col in STR_COLS} 
+#:
+DTYPE = {col: str for col in STR_COLS}
 
 #:
 DIST_UNITS = ['ft', 'mi', 'm', 'km']
 
 #:
 FEED_ATTRS_PUBLIC = [
-    'agency', 
-    'calendar', 
-    'calendar_dates', 
-    'fare_attributes', 
-    'fare_rules', 
+    'agency',
+    'calendar',
+    'calendar_dates',
+    'fare_attributes',
+    'fare_rules',
     'feed_info',
-    'frequencies', 
-    'routes', 
-    'shapes', 
-    'stops', 
-    'stop_times', 
-    'trips', 
-    'transfers', 
+    'frequencies',
+    'routes',
+    'shapes',
+    'stops',
+    'stop_times',
+    'trips',
+    'transfers',
     'dist_units',
     ]
 
 #:
 FEED_ATTRS_PRIVATE = [
-    '_trips_i', 
-    '_calendar_i', 
+    '_trips_i',
+    '_calendar_i',
     '_calendar_dates_g',
     ]
-  
+
 #:
 FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
 

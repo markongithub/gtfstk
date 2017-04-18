@@ -4,10 +4,10 @@ Functions about stops.
 import json
 from collections import Counter, OrderedDict
 
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from . import constants as cs
 from . import helpers as hp
@@ -70,7 +70,7 @@ def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
         headways = []
         dtimes = sorted([dtime for dtime in group['departure_time'].values
           if headway_start <= dtime <= headway_end])
-        headways.extend([dtimes[i + 1] - dtimes[i] 
+        headways.extend([dtimes[i + 1] - dtimes[i]
           for i in range(len(dtimes) - 1)])
         if headways:
             d['max_headway'] = np.max(headways)/60  # minutes
@@ -96,7 +96,7 @@ def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
 
     return result
 
-def compute_stop_time_series_base(stop_times, trips_subset, 
+def compute_stop_time_series_base(stop_times, trips_subset,
   split_directions=False, freq='5Min', date_label='20010101'):
     """
     Given a stop times DataFrame and a subset of a trips DataFrame, return a DataFrame that provides summary stats about the stops in the (inner) join of the two DataFrames.
@@ -104,7 +104,7 @@ def compute_stop_time_series_base(stop_times, trips_subset,
     The time series is a DataFrame with a timestamp index for a 24-hour period sampled at the given frequency.
     The maximum allowable frequency is 1 minute.
     The timestamp includes the date given by ``date_label``, a date string of the form '%Y%m%d'.
-    
+   
     The columns of the DataFrame are hierarchical (multi-index) with
 
     - top level: name = 'indicator', values = ['num_trips']
@@ -112,14 +112,14 @@ def compute_stop_time_series_base(stop_times, trips_subset,
     - bottom level: name = 'direction_id', values = 0s and 1s
 
     If ``split_directions == False``, then don't include the bottom level.
-    
+   
     If ``trips_subset`` is empty, then return an empty DataFrame with the indicator columns.
 
     NOTES:
 
     - 'num_trips' should be resampled with ``how=np.sum``
     - To remove the date and seconds from the time series f, do ``f.index = [t.time().strftime('%H:%M') for t in f.index.to_datetime()]``
-    """  
+    """ 
     cols = ['num_trips']
     if trips_subset.empty:
         return pd.DataFrame(columns=cols)
@@ -127,13 +127,13 @@ def compute_stop_time_series_base(stop_times, trips_subset,
     f = pd.merge(stop_times, trips_subset)
 
     if split_directions:
-        # Alter stop IDs to encode trip direction: 
+        # Alter stop IDs to encode trip direction:
         # <stop ID>-0 and <stop ID>-1
         f['stop_id'] = f['stop_id'] + '-' +\
-          f['direction_id'].map(str)            
-    stops = f['stop_id'].unique()   
+          f['direction_id'].map(str)           
+    stops = f['stop_id'].unique()  
 
-    # Create one time series for each stop. Use a list first.    
+    # Create one time series for each stop. Use a list first.   
     bins = [i for i in range(24*60)] # One bin for each minute
     num_bins = len(bins)
 
@@ -144,8 +144,8 @@ def compute_stop_time_series_base(stop_times, trips_subset,
     f['departure_index'] = f['departure_time'].map(F)
 
     # Create one time series for each stop
-    series_by_stop = {stop: [0 for i in range(num_bins)] 
-      for stop in stops} 
+    series_by_stop = {stop: [0 for i in range(num_bins)]
+      for stop in stops}
 
     for stop, group in f.groupby('stop_id'):
         counts = Counter((bin, 0) for bin in bins) +\
@@ -176,7 +176,7 @@ def get_stops(feed, date=None, trip_id=None, route_id=None, in_stations=False):
 
     - ``feed.stops``
     - Those used in :func:`get_stop_times`
-    - ``feed.routes``    
+    - ``feed.routes``   
     """
     s = feed.stops.copy()
     if date is not None:
@@ -207,7 +207,7 @@ def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stops``
-        
+       
     """
     d = {}
     stops = feed.stops.copy()
@@ -217,11 +217,11 @@ def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
     if use_utm:
         for stop, group in stops.groupby('stop_id'):
             lat, lon = group[['stop_lat', 'stop_lon']].values[0]
-            d[stop] = sg.Point(utm.from_latlon(lat, lon)[:2]) 
+            d[stop] = sg.Point(utm.from_latlon(lat, lon)[:2])
     else:
         for stop, group in stops.groupby('stop_id'):
             lat, lon = group[['stop_lat', 'stop_lon']].values[0]
-            d[stop] = sg.Point([lon, lat]) 
+            d[stop] = sg.Point([lon, lat])
     return d
 
 def compute_stop_activity(feed, dates):
@@ -229,10 +229,10 @@ def compute_stop_activity(feed, dates):
     Return a  DataFrame with the columns
 
     - stop_id
-    - ``dates[0]``: 1 if the stop has at least one trip visiting it on ``dates[0]``; 0 otherwise 
-    - ``dates[1]``: 1 if the stop has at least one trip visiting it on ``dates[1]``; 0 otherwise 
+    - ``dates[0]``: 1 if the stop has at least one trip visiting it on ``dates[0]``; 0 otherwise
+    - ``dates[1]``: 1 if the stop has at least one trip visiting it on ``dates[1]``; 0 otherwise
     - etc.
-    - ``dates[-1]``: 1 if the stop has at least one trip visiting it on ``dates[-1]``; 0 otherwise 
+    - ``dates[-1]``: 1 if the stop has at least one trip visiting it on ``dates[-1]``; 0 otherwise
 
     If ``dates`` is ``None`` or the empty list, then return an empty DataFrame with the column 'stop_id'.
 
@@ -240,7 +240,7 @@ def compute_stop_activity(feed, dates):
 
     - ``feed.stop_times``
     - Those used in :func:`compute_trip_activity`
-        
+       
 
     """
     if not dates:
@@ -269,7 +269,7 @@ def compute_stop_stats(feed, date, split_directions=False,
 
     - ``feed.stop_timtes``
     - Those used in :func:`get_trips`
-        
+       
     NOTES:
 
     This is a more user-friendly version of ``compute_stop_stats_base()``.
@@ -278,7 +278,7 @@ def compute_stop_stats(feed, date, split_directions=False,
     # Get stop times active on date and direction IDs
     return compute_stop_stats_base(feed.stop_times, feed.get_trips(date),
       split_directions=split_directions,
-      headway_start_time=headway_start_time, 
+      headway_start_time=headway_start_time,
       headway_end_time=headway_end_time)
 
 def compute_stop_time_series(feed, date, split_directions=False, freq='5Min'):
@@ -290,12 +290,12 @@ def compute_stop_time_series(feed, date, split_directions=False, freq='5Min'):
 
     - ``feed.stop_times``
     - Those used in :func:`get_trips`
-        
+       
     NOTES:
       - This is a more user-friendly version of :func:`.helpers.compute_stop_time_series_base`. The latter function works without a feed, though.
-    """  
-    return compute_stop_time_series_base(feed.stop_times, 
-      feed.get_trips(date), split_directions=split_directions, 
+    """ 
+    return compute_stop_time_series_base(feed.stop_times,
+      feed.get_trips(date), split_directions=split_directions,
       freq=freq, date_label=date)
 
 def build_stop_timetable(feed, stop_id, date):
@@ -308,7 +308,7 @@ def build_stop_timetable(feed, stop_id, date):
 
     - ``feed.trips``
     - Those used in :func:`get_stop_times`
-        
+       
     """
     f = feed.get_stop_times(date)
     f = pd.merge(f, feed.trips)
@@ -319,7 +319,7 @@ def get_stops_in_polygon(feed, polygon, geo_stops=None):
     """
     Return the slice of ``feed.stops`` that contains all stops that lie within the given Shapely Polygon object.
     Assume the polygon specified in WGS84 longitude-latitude coordinates.
-    
+   
     To do this, first geometrize ``feed.stops`` via :func:`geometrize_stops`.
     Alternatively, use the ``geo_stops`` GeoDataFrame, if given.
     Requires GeoPandas.
@@ -327,13 +327,13 @@ def get_stops_in_polygon(feed, polygon, geo_stops=None):
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stops``, if ``geo_stops`` is not given
-        
+       
     """
     if geo_stops is not None:
         f = geo_stops.copy()
     else:
         f = geometrize_stops(feed.stops)
-    
+   
     cols = f.columns
     f['hit'] = f['geometry'].within(polygon)
     f = f[f['hit']][cols]
@@ -346,26 +346,26 @@ def geometrize_stops(stops, use_utm=False):
     If ``use_utm``, then use UTM coordinates for the geometries.
     Requires GeoPandas.
     """
-    import geopandas as gpd 
+    import geopandas as gpd
 
 
     f = stops.copy()
-    s = gpd.GeoSeries([sg.Point(p) for p in 
+    s = gpd.GeoSeries([sg.Point(p) for p in
       stops[['stop_lon', 'stop_lat']].values])
-    f['geometry'] = s 
+    f['geometry'] = s
     g = f.drop(['stop_lon', 'stop_lat'], axis=1)
     g = gpd.GeoDataFrame(g, crs=cs.CRS_WGS84)
 
     if use_utm:
         lat, lon = f.ix[0][['stop_lat', 'stop_lon']].values
-        crs = get_utm_crs(lat, lon) 
+        crs = get_utm_crs(lat, lon)
         g = g.to_crs(crs)
 
     return g
 
 def ungeometrize_stops(geo_stops):
     """
-    The inverse of :func:`geometrize_stops`.    
+    The inverse of :func:`geometrize_stops`.   
     If ``geo_stops`` is in UTM (has a UTM CRS property), then convert UTM coordinates back to WGS84 coordinates,
     """
     f = geo_stops.copy().to_crs(cs.CRS_WGS84)

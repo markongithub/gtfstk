@@ -3,10 +3,10 @@ Functions about cleaning feeds.
 """
 import math
 
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from . import constants as cs
 from . import helpers as hp
@@ -29,7 +29,7 @@ def drop_zombies(feed):
 
     # Drop stops with no stop times
     ids = feed.stop_times['stop_id'].unique()
-    f = feed.stops 
+    f = feed.stops
     feed.stops = f[f['stop_id'].isin(ids)]
 
     # Drop trips with no stop times
@@ -45,7 +45,7 @@ def drop_zombies(feed):
 
     # Drop routes with no trips
     ids = feed.trips['route_id'].unique()
-    f = feed.routes 
+    f = feed.routes
     feed.routes = f[f['route_id'].isin(ids)]
 
     # Drop services with no trips
@@ -57,15 +57,15 @@ def drop_zombies(feed):
         f = feed.calendar_dates
         feed.calendar_dates = f[f['service_id'].isin(ids)]
 
-    return feed 
+    return feed
 
 def clean_ids(feed):
     """
     Strip whitespace from all string IDs and then replace every remaining whitespace chunk with an underscore.
-    Return the resulting feed.  
+    Return the resulting feed. 
     """
     # Alter feed inputs only, and build a new feed from them.
-    # The derived feed attributes, such as feed.trips_i, 
+    # The derived feed attributes, such as feed.trips_i,
     # will be automatically handled when creating the new feed.
     feed = feed.copy()
 
@@ -142,7 +142,7 @@ def clean_route_short_names(feed):
 
 def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
     """
-    Group ``feed.routes`` by the ``by`` column, and for each group 
+    Group ``feed.routes`` by the ``by`` column, and for each group
 
     1. choose the first route in the group,
     2. assign a new route ID based on the given ``route_id_prefix`` string and a running count, e.g. ``'route_013'``
@@ -159,7 +159,7 @@ def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
     # Create new route IDs
     routes = feed.routes
     n = routes.groupby(by).ngroups
-    k = int(math.log10(n)) + 1 # Number of digits for padding IDs 
+    k = int(math.log10(n)) + 1 # Number of digits for padding IDs
     nrid_by_orid = dict()
     i = 1
     for col, group in routes.groupby(by):
@@ -184,11 +184,11 @@ def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
           lambda x: nrid_by_orid[x])
         feed.transfers = transfers
 
-    return feed 
+    return feed
 
 def clean(feed):
     """
-    Apply 
+    Apply
 
     #. :func:`drop_zombies`
     #. :func:`clean_ids`

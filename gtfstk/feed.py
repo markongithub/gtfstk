@@ -6,7 +6,7 @@ The ``Feed`` class also has heaps of methods: a method to compute route stats, a
 To ease reading, almost all of these methods are defined in other modules and grouped by theme (``routes.py``, ``stops.py``, etc.).
 These methods, or rather functions that operate on feeds, are then imported within the ``Feed`` class.
 However, this separation of methods messes up the ``Feed`` class documentation slightly by introducing an extra leading ``feed`` parameter in the method signatures.
-Ignore that extra parameter; it refers to the ``Feed`` instance, usually called ``self`` and usually hidden automatically by documentation tools. 
+Ignore that extra parameter; it refers to the ``Feed`` instance, usually called ``self`` and usually hidden automatically by documentation tools.
 
 Conventions in the code below:
     - Dates are encoded as date strings of the form YYMMDD
@@ -21,10 +21,10 @@ import dateutil.relativedelta as rd
 from collections import OrderedDict
 import json
 
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from . import constants as cs
 from . import helpers as hp
@@ -44,7 +44,7 @@ class Feed(object):
     - ``trips``
     - ``stop_times``
     - ``calendar``
-    - ``calendar_dates`` 
+    - ``calendar_dates``
     - ``fare_attributes``
     - ``fare_rules``
     - ``shapes``
@@ -69,16 +69,16 @@ class Feed(object):
     from .routes import get_routes, compute_route_stats, compute_route_time_series, build_route_timetable, route_to_geojson
     from .shapes import build_geometry_by_shape, shapes_to_geojson, get_shapes_intersecting_geometry, append_dist_to_shapes
     from .stops import get_stops, build_geometry_by_stop, compute_stop_activity, compute_stop_stats, compute_stop_time_series, build_stop_timetable, get_stops_in_polygon
-    from .stop_times import get_stop_times, append_dist_to_stop_times, get_start_and_end_times 
+    from .stop_times import get_stop_times, append_dist_to_stop_times, get_start_and_end_times
     from .trips import is_active_trip, get_trips, compute_trip_activity, compute_busiest_date, compute_trip_stats, locate_trips, trip_to_geojson
     from .miscellany import describe, assess_quality, convert_dist, compute_feed_stats, compute_feed_time_series, create_shapes, compute_bounds, compute_center, restrict_to_routes, restrict_to_polygon, compute_screen_line_counts
-    from .validators import validate, check_agency, check_calendar, check_calendar_dates, check_fare_attributes, check_fare_rules, check_feed_info, check_frequencies, check_routes, check_shapes, check_stops, check_stop_times, check_transfers, check_trips 
+    from .validators import validate, check_agency, check_calendar, check_calendar_dates, check_fare_attributes, check_fare_rules, check_feed_info, check_frequencies, check_routes, check_shapes, check_stops, check_stop_times, check_transfers, check_trips
     from .cleaners import clean_ids, clean_times, clean_route_short_names, drop_zombies, aggregate_routes, clean, drop_invalid_columns
 
 
-    def __init__(self, dist_units, agency=None, stops=None, routes=None, 
-      trips=None, stop_times=None, calendar=None, calendar_dates=None, 
-      fare_attributes=None, fare_rules=None, shapes=None, 
+    def __init__(self, dist_units, agency=None, stops=None, routes=None,
+      trips=None, stop_times=None, calendar=None, calendar_dates=None,
+      fare_attributes=None, fare_rules=None, shapes=None,
       frequencies=None, transfers=None, feed_info=None):
         """
         Assume that every non-None input is a Pandas DataFrame, except for ``dist_units`` which should be a string in :const:`.constants.DIST_UNITS`.
@@ -90,9 +90,9 @@ class Feed(object):
         # validate some and automatically set secondary attributes
         for prop, val in locals().items():
             if prop in cs.FEED_ATTRS_PUBLIC:
-                setattr(self, prop, val)        
+                setattr(self, prop, val)       
 
-    @property 
+    @property
     def dist_units(self):
         """
         A public Feed attribute made into a property for easy validation.
@@ -117,7 +117,7 @@ class Feed(object):
 
     @trips.setter
     def trips(self, val):
-        self._trips = val 
+        self._trips = val
         if val is not None and not val.empty:
             self._trips_i = self._trips.set_index('trip_id')
         else:
@@ -133,19 +133,19 @@ class Feed(object):
 
     @calendar.setter
     def calendar(self, val):
-        self._calendar = val 
+        self._calendar = val
         if val is not None and not val.empty:
             self._calendar_i = self._calendar.set_index('service_id')
         else:
-            self._calendar_i = None 
+            self._calendar_i = None
 
     # If ``self.calendar_dates`` changes, then update ``self._calendar_dates_g``
-    @property 
+    @property
     def calendar_dates(self):
         """
         A public Feed attribute made into a property for easy auto-updating of private feed attributes based on the calendar dates DataFrame.
-        """        
-        return self._calendar_dates 
+        """       
+        return self._calendar_dates
 
     @calendar_dates.setter
     def calendar_dates(self, val):
@@ -169,7 +169,7 @@ class Feed(object):
             if isinstance(x, pd.DataFrame):
                 if not isinstance(y, pd.DataFrame) or\
                   not hp.almost_equal(x, y):
-                    return False 
+                    return False
             # Other case
             else:
                 if x != y:
@@ -192,7 +192,7 @@ class Feed(object):
                 # as far as i know
                 value = deepcopy(value)
             setattr(other, key, value)
-        
+       
         return other
 
 
@@ -224,17 +224,17 @@ def read_gtfs(path, dist_units=None):
         table = p.stem
         if p.is_file() and table in feed_dict:
             # utf-8-sig gets rid of the byte order mark (BOM);
-            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string             
-            df = pd.read_csv(p, dtype=cs.DTYPE, encoding='utf-8-sig') 
+            # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string            
+            df = pd.read_csv(p, dtype=cs.DTYPE, encoding='utf-8-sig')
             feed_dict[table] = cn.clean_column_names(df)
-        
+       
     feed_dict['dist_units'] = dist_units
 
     # Delete temporary directory
     if zipped:
         tmp_dir.cleanup()
 
-    # Create feed 
+    # Create feed
     return Feed(**feed_dict)
 
 def write_gtfs(feed, path, ndigits=6):
@@ -256,7 +256,7 @@ def write_gtfs(feed, path, ndigits=6):
         zipped = False
         if not path.exists():
             path.mkdir()
-        new_path = path 
+        new_path = path
 
     for table in cs.GTFS_REF['table'].unique():
         f = getattr(feed, table)
@@ -265,7 +265,7 @@ def write_gtfs(feed, path, ndigits=6):
 
         f = f.copy()
         # Some columns need to be output as integers.
-        # If there are NaNs in any such column, 
+        # If there are NaNs in any such column,
         # then Pandas will format the column as float, which we don't want.
         f_int_cols = set(cs.INT_COLS) & set(f.columns)
         for s in f_int_cols:
@@ -274,8 +274,8 @@ def write_gtfs(feed, path, ndigits=6):
         p = new_path/(table + '.txt')
         f.to_csv(str(p), index=False, float_format='%.{!s}f'.format(ndigits))
 
-    # Zip directory 
+    # Zip directory
     if zipped:
         basename = str(path.parent/path.stem)
-        shutil.make_archive(basename, format='zip', root_dir=tmp_dir.name)    
+        shutil.make_archive(basename, format='zip', root_dir=tmp_dir.name)   
         tmp_dir.cleanup()

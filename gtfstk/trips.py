@@ -4,10 +4,10 @@ Functions about trips.
 from collections import OrderedDict
 import json
 
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import utm
-import shapely.geometry as sg 
+import shapely.geometry as sg
 
 from . import constants as cs
 from . import helpers as hp
@@ -22,8 +22,8 @@ def is_active_trip(feed, trip_id, date):
 
     - ``feed.trips``
 
-    NOTES: 
-        - This function is key for getting all trips, routes, etc. that are active on a given date, so the function needs to be fast. 
+    NOTES:
+        - This function is key for getting all trips, routes, etc. that are active on a given date, so the function needs to be fast.
     """
     service = feed._trips_i.at[trip_id, 'service_id']
     # Check feed._calendar_dates_g.
@@ -58,7 +58,7 @@ def get_trips(feed, date=None, time=None):
     Do not take times modulo 24.
     """
     if feed.trips is None or date is None:
-        return feed.trips 
+        return feed.trips
 
     f = feed.trips.copy()
     f['is_active'] = f['trip_id'].map(
@@ -103,14 +103,14 @@ def compute_trip_activity(feed, dates):
 
     - ``feed.trips``
     - Those used in :func:`is_active_trip`
-        
+       
     """
     if not dates:
         return pd.DataFrame(columns=['trip_id'])
 
     f = feed.trips.copy()
     for date in dates:
-        f[date] = f['trip_id'].map(lambda trip_id: 
+        f[date] = f['trip_id'].map(lambda trip_id:
           int(feed.is_active_trip(trip_id, date)))
     return f[['trip_id'] + dates]
 
@@ -122,7 +122,7 @@ def compute_busiest_date(feed, dates):
     Assume the following feed attributes are not ``None``:
 
     - Those used in :func:`compute_trip_activity`
-        
+       
     """
     f = feed.compute_trip_activity(dates)
     s = [(f[date].sum(), date) for date in dates]
@@ -141,11 +141,11 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
     - num_stops: number of stops on trip
     - start_time: first departure time of the trip
     - end_time: last departure time of the trip
-    - start_stop_id: stop ID of the first stop of the trip 
+    - start_stop_id: stop ID of the first stop of the trip
     - end_stop_id: stop ID of the last stop of the trip
     - is_loop: 1 if the start and end stop are less than 400m apart and
       0 otherwise
-    - distance: distance of the trip in ``feed.dist_units``; 
+    - distance: distance of the trip in ``feed.dist_units``;
       contains all ``np.nan`` entries if ``feed.shapes is None``
     - duration: duration of the trip in hours
     - speed: distance/duration
@@ -160,22 +160,22 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
 
     NOTES:
         If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at least one non-NaN value and ``compute_dist_from_shapes == False``, then use that column to compute the distance column.
-        Else if ``feed.shapes is not None``, then compute the distance column using the shapes and Shapely. 
+        Else if ``feed.shapes is not None``, then compute the distance column using the shapes and Shapely.
         Otherwise, set the distances to ``np.nan``.
 
         Calculating trip distances with ``compute_dist_from_shapes=True`` seems pretty accurate.
         For example, calculating trip distances on the Portland feed at https://transitfeeds.com/p/trimet/43/1400947517 using ``compute_dist_from_shapes=False`` and ``compute_dist_from_shapes=True``, yields a difference of at most 0.83km.
-    """        
+    """       
     # Start with stop times and extra trip info.
-    # Convert departure times to seconds past midnight to 
+    # Convert departure times to seconds past midnight to
     # compute durations.
     f = feed.trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
-    f = pd.merge(f, 
+    f = pd.merge(f,
       feed.routes[['route_id', 'route_short_name', 'route_type']])
     f = pd.merge(f, feed.stop_times).sort_values(['trip_id', 'stop_sequence'])
     f['departure_time'] = f['departure_time'].map(hp.timestr_to_seconds)
-    
-    # Compute all trips stats except distance, 
+   
+    # Compute all trips stats except distance,
     # which is possibly more involved
     geometry_by_stop = feed.build_geometry_by_stop(use_utm=True)
     g = f.groupby('trip_id')
@@ -199,9 +199,9 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
         return pd.Series(d)
 
     # Apply my_agg, but don't reset index yet.
-    # Need trip ID as index to line up the results of the 
+    # Need trip ID as index to line up the results of the
     # forthcoming distance calculation
-    h = g.apply(my_agg)  
+    h = g.apply(my_agg) 
 
     # Compute distance
     if hp.is_not_null(f, 'shape_dist_traveled') and\
@@ -227,10 +227,10 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
             except KeyError:
                 # Shape ID is NaN or doesn't exist in shapes.
                 # No can do.
-                return np.nan 
-            
+                return np.nan
+           
             # If the linestring intersects itfeed, then that can cause
-            # errors in the computation below, so just 
+            # errors in the computation below, so just
             # return the length of the linestring as a good approximation
             D = linestring.length
             if not linestring.is_simple:
@@ -268,19 +268,19 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
     h['speed'] = h['distance']/h['duration']
     h[['start_time', 'end_time']] = h[['start_time', 'end_time']].\
       applymap(lambda x: hp.timestr_to_seconds(x, inverse=True))
-    
+   
     return h.sort_values(['route_id', 'direction_id', 'start_time'])
 
 def locate_trips(feed, date, times):
     """
-    Return a  DataFrame of the positions of all trips active on the given date and times 
+    Return a  DataFrame of the positions of all trips active on the given date and times
     Include the columns:
 
     - trip_id
     - route_id
     - direction_id
     - time
-    - rel_dist: number between 0 (start) and 1 (end) indicating 
+    - rel_dist: number between 0 (start) and 1 (end) indicating
       the relative distance of the trip along its path
     - lon: longitude of trip at given time
     - lat: latitude of trip at given time
@@ -292,14 +292,14 @@ def locate_trips(feed, date, times):
     - ``feed.trips``
     - Those used in :func:`get_stop_times`
     - Those used in :func:`build_geometry_by_shape`
-        
+       
     """
     if not hp.is_not_null(feed.stop_times, 'shape_dist_traveled'):
         raise ValueError(
           "feed.stop_times needs to have a non-null shape_dist_traveled "\
           "column. You can create it, possibly with some inaccuracies, "\
           "via feed2 = feed.append_dist_to_stop_times().")
-    
+   
     # Start with stop times active on date
     f = feed.get_stop_times(date)
     f['departure_time'] = f['departure_time'].map(
@@ -310,9 +310,9 @@ def locate_trips(feed, date, times):
     # Use linear interpolation based on stop departure times and
     # shape distance traveled.
     geometry_by_shape = feed.build_geometry_by_shape(use_utm=False)
-    sample_times = np.array([hp.timestr_to_seconds(s) 
+    sample_times = np.array([hp.timestr_to_seconds(s)
       for s in times])
-    
+   
     def compute_rel_dist(group):
         dists = sorted(group['shape_dist_traveled'].values)
         times = sorted(group['departure_time'].values)
@@ -320,21 +320,21 @@ def locate_trips(feed, date, times):
           (sample_times <= times[-1])]
         ds = np.interp(ts, times, dists)
         return pd.DataFrame({'time': ts, 'rel_dist': ds/dists[-1]})
-    
+   
     # return f.groupby('trip_id', group_keys=False).\
     #   apply(compute_rel_dist).reset_index()
     g = f.groupby('trip_id').apply(compute_rel_dist).reset_index()
-    
+   
     # Delete extraneous multi-index column
     del g['level_1']
-    
+   
     # Convert times back to time strings
     g['time'] = g['time'].map(
       lambda x: hp.timestr_to_seconds(x, inverse=True))
 
     # Merge in more trip info and
     # compute longitude and latitude of trip from relative distance
-    h = pd.merge(g, feed.trips[['trip_id', 'route_id', 'direction_id', 
+    h = pd.merge(g, feed.trips[['trip_id', 'route_id', 'direction_id',
       'shape_id']])
     if not h.shape[0]:
         # Return a DataFrame with the promised headers but no data.
@@ -350,13 +350,13 @@ def locate_trips(feed, date, times):
           for d in group['rel_dist'].values]
         group['lon'], group['lat'] = zip(*lonlats)
         return group
-    
+   
     return h.groupby('shape_id').apply(get_lonlat)
 
 def trip_to_geojson(feed, trip_id, include_stops=False):
     """
     Given a feed and a trip ID (string), return a (decoded) GeoJSON feature collection comprising a Linestring feature of representing the trip's shape.
-    If ``include_stops``, then also include one Point feature for each stop  visited by the trip. 
+    If ``include_stops``, then also include one Point feature for each stop  visited by the trip.
     The Linestring feature will contain as properties all the columns in ``feed.trips`` pertaining to the given trip, and each Point feature will contain as properties all the columns in ``feed.stops`` pertaining    to the stop, except the ``stop_lat`` and ``stop_lon`` properties.
 
     Return the empty dictionary if the trip has no shape.
@@ -365,7 +365,7 @@ def trip_to_geojson(feed, trip_id, include_stops=False):
     t = feed.trips.copy()
     t = t[t['trip_id'] == trip_id].copy()
     shid = t['shape_id'].iat[0]
-    geometry_by_shape = feed.build_geometry_by_shape(use_utm=False, 
+    geometry_by_shape = feed.build_geometry_by_shape(use_utm=False,
       shape_ids=[shid])
 
     if not geometry_by_shape:
