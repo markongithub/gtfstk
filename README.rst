@@ -1,5 +1,8 @@
 GTFSTK
 ********
+.. image:: https://travis-ci.org/araichev/gtfstk.svg?branch=master
+    :target: https://travis-ci.org/araichev/gtfstk
+    
 GTFSTK is a Python 3.5 tool kit that analyzes `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
 It uses Pandas and Shapely to do the heavy lifting.
 
