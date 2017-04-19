@@ -196,6 +196,11 @@ def read_gtfs(path, dist_units=None):
     """
     Create a Feed object from the given path and given distance units.
     The path should be a directory containing GTFS text files or a zip file that unzips as a collection of GTFS text files (and not as a directory containing GTFS text files).
+    The distance units must lie in :const:`constants.dist_units`
+
+    NOTES:
+        - Ignores non-GTFS files
+        - Automatically strips whitespace from the column names in GTFS files 
     """
     path = Path(path)
     if not path.exists():

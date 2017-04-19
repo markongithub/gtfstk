@@ -38,7 +38,6 @@
   <ul>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-introduction">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#examples">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-modules">Module constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.helpers">Module helpers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.validators">Module validators</a></li>
@@ -64,37 +63,27 @@
   <div class="section" id="gtfstk-version-documentation">
 <h1>GTFSTK 8.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
-<span id="document-introduction"></span><p>GTFSTK is a Python 3.5 tool kit to analyze <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
+<span id="document-introduction"></span><p>GTFSTK is a Python 3.4+ tool kit that analyzes <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
 It uses Pandas and Shapely to do the heavy lifting.</p>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>Create a Python 3.5 virtual environment and <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">gtfstk</span></code>.</p>
+<p>Create a Python 3.4+ virtual environment and <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">gtfstk</span></code>.</p>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <p>You can play with <code class="docutils literal"><span class="pre">ipynb/examples.ipynb</span></code> in a Jupyter notebook</p>
-</div>
-<div class="section" id="conventions">
-<h2>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h2>
-<p>In conformance with GTFS and unless specified otherwise, dates are encoded as date strings of the form YYMMDD and times are encoded as time strings of the form HH:MM:SS with the possibility that the hour is greater than 24.
-Also &#8216;DataFrame&#8217; and &#8216;Series&#8217; refer to Pandas DataFrame and Series objects, respectively.</p>
 </div>
 <span id="document-modules"></span><div class="section" id="module-gtfstk.constants">
 <span id="module-constants"></span><h2>Module constants<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <p>Constants useful across modules.</p>
 <dl class="data">
 <dt id="gtfstk.constants.CRS_WGS84">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'datum': 'WGS84', 'no_defs': True, 'proj': 'longlat', 'ellps': 'WGS84'}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {'proj': 'latlong', 'ellps': 'WGS84', 'datum': 'WGS84', 'no_defs': True}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
 <dt id="gtfstk.constants.DIST_UNITS">
 <code class="descclassname">gtfstk.constants.</code><code class="descname">DIST_UNITS</code><em class="property"> = ['ft', 'mi', 'm', 'km']</em><a class="headerlink" href="#gtfstk.constants.DIST_UNITS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="gtfstk.constants.DTYPE">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">DTYPE</code><em class="property"> = {'service_id': &lt;class 'str'&gt;, 'feed_end_date': &lt;class 'str'&gt;, 'trip_headsign': &lt;class 'str'&gt;, 'shape_id': &lt;class 'str'&gt;, 'route_short_name': &lt;class 'str'&gt;, 'agency_name': &lt;class 'str'&gt;, 'feed_publisher_url': &lt;class 'str'&gt;, 'contains_id': &lt;class 'str'&gt;, 'feed_publisher_name': &lt;class 'str'&gt;, 'feed_version': &lt;class 'str'&gt;, 'route_url': &lt;class 'str'&gt;, 'from_stop_id': &lt;class 'str'&gt;, 'stop_desc': &lt;class 'str'&gt;, 'feed_start_date': &lt;class 'str'&gt;, 'agency_id': &lt;class 'str'&gt;, 'start_date': &lt;class 'str'&gt;, 'zone_id': &lt;class 'str'&gt;, 'block_id': &lt;class 'str'&gt;, 'agency_url': &lt;class 'str'&gt;, 'agency_fare_url': &lt;class 'str'&gt;, 'arrival_time': &lt;class 'str'&gt;, 'trip_short_name': &lt;class 'str'&gt;, 'fare_id': &lt;class 'str'&gt;, 'stop_url': &lt;class 'str'&gt;, 'trip_id': &lt;class 'str'&gt;, 'parent_station': &lt;class 'str'&gt;, 'agency_lang': &lt;class 'str'&gt;, 'destination_id': &lt;class 'str'&gt;, 'end_date': &lt;class 'str'&gt;, 'stop_id': &lt;class 'str'&gt;, 'end_time': &lt;class 'str'&gt;, 'departure_time': &lt;class 'str'&gt;, 'stop_headsign': &lt;class 'str'&gt;, 'stop_name': &lt;class 'str'&gt;, 'currency_type': &lt;class 'str'&gt;, 'route_color': &lt;class 'str'&gt;, 'origin_id': &lt;class 'str'&gt;, 'date': &lt;class 'str'&gt;, 'feed_lang': &lt;class 'str'&gt;, 'agency_timezone': &lt;class 'str'&gt;, 'agency_phone': &lt;class 'str'&gt;, 'stop_code': &lt;class 'str'&gt;, 'start_time': &lt;class 'str'&gt;, 'agency_email': &lt;class 'str'&gt;, 'route_text_color': &lt;class 'str'&gt;, 'route_id': &lt;class 'str'&gt;, 'stop_time_zone': &lt;class 'str'&gt;, 'route_long_name': &lt;class 'str'&gt;, 'route_desc': &lt;class 'str'&gt;, 'to_stop_id': &lt;class 'str'&gt;}</em><a class="headerlink" href="#gtfstk.constants.DTYPE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -113,19 +102,16 @@ Also &#8216;DataFrame&#8217; and &#8216;Series&#8217; refer to Pandas DataFrame 
 <dd></dd></dl>
 
 <dl class="data">
-<dt id="gtfstk.constants.GTFS_REF">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">GTFS_REF</code><em class="property"> =               table table_required                 column column_required  \ 0            agency           True              agency_id           False    1            agency           True            agency_name            True    2            agency           True             agency_url            True    3            agency           True        agency_timezone            True    4            agency           True            agency_lang           False    5            agency           True           agency_phone           False    6            agency           True        agency_fare_url           False    7            agency           True           agency_email           False    8          calendar          False             service_id            True    9          calendar          False                 monday            True    10         calendar          False                tuesday            True    11         calendar          False              wednesday            True    12         calendar          False               thursday            True    13         calendar          False                 friday            True    14         calendar          False               saturday            True    15         calendar          False                 sunday            True    16         calendar          False             start_date            True    17         calendar          False               end_date            True    18   calendar_dates          False             service_id            True    19   calendar_dates          False                   date            True    20   calendar_dates          False         exception_type            True    21  fare_attributes          False                fare_id            True    22  fare_attributes          False                  price            True    23  fare_attributes          False          currency_type            True    24  fare_attributes          False         payment_method            True    25  fare_attributes          False              transfers            True    26  fare_attributes          False      transfer_duration           False    27       fare_rules          False                fare_id            True    28       fare_rules          False               route_id           False    29       fare_rules          False              origin_id           False    ..              ...            ...                    ...             ...    63            stops           True                zone_id           False    64            stops           True               stop_url           False    65            stops           True          location_type           False    66            stops           True         parent_station           False    67            stops           True         stop_time_zone           False    68            stops           True    wheelchair_boarding           False    69       stop_times           True                trip_id            True    70       stop_times           True           arrival_time            True    71       stop_times           True         departure_time            True    72       stop_times           True                stop_id            True    73       stop_times           True          stop_sequence            True    74       stop_times           True          stop_headsign           False    75       stop_times           True            pickup_type           False    76       stop_times           True          drop_off_type           False    77       stop_times           True    shape_dist_traveled           False    78       stop_times           True              timepoint           False    79        transfers          False           from_stop_id            True    80        transfers          False             to_stop_id            True    81        transfers          False          transfer_type            True    82        transfers          False      min_transfer_time           False    83            trips           True               route_id            True    84            trips           True             service_id            True    85            trips           True                trip_id            True    86            trips           True          trip_headsign           False    87            trips           True        trip_short_name           False    88            trips           True           direction_id           False    89            trips           True               block_id           False    90            trips           True               shape_id           False    91            trips           True  wheelchair_accessible           False    92            trips           True          bikes_allowed           False         dtype   0     str   1     str   2     str   3     str   4     str   5     str   6     str   7     str   8     str   9     int   10    int   11    int   12    int   13    int   14    int   15    int   16    str   17    str   18    str   19    str   20    int   21    str   22  float   23    str   24    int   25    int   26    int   27    str   28    str   29    str   ..    ...   63    str   64    str   65    int   66    str   67    str   68    int   69    str   70    str   71    str   72    str   73    int   74    str   75    int   76    int   77  float   78    int   79    str   80    str   81    int   82    int   83    str   84    str   85    str   86    str   87    str   88    int   89    str   90    str   91    int   92    int    [93 rows x 5 columns]</em><a class="headerlink" href="#gtfstk.constants.GTFS_REF" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
 <dt id="gtfstk.constants.INT_COLS">
 <code class="descclassname">gtfstk.constants.</code><code class="descname">INT_COLS</code><em class="property"> = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'exception_type', 'payment_method', 'transfers', 'transfer_duration', 'headway_secs', 'exact_times', 'route_type', 'shape_pt_sequence', 'location_type', 'wheelchair_boarding', 'stop_sequence', 'pickup_type', 'drop_off_type', 'timepoint', 'transfer_type', 'min_transfer_time', 'direction_id', 'wheelchair_accessible', 'bikes_allowed']</em><a class="headerlink" href="#gtfstk.constants.INT_COLS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Columns that must be formatted as integers when outputting GTFS</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="gtfstk.constants.STR_COLS">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">STR_COLS</code><em class="property"> = ['agency_id', 'agency_name', 'agency_url', 'agency_timezone', 'agency_lang', 'agency_phone', 'agency_fare_url', 'agency_email', 'service_id', 'start_date', 'end_date', 'service_id', 'date', 'fare_id', 'currency_type', 'fare_id', 'route_id', 'origin_id', 'destination_id', 'contains_id', 'feed_publisher_name', 'feed_publisher_url', 'feed_lang', 'feed_start_date', 'feed_end_date', 'feed_version', 'trip_id', 'start_time', 'end_time', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_desc', 'route_url', 'route_color', 'route_text_color', 'shape_id', 'stop_id', 'stop_code', 'stop_name', 'stop_desc', 'zone_id', 'stop_url', 'parent_station', 'stop_time_zone', 'trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_headsign', 'from_stop_id', 'to_stop_id', 'route_id', 'service_id', 'trip_id', 'trip_headsign', 'trip_short_name', 'block_id', 'shape_id']</em><a class="headerlink" href="#gtfstk.constants.STR_COLS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">STR_COLS</code><em class="property"> = ['agency_id', 'agency_name', 'agency_url', 'agency_timezone', 'agency_lang', 'agency_phone', 'agency_fare_url', 'agency_email', 'service_id', 'start_date', 'end_date', 'service_id', 'date', 'fare_id', 'currency_type', 'fare_id', 'route_id', 'origin_id', 'destination_id', 'contains_id', 'feed_publisher_name', 'feed_publisher_url', 'feed_lang', 'feed_start_date', 'feed_end_date', 'feed_version', 'trip_id', 'start_time', 'end_time', 'route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_desc', 'route_url', 'route_color', 'route_text_color', 'shape_id', 'stop_id', 'stop_code', 'stop_name', 'stop_desc', 'zone_id', 'stop_url', 'parent_station', 'stop_timezone', 'trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_headsign', 'from_stop_id', 'to_stop_id', 'route_id', 'service_id', 'trip_id', 'trip_headsign', 'trip_short_name', 'block_id', 'shape_id']</em><a class="headerlink" href="#gtfstk.constants.STR_COLS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Columns that must be read as strings by Pandas</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-gtfstk.helpers">
@@ -145,7 +131,7 @@ into one time series DataFrame with multi-index (hierarchical) columns
 and return the result.
 The top level columns are the keys of the dictionary and
 the second and third level columns are &#8216;route_id&#8217; and &#8216;direction_id&#8217;,
-if <code class="docutils literal"><span class="pre">kind</span> <span class="pre">==</span> <span class="pre">'route'</span></code>, or &#8216;stop_id&#8217; and &#8216;direction_id&#8217;, 
+if <code class="docutils literal"><span class="pre">kind</span> <span class="pre">==</span> <span class="pre">'route'</span></code>, or &#8216;stop_id&#8217; and &#8216;direction_id&#8217;,
 if <code class="docutils literal"><span class="pre">kind</span> <span class="pre">==</span> <span class="pre">'stop'</span></code>.
 If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then there is no third column level,
 no &#8216;direction_id&#8217; column.</p>
@@ -174,11 +160,11 @@ If <code class="docutils literal"><span class="pre">inverse</span></code>, then 
 <dl class="function">
 <dt id="gtfstk.helpers.downsample">
 <code class="descclassname">gtfstk.helpers.</code><code class="descname">downsample</code><span class="sig-paren">(</span><em>time_series</em>, <em>freq</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.helpers.downsample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Downsample the given route, stop, or feed time series, 
-(outputs of <code class="docutils literal"><span class="pre">Feed.compute_route_time_series()</span></code>, 
+<dd><p>Downsample the given route, stop, or feed time series,
+(outputs of <code class="docutils literal"><span class="pre">Feed.compute_route_time_series()</span></code>,
 <code class="docutils literal"><span class="pre">Feed.compute_stop_time_series()</span></code>, or <code class="docutils literal"><span class="pre">Feed.compute_feed_time_series()</span></code>,
 respectively) to the given Pandas frequency.
-Return the given time series unchanged if the given frequency is 
+Return the given time series unchanged if the given frequency is
 shorter than the original frequency.</p>
 </dd></dl>
 
@@ -187,7 +173,7 @@ shorter than the original frequency.</p>
 <code class="descclassname">gtfstk.helpers.</code><code class="descname">get_convert_dist</code><span class="sig-paren">(</span><em>dist_units_in</em>, <em>dist_units_out</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.helpers.get_convert_dist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a function of the form</p>
 <blockquote>
-<div>distance in the units <code class="docutils literal"><span class="pre">dist_units_in</span></code> -&gt; 
+<div>distance in the units <code class="docutils literal"><span class="pre">dist_units_in</span></code> -&gt;
 distance in the units <code class="docutils literal"><span class="pre">dist_units_out</span></code></div></blockquote>
 <p>Only supports distance units in <code class="docutils literal"><span class="pre">DIST_UNITS</span></code>.</p>
 </dd></dl>
@@ -236,7 +222,7 @@ The distance is measured in the native coordinates of the linestring.</p>
 <dl class="function">
 <dt id="gtfstk.helpers.linestring_to_utm">
 <code class="descclassname">gtfstk.helpers.</code><code class="descname">linestring_to_utm</code><span class="sig-paren">(</span><em>linestring</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.helpers.linestring_to_utm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a Shapely LineString in WGS84 coordinates, convert it to the appropriate UTM coordinates. 
+<dd><p>Given a Shapely LineString in WGS84 coordinates, convert it to the appropriate UTM coordinates.
 If <code class="docutils literal"><span class="pre">inverse</span></code>, then do the inverse.</p>
 </dd></dl>
 
@@ -275,130 +261,136 @@ If <code class="docutils literal"><span class="pre">inverse</span></code>, then 
 <p>Functions about validation.</p>
 <dl class="function">
 <dt id="gtfstk.validators.check_agency">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_agency</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_agency" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check thet <code class="docutils literal"><span class="pre">feed.agency</span></code> follows the GTFS and output a possibly empty list of errors found as pairs of the form (&#8216;agency&#8217;, error message, row indices where errors occur).</p>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_agency</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_agency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that <code class="docutils literal"><span class="pre">feed.agency</span></code> follows the GTFS.
+Return a list of problems of the form described in <a class="reference internal" href="#gtfstk.validators.check_table" title="gtfstk.validators.check_table"><code class="xref py py-func docutils literal"><span class="pre">check_table()</span></code></a>; the list will be empty if no problems are found.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_calendar">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_calendar</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_calendar" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_calendar</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_calendar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.calendar</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_calendar_dates">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_calendar_dates</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_calendar_dates" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_calendar_dates</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_calendar_dates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.calendar_dates</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_column">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_column</code><span class="sig-paren">(</span><em>errors</em>, <em>table</em>, <em>df</em>, <em>column</em>, <em>column_required</em>, <em>checker</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_column" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a list of errors, a table name (string), the DataFrame corresponding to the table, a column name (string), a boolean indicating whether the table is required, and a checker (boolean-valued unary function), do the following.
-Apply the checker to the column entries and record the indices of the rows on which errors occur, if any.
-Append these errors to the given error list and return the new error list.</p>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_column</code><span class="sig-paren">(</span><em>problems</em>, <em>table</em>, <em>df</em>, <em>column</em>, <em>column_required</em>, <em>checker</em>, <em>type_='error'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of problems (each a list of length 4), a table name (string), the DataFrame corresponding to the table, a column name (string), a boolean indicating whether the table is required, a checker (boolean-valued unary function), and a probelm type (&#8216;error&#8217; or &#8216;warning&#8217;), do the following.
+Apply the checker to the column entries and record the indices of hits.
+If the list of indices is nonempty, append to the problems the item <code class="docutils literal"><span class="pre">[type_,</span> <span class="pre">problem,</span> <span class="pre">table,</span> <span class="pre">indices]</span></code>.
+Otherwise, return the original list of problems.</p>
+<p>If the column is not required, then NaN entries will be ignored in the checking.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_column_id">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_column_id</code><span class="sig-paren">(</span><em>errors</em>, <em>table</em>, <em>df</em>, <em>column</em>, <em>column_required=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_column_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>A modified verios of <a class="reference internal" href="#gtfstk.validators.check_column" title="gtfstk.validators.check_column"><code class="xref py py-func docutils literal"><span class="pre">check_column()</span></code></a> that applies to a column that must have unduplicated IDs.</p>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_column_id</code><span class="sig-paren">(</span><em>problems</em>, <em>table</em>, <em>df</em>, <em>column</em>, <em>column_required=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_column_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A modified version of <a class="reference internal" href="#gtfstk.validators.check_column" title="gtfstk.validators.check_column"><code class="xref py py-func docutils literal"><span class="pre">check_column()</span></code></a>.
+The given column must have unduplicated IDs that are valid strings.</p>
+<p>If the column is not required, then NaN entries will be ignored in the checking.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_column_linked_id">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_column_linked_id</code><span class="sig-paren">(</span><em>errors</em>, <em>table</em>, <em>df</em>, <em>column</em>, <em>column_required</em>, <em>target_df</em>, <em>target_column=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_column_linked_id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_column_linked_id</code><span class="sig-paren">(</span><em>problems</em>, <em>table</em>, <em>df</em>, <em>column</em>, <em>column_required</em>, <em>target_df</em>, <em>target_column=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_column_linked_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A modified version of <a class="reference internal" href="#gtfstk.validators.check_column" title="gtfstk.validators.check_column"><code class="xref py py-func docutils literal"><span class="pre">check_column()</span></code></a>.
+The given column must contain IDs that are valid strings and are in the target DataFrame under the target column name, the latter of which defaults to the given column name.</p>
+<p>If the column is not required, then NaN entries will be ignored in the checking.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_fare_attributes">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_fare_attributes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_fare_attributes" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_fare_attributes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_fare_attributes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.calendar_dates</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_fare_rules">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_fare_rules</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_fare_rules" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_fare_rules</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_fare_rules" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.calendar_dates</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_feed_info">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_feed_info</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_feed_info" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_feed_info</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_feed_info" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.feed_info</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_for_invalid_columns">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_for_invalid_columns</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_for_invalid_columns" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_for_invalid_columns</code><span class="sig-paren">(</span><em>problems</em>, <em>table</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_for_invalid_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of problems (each a list of length 4), a table name (string), and the DataFrame corresponding to the table, do the following.
+Check whether the DataFrame contains extra columns not in the GTFS, append to the problems list one warning for each extra column, and return the resulting problems list.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_for_required_columns">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_for_required_columns</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_for_required_columns" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="gtfstk.validators.check_for_required_tables">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_for_required_tables</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_for_required_tables" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_for_required_columns</code><span class="sig-paren">(</span><em>problems</em>, <em>table</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_for_required_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of problems (each a list of length 4), a table name (string), and the DataFrame corresponding to the table, do the following.
+Check that the DataFrame contains the colums required by GTFS, append to the problems list one error for each column missing, and return the resulting problems list.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_frequencies">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_frequencies</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_frequencies" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_frequencies</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_frequencies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.frequencies</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_routes">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_routes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_routes" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_routes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_routes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.routes</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_shapes">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_shapes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_shapes" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_shapes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_shapes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.shapes</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_stop_times">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_stop_times</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_stop_times" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_stop_times</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_stop_times" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_stops">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_stops</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_stops" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_stops</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_stops" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.stops</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_table">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_table</code><span class="sig-paren">(</span><em>errors</em>, <em>table</em>, <em>df</em>, <em>condition</em>, <em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a list of errors, a table name (string), the DataFrame corresponding to the table, a boolean condition on the DataFrame, and an error message, do the following.
-Record the indices of the rows of the DataFrame that statisfy the condition.
-If this is a nonempty list, then append the given error message to the list of errors along with the offending table indices.
-Otherwise, return the original list of errors.</p>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_table</code><span class="sig-paren">(</span><em>problems</em>, <em>table</em>, <em>df</em>, <em>condition</em>, <em>message</em>, <em>type_='error'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of problems (each a list of length 4), a table (string), the DataFrame corresponding to the table, a boolean condition on the DataFrame, a message (string), and a problem type (&#8216;error&#8217; or &#8216;warning&#8217;), do the following.
+Record the indices where the DataFrame statisfies the condition, then if the list of indices is nonempty, append to the problems the item <code class="docutils literal"><span class="pre">[type_,</span> <span class="pre">message,</span> <span class="pre">table,</span> <span class="pre">indices]</span></code>.
+If the list of indices is empty, then return the original list of problems.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_transfers">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_transfers</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_transfers" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_transfers</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_transfers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.transfers</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.check_trips">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">check_trips</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_trips" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.validators.</code><code class="descname">check_trips</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.check_trips" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.trips</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfstk.validators.format_errors">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">format_errors</code><span class="sig-paren">(</span><em>errors</em>, <em>as_df</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.format_errors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a possibly empty list of errors (triples), return a DataFrame with the errors as rows and the columns [&#8216;table&#8217;, &#8216;error&#8217;, &#8216;error_row_indices&#8217;], if <code class="docutils literal"><span class="pre">as_df</span></code>.
-If not <code class="docutils literal"><span class="pre">as_df</span></code>, then return the original list of errors.</p>
+<dt id="gtfstk.validators.format_problems">
+<code class="descclassname">gtfstk.validators.</code><code class="descname">format_problems</code><span class="sig-paren">(</span><em>problems</em>, <em>as_df</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.format_problems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a possibly empty list of problems of the form described in <a class="reference internal" href="#gtfstk.validators.check_table" title="gtfstk.validators.check_table"><code class="xref py py-func docutils literal"><span class="pre">check_table()</span></code></a>, return a DataFrame with the problems as rows and the columns [&#8216;type&#8217;, &#8216;message&#8217;, &#8216;table&#8217;, &#8216;rows&#8217;], if <code class="docutils literal"><span class="pre">as_df</span></code>.
+If not <code class="docutils literal"><span class="pre">as_df</span></code>, then return the given list of problems.</p>
 </dd></dl>
 
 <dl class="function">
@@ -422,7 +414,8 @@ If not <code class="docutils literal"><span class="pre">as_df</span></code>, the
 <dl class="function">
 <dt id="gtfstk.validators.valid_email">
 <code class="descclassname">gtfstk.validators.</code><code class="descname">valid_email</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.valid_email" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return <code class="docutils literal"><span class="pre">True</span></code> if <code class="docutils literal"><span class="pre">x</span></code> is a valid email address; otherwise return <code class="docutils literal"><span class="pre">False</span></code>.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.valid_lang">
@@ -433,13 +426,14 @@ If not <code class="docutils literal"><span class="pre">as_df</span></code>, the
 <dl class="function">
 <dt id="gtfstk.validators.valid_str">
 <code class="descclassname">gtfstk.validators.</code><code class="descname">valid_str</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.valid_str" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <code class="docutils literal"><span class="pre">True</span></code> if <code class="docutils literal"><span class="pre">x</span></code> is a non-blank string; otherwise return False.</p>
+<dd><p>Return <code class="docutils literal"><span class="pre">True</span></code> if <code class="docutils literal"><span class="pre">x</span></code> is a non-blank string; otherwise return <code class="docutils literal"><span class="pre">False</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.valid_time">
 <code class="descclassname">gtfstk.validators.</code><code class="descname">valid_time</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.valid_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return <code class="docutils literal"><span class="pre">True</span></code> if <code class="docutils literal"><span class="pre">x</span></code> is a valid H:MM:SS or HH:MM:SS time; otherwise return <code class="docutils literal"><span class="pre">False</span></code>.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.validators.valid_timezone">
@@ -455,19 +449,23 @@ If not <code class="docutils literal"><span class="pre">as_df</span></code>, the
 
 <dl class="function">
 <dt id="gtfstk.validators.validate">
-<code class="descclassname">gtfstk.validators.</code><code class="descname">validate</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.validate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check whether the given feed is valid by doing all the checks above.
-Return the errors found as a possibly empty list of pairs (table name, error message).
+<code class="descclassname">gtfstk.validators.</code><code class="descname">validate</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=True</em>, <em>include_warnings=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.validators.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether the given feed satisfies the GTFS by running the functions all the table-checking functions: <a class="reference internal" href="#gtfstk.validators.check_agency" title="gtfstk.validators.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a>, <a class="reference internal" href="#gtfstk.validators.check_calendar" title="gtfstk.validators.check_calendar"><code class="xref py py-func docutils literal"><span class="pre">check_calendar()</span></code></a>, etc.
+Return the problems found as a possibly empty list of items [problem type, message, table, rows].
 If <code class="docutils literal"><span class="pre">as_df</span></code>, then format the error list as a DataFrame with the columns</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">'table'</span></code>: name of table where error occurs</li>
-<li><code class="docutils literal"><span class="pre">'error'</span></code>: error message.</li>
+<li><code class="docutils literal"><span class="pre">'type'</span></code>: &#8216;error&#8217; or &#8216;warning&#8217;; &#8216;error&#8217; means the GTFS is violated; &#8216;warning&#8217; means there is a problem but it&#8217;s not a GTFS violation</li>
+<li><code class="docutils literal"><span class="pre">'message'</span></code>: description of the problem</li>
+<li><code class="docutils literal"><span class="pre">'table'</span></code>: table in which problem occurs, e.g. &#8216;routes&#8217;</li>
+<li><code class="docutils literal"><span class="pre">'rows'</span></code>: rows of the table&#8217;s DataFrame where problem occurs</li>
 </ul>
 <p>Return early if the feed is missing required tables or required columns.</p>
+<p>Include warning problems only if <code class="docutils literal"><span class="pre">include_warning</span></code>.</p>
 <dl class="docutils">
 <dt>NOTES:</dt>
 <dd><ul class="first last simple">
-<li>Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at <a class="reference external" href="http://transitfeeds.com/p/translink/21/20170310">http://transitfeeds.com/p/translink/21/20170310</a> in 16 seconds.</li>
+<li>This function interprets the GTFS liberally, classifying problems as warnings rather than errors where the GTFS is unclear. For example if a trip_id listed in the trips table is not listed in the stop times table (a trip with no stop times), then that&#8217;s a warning and not an error.</li>
+<li>Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at <a class="reference external" href="http://transitfeeds.com/p/translink/21/20170310">http://transitfeeds.com/p/translink/21/20170310</a> in 22 seconds (including warnings).</li>
 </ul>
 </dd>
 </dl>
@@ -492,13 +490,21 @@ If <code class="docutils literal"><span class="pre">as_df</span></code>, then fo
 <dl class="function">
 <dt id="gtfstk.cleaners.clean">
 <code class="descclassname">gtfstk.cleaners.</code><code class="descname">clean</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaners.clean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply the following functions to this feed and return the resulting new feed.</p>
+<dd><p>Apply</p>
 <ol class="arabic simple">
+<li><a class="reference internal" href="#gtfstk.cleaners.drop_zombies" title="gtfstk.cleaners.drop_zombies"><code class="xref py py-func docutils literal"><span class="pre">drop_zombies()</span></code></a></li>
 <li><a class="reference internal" href="#gtfstk.cleaners.clean_ids" title="gtfstk.cleaners.clean_ids"><code class="xref py py-func docutils literal"><span class="pre">clean_ids()</span></code></a></li>
-<li><a class="reference internal" href="#gtfstk.cleaners.clean_stop_times" title="gtfstk.cleaners.clean_stop_times"><code class="xref py py-func docutils literal"><span class="pre">clean_stop_times()</span></code></a></li>
+<li><a class="reference internal" href="#gtfstk.cleaners.clean_times" title="gtfstk.cleaners.clean_times"><code class="xref py py-func docutils literal"><span class="pre">clean_times()</span></code></a></li>
 <li><a class="reference internal" href="#gtfstk.cleaners.clean_route_short_names" title="gtfstk.cleaners.clean_route_short_names"><code class="xref py py-func docutils literal"><span class="pre">clean_route_short_names()</span></code></a></li>
-<li><a class="reference internal" href="#gtfstk.cleaners.drop_dead_routes" title="gtfstk.cleaners.drop_dead_routes"><code class="xref py py-func docutils literal"><span class="pre">drop_dead_routes()</span></code></a></li>
 </ol>
+<p>to the given feed in that order.
+Return the resulting feed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.cleaners.clean_column_names">
+<code class="descclassname">gtfstk.cleaners.</code><code class="descname">clean_column_names</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaners.clean_column_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Strip the whitespace from all column names in the given DataFrame and return the result.</p>
 </dd></dl>
 
 <dl class="function">
@@ -517,24 +523,24 @@ Return the resulting feed.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfstk.cleaners.clean_stop_times">
-<code class="descclassname">gtfstk.cleaners.</code><code class="descname">clean_stop_times</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaners.clean_stop_times" title="Permalink to this definition">¶</a></dt>
-<dd><p>In <code class="docutils literal"><span class="pre">feed.stop_times</span></code>, prefix a zero to arrival and departure times if necessary.
+<dt id="gtfstk.cleaners.clean_times">
+<code class="descclassname">gtfstk.cleaners.</code><code class="descname">clean_times</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaners.clean_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prefix a zero to each H:MM:SS time to make it an HH:MM:SS.
 This makes sorting by time work as expected.
 Return the resulting feed.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gtfstk.cleaners.drop_dead_routes">
-<code class="descclassname">gtfstk.cleaners.</code><code class="descname">drop_dead_routes</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaners.drop_dead_routes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove every route from <code class="docutils literal"><span class="pre">feed.routes</span></code> that does not have trips listed in <code class="docutils literal"><span class="pre">feed.trips</span></code>.
-Return the resulting new feed.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gtfstk.cleaners.drop_invalid_columns">
 <code class="descclassname">gtfstk.cleaners.</code><code class="descname">drop_invalid_columns</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaners.drop_invalid_columns" title="Permalink to this definition">¶</a></dt>
 <dd><p>Drop all data frame columns of this feed not listed in the GTFS.
+Return the resulting new feed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.cleaners.drop_zombies">
+<code class="descclassname">gtfstk.cleaners.</code><code class="descname">drop_zombies</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.cleaners.drop_zombies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop stops with no stop times, trips with no stop times, shapes with no trips, routes with no trips, and services with no trips, in that order.
 Return the resulting new feed.</p>
 </dd></dl>
 
@@ -562,6 +568,19 @@ If <code class="docutils literal"><span class="pre">as_date_obj</span></code>, t
 <div class="section" id="module-gtfstk.routes">
 <span id="module-routes"></span><h2>Module routes<a class="headerlink" href="#module-gtfstk.routes" title="Permalink to this headline">¶</a></h2>
 <p>Functions about routes.</p>
+<dl class="function">
+<dt id="gtfstk.routes.build_route_timetable">
+<code class="descclassname">gtfstk.routes.</code><code class="descname">build_route_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>route_id</em>, <em>date</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.routes.build_route_timetable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DataFrame encoding the timetable for the given route ID on the given date.
+The columns are all those in <code class="docutils literal"><span class="pre">feed.trips</span></code> plus those in <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.
+The result is sorted by grouping by trip ID and sorting the groups by their first departure time.</p>
+<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">feed.stop_times</span></code></li>
+<li>Those used in <code class="xref py py-func docutils literal"><span class="pre">get_trips()</span></code></li>
+</ul>
+</dd></dl>
+
 <dl class="function">
 <dt id="gtfstk.routes.compute_route_stats">
 <code class="descclassname">gtfstk.routes.</code><code class="descname">compute_route_stats</code><span class="sig-paren">(</span><em>feed</em>, <em>trip_stats</em>, <em>date</em>, <em>split_directions=False</em>, <em>headway_start_time='07:00:00'</em>, <em>headway_end_time='19:00:00'</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.routes.compute_route_stats" title="Permalink to this definition">¶</a></dt>
@@ -609,7 +628,7 @@ See <code class="xref py py-func docutils literal"><span class="pre">helpers.com
 <li>mean_trip_distance: service_distance/num_trips</li>
 <li>mean_trip_duration: service_duration/num_trips</li>
 </ul>
-<p>If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then remove the direction_id column and compute each route&#8217;s stats, except for headways, using its trips running in both directions. 
+<p>If <code class="docutils literal"><span class="pre">split_directions</span> <span class="pre">==</span> <span class="pre">False</span></code>, then remove the direction_id column and compute each route&#8217;s stats, except for headways, using its trips running in both directions.
 In this case, (1) compute max headway by taking the max of the max headways in both directions; (2) compute mean headway by taking the weighted mean of the mean headways in both directions.</p>
 <p>If <code class="docutils literal"><span class="pre">trip_stats_subset</span></code> is empty, return an empty DataFrame with the columns specified above.</p>
 <p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>: none.</p>
@@ -647,7 +666,7 @@ In this case, (1) compute max headway by taking the max of the max headways in b
 <li>service speed in kilometers per hour</li>
 </ul>
 <p>The time series is a DataFrame with a timestamp index for a 24-hour period sampled at the given frequency.
-The maximum allowable frequency is 1 minute. 
+The maximum allowable frequency is 1 minute.
 <code class="docutils literal"><span class="pre">date_label</span></code> is used as the date for the timestamp index.</p>
 <p>The columns of the DataFrame are hierarchical (multi-index) with</p>
 <ul class="simple">
@@ -681,19 +700,6 @@ with the indicator columns.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfstk.routes.get_route_timetable">
-<code class="descclassname">gtfstk.routes.</code><code class="descname">get_route_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>route_id</em>, <em>date</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.routes.get_route_timetable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a DataFrame encoding the timetable for the given route ID on the given date.
-The columns are all those in <code class="docutils literal"><span class="pre">feed.trips</span></code> plus those in <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.
-The result is sorted by grouping by trip ID and sorting the groups by their first departure time.</p>
-<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">feed.stop_times</span></code></li>
-<li>Those used in <code class="xref py py-func docutils literal"><span class="pre">get_trips()</span></code></li>
-</ul>
-</dd></dl>
-
-<dl class="function">
 <dt id="gtfstk.routes.get_routes">
 <code class="descclassname">gtfstk.routes.</code><code class="descname">get_routes</code><span class="sig-paren">(</span><em>feed</em>, <em>date=None</em>, <em>time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.routes.get_routes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the section of <code class="docutils literal"><span class="pre">feed.routes</span></code> that contains only routes active on the given date.
@@ -710,14 +716,14 @@ Do not take times modulo 24.</p>
 <dl class="function">
 <dt id="gtfstk.routes.route_to_geojson">
 <code class="descclassname">gtfstk.routes.</code><code class="descname">route_to_geojson</code><span class="sig-paren">(</span><em>feed</em>, <em>route_id</em>, <em>include_stops=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.routes.route_to_geojson" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a feed and a route ID (string), return a (decoded) GeoJSON 
+<dd><p>Given a feed and a route ID (string), return a (decoded) GeoJSON
 feature collection comprising a MultiLinestring feature of distinct shapes
 of the trips on the route.
-If <code class="docutils literal"><span class="pre">include_stops</span></code>, then also include one Point feature for each stop 
-visited by any trip on the route. 
+If <code class="docutils literal"><span class="pre">include_stops</span></code>, then also include one Point feature for each stop
+visited by any trip on the route.
 The MultiLinestring feature will contain as properties all the columns
 in <code class="docutils literal"><span class="pre">feed.routes</span></code> pertaining to the given route, and each Point feature
-will contain as properties all the columns in <code class="docutils literal"><span class="pre">feed.stops</span></code> pertaining 
+will contain as properties all the columns in <code class="docutils literal"><span class="pre">feed.stops</span></code> pertaining
 to the stop, except the <code class="docutils literal"><span class="pre">stop_lat</span></code> and <code class="docutils literal"><span class="pre">stop_lon</span></code> properties.</p>
 <p>Return the empty dictionary if all the route&#8217;s trips lack shapes.</p>
 <p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
@@ -743,7 +749,7 @@ Return the resulting Feed.</p>
 <li><code class="docutils literal"><span class="pre">feed.shapes</span></code></li>
 </ul>
 <dl class="docutils">
-<dt>NOTES: </dt>
+<dt>NOTES:</dt>
 <dd><ul class="first last simple">
 <li>All of the calculated <code class="docutils literal"><span class="pre">shape_dist_traveled</span></code> values for the Portland feed <a class="reference external" href="https://transitfeeds.com/p/trimet/43/1400947517">https://transitfeeds.com/p/trimet/43/1400947517</a> differ by at most 0.016 km in absolute values from of the original values.</li>
 </ul>
@@ -783,7 +789,7 @@ Requires GeoPandas.</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">feed.shapes</span></code>, if <code class="docutils literal"><span class="pre">geo_shapes</span></code> is not given</li>
 </ul>
-<p>If <code class="docutils literal"><span class="pre">geometrized</span></code> is <code class="docutils literal"><span class="pre">True</span></code>, then return the 
+<p>If <code class="docutils literal"><span class="pre">geometrized</span></code> is <code class="docutils literal"><span class="pre">True</span></code>, then return the
 resulting shapes DataFrame in geometrized form.</p>
 </dd></dl>
 
@@ -791,7 +797,7 @@ resulting shapes DataFrame in geometrized form.</p>
 <dt id="gtfstk.shapes.shapes_to_geojson">
 <code class="descclassname">gtfstk.shapes.</code><code class="descname">shapes_to_geojson</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.shapes.shapes_to_geojson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a (decoded) GeoJSON FeatureCollection of linestring features representing <code class="docutils literal"><span class="pre">feed.shapes</span></code>.
-Each feature will have a <code class="docutils literal"><span class="pre">shape_id</span></code> property. 
+Each feature will have a <code class="docutils literal"><span class="pre">shape_id</span></code> property.
 The coordinates reference system is the default one for GeoJSON, namely WGS84.</p>
 <p>Return the empty dictionary of <code class="docutils literal"><span class="pre">feed.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></p>
 </dd></dl>
@@ -872,6 +878,19 @@ If a list of stop IDs <code class="docutils literal"><span class="pre">stop_ids<
 <p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">feed.stops</span></code></li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.stops.build_stop_timetable">
+<code class="descclassname">gtfstk.stops.</code><code class="descname">build_stop_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>stop_id</em>, <em>date</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.stops.build_stop_timetable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a  DataFrame encoding the timetable for the given stop ID on the given date.
+The columns are all those in <code class="docutils literal"><span class="pre">feed.trips</span></code> plus those in <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.
+The result is sorted by departure time.</p>
+<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">feed.trips</span></code></li>
+<li>Those used in <code class="xref py py-func docutils literal"><span class="pre">get_stop_times()</span></code></li>
 </ul>
 </dd></dl>
 
@@ -980,19 +999,6 @@ Requires GeoPandas.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="gtfstk.stops.get_stop_timetable">
-<code class="descclassname">gtfstk.stops.</code><code class="descname">get_stop_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>stop_id</em>, <em>date</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.stops.get_stop_timetable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a  DataFrame encoding the timetable for the given stop ID on the given date.
-The columns are all those in <code class="docutils literal"><span class="pre">feed.trips</span></code> plus those in <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.
-The result is sorted by departure time.</p>
-<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">feed.trips</span></code></li>
-<li>Those used in <code class="xref py py-func docutils literal"><span class="pre">get_stop_times()</span></code></li>
-</ul>
-</dd></dl>
-
-<dl class="function">
 <dt id="gtfstk.stops.get_stops">
 <code class="descclassname">gtfstk.stops.</code><code class="descname">get_stops</code><span class="sig-paren">(</span><em>feed</em>, <em>date=None</em>, <em>trip_id=None</em>, <em>route_id=None</em>, <em>in_stations=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.stops.get_stops" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <code class="docutils literal"><span class="pre">feed.stops</span></code>.
@@ -1025,7 +1031,7 @@ Requires GeoPandas.</p>
 <dl class="function">
 <dt id="gtfstk.stops.ungeometrize_stops">
 <code class="descclassname">gtfstk.stops.</code><code class="descname">ungeometrize_stops</code><span class="sig-paren">(</span><em>geo_stops</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.stops.ungeometrize_stops" title="Permalink to this definition">¶</a></dt>
-<dd><p>The inverse of <a class="reference internal" href="#gtfstk.stops.geometrize_stops" title="gtfstk.stops.geometrize_stops"><code class="xref py py-func docutils literal"><span class="pre">geometrize_stops()</span></code></a>.    
+<dd><p>The inverse of <a class="reference internal" href="#gtfstk.stops.geometrize_stops" title="gtfstk.stops.geometrize_stops"><code class="xref py py-func docutils literal"><span class="pre">geometrize_stops()</span></code></a>.
 If <code class="docutils literal"><span class="pre">geo_stops</span></code> is in UTM (has a UTM CRS property), then convert UTM coordinates back to WGS84 coordinates,</p>
 </dd></dl>
 
@@ -1081,7 +1087,7 @@ If the list of dates is empty, then raise a <code class="docutils literal"><span
 <li>end_stop_id: stop ID of the last stop of the trip</li>
 <li>is_loop: 1 if the start and end stop are less than 400m apart and
 0 otherwise</li>
-<li>distance: distance of the trip in <code class="docutils literal"><span class="pre">feed.dist_units</span></code>; 
+<li>distance: distance of the trip in <code class="docutils literal"><span class="pre">feed.dist_units</span></code>;
 contains all <code class="docutils literal"><span class="pre">np.nan</span></code> entries if <code class="docutils literal"><span class="pre">feed.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
 <li>duration: duration of the trip in hours</li>
 <li>speed: distance/duration</li>
@@ -1097,7 +1103,7 @@ contains all <code class="docutils literal"><span class="pre">np.nan</span></cod
 <dl class="docutils">
 <dt>NOTES:</dt>
 <dd><p class="first">If <code class="docutils literal"><span class="pre">feed.stop_times</span></code> has a <code class="docutils literal"><span class="pre">shape_dist_traveled</span></code> column with at least one non-NaN value and <code class="docutils literal"><span class="pre">compute_dist_from_shapes</span> <span class="pre">==</span> <span class="pre">False</span></code>, then use that column to compute the distance column.
-Else if <code class="docutils literal"><span class="pre">feed.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code>, then compute the distance column using the shapes and Shapely. 
+Else if <code class="docutils literal"><span class="pre">feed.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code>, then compute the distance column using the shapes and Shapely.
 Otherwise, set the distances to <code class="docutils literal"><span class="pre">np.nan</span></code>.</p>
 <p class="last">Calculating trip distances with <code class="docutils literal"><span class="pre">compute_dist_from_shapes=True</span></code> seems pretty accurate.
 For example, calculating trip distances on the Portland feed at <a class="reference external" href="https://transitfeeds.com/p/trimet/43/1400947517">https://transitfeeds.com/p/trimet/43/1400947517</a> using <code class="docutils literal"><span class="pre">compute_dist_from_shapes=False</span></code> and <code class="docutils literal"><span class="pre">compute_dist_from_shapes=True</span></code>, yields a difference of at most 0.83km.</p>
@@ -1124,7 +1130,7 @@ To avoid error checking in the interest of speed, assume <code class="docutils l
 <li><code class="docutils literal"><span class="pre">feed.trips</span></code></li>
 </ul>
 <dl class="docutils">
-<dt>NOTES: </dt>
+<dt>NOTES:</dt>
 <dd><ul class="first last simple">
 <li>This function is key for getting all trips, routes, etc. that are active on a given date, so the function needs to be fast.</li>
 </ul>
@@ -1135,14 +1141,14 @@ To avoid error checking in the interest of speed, assume <code class="docutils l
 <dl class="function">
 <dt id="gtfstk.trips.locate_trips">
 <code class="descclassname">gtfstk.trips.</code><code class="descname">locate_trips</code><span class="sig-paren">(</span><em>feed</em>, <em>date</em>, <em>times</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.trips.locate_trips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a  DataFrame of the positions of all trips active on the given date and times 
+<dd><p>Return a  DataFrame of the positions of all trips active on the given date and times
 Include the columns:</p>
 <ul class="simple">
 <li>trip_id</li>
 <li>route_id</li>
 <li>direction_id</li>
 <li>time</li>
-<li>rel_dist: number between 0 (start) and 1 (end) indicating 
+<li>rel_dist: number between 0 (start) and 1 (end) indicating
 the relative distance of the trip along its path</li>
 <li>lon: longitude of trip at given time</li>
 <li>lat: latitude of trip at given time</li>
@@ -1160,7 +1166,7 @@ the relative distance of the trip along its path</li>
 <dt id="gtfstk.trips.trip_to_geojson">
 <code class="descclassname">gtfstk.trips.</code><code class="descname">trip_to_geojson</code><span class="sig-paren">(</span><em>feed</em>, <em>trip_id</em>, <em>include_stops=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.trips.trip_to_geojson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a feed and a trip ID (string), return a (decoded) GeoJSON feature collection comprising a Linestring feature of representing the trip&#8217;s shape.
-If <code class="docutils literal"><span class="pre">include_stops</span></code>, then also include one Point feature for each stop  visited by the trip. 
+If <code class="docutils literal"><span class="pre">include_stops</span></code>, then also include one Point feature for each stop  visited by the trip.
 The Linestring feature will contain as properties all the columns in <code class="docutils literal"><span class="pre">feed.trips</span></code> pertaining to the given trip, and each Point feature will contain as properties all the columns in <code class="docutils literal"><span class="pre">feed.stops</span></code> pertaining    to the stop, except the <code class="docutils literal"><span class="pre">stop_lat</span></code> and <code class="docutils literal"><span class="pre">stop_lon</span></code> properties.</p>
 <p>Return the empty dictionary if the trip has no shape.</p>
 </dd></dl>
@@ -1181,8 +1187,8 @@ The columns of the DataFrame are</p>
 <dl class="docutils">
 <dt>NOTES:</dt>
 <dd><ul class="first last simple">
-<li>Assess quality using only a few indicators. Could be greatly improved.</li>
-<li>This function is not a GTFS validator</li>
+<li>This is an odd function, but i use it to see roughly how broken a feed, which helps me decide if i can fix it</li>
+<li>This is not a GTFS validator</li>
 </ul>
 </dd>
 </dl>
@@ -1319,10 +1325,11 @@ Return the resulting feed which has updated shapes and trips DataFrames.</p>
 <dt id="gtfstk.miscellany.describe">
 <code class="descclassname">gtfstk.miscellany.</code><code class="descname">describe</code><span class="sig-paren">(</span><em>feed</em>, <em>date=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.miscellany.describe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a DataFrame of various feed indicators and values, e.g. number of routes.
-If a date is given, then restrict some of those indicators to the date, e.g. number of routes on the date.
-The columns of the DataFrame are</p>
+Also specialize some those indicators to the given sample date, e.g. number of routes active on the date.
+If a sample date is not given, then set it to the first Thursday of the feed.</p>
+<p>The columns of the DataFrame are</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">'indicator'</span></code>: string; name of an indicator, e.g. &#8216;num_trips_missing_shapes&#8217;</li>
+<li><code class="docutils literal"><span class="pre">'indicator'</span></code>: string; name of an indicator, e.g. &#8216;num_routes&#8217;</li>
 <li><code class="docutils literal"><span class="pre">'value'</span></code>: value of the indicator, e.g. 27</li>
 </ul>
 </dd></dl>
@@ -1330,7 +1337,7 @@ The columns of the DataFrame are</p>
 <dl class="function">
 <dt id="gtfstk.miscellany.restrict_to_polygon">
 <code class="descclassname">gtfstk.miscellany.</code><code class="descname">restrict_to_polygon</code><span class="sig-paren">(</span><em>feed</em>, <em>polygon</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.miscellany.restrict_to_polygon" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a new feed by restricting this on to only the trips that have at least one stop intersecting the given polygon, then        restricting stops, routes, stop times, etc. to those associated with that subset of trips. 
+<dd><p>Build a new feed by restricting this on to only the trips that have at least one stop intersecting the given polygon, then        restricting stops, routes, stop times, etc. to those associated with that subset of trips.
 Return the resulting feed.
 Requires GeoPandas.</p>
 <p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
@@ -1346,7 +1353,7 @@ Requires GeoPandas.</p>
 <dl class="function">
 <dt id="gtfstk.miscellany.restrict_to_routes">
 <code class="descclassname">gtfstk.miscellany.</code><code class="descname">restrict_to_routes</code><span class="sig-paren">(</span><em>feed</em>, <em>route_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.miscellany.restrict_to_routes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a new feed by restricting this one to only the stops, trips, shapes, etc. used by the routes with the given list of route IDs. 
+<dd><p>Build a new feed by restricting this one to only the stops, trips, shapes, etc. used by the routes with the given list of route IDs.
 Return the resulting feed.</p>
 </dd></dl>
 
@@ -1358,7 +1365,7 @@ There is an instance attribute for every valid GTFS table (routes, stops, etc.),
 <p>The <code class="docutils literal"><span class="pre">Feed</span></code> class also has heaps of methods: a method to compute route stats, a method to compute screen line counts, validations methods, etc.
 To ease reading, almost all of these methods are defined in other modules and grouped by theme (<code class="docutils literal"><span class="pre">routes.py</span></code>, <code class="docutils literal"><span class="pre">stops.py</span></code>, etc.).
 These methods, or rather functions that operate on feeds, are then imported within the <code class="docutils literal"><span class="pre">Feed</span></code> class.
-However, this separation of methods messes up the <code class="docutils literal"><span class="pre">Feed</span></code> class documentation slightly by introducing an extra <code class="docutils literal"><span class="pre">feed</span></code> parameter in the method signatures.
+However, this separation of methods messes up the <code class="docutils literal"><span class="pre">Feed</span></code> class documentation slightly by introducing an extra leading <code class="docutils literal"><span class="pre">feed</span></code> parameter in the method signatures.
 Ignore that extra parameter; it refers to the <code class="docutils literal"><span class="pre">Feed</span></code> instance, usually called <code class="docutils literal"><span class="pre">self</span></code> and usually hidden automatically by documentation tools.</p>
 <dl class="docutils">
 <dt>Conventions in the code below:</dt>
@@ -1425,7 +1432,7 @@ Return the resulting Feed.</p>
 <li><code class="docutils literal"><span class="pre">feed.shapes</span></code></li>
 </ul>
 <dl class="docutils">
-<dt>NOTES: </dt>
+<dt>NOTES:</dt>
 <dd><ul class="first last simple">
 <li>All of the calculated <code class="docutils literal"><span class="pre">shape_dist_traveled</span></code> values for the Portland feed <a class="reference external" href="https://transitfeeds.com/p/trimet/43/1400947517">https://transitfeeds.com/p/trimet/43/1400947517</a> differ by at most 0.016 km in absolute values from of the original values.</li>
 </ul>
@@ -1470,8 +1477,8 @@ The columns of the DataFrame are</p>
 <dl class="docutils">
 <dt>NOTES:</dt>
 <dd><ul class="first last simple">
-<li>Assess quality using only a few indicators. Could be greatly improved.</li>
-<li>This function is not a GTFS validator</li>
+<li>This is an odd function, but i use it to see roughly how broken a feed, which helps me decide if i can fix it</li>
+<li>This is not a GTFS validator</li>
 </ul>
 </dd>
 </dl>
@@ -1501,6 +1508,32 @@ If a list of stop IDs <code class="docutils literal"><span class="pre">stop_ids<
 </ul>
 </dd></dl>
 
+<dl class="method">
+<dt id="gtfstk.feed.Feed.build_route_timetable">
+<code class="descname">build_route_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>route_id</em>, <em>date</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.build_route_timetable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DataFrame encoding the timetable for the given route ID on the given date.
+The columns are all those in <code class="docutils literal"><span class="pre">feed.trips</span></code> plus those in <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.
+The result is sorted by grouping by trip ID and sorting the groups by their first departure time.</p>
+<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">feed.stop_times</span></code></li>
+<li>Those used in <a class="reference internal" href="#gtfstk.feed.Feed.get_trips" title="gtfstk.feed.Feed.get_trips"><code class="xref py py-func docutils literal"><span class="pre">get_trips()</span></code></a></li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfstk.feed.Feed.build_stop_timetable">
+<code class="descname">build_stop_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>stop_id</em>, <em>date</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.build_stop_timetable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a  DataFrame encoding the timetable for the given stop ID on the given date.
+The columns are all those in <code class="docutils literal"><span class="pre">feed.trips</span></code> plus those in <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.
+The result is sorted by departure time.</p>
+<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">feed.trips</span></code></li>
+<li>Those used in <a class="reference internal" href="#gtfstk.feed.Feed.get_stop_times" title="gtfstk.feed.Feed.get_stop_times"><code class="xref py py-func docutils literal"><span class="pre">get_stop_times()</span></code></a></li>
+</ul>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="gtfstk.feed.Feed.calendar">
 <code class="descname">calendar</code><a class="headerlink" href="#gtfstk.feed.Feed.calendar" title="Permalink to this definition">¶</a></dt>
@@ -1515,102 +1548,95 @@ If a list of stop IDs <code class="docutils literal"><span class="pre">stop_ids<
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_agency">
-<code class="descname">check_agency</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_agency" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check thet <code class="docutils literal"><span class="pre">feed.agency</span></code> follows the GTFS and output a possibly empty list of errors found as pairs of the form (&#8216;agency&#8217;, error message, row indices where errors occur).</p>
+<code class="descname">check_agency</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_agency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that <code class="docutils literal"><span class="pre">feed.agency</span></code> follows the GTFS.
+Return a list of problems of the form described in <code class="xref py py-func docutils literal"><span class="pre">check_table()</span></code>; the list will be empty if no problems are found.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_calendar">
-<code class="descname">check_calendar</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_calendar" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_calendar</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_calendar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.calendar</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_calendar_dates">
-<code class="descname">check_calendar_dates</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_calendar_dates" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_calendar_dates</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_calendar_dates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.calendar_dates</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_fare_attributes">
-<code class="descname">check_fare_attributes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_fare_attributes" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_fare_attributes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_fare_attributes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.calendar_dates</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_fare_rules">
-<code class="descname">check_fare_rules</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_fare_rules" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_fare_rules</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_fare_rules" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.calendar_dates</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_feed_info">
-<code class="descname">check_feed_info</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_feed_info" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_feed_info</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_feed_info" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.feed_info</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfstk.feed.Feed.check_for_required_columns">
-<code class="descname">check_for_required_columns</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_for_required_columns" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="gtfstk.feed.Feed.check_for_required_tables">
-<code class="descname">check_for_required_tables</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_for_required_tables" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="gtfstk.feed.Feed.check_frequencies">
-<code class="descname">check_frequencies</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_frequencies" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_frequencies</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_frequencies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.frequencies</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_routes">
-<code class="descname">check_routes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_routes" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_routes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_routes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.routes</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_shapes">
-<code class="descname">check_shapes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_shapes" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_shapes</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_shapes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.shapes</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_stop_times">
-<code class="descname">check_stop_times</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_stop_times" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_stop_times</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_stop_times" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_stops">
-<code class="descname">check_stops</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_stops" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_stops</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_stops" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.stops</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_transfers">
-<code class="descname">check_transfers</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_transfers" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_transfers</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_transfers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.transfers</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.check_trips">
-<code class="descname">check_trips</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_trips" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_trips</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=False</em>, <em>include_warnings=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.check_trips" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analog of <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a> for <code class="docutils literal"><span class="pre">feed.trips</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.clean">
 <code class="descname">clean</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.clean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply the following functions to this feed and return the resulting new feed.</p>
+<dd><p>Apply</p>
 <ol class="arabic simple">
+<li><a class="reference internal" href="#gtfstk.feed.Feed.drop_zombies" title="gtfstk.feed.Feed.drop_zombies"><code class="xref py py-func docutils literal"><span class="pre">drop_zombies()</span></code></a></li>
 <li><a class="reference internal" href="#gtfstk.feed.Feed.clean_ids" title="gtfstk.feed.Feed.clean_ids"><code class="xref py py-func docutils literal"><span class="pre">clean_ids()</span></code></a></li>
-<li><a class="reference internal" href="#gtfstk.feed.Feed.clean_stop_times" title="gtfstk.feed.Feed.clean_stop_times"><code class="xref py py-func docutils literal"><span class="pre">clean_stop_times()</span></code></a></li>
+<li><a class="reference internal" href="#gtfstk.feed.Feed.clean_times" title="gtfstk.feed.Feed.clean_times"><code class="xref py py-func docutils literal"><span class="pre">clean_times()</span></code></a></li>
 <li><a class="reference internal" href="#gtfstk.feed.Feed.clean_route_short_names" title="gtfstk.feed.Feed.clean_route_short_names"><code class="xref py py-func docutils literal"><span class="pre">clean_route_short_names()</span></code></a></li>
-<li><a class="reference internal" href="#gtfstk.feed.Feed.drop_dead_routes" title="gtfstk.feed.Feed.drop_dead_routes"><code class="xref py py-func docutils literal"><span class="pre">drop_dead_routes()</span></code></a></li>
 </ol>
+<p>to the given feed in that order.
+Return the resulting feed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1629,9 +1655,9 @@ Return the resulting feed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfstk.feed.Feed.clean_stop_times">
-<code class="descname">clean_stop_times</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.clean_stop_times" title="Permalink to this definition">¶</a></dt>
-<dd><p>In <code class="docutils literal"><span class="pre">feed.stop_times</span></code>, prefix a zero to arrival and departure times if necessary.
+<dt id="gtfstk.feed.Feed.clean_times">
+<code class="descname">clean_times</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.clean_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prefix a zero to each H:MM:SS time to make it an HH:MM:SS.
 This makes sorting by time work as expected.
 Return the resulting feed.</p>
 </dd></dl>
@@ -1881,7 +1907,7 @@ See <code class="xref py py-func docutils literal"><span class="pre">helpers.com
 <li>end_stop_id: stop ID of the last stop of the trip</li>
 <li>is_loop: 1 if the start and end stop are less than 400m apart and
 0 otherwise</li>
-<li>distance: distance of the trip in <code class="docutils literal"><span class="pre">feed.dist_units</span></code>; 
+<li>distance: distance of the trip in <code class="docutils literal"><span class="pre">feed.dist_units</span></code>;
 contains all <code class="docutils literal"><span class="pre">np.nan</span></code> entries if <code class="docutils literal"><span class="pre">feed.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></li>
 <li>duration: duration of the trip in hours</li>
 <li>speed: distance/duration</li>
@@ -1897,7 +1923,7 @@ contains all <code class="docutils literal"><span class="pre">np.nan</span></cod
 <dl class="docutils">
 <dt>NOTES:</dt>
 <dd><p class="first">If <code class="docutils literal"><span class="pre">feed.stop_times</span></code> has a <code class="docutils literal"><span class="pre">shape_dist_traveled</span></code> column with at least one non-NaN value and <code class="docutils literal"><span class="pre">compute_dist_from_shapes</span> <span class="pre">==</span> <span class="pre">False</span></code>, then use that column to compute the distance column.
-Else if <code class="docutils literal"><span class="pre">feed.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code>, then compute the distance column using the shapes and Shapely. 
+Else if <code class="docutils literal"><span class="pre">feed.shapes</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code>, then compute the distance column using the shapes and Shapely.
 Otherwise, set the distances to <code class="docutils literal"><span class="pre">np.nan</span></code>.</p>
 <p class="last">Calculating trip distances with <code class="docutils literal"><span class="pre">compute_dist_from_shapes=True</span></code> seems pretty accurate.
 For example, calculating trip distances on the Portland feed at <a class="reference external" href="https://transitfeeds.com/p/trimet/43/1400947517">https://transitfeeds.com/p/trimet/43/1400947517</a> using <code class="docutils literal"><span class="pre">compute_dist_from_shapes=False</span></code> and <code class="docutils literal"><span class="pre">compute_dist_from_shapes=True</span></code>, yields a difference of at most 0.83km.</p>
@@ -1937,10 +1963,11 @@ Return the resulting feed which has updated shapes and trips DataFrames.</p>
 <dt id="gtfstk.feed.Feed.describe">
 <code class="descname">describe</code><span class="sig-paren">(</span><em>feed</em>, <em>date=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.describe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a DataFrame of various feed indicators and values, e.g. number of routes.
-If a date is given, then restrict some of those indicators to the date, e.g. number of routes on the date.
-The columns of the DataFrame are</p>
+Also specialize some those indicators to the given sample date, e.g. number of routes active on the date.
+If a sample date is not given, then set it to the first Thursday of the feed.</p>
+<p>The columns of the DataFrame are</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">'indicator'</span></code>: string; name of an indicator, e.g. &#8216;num_trips_missing_shapes&#8217;</li>
+<li><code class="docutils literal"><span class="pre">'indicator'</span></code>: string; name of an indicator, e.g. &#8216;num_routes&#8217;</li>
 <li><code class="docutils literal"><span class="pre">'value'</span></code>: value of the indicator, e.g. 27</li>
 </ul>
 </dd></dl>
@@ -1952,16 +1979,16 @@ The columns of the DataFrame are</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfstk.feed.Feed.drop_dead_routes">
-<code class="descname">drop_dead_routes</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.drop_dead_routes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove every route from <code class="docutils literal"><span class="pre">feed.routes</span></code> that does not have trips listed in <code class="docutils literal"><span class="pre">feed.trips</span></code>.
+<dt id="gtfstk.feed.Feed.drop_invalid_columns">
+<code class="descname">drop_invalid_columns</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.drop_invalid_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop all data frame columns of this feed not listed in the GTFS.
 Return the resulting new feed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gtfstk.feed.Feed.drop_invalid_columns">
-<code class="descname">drop_invalid_columns</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.drop_invalid_columns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Drop all data frame columns of this feed not listed in the GTFS.
+<dt id="gtfstk.feed.Feed.drop_zombies">
+<code class="descname">drop_zombies</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.drop_zombies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop stops with no stop times, trips with no stop times, shapes with no trips, routes with no trips, and services with no trips, in that order.
 Return the resulting new feed.</p>
 </dd></dl>
 
@@ -1979,19 +2006,6 @@ If <code class="docutils literal"><span class="pre">as_date_obj</span></code>, t
 <dd><p>Return a list of date corresponding to the first Monday&#8211;Sunday week for which this feed is valid.
 If the given feed does not cover a full Monday&#8211;Sunday week, then return whatever initial segment of the week it does cover, which could be the empty list.
 If <code class="docutils literal"><span class="pre">as_date_obj</span></code>, then return the dates as as <code class="docutils literal"><span class="pre">datetime.date</span></code> objects.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gtfstk.feed.Feed.get_route_timetable">
-<code class="descname">get_route_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>route_id</em>, <em>date</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.get_route_timetable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a DataFrame encoding the timetable for the given route ID on the given date.
-The columns are all those in <code class="docutils literal"><span class="pre">feed.trips</span></code> plus those in <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.
-The result is sorted by grouping by trip ID and sorting the groups by their first departure time.</p>
-<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">feed.stop_times</span></code></li>
-<li>Those used in <a class="reference internal" href="#gtfstk.feed.Feed.get_trips" title="gtfstk.feed.Feed.get_trips"><code class="xref py py-func docutils literal"><span class="pre">get_trips()</span></code></a></li>
-</ul>
 </dd></dl>
 
 <dl class="method">
@@ -2020,7 +2034,7 @@ Requires GeoPandas.</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">feed.shapes</span></code>, if <code class="docutils literal"><span class="pre">geo_shapes</span></code> is not given</li>
 </ul>
-<p>If <code class="docutils literal"><span class="pre">geometrized</span></code> is <code class="docutils literal"><span class="pre">True</span></code>, then return the 
+<p>If <code class="docutils literal"><span class="pre">geometrized</span></code> is <code class="docutils literal"><span class="pre">True</span></code>, then return the
 resulting shapes DataFrame in geometrized form.</p>
 </dd></dl>
 
@@ -2040,19 +2054,6 @@ If no date is given, then return all stop times.</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">feed.stop_times</span></code></li>
 <li>Those used in <a class="reference internal" href="#gtfstk.feed.Feed.get_trips" title="gtfstk.feed.Feed.get_trips"><code class="xref py py-func docutils literal"><span class="pre">get_trips()</span></code></a></li>
-</ul>
-</dd></dl>
-
-<dl class="method">
-<dt id="gtfstk.feed.Feed.get_stop_timetable">
-<code class="descname">get_stop_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>stop_id</em>, <em>date</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.get_stop_timetable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a  DataFrame encoding the timetable for the given stop ID on the given date.
-The columns are all those in <code class="docutils literal"><span class="pre">feed.trips</span></code> plus those in <code class="docutils literal"><span class="pre">feed.stop_times</span></code>.
-The result is sorted by departure time.</p>
-<p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">feed.trips</span></code></li>
-<li>Those used in <a class="reference internal" href="#gtfstk.feed.Feed.get_stop_times" title="gtfstk.feed.Feed.get_stop_times"><code class="xref py py-func docutils literal"><span class="pre">get_stop_times()</span></code></a></li>
 </ul>
 </dd></dl>
 
@@ -2105,7 +2106,7 @@ To avoid error checking in the interest of speed, assume <code class="docutils l
 <li><code class="docutils literal"><span class="pre">feed.trips</span></code></li>
 </ul>
 <dl class="docutils">
-<dt>NOTES: </dt>
+<dt>NOTES:</dt>
 <dd><ul class="first last simple">
 <li>This function is key for getting all trips, routes, etc. that are active on a given date, so the function needs to be fast.</li>
 </ul>
@@ -2116,14 +2117,14 @@ To avoid error checking in the interest of speed, assume <code class="docutils l
 <dl class="method">
 <dt id="gtfstk.feed.Feed.locate_trips">
 <code class="descname">locate_trips</code><span class="sig-paren">(</span><em>feed</em>, <em>date</em>, <em>times</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.locate_trips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a  DataFrame of the positions of all trips active on the given date and times 
+<dd><p>Return a  DataFrame of the positions of all trips active on the given date and times
 Include the columns:</p>
 <ul class="simple">
 <li>trip_id</li>
 <li>route_id</li>
 <li>direction_id</li>
 <li>time</li>
-<li>rel_dist: number between 0 (start) and 1 (end) indicating 
+<li>rel_dist: number between 0 (start) and 1 (end) indicating
 the relative distance of the trip along its path</li>
 <li>lon: longitude of trip at given time</li>
 <li>lat: latitude of trip at given time</li>
@@ -2140,7 +2141,7 @@ the relative distance of the trip along its path</li>
 <dl class="method">
 <dt id="gtfstk.feed.Feed.restrict_to_polygon">
 <code class="descname">restrict_to_polygon</code><span class="sig-paren">(</span><em>feed</em>, <em>polygon</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.restrict_to_polygon" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a new feed by restricting this on to only the trips that have at least one stop intersecting the given polygon, then        restricting stops, routes, stop times, etc. to those associated with that subset of trips. 
+<dd><p>Build a new feed by restricting this on to only the trips that have at least one stop intersecting the given polygon, then        restricting stops, routes, stop times, etc. to those associated with that subset of trips.
 Return the resulting feed.
 Requires GeoPandas.</p>
 <p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
@@ -2156,21 +2157,21 @@ Requires GeoPandas.</p>
 <dl class="method">
 <dt id="gtfstk.feed.Feed.restrict_to_routes">
 <code class="descname">restrict_to_routes</code><span class="sig-paren">(</span><em>feed</em>, <em>route_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.restrict_to_routes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a new feed by restricting this one to only the stops, trips, shapes, etc. used by the routes with the given list of route IDs. 
+<dd><p>Build a new feed by restricting this one to only the stops, trips, shapes, etc. used by the routes with the given list of route IDs.
 Return the resulting feed.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.route_to_geojson">
 <code class="descname">route_to_geojson</code><span class="sig-paren">(</span><em>feed</em>, <em>route_id</em>, <em>include_stops=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.route_to_geojson" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a feed and a route ID (string), return a (decoded) GeoJSON 
+<dd><p>Given a feed and a route ID (string), return a (decoded) GeoJSON
 feature collection comprising a MultiLinestring feature of distinct shapes
 of the trips on the route.
-If <code class="docutils literal"><span class="pre">include_stops</span></code>, then also include one Point feature for each stop 
-visited by any trip on the route. 
+If <code class="docutils literal"><span class="pre">include_stops</span></code>, then also include one Point feature for each stop
+visited by any trip on the route.
 The MultiLinestring feature will contain as properties all the columns
 in <code class="docutils literal"><span class="pre">feed.routes</span></code> pertaining to the given route, and each Point feature
-will contain as properties all the columns in <code class="docutils literal"><span class="pre">feed.stops</span></code> pertaining 
+will contain as properties all the columns in <code class="docutils literal"><span class="pre">feed.stops</span></code> pertaining
 to the stop, except the <code class="docutils literal"><span class="pre">stop_lat</span></code> and <code class="docutils literal"><span class="pre">stop_lon</span></code> properties.</p>
 <p>Return the empty dictionary if all the route&#8217;s trips lack shapes.</p>
 <p>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
@@ -2186,7 +2187,7 @@ to the stop, except the <code class="docutils literal"><span class="pre">stop_la
 <dt id="gtfstk.feed.Feed.shapes_to_geojson">
 <code class="descname">shapes_to_geojson</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.shapes_to_geojson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a (decoded) GeoJSON FeatureCollection of linestring features representing <code class="docutils literal"><span class="pre">feed.shapes</span></code>.
-Each feature will have a <code class="docutils literal"><span class="pre">shape_id</span></code> property. 
+Each feature will have a <code class="docutils literal"><span class="pre">shape_id</span></code> property.
 The coordinates reference system is the default one for GeoJSON, namely WGS84.</p>
 <p>Return the empty dictionary of <code class="docutils literal"><span class="pre">feed.shapes</span> <span class="pre">is</span> <span class="pre">None</span></code></p>
 </dd></dl>
@@ -2195,7 +2196,7 @@ The coordinates reference system is the default one for GeoJSON, namely WGS84.</
 <dt id="gtfstk.feed.Feed.trip_to_geojson">
 <code class="descname">trip_to_geojson</code><span class="sig-paren">(</span><em>feed</em>, <em>trip_id</em>, <em>include_stops=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.trip_to_geojson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a feed and a trip ID (string), return a (decoded) GeoJSON feature collection comprising a Linestring feature of representing the trip&#8217;s shape.
-If <code class="docutils literal"><span class="pre">include_stops</span></code>, then also include one Point feature for each stop  visited by the trip. 
+If <code class="docutils literal"><span class="pre">include_stops</span></code>, then also include one Point feature for each stop  visited by the trip.
 The Linestring feature will contain as properties all the columns in <code class="docutils literal"><span class="pre">feed.trips</span></code> pertaining to the given trip, and each Point feature will contain as properties all the columns in <code class="docutils literal"><span class="pre">feed.stops</span></code> pertaining    to the stop, except the <code class="docutils literal"><span class="pre">stop_lat</span></code> and <code class="docutils literal"><span class="pre">stop_lon</span></code> properties.</p>
 <p>Return the empty dictionary if the trip has no shape.</p>
 </dd></dl>
@@ -2208,19 +2209,23 @@ The Linestring feature will contain as properties all the columns in <code class
 
 <dl class="method">
 <dt id="gtfstk.feed.Feed.validate">
-<code class="descname">validate</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.validate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check whether the given feed is valid by doing all the checks above.
-Return the errors found as a possibly empty list of pairs (table name, error message).
+<code class="descname">validate</code><span class="sig-paren">(</span><em>feed</em>, <em>as_df=True</em>, <em>include_warnings=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether the given feed satisfies the GTFS by running the functions all the table-checking functions: <a class="reference internal" href="#gtfstk.feed.Feed.check_agency" title="gtfstk.feed.Feed.check_agency"><code class="xref py py-func docutils literal"><span class="pre">check_agency()</span></code></a>, <a class="reference internal" href="#gtfstk.feed.Feed.check_calendar" title="gtfstk.feed.Feed.check_calendar"><code class="xref py py-func docutils literal"><span class="pre">check_calendar()</span></code></a>, etc.
+Return the problems found as a possibly empty list of items [problem type, message, table, rows].
 If <code class="docutils literal"><span class="pre">as_df</span></code>, then format the error list as a DataFrame with the columns</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">'table'</span></code>: name of table where error occurs</li>
-<li><code class="docutils literal"><span class="pre">'error'</span></code>: error message.</li>
+<li><code class="docutils literal"><span class="pre">'type'</span></code>: &#8216;error&#8217; or &#8216;warning&#8217;; &#8216;error&#8217; means the GTFS is violated; &#8216;warning&#8217; means there is a problem but it&#8217;s not a GTFS violation</li>
+<li><code class="docutils literal"><span class="pre">'message'</span></code>: description of the problem</li>
+<li><code class="docutils literal"><span class="pre">'table'</span></code>: table in which problem occurs, e.g. &#8216;routes&#8217;</li>
+<li><code class="docutils literal"><span class="pre">'rows'</span></code>: rows of the table&#8217;s DataFrame where problem occurs</li>
 </ul>
 <p>Return early if the feed is missing required tables or required columns.</p>
+<p>Include warning problems only if <code class="docutils literal"><span class="pre">include_warning</span></code>.</p>
 <dl class="docutils">
 <dt>NOTES:</dt>
 <dd><ul class="first last simple">
-<li>Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at <a class="reference external" href="http://transitfeeds.com/p/translink/21/20170310">http://transitfeeds.com/p/translink/21/20170310</a> in 16 seconds.</li>
+<li>This function interprets the GTFS liberally, classifying problems as warnings rather than errors where the GTFS is unclear. For example if a trip_id listed in the trips table is not listed in the stop times table (a trip with no stop times), then that&#8217;s a warning and not an error.</li>
+<li>Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at <a class="reference external" href="http://transitfeeds.com/p/translink/21/20170310">http://transitfeeds.com/p/translink/21/20170310</a> in 22 seconds (including warnings).</li>
 </ul>
 </dd>
 </dl>
@@ -2232,7 +2237,16 @@ If <code class="docutils literal"><span class="pre">as_df</span></code>, then fo
 <dt id="gtfstk.feed.read_gtfs">
 <code class="descclassname">gtfstk.feed.</code><code class="descname">read_gtfs</code><span class="sig-paren">(</span><em>path</em>, <em>dist_units=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.read_gtfs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Feed object from the given path and given distance units.
-The path should be a directory containing GTFS text files or a zip file that unzips as a collection of GTFS text files (and not as a directory containing GTFS text files).</p>
+The path should be a directory containing GTFS text files or a zip file that unzips as a collection of GTFS text files (and not as a directory containing GTFS text files).
+The distance units must lie in <code class="xref py py-const docutils literal"><span class="pre">constants.dist_units</span></code></p>
+<dl class="docutils">
+<dt>NOTES:</dt>
+<dd><ul class="first last simple">
+<li>Ignores non-GTFS files</li>
+<li>Automatically strips whitespace from the column names in GTFS files</li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">

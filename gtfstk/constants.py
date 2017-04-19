@@ -101,17 +101,14 @@ rows = [
     ['trips', True, 'wheelchair_accessible', False, 'int'],
     ['trips', True, 'bikes_allowed', False, 'int'],
 ]
-#:
 GTFS_REF = pd.DataFrame(rows, columns=columns)
 
-# Columns that must be formatted as integers when outputting GTFS
-#:
+#: Columns that must be formatted as integers when outputting GTFS
 INT_COLS = GTFS_REF.loc[GTFS_REF['dtype'] == 'int', 'column'].values.tolist()
 
-# Columns that must be read as strings by Pandas
-#:
+#: Columns that must be read as strings by Pandas
 STR_COLS = GTFS_REF.loc[GTFS_REF['dtype'] == 'str', 'column'].values.tolist()
-#:
+
 DTYPE = {col: str for col in STR_COLS}
 
 #:
