@@ -1,232 +1,151 @@
-#:
-GTFS_TABLES_REQUIRED = [
-  'agency',  
-  'stops',   
-  'routes',
-  'trips',
-  'stop_times',
-  'calendar',
-  ]
+"""
+Constants useful across modules.
+"""
 
-#:
-GTFS_TABLES_OPTIONAL = [
-  'calendar_dates',  
-  'fare_attributes',    
-  'fare_rules',  
-  'shapes',  
-  'frequencies',     
-  'transfers',   
-  'feed_info',
-  ]
+import pandas as pd
 
-#:
-DTYPE = {
-  'agency_id': str,
-  'stop_id': str, 
-  'stop_code': str,
-  'zone_id': str,
-  'parent_station': str,
-  'route_id': str, 
-  'route_short_name': str,
-  'trip_id': str, 
-  'service_id': str, 
-  'shape_id': str, 
-  'start_date': str, 
-  'end_date': str,
-  'date': str,
-  'fare_id': str,
-  'origin_id': str,
-  'destination_id': str,
-  'contains_id': str,
-  'from_stop_id': str,
-  'to_stop_id': str,
-}
+# Record some data from the GTFS reference at https://developers.google.com/transit/gtfs/reference/
+columns = ['table', 'table_required', 'column', 'column_required', 'dtype']
+rows = [
+    ['agency', True, 'agency_id', False, 'str'],
+    ['agency', True, 'agency_name', True, 'str'],
+    ['agency', True, 'agency_url', True, 'str'],
+    ['agency', True, 'agency_timezone', True, 'str'],
+    ['agency', True, 'agency_lang', False, 'str'],
+    ['agency', True, 'agency_phone', False, 'str'],
+    ['agency', True, 'agency_fare_url', False, 'str'],
+    ['agency', True, 'agency_email', False, 'str'],
+    ['calendar', False, 'service_id', True, 'str'],
+    ['calendar', False, 'monday', True, 'int'],
+    ['calendar', False, 'tuesday', True, 'int'],
+    ['calendar', False, 'wednesday', True, 'int'],
+    ['calendar', False, 'thursday', True, 'int'],
+    ['calendar', False, 'friday', True, 'int'],
+    ['calendar', False, 'saturday', True, 'int'],
+    ['calendar', False, 'sunday', True, 'int'],
+    ['calendar', False, 'start_date', True, 'str'],
+    ['calendar', False, 'end_date', True, 'str'],
+    ['calendar_dates', False, 'service_id', True, 'str'],
+    ['calendar_dates', False, 'date', True, 'str'],
+    ['calendar_dates', False, 'exception_type', True, 'int'],
+    ['fare_attributes', False, 'fare_id', True, 'str'],
+    ['fare_attributes', False, 'price', True, 'float'],
+    ['fare_attributes', False, 'currency_type', True, 'str'],
+    ['fare_attributes', False, 'payment_method', True, 'int'],
+    ['fare_attributes', False, 'transfers', True, 'int'],
+    ['fare_attributes', False, 'transfer_duration', False, 'int'],
+    ['fare_rules', False, 'fare_id', True, 'str'],
+    ['fare_rules', False, 'route_id', False, 'str'],
+    ['fare_rules', False, 'origin_id', False, 'str'],
+    ['fare_rules', False, 'destination_id', False, 'str'],
+    ['fare_rules', False, 'contains_id', False, 'str'],
+    ['feed_info', False, 'feed_publisher_name', True, 'str'],
+    ['feed_info', False, 'feed_publisher_url', True, 'str'],
+    ['feed_info', False, 'feed_lang', True, 'str'],
+    ['feed_info', False, 'feed_start_date', False, 'str'],
+    ['feed_info', False, 'feed_end_date', False, 'str'],
+    ['feed_info', False, 'feed_version', False, 'str'],
+    ['frequencies', False, 'trip_id', True, 'str'],
+    ['frequencies', False, 'start_time', True, 'str'],
+    ['frequencies', False, 'end_time', True, 'str'],
+    ['frequencies', False, 'headway_secs', True, 'int'],
+    ['frequencies', False, 'exact_times', False, 'int'],
+    ['routes', True, 'route_id', True, 'str'],
+    ['routes', True, 'agency_id', False, 'str'],
+    ['routes', True, 'route_short_name', True, 'str'],
+    ['routes', True, 'route_long_name', True, 'str'],
+    ['routes', True, 'route_desc', False, 'str'],
+    ['routes', True, 'route_type', True, 'int'],
+    ['routes', True, 'route_url', False, 'str'],
+    ['routes', True, 'route_color', False, 'str'],
+    ['routes', True, 'route_text_color', False, 'str'],
+    ['shapes', False, 'shape_id', True, 'str'],
+    ['shapes', False, 'shape_pt_lat', True, 'float'],
+    ['shapes', False, 'shape_pt_lon', True, 'float'],
+    ['shapes', False, 'shape_pt_sequence', True, 'int'],
+    ['shapes', False, 'shape_dist_traveled', False, 'float'],
+    ['stops', True, 'stop_id', True, 'str'],
+    ['stops', True, 'stop_code', False, 'str'],
+    ['stops', True, 'stop_name', True, 'str'],
+    ['stops', True, 'stop_desc', False, 'str'],
+    ['stops', True, 'stop_lat', True, 'float'],
+    ['stops', True, 'stop_lon', True, 'float'],
+    ['stops', True, 'zone_id', False, 'str'],
+    ['stops', True, 'stop_url', False, 'str'],
+    ['stops', True, 'location_type', False, 'int'],
+    ['stops', True, 'parent_station', False, 'str'],
+    ['stops', True, 'stop_timezone', False, 'str'],
+    ['stops', True, 'wheelchair_boarding', False, 'int'],
+    ['stop_times', True, 'trip_id', True, 'str'],
+    ['stop_times', True, 'arrival_time', True, 'str'],
+    ['stop_times', True, 'departure_time', True, 'str'],
+    ['stop_times', True, 'stop_id', True, 'str'],
+    ['stop_times', True, 'stop_sequence', True, 'int'],
+    ['stop_times', True, 'stop_headsign', False, 'str'],
+    ['stop_times', True, 'pickup_type', False, 'int'],
+    ['stop_times', True, 'drop_off_type', False, 'int'],
+    ['stop_times', True, 'shape_dist_traveled', False, 'float'],
+    ['stop_times', True, 'timepoint', False, 'int'],
+    ['transfers', False, 'from_stop_id', True, 'str'],
+    ['transfers', False, 'to_stop_id', True, 'str'],
+    ['transfers', False, 'transfer_type', True, 'int'],
+    ['transfers', False, 'min_transfer_time', False, 'int'],
+    ['trips', True, 'route_id', True, 'str'],
+    ['trips', True, 'service_id', True, 'str'],
+    ['trips', True, 'trip_id', True, 'str'],
+    ['trips', True, 'trip_headsign', False, 'str'],
+    ['trips', True, 'trip_short_name', False, 'str'],
+    ['trips', True, 'direction_id', False, 'int'],
+    ['trips', True, 'block_id', False, 'str'],
+    ['trips', True, 'shape_id', False, 'str'],
+    ['trips', True, 'wheelchair_accessible', False, 'int'],
+    ['trips', True, 'bikes_allowed', False, 'int'],
+]
+GTFS_REF = pd.DataFrame(rows, columns=columns)
 
-# From the GTFS reference at https://developers.google.com/transit/gtfs/reference/
-#:
-VALID_COLUMNS_BY_TABLE = {
-    'agency': [
-        'agency_id',  
-        'agency_name',    
-        'agency_url', 
-        'agency_timezone', 
-        'agency_lang',
-        'agency_phone',   
-        'agency_fare_url',
-        'agency_email',   
-        ],
-    'calendar': [
-        'service_id',
-        'monday',
-        'tuesday',
-        'wednesday',
-        'thursday',
-        'friday',
-        'saturday',
-        'sunday',
-        'start_date',
-        'end_date',
-        ],
-    'calendar_dates': [
-        'service_id',
-        'date',
-        'exception_type',
-        ],
-    'fare_attributes': [
-        'fare_id',
-        'price',
-        'currency_type',
-        'payment_method',
-        'transfers',
-        'transfer_duration',
-        ],
-    'fare_rules': [
-        'fare_id',
-        'route_id',
-        'origin_id',
-        'destination_id',
-        'contains_id',
-        ],
-    'feed_info': [
-        'feed_publisher_name',
-        'feed_publisher_url',
-        'feed_lang',
-        'feed_start_date',
-        'feed_end_date',
-        'feed_version',
-        ],
-    'frequencies': [
-        'trip_id',
-        'start_time',
-        'end_time',
-        'headway_secs',
-        'exact_times',
-        ],
-    'routes': [
-        'route_id',
-        'agency_id',
-        'route_short_name',
-        'route_long_name',
-        'route_desc',
-        'route_type',
-        'route_url',
-        'route_color',
-        'route_text_color',
-        ],
-    'shapes': [
-        'shape_id',
-        'shape_pt_lat',
-        'shape_pt_lon',
-        'shape_pt_sequence',
-        'shape_dist_traveled',
-        ], 
-    'stops': [
-        'stop_id',
-        'stop_code',
-        'stop_name',
-        'stop_desc',
-        'stop_lat',
-        'stop_lon',
-        'zone_id',
-        'stop_url',
-        'location_type',
-        'parent_station',
-        'stop_timezone',
-        'wheelchair_boarding',
-        ],
-    'stop_times': [
-        'trip_id',
-        'arrival_time',
-        'departure_time',
-        'stop_id',
-        'stop_sequence',
-        'stop_headsign',
-        'pickup_type',
-        'drop_off_type',
-        'shape_dist_traveled',
-        'timepoint',
-        ],
-    'transfers': [
-        'from_stop_id',
-        'to_stop_id',
-        'transfer_type',
-        'min_transfer_time',
-        ],
-    'trips': [
-        'route_id',
-        'service_id',
-        'trip_id',
-        'trip_headsign',
-        'trip_short_name',
-        'direction_id',
-        'block_id',
-        'shape_id',
-        'wheelchair_accessible',
-        'bikes_allowed',
-        ],
-    }
+#: Columns that must be formatted as integers when outputting GTFS
+INT_COLS = GTFS_REF.loc[GTFS_REF['dtype'] == 'int', 'column'].values.tolist()
+
+#: Columns that must be read as strings by Pandas
+STR_COLS = GTFS_REF.loc[GTFS_REF['dtype'] == 'str', 'column'].values.tolist()
+
+DTYPE = {col: str for col in STR_COLS}
 
 #:
 DIST_UNITS = ['ft', 'mi', 'm', 'km']
 
 #:
 FEED_ATTRS_PUBLIC = [
-  'agency', 
-  'stops', 
-  'routes', 
-  'trips', 
-  'stop_times', 
-  'calendar', 
-  'calendar_dates', 
-  'fare_attributes', 
-  'fare_rules', 
-  'shapes', 
-  'frequencies', 
-  'transfers', 
-  'feed_info',
-  'dist_units',
-  ]
-
-#:
-FEED_ATTRS_PRIVATE = [
-  '_trips_i', 
-  '_calendar_i', 
-  '_calendar_dates_g',
-  ]
-  
-#:
-FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
-
-# Columns that must be formatted as integers when outputting GTFS
-#:
-INT_COLUMNS = [
-  'location_type',
-  'wheelchair_boarding',
-  'route_type',
-  'direction_id',
-  'stop_sequence',
-  'wheelchair_accessible',
-  'bikes_allowed',
-  'pickup_type',
-  'drop_off_type',
-  'timepoint',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-  'exception_type',
-  'payment_method',
-  'transfers',
-  'shape_pt_sequence',
-  'exact_times',
-  'transfer_type',
-  'transfer_duration',
-  'min_transfer_time',
+    'agency',
+    'calendar',
+    'calendar_dates',
+    'fare_attributes',
+    'fare_rules',
+    'feed_info',
+    'frequencies',
+    'routes',
+    'shapes',
+    'stops',
+    'stop_times',
+    'trips',
+    'transfers',
+    'dist_units',
 ]
 
 #:
-CRS_WGS84 = {'no_defs': True, 'ellps': 'WGS84', 'datum': 
-  'WGS84', 'proj': 'longlat'}
+FEED_ATTRS_PRIVATE = [
+    '_trips_i',
+    '_calendar_i',
+    '_calendar_dates_g',
+]
+
+#:
+FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
+
+#:
+CRS_WGS84 = {
+    'proj': 'latlong',
+    'ellps': 'WGS84',
+    'datum': 'WGS84',
+    'no_defs': True,
+}
