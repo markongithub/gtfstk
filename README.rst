@@ -38,6 +38,11 @@ Authors
 History
 =========
 
+8.0.1, 2017-04-26
+-------------------
+- Fixed the bug where ``setup.py`` could not find the license file.
+
+
 8.0.0, 2017-04-21
 -----------------
 - Finally knuckled down and wrote a GTFS validator: ``validators.py``.  It's basic, easy to read, and, thanks to Pandas, fast.  It checks `this 31 MB Southeast Queensland feed <http://transitfeeds.com/p/translink/21/20170310>` _ in 22 seconds on my 2.8-GHz-processor-16-GB-memory computer.  With the same computer and feed and in fast mode (``--memory_db``), `Google's GTFS validator <https://github.com/google/transitfeed>`_ takes 420 seconds. That's about 19 times slower. Part of the latter validator's slowness is its many checks beyond the GTFS, such as checks for too fast travel between every pair of stop times.
