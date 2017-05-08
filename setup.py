@@ -17,8 +17,8 @@ setup(
     long_description=readme,
     license=license,
     install_requires=[
-        'Shapely>=1.5.1,<=1.6',
-        'pandas>=0.18.1,<=0.20',
+        'Shapely>=1.5.1,<=1.7',
+        'pandas>=0.18.1,<=0.21',
         'utm>=0.3.1',    
         'pycountry==17.1.8',
     ],
