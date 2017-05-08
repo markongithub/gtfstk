@@ -38,9 +38,14 @@ Authors
 History
 =========
 
+8.0.2, 2017-04-26
+-------------------
+- Updated the package list in ``setup.py`` 
+
+
 8.0.1, 2017-04-26
 -------------------
-- Fixed the bug where ``setup.py`` could not find the license file.
+- Fixed the bug where ``setup.py`` could not find the license file
 
 
 8.0.0, 2017-04-21
