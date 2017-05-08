@@ -40,7 +40,7 @@ History
 
 8.0.2, 2017-04-26
 -------------------
-- Updated the package list in ``setup.py`` 
+- Updated the installation requirements in ``setup.py`` 
 
 
 8.0.1, 2017-04-26
