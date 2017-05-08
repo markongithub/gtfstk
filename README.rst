@@ -38,7 +38,7 @@ Authors
 History
 =========
 
-8.0.2, 2017-04-26
+8.0.2, 2017-05-09
 -------------------
 - Updated the installation requirements in ``setup.py`` 
 
