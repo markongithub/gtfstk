@@ -23,6 +23,9 @@ def test_feed():
         else:
             assert val is None
 
+def test_str():
+    assert isinstance(str(feed), str)
+
 def test_eq():
     assert Feed(dist_units='m') == Feed(dist_units='m')
 
