@@ -25,7 +25,7 @@ Documentation is in ``docs/`` and also on RawGit `here <https://rawgit.com/araic
 Notes
 =====
 - Development status is Alpha
-- This project uses `semantic versioning <http://semver.org/>`_
+- This project uses semantic versioning
 - Thanks to `MRCagney <http://www.mrcagney.com/>`_ for partially funding this project
 - Constructive feedback and code contributions welcome
 
@@ -37,6 +37,11 @@ Authors
 
 History
 =========
+
+?, ?
+-------------------
+- Added a ``__str__`` method to the Feed class
+
 
 8.0.2, 2017-05-09
 -------------------
