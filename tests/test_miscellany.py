@@ -12,6 +12,20 @@ from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cair
 from gtfstk import *
 
 
+def test_summarize():
+    feed = sample.copy()
+
+    with pytest.raises(ValueError):
+        summarize(feed, 'bad_table')
+
+    for table in [None, 'stops']:
+        f = summarize(feed, table)
+        assert isinstance(f, pd.DataFrame)
+        expect_cols = {'table', 'column', 'num_values', 'num_nonnull_values',
+          'num_unique_values', 'min_value', 'max_value'}
+        assert set(f.columns) == expect_cols
+        assert f.shape[0]
+
 def test_describe():
     feed = sample.copy() # No distances here
     a = describe(feed)

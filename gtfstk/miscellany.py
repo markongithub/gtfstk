@@ -9,13 +9,77 @@ import numpy as np
 import shapely.geometry as sg
 
 from . import helpers as hp
+from . import constants as cs
 
+
+def summarize(feed, table=None):
+    """
+    Return a DataFrame summarizing all GTFS tables in the given feed
+    or only the table (string; e.g. ``'stops'``) if it is specified.
+    The DataFrame will have the following columns.
+
+    - ``'table'``: name of the GTFS table, e.g. ``'stops'``
+    - ``'column'``: name of a column in the table, e.g. ``'stop_code'``
+    - ``'#values'``: number of values in the column
+    - ``'#nonnull_values'``: number of nonnull values in the column
+    - ``'#unique_values'``: number of unique values in the column
+    - ``'min_value'``: minimum value in the colum
+    - ``'max_value'``: maximum value in the column
+
+    If the table is not in the feed, then return an empty DataFrame
+    with the columns above.
+    If the table is not valid, raise a ValueError.
+    """
+    gtfs_tables = cs.GTFS_REF.table.unique()
+
+    if table is not None:
+        if table not in gtfs_tables:
+            raise ValueError('{!s} is not a GTFS table'.format(table))
+        else:
+            tables = [table]
+    else:
+        tables = gtfs_tables
+
+    frames = []
+    for table in tables:
+        f = getattr(feed, table)
+        if f is None:
+            continue
+
+        def my_agg(col):
+            d = {}
+            d['column'] = col.name
+            d['num_values'] = col.size
+            d['num_nonnull_values'] = col.count()
+            d['unm_unique_values'] = col.nunique()
+            d['min_value'] = col.dropna().min()
+            d['max_value'] = col.dropna().max()
+            return pd.Series(d)
+
+        g = f.apply(my_agg).T.reset_index(drop=True)
+        g['table'] = table
+        frames.append(g)
+
+    cols = ['table', 'column', 'num_values', 'num_nonnull_values',
+      'num_unique_values', 'min_value', 'max_value']
+
+    if not frames:
+        f = pd.DataFrame(columns=cols)
+    else:
+        f = pd.concat(frames)
+        # Rearrange columns
+        f = f[cols].copy()
+
+    return f
 
 def describe(feed, date=None):
     """
-    Return a DataFrame of various feed indicators and values, e.g. number of routes.
-    Also specialize some those indicators to the given sample date, e.g. number of routes active on the date.
-    If a sample date is not given, then set it to the first Thursday of the feed.
+    Return a DataFrame of various feed indicators and values,
+    e.g. number of routes.
+    Also specialize some those indicators to the given sample date,
+    e.g. number of routes active on the date.
+    If a sample date is not given, then set it to the first Thursday
+    of the feed.
 
     The columns of the DataFrame are
 
@@ -160,7 +224,7 @@ def convert_dist(feed, new_dist_units):
 
     return feed
 
-def compute_feed_stats(feed, trips_stats, date):
+def compute_feed_stats(feed, trip_stats, date):
     """
     Given trip stats of the form output by :func:`compute_trip_stats` and a date, return a DataFrame including the following feed stats for the date.
 
@@ -206,7 +270,7 @@ def compute_feed_stats(feed, trips_stats, date):
     d['num_stops'] = feed.get_stops(date).shape[0]
 
     # Compute peak stats
-    f = trips.merge(trips_stats)
+    f = trips.merge(trip_stats)
     f[['start_time', 'end_time']] =\
       f[['start_time', 'end_time']].applymap(hp.timestr_to_seconds)
 

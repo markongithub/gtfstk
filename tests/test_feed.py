@@ -66,6 +66,17 @@ def test_copy():
 # --------------------------------------------
 # Test functions about inputs and outputs
 # --------------------------------------------
+def test_list_gtfs():
+    # Bad path
+    with pytest.raises(ValueError):
+        list_gtfs('bad_path!')
+
+    for path in [DATA_DIR/'sample_gtfs.zip', DATA_DIR/'sample_gtfs']:
+        f = list_gtfs(path)
+        assert isinstance(f, pd.DataFrame)
+        assert set(f.columns) == {'file_name', 'file_size'}
+        assert f.shape[0] == 11
+
 def test_read_gtfs():
     # Bad path
     with pytest.raises(ValueError):

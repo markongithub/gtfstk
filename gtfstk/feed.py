@@ -18,6 +18,7 @@ import tempfile
 import shutil
 from copy import deepcopy
 from collections import OrderedDict
+import zipfile
 
 import pandas as pd
 
@@ -67,7 +68,7 @@ class Feed(object):
     from .stops import get_stops, build_geometry_by_stop, compute_stop_activity, compute_stop_stats, compute_stop_time_series, build_stop_timetable, get_stops_in_polygon
     from .stop_times import get_stop_times, append_dist_to_stop_times, get_start_and_end_times
     from .trips import is_active_trip, get_trips, compute_trip_activity, compute_busiest_date, compute_trip_stats, locate_trips, trip_to_geojson
-    from .miscellany import describe, assess_quality, convert_dist, compute_feed_stats, compute_feed_time_series, create_shapes, compute_bounds, compute_center, restrict_to_routes, restrict_to_polygon, compute_screen_line_counts
+    from .miscellany import summarize, describe, assess_quality, convert_dist, compute_feed_stats, compute_feed_time_series, create_shapes, compute_bounds, compute_center, restrict_to_routes, restrict_to_polygon, compute_screen_line_counts
     from .validators import validate, check_agency, check_calendar, check_calendar_dates, check_fare_attributes, check_fare_rules, check_feed_info, check_frequencies, check_routes, check_shapes, check_stops, check_stop_times, check_transfers, check_trips
     from .cleaners import clean_ids, clean_times, clean_route_short_names, drop_zombies, aggregate_routes, clean, drop_invalid_columns
 
@@ -209,6 +210,39 @@ class Feed(object):
 # -------------------------------------
 # Functions about input and output
 # -------------------------------------
+def list_gtfs(path):
+    """
+    Given a path to a GTFS zip file or directory, record the file names
+    and file sizes of the contents, and return the result in a DataFrame
+    with the columns:
+
+    - ``'file_name'``
+    - ``'file_size'``
+    """
+    path = Path(path)
+    if not path.exists():
+        raise ValueError("Path {!s} does not exist".format(path))
+
+    # Collect rows of DataFrame
+    rows = []
+    if path.is_file():
+        # Zip file
+        with zipfile.ZipFile(str(path)) as src:
+            for x in src.infolist():
+                if x.filename == './': continue
+                d = {}
+                d['file_name'] = x.filename
+                d['file_size'] = x.file_size
+                rows.append(d)
+    else:
+        # Directory
+        for x in path.iterdir():
+            d = {}
+            d['file_name'] = x.name
+            d['file_size'] = x.stat().st_size
+            rows.append(d)
+
+    return pd.DataFrame(rows)
 
 def read_gtfs(path, dist_units=None):
     """
