@@ -153,7 +153,7 @@ class Feed(object):
 
     def __str__(self):
         """
-        Print the first five rows of each GTFS table. 
+        Print the first five rows of each GTFS table.
         """
         d = OrderedDict()
         for table in cs.GTFS_REF['table'].unique():
@@ -209,6 +209,7 @@ class Feed(object):
 # -------------------------------------
 # Functions about input and output
 # -------------------------------------
+
 def read_gtfs(path, dist_units=None):
     """
     Create a Feed object from the given path and given distance units.
@@ -217,7 +218,7 @@ def read_gtfs(path, dist_units=None):
 
     NOTES:
         - Ignores non-GTFS files
-        - Automatically strips whitespace from the column names in GTFS files 
+        - Automatically strips whitespace from the column names in GTFS files
     """
     path = Path(path)
     if not path.exists():
