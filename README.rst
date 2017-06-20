@@ -38,6 +38,11 @@ Authors
 History
 =========
 
+?, ?
+-------------------
+- Added a ``__str__`` method to the Feed class
+
+
 8.0.2, 2017-05-09
 -------------------
 - Updated the installation requirements in ``setup.py`` 

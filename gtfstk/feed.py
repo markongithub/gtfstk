@@ -17,12 +17,14 @@ from pathlib import Path
 import tempfile
 import shutil
 from copy import deepcopy
+from collections import OrderedDict
 
 import pandas as pd
 
 from . import constants as cs
 from . import helpers as hp
 from . import cleaners as cn
+
 
 class Feed(object):
     """
@@ -148,6 +150,21 @@ class Feed(object):
               ['service_id', 'date'])
         else:
             self._calendar_dates_g = None
+
+    def __str__(self):
+        """
+        Print the first five rows of each GTFS table. 
+        """
+        d = OrderedDict()
+        for table in cs.GTFS_REF['table'].unique():
+            try:
+                d[table] = getattr(self, table).head(5)
+            except:
+                d[table] = None
+        d['dist_units'] = self.dist_units
+
+        return '\n'.join(['* {!s} --------------------\n\t{!s}'.format(
+          k, v) for k, v in d.items()])
 
     def __eq__(self, other):
         """
