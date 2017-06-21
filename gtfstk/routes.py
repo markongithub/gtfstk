@@ -14,7 +14,8 @@ from . import helpers as hp
 def compute_route_stats_base(trip_stats_subset, split_directions=False,
   headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Given a subset of the output of ``Feed.compute_trip_stats()``, calculate stats for the routes in that subset.
+    Given a subset of the output of ``Feed.compute_trip_stats()``,
+    calculate stats for the routes in that subset.
 
     Return a DataFrame with the following columns:
 
@@ -35,7 +36,7 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
     - peak_end_time: end time of first longest period during which the peak number of trips occurs
     - service_duration: total of the duration of each trip on the route in the given subset of trips; measured in hours
     - service_distance: total of the distance traveled by each trip on the route in the given subset of trips; measured in wunits, that is, whatever distance units are present in trip_stats_subset; contains all ``np.nan`` entries if ``feed.shapes is None``
-    - service_speed: service_distance/service_duration; measured in wunits per hour
+    - service_speed: service_distance/service_duration; measured in distance units per hour
     - mean_trip_distance: service_distance/num_trips
     - mean_trip_duration: service_duration/num_trips
 
@@ -336,18 +337,27 @@ def compute_route_stats(feed, trip_stats, date,
   split_directions=False, headway_start_time='07:00:00',
   headway_end_time='19:00:00'):
     """
-    Given a DataFrame of possibly partial trip stats for this Feed in the form output by :func:`compute_trip_stats`, cut the stats down to the subset ``S`` of trips that are active on the given date.
-    Then call :func:`.helpers.compute_route_stats_base` with ``S`` and the keyword arguments ``split_directions``, ``headway_start_time``, and  ``headway_end_time``.
-    See :func:`.helpers.compute_route_stats_base` for a description of the output.
+    Given a DataFrame of possibly partial trip stats for this Feed
+    in the form output by :func:`compute_trip_stats`,
+    cut the stats down to the subset ``S`` of trips that are active on
+    the given date.
+    Then call :func:`.helpers.compute_route_stats_base` with ``S`` and
+    the keyword arguments ``split_directions``, ``headway_start_time``,
+    and  ``headway_end_time``.
+    See :func:`.helpers.compute_route_stats_base` for a description of
+    the output.
 
-    Return an empty DataFrame if there are no route stats for the given trip stats and date.
+    Return an empty DataFrame if there are no route stats for the given
+    trip stats and date.
 
     Assume the following feed attributes are not ``None``:
 
     - Those used in :func:`.helpers.compute_route_stats_base`
 
     NOTES:
-        - This is a more user-friendly version of :func:`.helpers.compute_route_stats_base`. The latter function works without a feed, though.
+        - This is a more user-friendly version of
+          :func:`.helpers.compute_route_stats_base`.
+          The latter function works without a feed, though.
     """
     # Get the subset of trips_stats that contains only trips active
     # on the given date

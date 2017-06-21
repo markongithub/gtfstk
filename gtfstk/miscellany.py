@@ -3,6 +3,7 @@ Functions about miscellany.
 """
 from collections import OrderedDict
 import math
+import copy
 
 import pandas as pd
 import numpy as np
@@ -224,7 +225,7 @@ def convert_dist(feed, new_dist_units):
 
     return feed
 
-def compute_feed_stats(feed, trip_stats, date):
+def compute_feed_stats(feed, trip_stats, dates):
     """
     Given trip stats of the form output by :func:`compute_trip_stats` and a date, return a DataFrame including the following feed stats for the date.
 
@@ -250,6 +251,7 @@ def compute_feed_stats(feed, trip_stats, date):
 
     """
     cols = [
+      'date',
       'num_trips',
       'num_routes',
       'num_stops',
@@ -260,35 +262,130 @@ def compute_feed_stats(feed, trip_stats, date):
       'service_duration',
       'service_speed',
     ]
-    d = OrderedDict()
-    trips = feed.get_trips(date)
-    if trips.empty:
-        return pd.DataFrame(columns=cols)
+    ts = trip_stats.copy()
+    activity = feed.compute_trip_activity(dates)
+    stop_times = feed.stop_times.copy()
 
-    d['num_trips'] = trips.shape[0]
-    d['num_routes'] = feed.get_routes(date).shape[0]
-    d['num_stops'] = feed.get_stops(date).shape[0]
+    # Convert timestrings to seconds for quicker calculations
+    ts[['start_time', 'end_time']] =\
+      ts[['start_time', 'end_time']].applymap(hp.timestr_to_seconds)
 
-    # Compute peak stats
-    f = trips.merge(trip_stats)
-    f[['start_time', 'end_time']] =\
-      f[['start_time', 'end_time']].applymap(hp.timestr_to_seconds)
+    # Compile stats for each date, but memoize stats by trip ID sequence
+    # to avoid unnecessary computation
+    stats_by_ids = {}
+    rows = []
+    for date in dates:
+        stats = {}
+        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        if ids in stats_by_ids:
+            # Use stats previously computed
+            stats = copy.copy(stats_by_ids[ids])
+        elif not ids:
+            stats  = {col: np.nan for col in cols}
+        else:
+            # Compute stats afresh
+            f = ts[ts['trip_id'].isin(ids)].copy()
+            stats['num_trips'] = f.shape[0]
+            stats['num_routes'] = f['route_id'].nunique()
+            stats['num_stops'] = stop_times.loc[
+              stop_times['trip_id'].isin(ids), 'stop_id'].nunique()
+            stats['service_distance'] = f['distance'].sum()
+            stats['service_duration'] = f['duration'].sum()
+            stats['service_speed'] =\
+              stats['service_distance']/stats['service_duration']
 
-    times = np.unique(f[['start_time', 'end_time']].values)
-    counts = [hp.count_active_trips(f, t) for t in times]
-    start, end = hp.get_peak_indices(times, counts)
-    d['peak_num_trips'] = counts[start]
-    d['peak_start_time'] =\
-      hp.timestr_to_seconds(times[start], inverse=True)
-    d['peak_end_time'] =\
-      hp.timestr_to_seconds(times[end], inverse=True)
+            # Compute peak stats, which is the slowest part
+            times = np.unique(f[['start_time', 'end_time']].values)
+            counts = [hp.count_active_trips(f, t) for t in times]
+            start, end = hp.get_peak_indices(times, counts)
+            stats['peak_num_trips'] = counts[start]
+            stats['peak_start_time'] = times[start]
+            stats['peak_end_time'] = times[end]
 
-    # Compute remaining stats
-    d['service_distance'] = f['distance'].sum()
-    d['service_duration'] = f['duration'].sum()
-    d['service_speed'] = d['service_distance']/d['service_duration']
+            # Remember stats
+            stats_by_ids[ids] = stats
 
-    return pd.DataFrame(d, index=[0])
+        stats['date'] = date
+        rows.append(stats)
+
+    # Assemble stats into DataFrame
+    if rows:
+        f = pd.DataFrame(rows)
+        f = f[cols].copy()  # Rearrange columns
+        # Convert seconds back to timestrings
+        for col in ['peak_start_time', 'peak_end_time']:
+            f[col] = f[col].map(
+              lambda t: hp.timestr_to_seconds(t, inverse=True))
+    else:
+        f = pd.DataFrame([], columns=cols)
+
+    return f
+
+# def compute_feed_stats(feed, trip_stats, date):
+#     """
+#     Given trip stats of the form output by :func:`compute_trip_stats` and a date, return a DataFrame including the following feed stats for the date.
+
+#     - num_trips: number of trips active on the given date
+#     - num_routes: number of routes active on the given date
+#     - num_stops: number of stops active on the given date
+#     - peak_num_trips: maximum number of simultaneous trips in service
+#     - peak_start_time: start time of first longest period during which
+#       the peak number of trips occurs
+#     - peak_end_time: end time of first longest period during which
+#       the peak number of trips occurs
+#     - service_distance: sum of the service distances for the active routes
+#     - service_duration: sum of the service durations for the active routes
+#     - service_speed: service_distance/service_duration
+
+#     If there are no stats for the given date, return an empty DataFrame with the specified columns.
+
+#     Assume the following feed attributes are not ``None``:
+
+#     - Those used in :func:`get_trips`
+#     - Those used in :func:`get_routes`
+#     - Those used in :func:`get_stops`
+
+#     """
+#     cols = [
+#       'num_trips',
+#       'num_routes',
+#       'num_stops',
+#       'peak_num_trips',
+#       'peak_start_time',
+#       'peak_end_time',
+#       'service_distance',
+#       'service_duration',
+#       'service_speed',
+#     ]
+#     d = OrderedDict()
+#     trips = feed.get_trips(date)
+#     if trips.empty:
+#         return pd.DataFrame(columns=cols)
+
+#     d['num_trips'] = trips.shape[0]
+#     d['num_routes'] = feed.get_routes(date).shape[0]
+#     d['num_stops'] = feed.get_stops(date).shape[0]
+
+#     # Compute peak stats
+#     f = trips.merge(trip_stats)
+#     f[['start_time', 'end_time']] =\
+#       f[['start_time', 'end_time']].applymap(hp.timestr_to_seconds)
+
+#     times = np.unique(f[['start_time', 'end_time']].values)
+#     counts = [hp.count_active_trips(f, t) for t in times]
+#     start, end = hp.get_peak_indices(times, counts)
+#     d['peak_num_trips'] = counts[start]
+#     d['peak_start_time'] =\
+#       hp.timestr_to_seconds(times[start], inverse=True)
+#     d['peak_end_time'] =\
+#       hp.timestr_to_seconds(times[end], inverse=True)
+
+#     # Compute remaining stats
+#     d['service_distance'] = f['distance'].sum()
+#     d['service_duration'] = f['duration'].sum()
+#     d['service_speed'] = d['service_distance']/d['service_duration']
+
+#     return pd.DataFrame(d, index=[0])
 
 def compute_feed_time_series(feed, trip_stats, date, freq='5Min'):
     """

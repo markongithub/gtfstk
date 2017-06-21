@@ -56,15 +56,15 @@ def test_convert_dist():
 
 def test_compute_feed_stats():
     feed = cairns.copy()
-    date = cairns_date
+    dates = [cairns_date, '20010101']
     trip_stats = cairns_trip_stats
-    f = compute_feed_stats(feed, trip_stats, date)
+    f = compute_feed_stats(feed, trip_stats, dates)
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct number of rows
-    assert f.shape[0] == 1
+    assert f.shape[0] == len(dates)
     # Should contain the correct columns
-    expect_cols = set([
+    expect_cols = {
       'num_trips',
       'num_routes',
       'num_stops',
@@ -74,12 +74,17 @@ def test_compute_feed_stats():
       'service_duration',
       'service_distance',
       'service_speed',
-      ])
+      'date',
+      }
     assert set(f.columns) == expect_cols
+    # Should have NaNs for last date
+    cols = [c for c in expect_cols if c != 'date']
+    assert f.loc[f['date'] == dates[-1], cols].isnull().values.all()
 
-    # Empty check
-    f = compute_feed_stats(feed, trip_stats, '20010101')
+    # Empty dates should yield empty DataFrame
+    f = compute_feed_stats(feed, trip_stats, [])
     assert f.empty
+    assert set(f.columns) == expect_cols
 
 def test_compute_feed_time_series():
     feed = cairns.copy()

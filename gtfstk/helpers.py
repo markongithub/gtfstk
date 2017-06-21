@@ -11,18 +11,6 @@ import utm
 from . import constants as cs
 
 
-def time_it(f):
-    def wrap(*args, **kwargs):
-        t1 = dt.datetime.now()
-        print('Timing', f.__name__)
-        print(t1, 'Began process')
-        result = f(*args, **kwargs)
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished in %.2f min' % minutes)
-        return result
-    return wrap
-
 def datestr_to_date(x, format_str='%Y%m%d', inverse=False):
     """
     Given a string object ``x`` representing a date in the given format,     convert it to a datetime.date object and return the result.
@@ -140,7 +128,11 @@ def get_max_runs(x):
 
 def get_peak_indices(times, counts):
     """
-    Given an increasing list of times as seconds past midnight and a list of  trip counts at those times, return a pair of indices i, j such that times[i] to times[j] is the first longest time period such that for all i <= x < j, counts[x] is the max of counts.
+    Given an increasing list of times as seconds past midnight and a
+    list of trip counts at those respective times,
+    return a pair of indices i, j such that times[i] to times[j] is
+    the first longest time period such that for all i <= x < j,
+    counts[x] is the max of counts.
     Assume times and counts have the same nonzero length.
     """
     max_runs = get_max_runs(counts)
@@ -210,7 +202,8 @@ def get_utm_crs(lat, lon):
 
 def linestring_to_utm(linestring):
     """
-    Given a Shapely LineString in WGS84 coordinates, convert it to the appropriate UTM coordinates.
+    Given a Shapely LineString in WGS84 coordinates,
+    convert it to the appropriate UTM coordinates.
     If ``inverse``, then do the inverse.
     """
     proj = lambda x, y: utm.from_latlon(y, x)[:2]
@@ -224,8 +217,10 @@ def count_active_trips(trip_times, time):
     - start_time: start time of the trip in seconds past midnight
     - end_time: end time of the trip in seconds past midnight
 
-    and a time in seconds past midnight, return the number of trips in the DataFrame that are active at the given time.
-    A trip is a considered active at time t if start_time <= t < end_time.
+    and a time in seconds past midnight, return the number of trips in
+    the DataFrame that are active at the given time.
+    A trip is a considered active at time t if
+    start_time <= t < end_time.
     """
     t = trip_times
     return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
