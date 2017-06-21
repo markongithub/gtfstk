@@ -15,23 +15,32 @@ from . import helpers as hp
 def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
   headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Given a stop times DataFrame and a subset of a trips DataFrame, return a DataFrame that provides summary stats about the stops in the (inner) join of the two DataFrames.
+    Given a stop times DataFrame and a subset of a trips DataFrame,
+    return a DataFrame that provides summary stats about the stops
+    in the (inner) join of the two DataFrames.
 
     The columns of the output DataFrame are:
 
     - stop_id
     - direction_id: present if and only if ``split_directions``
-    - num_routes: number of routes visiting stop (in the given direction)
+    - num_routes: number of routes visiting stop
+      (in the given direction)
     - num_trips: number of trips visiting stop (in the givin direction)
-    - max_headway: maximum of the durations (in minutes) between trip departures at the stop between ``headway_start_time`` and      ``headway_end_time`` on the given date
+    - max_headway: maximum of the durations (in minutes)
+      between trip departures at the stop between ``headway_start_time``
+      and ``headway_end_time`` on the given date
     - min_headway: minimum of the durations (in minutes) mentioned above
     - mean_headway: mean of the durations (in minutes) mentioned above
-    - start_time: earliest departure time of a trip from this stop on the given date
-    - end_time: latest departure time of a trip from this stop on the given date
+    - start_time: earliest departure time of a trip from this stop on
+      the given date
+    - end_time: latest departure time of a trip from this stop on the
+      given date
 
-    If ``split_directions == False``, then compute each stop's stats using trips visiting it from both directions.
+    If ``split_directions == False``, then compute each stop's stats
+    using trips visiting it from both directions.
 
-    If ``trip_subset`` is empty, then return an empty DataFrame with the columns specified above.
+    If ``trip_subset`` is empty, then return an empty DataFrame with
+    the columns specified above.
     """
     cols = [
       'stop_id',
