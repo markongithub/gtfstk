@@ -338,17 +338,19 @@ def compute_feed_stats(feed, trip_stats, dates):
 
 def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     """
-    Given trips stats (output of ``feed.compute_trip_stats()``), a date, and a Pandas frequency string, return a time series of stats for this feed on the given date at the given frequency with the following columns
+    Given trips stats (output of ``feed.compute_trip_stats()``), a date,
+    and a Pandas frequency string, return a time series of stats for this feed on the given date at the given frequency with the following columns
 
-    - num_trip_starts: number of trips starting at this time
+    - num_trip_starts: number of trips starting at this time period
     - num_trips: number of trips in service during this time period
     - service_distance: distance traveled by all active trips during
       this time period
-    - service_duration: duration traveled by all active trips during this
-      time period
+    - service_duration: duration traveled by all active trips during
+      this time period
     - service_speed: service_distance/service_duration
 
-    If there is no time series for the given date, return an empty DataFrame with specified columns.
+    If all the dates given lie outside of the feed's date range,
+    then return an empty DataFrame with the specified columns.
 
     Assume the following feed attributes are not ``None``:
 
