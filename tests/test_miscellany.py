@@ -62,7 +62,7 @@ def test_compute_feed_stats():
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct number of rows
-    assert f.shape[0] == len(dates)
+    assert f.shape[0] == 1
     # Should contain the correct columns
     expect_cols = {
       'num_trips',
@@ -77,9 +77,6 @@ def test_compute_feed_stats():
       'date',
       }
     assert set(f.columns) == expect_cols
-    # Should have NaNs for last date
-    cols = [c for c in expect_cols if c != 'date']
-    assert f.loc[f['date'] == dates[-1], cols].isnull().values.all()
 
     # Empty dates should yield empty DataFrame
     f = compute_feed_stats(feed, trip_stats, [])

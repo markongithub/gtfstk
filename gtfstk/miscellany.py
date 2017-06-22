@@ -241,7 +241,8 @@ def compute_feed_stats(feed, trip_stats, dates):
     - service_duration: sum of the service durations for the active routes
     - service_speed: service_distance/service_duration
 
-    If there are no stats for the given date, return an empty DataFrame with the specified columns.
+    If all the dates given lie outside of the feed's date range,
+    then return an empty DataFrame with the specified columns.
 
     Assume the following feed attributes are not ``None``:
 
@@ -262,6 +263,12 @@ def compute_feed_stats(feed, trip_stats, dates):
       'service_duration',
       'service_speed',
     ]
+
+    # Restrict to feed dates
+    dates = set(dates) & set(feed.get_dates())
+    if not dates:
+        return pd.DataFrame([], columns=cols)
+
     ts = trip_stats.copy()
     activity = feed.compute_trip_activity(dates)
     stop_times = feed.stop_times.copy()
@@ -284,10 +291,8 @@ def compute_feed_stats(feed, trip_stats, dates):
             stats_and_dates_by_ids[ids][1].append(date)
         elif not ids:
             # Empty stats
-            stats  = {col: np.nan for col in cols
+            stats = {col: np.nan for col in cols
               if col != 'date'}
-
-            # Record stats
             stats_and_dates_by_ids[ids] = [stats, [date]]
         else:
             # Compute stats
@@ -313,21 +318,18 @@ def compute_feed_stats(feed, trip_stats, dates):
             stats_and_dates_by_ids[ids] = [stats, [date]]
 
     # Assemble stats into DataFrame
-    if not dates:
-        f = pd.DataFrame([], columns=cols)
-    else:
-        rows = []
-        for stats, dates in stats_and_dates_by_ids.values():
-            for date in dates:
-                s = copy.copy(stats)
-                s['date'] = date
-                rows.append(s)
-        f = pd.DataFrame(rows).sort_values('date')
+    rows = []
+    for stats, dates in stats_and_dates_by_ids.values():
+        for date in dates:
+            s = copy.copy(stats)
+            s['date'] = date
+            rows.append(s)
+    f = pd.DataFrame(rows).sort_values('date')
 
-        # Convert seconds back to timestrings
-        times = ['peak_start_time', 'peak_end_time']
-        f[times] = f[times].applymap(
-          lambda t: hp.timestr_to_seconds(t, inverse=True))
+    # Convert seconds back to timestrings
+    times = ['peak_start_time', 'peak_end_time']
+    f[times] = f[times].applymap(
+      lambda t: hp.timestr_to_seconds(t, inverse=True))
 
     return f
 

@@ -162,7 +162,7 @@ def compute_stop_time_series_base(stop_times, trips_subset,
     # Combine lists into one time series.
     # Actually, a dictionary indicator -> time series.
     # Only one indicator in this case, but could add more
-    # in the future as was done with routes time series.
+    # in the future as was done with route time series.
     rng = pd.date_range(date_label, periods=24*60, freq='Min')
     series_by_indicator = {'num_trips':
       pd.DataFrame(series_by_stop, index=rng).fillna(0)}
@@ -313,6 +313,11 @@ def compute_stop_stats(feed, dates, split_directions=False,
     if split_directions:
         cols.append('direction_id')
 
+    # Restrict to feed dates
+    dates = set(dates) & set(feed.get_dates())
+    if not dates:
+        return pd.DataFrame([], columns=cols)
+
     activity = feed.compute_trip_activity(dates)
 
     # Collect stats for each date, memoizing stats by trip ID sequence
@@ -339,35 +344,84 @@ def compute_stop_stats(feed, dates, split_directions=False,
             stats_and_dates_by_ids[ids] = [stats, [date]]
 
     # Assemble stats into DataFrame
-    if not dates:
-        f = pd.DataFrame([], columns=cols)
-    else:
-        frames = []
-        for stats, dates in stats_and_dates_by_ids.values():
-            for date in dates:
-                f = stats.copy()
-                f['date'] = date
-                frames.append(f)
-        f = pd.concat(frames).sort_values(['date', 'stop_id'])
+    frames = []
+    for stats, dates in stats_and_dates_by_ids.values():
+        for date in dates:
+            f = stats.copy()
+            f['date'] = date
+            frames.append(f)
+    f = pd.concat(frames).sort_values(['date', 'stop_id'])
 
     return f
 
-def compute_stop_time_series(feed, date, split_directions=False, freq='5Min'):
+def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     """
-    Call :func:`.helpers.compute_stops_times_series_base` with the subset of trips  active on the given date and with the keyword arguments ``split_directions``and ``freq`` and with ``date_label`` equal to ``date``.
-    See :func:`.helpers.compute_stop_time_series_base` for a description of the output.
+    Compute time series for the given stops on the given dates at the
+    given frequency and return the result as a DataFrame of the same
+    form as output by :func:`compute_stop_time_series_base`.
 
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stop_times``
     - Those used in :func:`get_trips`
 
-    NOTES:
-      - This is a more user-friendly version of :func:`.helpers.compute_stop_time_series_base`. The latter function works without a feed, though.
+    If all dates lie outside the feed's date range, then return an
+    empty DataFrame with only the column ``'num_trips'``.
+
+    Dates with no active stops will not appear in the result
+    (which contrasts with the output of :func:`compute_stop_stats`).
     """
-    return compute_stop_time_series_base(feed.stop_times,
-      feed.get_trips(date), split_directions=split_directions,
-      freq=freq, date_label=date)
+    cols = [
+      'num_trips',
+      ]
+
+    # Restrict to feed dates
+    dates = set(dates) & set(feed.get_dates())
+    if not dates:
+        return pd.DataFrame([], columns=cols)
+
+    if split_directions:
+        cols.append('direction_id')
+
+    activity = feed.compute_trip_activity(dates)
+
+    # Collect stats for each date, memoizing stats by trip ID sequence
+    # to avoid unnecessary recomputations.
+    # Store in dictionary of the form
+    # trip ID sequence ->
+    # [stats DataFarme, date list that stats apply]
+    stats_and_dates_by_ids = {}
+    for date in dates:
+        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        if ids in stats_and_dates_by_ids:
+            # Append date to date list
+            stats_and_dates_by_ids[ids][1].append(date)
+        else:
+            # Compute stats
+            t = feed.trips
+            trips = t[t['trip_id'].isin(ids)].copy()
+            stats = compute_stop_time_series_base(feed.stop_times, trips,
+              split_directions=split_directions, freq=freq, date_label=date)
+
+            # Remember stats
+            stats_and_dates_by_ids[ids] = [stats, [date]]
+
+    # Assemble stats into DataFrame
+    frames = []
+    for stats, dates in stats_and_dates_by_ids.values():
+        if stats.empty:
+            # Skip empty stats
+            continue
+        for date in dates:
+            f = stats.copy()
+            # Replace date
+            d = hp.datestr_to_date(date)
+            f.index = f.index.map(lambda t: t.replace(
+              year=d.year, month=d.month, day=d.day))
+            frames.append(f)
+    f = pd.concat(frames).sort_index()
+
+    return f
 
 def build_stop_timetable(feed, stop_id, date):
     """

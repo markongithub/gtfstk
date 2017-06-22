@@ -384,8 +384,6 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 
     - Those used in :func:`.helpers.compute_route_stats_base`
     """
-    ts = trip_stats.copy()
-    activity = feed.compute_trip_activity(dates)
     cols = [
       'date',
       'route_id',
@@ -411,6 +409,14 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
     if split_directions:
         cols.append('direction_id')
 
+    # Restrict to feed dates
+    dates = set(dates) & set(feed.get_dates())
+    if not dates:
+        return pd.DataFrame([], columns=cols)
+
+    ts = trip_stats.copy()
+    activity = feed.compute_trip_activity(dates)
+
     # Collect stats for each date, memoizing stats by trip ID sequence
     # to avoid unnecessary recomputations.
     # Store in dictionary of the form
@@ -434,16 +440,13 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
             stats_and_dates_by_ids[ids] = [stats, [date]]
 
     # Assemble stats into DataFrame
-    if not dates:
-        f = pd.DataFrame([], columns=cols)
-    else:
-        frames = []
-        for stats, dates in stats_and_dates_by_ids.values():
-            for date in dates:
-                f = stats.copy()
-                f['date'] = date
-                frames.append(f)
-        f = pd.concat(frames).sort_values(['date', 'route_id'])
+    frames = []
+    for stats, dates in stats_and_dates_by_ids.values():
+        for date in dates:
+            f = stats.copy()
+            f['date'] = date
+            frames.append(f)
+    f = pd.concat(frames).sort_values(['date', 'route_id'])
 
     return f
 

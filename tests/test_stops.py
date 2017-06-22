@@ -183,12 +183,12 @@ def test_compute_stop_stats():
 @slow
 def test_compute_stop_time_series():
     feed = cairns.copy()
-    date = cairns_date
-    ast = pd.merge(get_trips(feed, date), feed.stop_times)
+    dates = [cairns_date, '20010101']
+    ast = pd.merge(get_trips(feed, dates[0]), feed.stop_times)
     for split_directions in [True, False]:
-        f = compute_stop_stats(feed, date,
+        f = compute_stop_stats(feed, dates[:1],
           split_directions=split_directions)
-        ts = compute_stop_time_series(feed, date, freq='1H',
+        ts = compute_stop_time_series(feed, dates, freq='1H',
           split_directions=split_directions)
 
         # Should be a data frame
@@ -213,11 +213,11 @@ def test_compute_stop_time_series():
                 expect = astg.get_group(stop)['departure_time'].count()
                 assert get == expect
 
-    # Empty check
-    date = '19000101'
-    ts = compute_stop_time_series(feed, date, freq='1H',
-      split_directions=split_directions)
-    assert ts.empty
+        # Empty dates should yield empty DataFrame
+        ts = compute_stop_time_series(feed, [],
+          split_directions=split_directions)
+        assert ts.empty
+        assert set(ts.columns) == {'num_trips'}
 
 def test_build_stop_timetable():
     feed = cairns.copy()

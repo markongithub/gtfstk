@@ -110,7 +110,7 @@ def compute_trip_activity(feed, dates):
     for date in dates:
         f[date] = f['trip_id'].map(lambda trip_id:
           int(feed.is_active_trip(trip_id, date)))
-    return f[['trip_id'] + dates]
+    return f[['trip_id'] + list(dates)]
 
 def compute_busiest_date(feed, dates):
     """
