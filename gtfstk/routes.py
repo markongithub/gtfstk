@@ -384,6 +384,9 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 
     - Those used in :func:`.helpers.compute_route_stats_base`
     """
+    if not isinstance(dates, list):
+        raise ValueError('dates must be a list')
+
     cols = [
       'date',
       'route_id',
@@ -450,27 +453,83 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 
     return f
 
-def compute_route_time_series(feed, trip_stats, date,
-  split_directions=False, freq='5Min'):
+def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
+  freq='5Min'):
     """
-    Given a DataFrame of possibly partial trip stats for this Feed in the form output by :func:`compute_trip_stats`, cut the stats down to the subset ``S`` of trips that are active on the given date, then call :func:`.helpers.compute_route_time_series_base` with ``S`` and the given keyword arguments ``split_directions`` and ``freq`` and with ``date_label = date_to_str(date)``.
-
-    See :func:`.helpers.compute_route_time_series_base` for a description of the output.
-
-    Return an empty DataFrame if there are no route stats for the given trip stats and date.
+    Compute time series for the given routes on the given dates at the
+    given frequency and return the result as a DataFrame of the same
+    form as output by :func:`compute_stop_time_series_base`.
 
     Assume the following feed attributes are not ``None``:
 
     - Those used in :func:`get_trips`
 
+    If all dates lie outside the feed's date range, then return an
+    empty DataFrame with only the columns ``'service_distance'``
+    ``'service_duration'``, ``'num_trip_starts'``, ``'num_trips'``,
+    and ``'service_speed'``.
 
-    NOTES:
-        - This is a more user-friendly version of :func:`.helpers.compute_route_time_series_base`. The latter function works without a feed, though.
+    Dates with no active stops will not appear in the result
+    (which contrasts with the output of :func:`compute_stop_stats`).
     """
-    trip_stats_subset = pd.merge(trip_stats, feed.get_trips(date))
-    return compute_route_time_series_base(trip_stats_subset,
-      split_directions=split_directions, freq=freq,
-      date_label=date)
+    if not isinstance(dates, list):
+        raise ValueError('dates must be a list')
+
+    cols = [
+      'service_distance',
+      'service_duration',
+      'num_trip_starts',
+      'num_trips',
+      'service_speed',
+    ]
+
+    # Restrict to feed dates
+    dates = set(dates) & set(feed.get_dates())
+    if not dates:
+        return pd.DataFrame([], columns=cols)
+
+    if split_directions:
+        cols.append('direction_id')
+
+    activity = feed.compute_trip_activity(dates)
+    ts = trip_stats.copy()
+
+    # Collect stats for each date, memoizing stats by trip ID sequence
+    # to avoid unnecessary recomputations.
+    # Store in dictionary of the form
+    # trip ID sequence ->
+    # [stats DataFarme, date list that stats apply]
+    stats_and_dates_by_ids = {}
+    for date in dates:
+        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        if ids in stats_and_dates_by_ids:
+            # Append date to date list
+            stats_and_dates_by_ids[ids][1].append(date)
+        else:
+            # Compute stats
+            t = ts[ts['trip_id'].isin(ids)].copy()
+            stats = compute_route_time_series_base(t,
+              split_directions=split_directions, freq=freq, date_label=date)
+
+            # Remember stats
+            stats_and_dates_by_ids[ids] = [stats, [date]]
+
+    # Assemble stats into DataFrame
+    frames = []
+    for stats, dates in stats_and_dates_by_ids.values():
+        if stats.empty:
+            # Skip empty stats
+            continue
+        for date in dates:
+            f = stats.copy()
+            # Replace date
+            d = hp.datestr_to_date(date)
+            f.index = f.index.map(lambda t: t.replace(
+              year=d.year, month=d.month, day=d.day))
+            frames.append(f)
+    f = pd.concat(frames).sort_index()
+
+    return f
 
 def build_route_timetable(feed, route_id, date):
     """

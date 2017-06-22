@@ -251,6 +251,9 @@ def compute_feed_stats(feed, trip_stats, dates):
     - Those used in :func:`get_stops`
 
     """
+    if not isinstance(dates, list):
+        raise ValueError('dates must be a list')
+
     cols = [
       'date',
       'num_trips',

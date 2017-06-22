@@ -299,6 +299,9 @@ def compute_stop_stats(feed, dates, split_directions=False,
     - ``feed.stop_times``
     - Those used in :func:`get_trips`
     """
+    if not isinstance(dates, list):
+        raise ValueError('dates must be a list')
+
     cols = [
       'date',
       'stop_id',
@@ -371,6 +374,9 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     Dates with no active stops will not appear in the result
     (which contrasts with the output of :func:`compute_stop_stats`).
     """
+    if not isinstance(dates, list):
+        raise ValueError('dates must be a list')
+
     cols = [
       'num_trips',
       ]
