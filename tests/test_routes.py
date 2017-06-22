@@ -121,11 +121,11 @@ def test_get_routes():
 @slow
 def test_compute_route_stats():
     feed = cairns.copy()
-    date = cairns_date
+    dates = [cairns_date, '20010101']
     trip_stats = cairns_trip_stats
-    f = pd.merge(trip_stats, get_trips(feed, date))
+    f = pd.merge(trip_stats, get_trips(feed, dates[0]))
     for split_directions in [True, False]:
-        rs = compute_route_stats(feed, trip_stats, date,
+        rs = compute_route_stats(feed, trip_stats, dates,
           split_directions=split_directions)
 
         # Should be a data frame of the correct shape
@@ -138,7 +138,8 @@ def test_compute_route_stats():
         assert rs.shape[0] <= max_num_routes
 
         # Should contain the correct columns
-        expect_cols = set([
+        expect_cols = {
+          'date',
           'route_id',
           'route_short_name',
           'route_type',
@@ -158,14 +159,21 @@ def test_compute_route_stats():
           'service_speed',
           'mean_trip_distance',
           'mean_trip_duration',
-          ])
+          }
         if split_directions:
             expect_cols.add('direction_id')
+
         assert set(rs.columns) == expect_cols
 
-    # Empty check
-    f = compute_route_stats(feed, trip_stats, '20010101')
-    assert f.empty
+        # Should have NaNs for last date
+        cols = [c for c in expect_cols if c != 'date']
+        assert rs.loc[rs['date'] == dates[-1], cols].isnull().values.all()
+
+        # Empty dates should yield empty DataFrame
+        rs = compute_route_stats(feed, trip_stats, [],
+          split_directions=split_directions)
+        assert rs.empty
+        assert set(rs.columns) == expect_cols
 
 @slow
 def test_compute_route_time_series():
