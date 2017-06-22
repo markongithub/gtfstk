@@ -43,7 +43,7 @@ History
 - Added the ``__str__`` method to the Feed class
 - Removed ``time_it`` decorator. Use the IPython magic ``%time`` instead.
 - Inspired by the `Transitland Dispatcher <https://transit.land/dispatcher/feed-versions/eb0cbe5ab41c9cfde0ebae42471ab5b3f712b008>`_, added the ``summarize`` method and the ``list_gtfs`` function
-- Extended ``compute_feed_stats`` to accept multiple dates, which is a breaking change
+- Extended stats and time series function to accept multiple dates, which is a breaking change
 
 
 8.0.2, 2017-05-09
