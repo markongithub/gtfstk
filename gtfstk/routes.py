@@ -533,9 +533,12 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
 
 def build_route_timetable(feed, route_id, date):
     """
-    Return a DataFrame encoding the timetable for the given route ID on the given date.
-    The columns are all those in ``feed.trips`` plus those in ``feed.stop_times``.
-    The result is sorted by grouping by trip ID and sorting the groups by their first departure time.
+    Return a DataFrame encoding the timetable for the given route ID on
+    the given date.
+    The columns are all those in ``feed.trips`` plus those in
+    ``feed.stop_times``.
+    The result is sorted by grouping by trip ID and sorting the groups
+    by their first departure time.
 
     Assume the following feed attributes are not ``None``:
 

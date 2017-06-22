@@ -114,8 +114,8 @@ def compute_trip_activity(feed, dates):
 
 def compute_busiest_date(feed, dates):
     """
-    Given a list of dates, return the first date that has the maximum number of active trips.
-    If the list of dates is empty, then raise a ``ValueError``.
+    Given a list of dates, return the first date that has the
+    maximum number of active trips.
 
     Assume the following feed attributes are not ``None``:
 
@@ -271,19 +271,20 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
 
 def locate_trips(feed, date, times):
     """
-    Return a  DataFrame of the positions of all trips active on the given date and times
-    Include the columns:
+    Return a DataFrame of the positions of all trips active on the
+    given date and times, one that has the columns:
 
-    - trip_id
-    - route_id
-    - direction_id
-    - time
-    - rel_dist: number between 0 (start) and 1 (end) indicating
+    - ``'trip_id'``
+    - ``'route_id'``
+    - ``'direction_id'``
+    - ``'time'``
+    - ``'rel_dist'``: number between 0 (start) and 1 (end) indicating
       the relative distance of the trip along its path
-    - lon: longitude of trip at given time
-    - lat: latitude of trip at given time
+    - ``'lon'``: longitude of trip at given time
+    - ``'lat'``: latitude of trip at given time
 
-    Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled`` column.
+    Assume ``feed.stop_times`` has an accurate
+    ``shape_dist_traveled`` column.
 
     Assume the following feed attributes are not ``None``:
 

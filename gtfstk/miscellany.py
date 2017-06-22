@@ -448,15 +448,22 @@ def create_shapes(feed, all_trips=False):
 
 def compute_bounds(feed):
     """
-    Return the tuple (min longitude, min latitude, max longitude, max latitude) where the longitudes and latitude vary across all the stop (WGS84)coordinates.
+    Return the tuple (min longitude, min latitude, max longitude,
+    max latitude) where the longitudes and latitude vary across all
+    the feed's stop coordinates.
     """
     lons, lats = feed.stops['stop_lon'], feed.stops['stop_lat']
     return lons.min(), lats.min(), lons.max(), lats.max()
 
 def compute_center(feed, num_busiest_stops=None):
     """
-    Compute the convex hull of all the stop points of this Feed and return the centroid.
-    If an integer ``num_busiest_stops`` is given, then compute the ``num_busiest_stops`` busiest stops in the feed on the first Monday of the feed and return the mean of the longitudes and the mean of the latitudes of these stops, respectively.
+    Compute the convex hull of all the feed's stop locations
+    and return the centroid.
+    If an integer ``num_busiest_stops`` is given,
+    then compute the ``num_busiest_stops`` busiest stops in the feed
+    on the first Monday of the feed and return the mean of the
+    longitudes and the mean of the latitudes of these stops,
+    respectively.
     """
     s = feed.stops.copy()
     if num_busiest_stops is not None:
@@ -537,7 +544,10 @@ def restrict_to_routes(feed, route_ids):
 
 def restrict_to_polygon(feed, polygon):
     """
-    Build a new feed by restricting this on to only the trips that have at least one stop intersecting the given polygon, then        restricting stops, routes, stop times, etc. to those associated with that subset of trips.
+    Build a new feed by restricting this one to only the trips
+    that have at least one stop intersecting the given polygon,
+    then restricting stops, routes, stop times, etc. to those
+    associated with that subset of trips.
     Return the resulting feed.
     Requires GeoPandas.
 
@@ -614,29 +624,45 @@ def restrict_to_polygon(feed, polygon):
 
 def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     """
-    Compute all the trips active in the given feed on the given date that intersect the given Shapely LineString (with WGS84 longitude-latitude coordinates), and return a DataFrame with the columns:
+    Compute all the trips active in the given feed on the given date
+    that intersect the given Shapely LineString (with WGS84
+    longitude-latitude coordinates), and return a DataFrame with the
+    columns:
 
     - ``'trip_id'``
     - ``'route_id'``
     - ``'route_short_name'``
-    - ``'crossing_time'``: time that the trip's vehicle crosses the linestring; one trip could cross multiple times
-    - ``'orientation'``: 1 or -1; 1 indicates trip travel from the left side to the right side of the screen line; -1 indicates trip travel in the  opposite direction
+    - ``'crossing_time'``: time that the trip's vehicle crosses
+      the linestring; one trip could cross multiple times
+    - ``'orientation'``: 1 or -1; 1 indicates trip travel from the left
+      side to the right side of the screen line; -1 indicates trip travel in the  opposite direction
 
     NOTES:
         - Requires GeoPandas.
-        - The first step is to geometrize ``feed.shapes`` via   :func:`geometrize_shapes`. Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
-        - Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled`` column.
+        - The first step is to geometrize ``feed.shapes`` via
+          :func:`geometrize_shapes`. Alternatively, use the
+          ``geo_shapes`` GeoDataFrame, if given.
+        - Assume ``feed.stop_times`` has an accurate
+          ``shape_dist_traveled`` column.
         - Assume the following feed attributes are not ``None``:
              * ``feed.shapes``, if ``geo_shapes`` is not given
-        - Assume that trips travel in the same direction as their shapes. That restriction is part of GTFS, by the way. To calculate direction quickly and accurately, assume that the screen line is straight and doesn't double back on itfeed.
-        - Probably does not give correct results for trips with feed-intersecting shapes.
+        - Assume that trips travel in the same direction as their
+          shapes. That restriction is part of GTFS, by the way.
+          To calculate direction quickly and accurately, assume that
+          the screen line is straight and doesn't double back on itself.
+        - Probably does not give correct results for trips with
+          self-intersecting shapes.
 
     ALGORITHM:
         #. Compute all the shapes that intersect the linestring.
         #. For each such shape, compute the intersection points.
-        #. For each point p, scan through all the trips in the feed that have that shape and are active on the given date.
-        #. Interpolate a stop time for p by assuming that the feed has the shape_dist_traveled field in stop times.
-        #. Use that interpolated time as the crossing time of the trip vehicle, and compute the trip orientation to the screen line via a cross product of a vector in the direction of the screen line and a tiny vector in the direction of trip travel.
+        #. For each point p, scan through all the trips in the feed
+          that have that shape and are active on the given date.
+        #. Interpolate a stop time for p by assuming that the feed
+          has the shape_dist_traveled field in stop times.
+        #. Use that interpolated time as the crossing time of the trip
+          vehicle, and compute the trip orientation to the screen line
+          via a cross product of a vector in the direction of the screen line and a tiny vector in the direction of trip travel.
     """
     # Get all shapes that intersect the screen line
     shapes = feed.get_shapes_intersecting_geometry(linestring, geo_shapes,
