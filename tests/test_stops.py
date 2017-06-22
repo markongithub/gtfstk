@@ -139,19 +139,46 @@ def test_compute_stop_activity():
 
 def test_compute_stop_stats():
     feed = cairns.copy()
-    date = cairns_date
-    stop_stats = compute_stop_stats(feed, date)
-    # Should be a data frame
-    assert isinstance(stop_stats, pd.core.frame.DataFrame)
-    # Should contain the correct stops
-    get = set(stop_stats['stop_id'].values)
-    f = get_stops(feed, date)
-    expect = set(f['stop_id'].values)
-    assert get == expect
+    dates = [cairns_date, '20010101']
+    for split_directions in [True, False]:
+        f = compute_stop_stats(feed, dates,
+          split_directions=split_directions)
 
-    # Empty check
-    f = compute_stop_stats(feed, '20010101')
-    assert f.empty
+        # Should be a data frame
+        assert isinstance(f, pd.core.frame.DataFrame)
+
+        # Should contain the correct stops
+        get = set(f['stop_id'].values)
+        g = get_stops(feed, dates[0])
+        expect = set(g['stop_id'].values)
+        assert get == expect
+
+        # Should contain the correct columns
+        expect_cols = {
+          'date',
+          'stop_id',
+          'num_routes',
+          'num_trips',
+          'max_headway',
+          'min_headway',
+          'mean_headway',
+          'start_time',
+          'end_time',
+          }
+        if split_directions:
+            expect_cols.add('direction_id')
+
+        assert set(f.columns) == expect_cols
+
+        # Should have NaNs for last date
+        cols = [c for c in expect_cols if c != 'date']
+        assert f.loc[f['date'] == dates[-1], cols].isnull().values.all()
+
+        # Empty dates should yield empty DataFrame
+        f = compute_stop_stats(feed, [],
+          split_directions=split_directions)
+        assert f.empty
+        assert set(f.columns) == expect_cols
 
 @slow
 def test_compute_stop_time_series():

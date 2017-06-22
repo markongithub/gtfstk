@@ -265,28 +265,115 @@ def compute_stop_activity(feed, dates):
             f = f.merge(g[date].max().reset_index())
     return f
 
-def compute_stop_stats(feed, date, split_directions=False,
+def compute_stop_stats(feed, dates, split_directions=False,
   headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Call ``compute_stop_stats_base()`` with the subset of trips active on the given date and with the keyword arguments ``split_directions``,   ``headway_start_time``, and ``headway_end_time``.
+    Compute stats for all stops for the given dates, and return
+    the result as DataFrame with the following columns.
 
-    See ``compute_stop_stats_base()`` for a description of the output.
+    - date
+    - stop_id
+    - direction_id: present if and only if ``split_directions``
+    - num_routes: number of routes visiting the stop
+      (in the given direction) on the date
+    - num_trips: number of trips visiting stop (in the givin direction)
+      on the date
+    - max_headway: maximum of the durations (in minutes)
+      between trip departures at the stop between ``headway_start_time``
+      and ``headway_end_time`` on the date
+    - min_headway: minimum of the durations (in minutes) mentioned above
+    - mean_headway: mean of the durations (in minutes) mentioned above
+    - start_time: earliest departure time of a trip from this stop on
+      the date
+    - end_time: latest departure time of a trip from this stop on the
+      date
+
+    If ``split_directions == False``, then compute each stop's stats
+    using trips visiting it from both directions.
+
+    If there are no stats for the given dates, then return an empty
+    DataFrame with the columns above.
 
     Assume the following feed attributes are not ``None``:
 
-    - ``feed.stop_timtes``
+    - ``feed.stop_times``
     - Those used in :func:`get_trips`
-
-    NOTES:
-
-    This is a more user-friendly version of ``compute_stop_stats_base()``.
-    The latter function works without a feed, though.
     """
-    # Get stop times active on date and direction IDs
-    return compute_stop_stats_base(feed.stop_times, feed.get_trips(date),
-      split_directions=split_directions,
-      headway_start_time=headway_start_time,
-      headway_end_time=headway_end_time)
+    cols = [
+      'date',
+      'stop_id',
+      'num_routes',
+      'num_trips',
+      'max_headway',
+      'min_headway',
+      'mean_headway',
+      'start_time',
+      'end_time',
+      ]
+    if split_directions:
+        cols.append('direction_id')
+
+    activity = feed.compute_trip_activity(dates)
+
+    # Collect stats for each date, memoizing stats by trip ID sequence
+    # to avoid unnecessary recomputations.
+    # Store in dictionary of the form
+    # trip ID sequence ->
+    # [stats DataFarme, date list that stats apply]
+    stats_and_dates_by_ids = {}
+    for date in dates:
+        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        if ids in stats_and_dates_by_ids:
+            # Append date to date list
+            stats_and_dates_by_ids[ids][1].append(date)
+        else:
+            # Compute stats
+            t = feed.trips
+            trips = t[t['trip_id'].isin(ids)].copy()
+            stats = compute_stop_stats_base(feed.stop_times, trips,
+              split_directions=split_directions,
+              headway_start_time=headway_start_time,
+              headway_end_time=headway_end_time)
+
+            # Remember stats
+            stats_and_dates_by_ids[ids] = [stats, [date]]
+
+    # Assemble stats into DataFrame
+    if not dates:
+        f = pd.DataFrame([], columns=cols)
+    else:
+        frames = []
+        for stats, dates in stats_and_dates_by_ids.values():
+            for date in dates:
+                f = stats.copy()
+                f['date'] = date
+                frames.append(f)
+        f = pd.concat(frames).sort_values(['date', 'stop_id'])
+
+    return f
+
+# def compute_stop_stats(feed, date, split_directions=False,
+#   headway_start_time='07:00:00', headway_end_time='19:00:00'):
+#     """
+#     Call ``compute_stop_stats_base()`` with the subset of trips active on the given date and with the keyword arguments ``split_directions``,   ``headway_start_time``, and ``headway_end_time``.
+
+#     See ``compute_stop_stats_base()`` for a description of the output.
+
+#     Assume the following feed attributes are not ``None``:
+
+#     - ``feed.stop_timtes``
+#     - Those used in :func:`get_trips`
+
+#     NOTES:
+
+#     This is a more user-friendly version of ``compute_stop_stats_base()``.
+#     The latter function works without a feed, though.
+#     """
+#     # Get stop times active on date and direction IDs
+#     return compute_stop_stats_base(feed.stop_times, feed.get_trips(date),
+#       split_directions=split_directions,
+#       headway_start_time=headway_start_time,
+#       headway_end_time=headway_end_time)
 
 def compute_stop_time_series(feed, date, split_directions=False, freq='5Min'):
     """

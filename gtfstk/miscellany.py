@@ -270,20 +270,27 @@ def compute_feed_stats(feed, trip_stats, dates):
     ts[['start_time', 'end_time']] =\
       ts[['start_time', 'end_time']].applymap(hp.timestr_to_seconds)
 
-    # Compile stats for each date, but memoize stats by trip ID sequence
-    # to avoid unnecessary computation
-    stats_by_ids = {}
-    rows = []
+    # Collect stats for each date, memoizing stats by trip ID sequence
+    # to avoid unnecessary recomputations.
+    # Store in dictionary of the form
+    # trip ID sequence ->
+    # [stats dictionary, date list that stats apply]
+    stats_and_dates_by_ids = {}
     for date in dates:
         stats = {}
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
-        if ids in stats_by_ids:
-            # Use stats previously computed
-            stats = copy.copy(stats_by_ids[ids])
+        if ids in stats_and_dates_by_ids:
+            # Append date to date list
+            stats_and_dates_by_ids[ids][1].append(date)
         elif not ids:
-            stats  = {col: np.nan for col in cols}
+            # Empty stats
+            stats  = {col: np.nan for col in cols
+              if col != 'date'}
+
+            # Record stats
+            stats_and_dates_by_ids[ids] = [stats, [date]]
         else:
-            # Compute stats afresh
+            # Compute stats
             f = ts[ts['trip_id'].isin(ids)].copy()
             stats['num_trips'] = f.shape[0]
             stats['num_routes'] = f['route_id'].nunique()
@@ -302,22 +309,25 @@ def compute_feed_stats(feed, trip_stats, dates):
             stats['peak_start_time'] = times[start]
             stats['peak_end_time'] = times[end]
 
-            # Remember stats
-            stats_by_ids[ids] = stats
-
-        stats['date'] = date
-        rows.append(stats)
+            # Record stats
+            stats_and_dates_by_ids[ids] = [stats, [date]]
 
     # Assemble stats into DataFrame
-    if rows:
-        f = pd.DataFrame(rows)
-        f = f[cols].copy()  # Rearrange columns
-        # Convert seconds back to timestrings
-        for col in ['peak_start_time', 'peak_end_time']:
-            f[col] = f[col].map(
-              lambda t: hp.timestr_to_seconds(t, inverse=True))
-    else:
+    if not dates:
         f = pd.DataFrame([], columns=cols)
+    else:
+        rows = []
+        for stats, dates in stats_and_dates_by_ids.values():
+            for date in dates:
+                s = copy.copy(stats)
+                s['date'] = date
+                rows.append(s)
+        f = pd.DataFrame(rows).sort_values('date')
+
+        # Convert seconds back to timestrings
+        times = ['peak_start_time', 'peak_end_time']
+        f[times] = f[times].applymap(
+          lambda t: hp.timestr_to_seconds(t, inverse=True))
 
     return f
 
