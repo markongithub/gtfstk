@@ -85,9 +85,9 @@ def test_compute_feed_stats():
 
 def test_compute_feed_time_series():
     feed = cairns.copy()
-    date = cairns_date
+    dates = [cairns_date, '20010101']
     trip_stats = cairns_trip_stats
-    f = compute_feed_time_series(feed, trip_stats, date, freq='1H')
+    f = compute_feed_time_series(feed, trip_stats, dates, freq='1H')
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct number of rows
@@ -103,8 +103,9 @@ def test_compute_feed_time_series():
     assert set(f.columns) == expect_cols
 
     # Empty check
-    f = compute_feed_time_series(feed, trip_stats, '20010101')
+    f = compute_feed_time_series(feed, trip_stats, [])
     assert f.empty
+    assert set(f.columns) == expect_cols
 
 def test_create_shapes():
     feed1 = cairns.copy()

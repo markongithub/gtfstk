@@ -336,7 +336,7 @@ def compute_feed_stats(feed, trip_stats, dates):
 
     return f
 
-def compute_feed_time_series(feed, trip_stats, date, freq='5Min'):
+def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     """
     Given trips stats (output of ``feed.compute_trip_stats()``), a date, and a Pandas frequency string, return a time series of stats for this feed on the given date at the given frequency with the following columns
 
@@ -355,6 +355,9 @@ def compute_feed_time_series(feed, trip_stats, date, freq='5Min'):
     - Those used in :func:`compute_route_time_series`
 
     """
+    if not isinstance(dates, list):
+        raise ValueError('dates must be a list')
+
     cols = [
       'num_trip_starts',
       'num_trips',
@@ -362,7 +365,7 @@ def compute_feed_time_series(feed, trip_stats, date, freq='5Min'):
       'service_duration',
       'service_speed',
     ]
-    rts = feed.compute_route_time_series(trip_stats, date, freq=freq)
+    rts = feed.compute_route_time_series(trip_stats, dates, freq=freq)
     if rts.empty:
         return pd.DataFrame(columns=cols)
 
