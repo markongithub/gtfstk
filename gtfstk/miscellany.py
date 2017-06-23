@@ -16,20 +16,34 @@ from . import constants as cs
 def summarize(feed, table=None):
     """
     Return a DataFrame summarizing all GTFS tables in the given feed
-    or only the table (string; e.g. ``'stops'``) if it is specified.
-    The DataFrame will have the following columns.
+    or only the given table if specified.
 
-    - ``'table'``: name of the GTFS table, e.g. ``'stops'``
-    - ``'column'``: name of a column in the table, e.g. ``'stop_code'``
-    - ``'#values'``: number of values in the column
-    - ``'#nonnull_values'``: number of nonnull values in the column
-    - ``'#unique_values'``: number of unique values in the column
-    - ``'min_value'``: minimum value in the colum
-    - ``'max_value'``: maximum value in the column
+    Parameters
+    ----------
+    feed : Feed
+    table : string
+        A GTFS table name, e.g. ``'stop_times'``
 
-    If the table is not in the feed, then return an empty DataFrame
-    with the columns above.
-    If the table is not valid, raise a ValueError.
+    Returns
+    -------
+    DataFrame
+        Has the columns
+
+        - ``'table'``: name of the GTFS table, e.g. ``'stops'``
+        - ``'column'``: name of a column in the table,
+          e.g. ``'stop_id'``
+        - ``'#values'``: number of values in the column
+        - ``'#nonnull_values'``: number of nonnull values in the column
+        - ``'#unique_values'``: number of unique values in the column
+        - ``'min_value'``: minimum value in the colum
+        - ``'max_value'``: maximum value in the column
+
+    Notes
+    -----
+    - If the table is not in the feed, then return an empty DataFrame
+      with the columns above.
+    - If the table is not valid, raise a ValueError.
+
     """
     gtfs_tables = cs.GTFS_REF.table.unique()
 
@@ -77,15 +91,23 @@ def describe(feed, date=None):
     """
     Return a DataFrame of various feed indicators and values,
     e.g. number of routes.
-    Also specialize some those indicators to the given sample date,
+    Specialize some those indicators to the given sample date,
     e.g. number of routes active on the date.
-    If a sample date is not given, then set it to the first Thursday
-    of the feed.
 
-    The columns of the DataFrame are
+    Parameters
+    ----------
+    feed : Feed
+    date : string
+        YYYYMMDD date string specifying the date to compute sample
+        stats; defaults to the first Thursday of the Feed's period
 
-    - ``'indicator'``: string; name of an indicator, e.g. 'num_routes'
-    - ``'value'``: value of the indicator, e.g. 27
+    Returns
+    -------
+    DataFrame
+        The columns are
+
+        - ``'indicator'``: string; name of an indicator, e.g. 'num_routes'
+        - ``'value'``: value of the indicator, e.g. 27
 
     """
     from . import calendar as cl
@@ -118,15 +140,27 @@ def describe(feed, date=None):
 
 def assess_quality(feed):
     """
-    Return a DataFrame of various feed indicators and values, such as the number of trips missing shapes.
-    The columns of the DataFrame are
+    Return a DataFrame of various feed indicators and values,
+    e.g. number of trips missing shapes.
 
-    - ``'indicator'``: string; name of an indicator, e.g. 'num_trips_missing_shapes'
-    - ``'value'``: value of the indicator, e.g. 27
+    Parameters
+    ----------
+    feed : Feed
 
-    NOTES:
-        - This is an odd function, but i use it to see roughly how broken a feed, which helps me decide if i can fix it
-        - This is not a GTFS validator
+    Returns
+    -------
+    DataFrame
+        The columns are
+
+        - ``'indicator'``: string; name of an indicator, e.g. 'num_routes'
+        - ``'value'``: value of the indicator, e.g. 27
+
+    Notes
+    -----
+    - This is an odd function, but i use it to see roughly how broken a
+      feed, which helps me decide if i can fix it
+    - This is not a GTFS validator
+
     """
     d = OrderedDict()
 
@@ -201,7 +235,8 @@ def assess_quality(feed):
 
 def convert_dist(feed, new_dist_units):
     """
-    Convert the distances recorded in the ``shape_dist_traveled`` columns of the given feed from this Feed's native distance units (recorded in ``feed.dist_units``) to the given new distance units.
+    Convert the distances recorded in the ``shape_dist_traveled``
+    columns of the given Feed to the given distance units.
     New distance units must lie in :const:`.constants.DIST_UNITS`.
     """
     feed = feed.copy()
