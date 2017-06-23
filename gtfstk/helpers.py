@@ -13,8 +13,10 @@ from . import constants as cs
 
 def datestr_to_date(x, format_str='%Y%m%d', inverse=False):
     """
-    Given a string object ``x`` representing a date in the given format,     convert it to a datetime.date object and return the result.
-    If ``inverse``, then assume that ``x`` is a date object and return its corresponding string in the given format.
+    Given a string object ``x`` representing a date in the given format,
+    convert it to a Datetime Date object and return the result.
+    If ``inverse``, then assume that ``x`` is a date object and return
+    its corresponding string in the given format.
     """
     if x is None:
         return None
@@ -26,11 +28,14 @@ def datestr_to_date(x, format_str='%Y%m%d', inverse=False):
 
 def timestr_to_seconds(x, inverse=False, mod24=False):
     """
-    Given a time string of the form '%H:%M:%S', return the number of seconds  past midnight that it represents.
-    In keeping with GTFS standards, the hours entry may be greater than 23.
+    Given an HH:MM:SS time string ``x``, return the number of seconds
+    past midnight that it represents.
+    In keeping with GTFS standards, the hours entry may be greater than
+    23.
     If ``mod24``, then return the number of seconds modulo ``24*3600``.
     If ``inverse``, then do the inverse operation.
-    In this case, if ``mod24`` also, then first take the number of  seconds modulo ``24*3600``.
+    In this case, if ``mod24`` also, then first take the number of
+    seconds modulo ``24*3600``.
     """
     if not inverse:
         try:
@@ -54,7 +59,8 @@ def timestr_to_seconds(x, inverse=False, mod24=False):
 
 def timestr_mod24(timestr):
     """
-    Given a GTFS time string in the format %H:%M:%S, return a timestring in the same format but with the hours taken modulo 24.
+    Given a GTFS HH:MM:SS time string, return a timestring in the same
+    format but with the hours taken modulo 24.
     """
     try:
         hours, mins, seconds = [int(x) for x in timestr.split(':')]
@@ -66,7 +72,8 @@ def timestr_mod24(timestr):
 
 def weekday_to_str(weekday, inverse=False):
     """
-    Given a weekday, that is, an integer in ``range(7)``, return it's corresponding weekday name as a lowercase string.
+    Given a weekday number (integer in the range 0, 1, ..., 6),
+    return its corresponding weekday name as a lowercase string.
     Here 0 -> 'monday', 1 -> 'tuesday', and so on.
     If ``inverse``, then perform the inverse operation.
     """
@@ -85,8 +92,11 @@ def weekday_to_str(weekday, inverse=False):
 
 def get_segment_length(linestring, p, q=None):
     """
-    Given a Shapely linestring and two Shapely points, project the points onto the linestring, and return the distance along the linestring between the two points.
-    If ``q is None``, then return the distance from the start of the linestring to the projection of ``p``.
+    Given a Shapely linestring and two Shapely points,
+    project the points onto the linestring, and return the distance
+    along the linestring between the two points.
+    If ``q is None``, then return the distance from the start of the
+    linestring to the projection of ``p``.
     The distance is measured in the native coordinates of the linestring.
     """
     # Get projected distances
@@ -100,7 +110,8 @@ def get_segment_length(linestring, p, q=None):
 
 def get_max_runs(x):
     """
-    Given a list of numbers, return a NumPy array of pairs (start index, end index + 1) of the runs of max value.
+    Given a list of numbers, return a NumPy array of pairs
+    (start index, end index + 1) of the runs of max value.
 
     EXAMPLES::
 
@@ -109,7 +120,7 @@ def get_max_runs(x):
                [3, 5]])
 
     Assume x is not empty.
-    Recipe from `here <http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array>`_
+    Recipe `from Stack Overflow <http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array>`_.
     """
     # Get 0-1 array where 1 marks the max values of x
     x = np.array(x)
@@ -150,7 +161,7 @@ def get_convert_dist(dist_units_in, dist_units_out):
       distance in the units ``dist_units_in`` ->
       distance in the units ``dist_units_out``
 
-    Only supports distance units in ``DIST_UNITS``.
+    Only supports distance units in :const:`constants.DIST_UNITS`.
     """
     di, do = dist_units_in, dist_units_out
     DU = cs.DIST_UNITS
@@ -168,7 +179,9 @@ def get_convert_dist(dist_units_in, dist_units_out):
 
 def almost_equal(f, g):
     """
-    Return ``True`` if and only if the given DataFrames are equal after sorting their columns names, sorting their values, and reseting their indices.
+    Return ``True`` if and only if the given DataFrames are equal after
+    sorting their columns names, sorting their values, and
+    reseting their indices.
     """
     if f.empty or g.empty:
         return f.equals(g)
@@ -182,7 +195,9 @@ def almost_equal(f, g):
 
 def is_not_null(data_frame, column_name):
     """
-    Return ``True`` if the given DataFrame has a column of the given name (string), and there exists at least one non-NaN value in that column;  return ``False`` otherwise.
+    Return ``True`` if the given DataFrame has a column of the given
+    name (string), and there exists at least one non-NaN value in that
+    column; return ``False`` otherwise.
     """
     f = data_frame
     c = column_name
@@ -193,7 +208,9 @@ def is_not_null(data_frame, column_name):
 
 def get_utm_crs(lat, lon):
     """
-    Return a GeoPandas coordinate reference system (CRS) dictionary   corresponding to the UTM projection appropriate to the given WGS84    latitude and longitude.
+    Return a GeoPandas coordinate reference system (CRS) dictionary
+    corresponding to the UTM projection appropriate to the given WGS84
+    latitude and longitude.
     """
     zone = utm.from_latlon(lat, lon)[2]
     south = lat < 0
@@ -211,31 +228,62 @@ def linestring_to_utm(linestring):
 
 def count_active_trips(trip_times, time):
     """
-    Given a DataFrame ``trip_times`` containing the columns
+    Count the number of trips in ``trip_times`` that are active
+    at the given time.
 
-    - trip_id
-    - start_time: start time of the trip in seconds past midnight
-    - end_time: end time of the trip in seconds past midnight
+    Parameters
+    ----------
+    trip_times : DataFrame
+        Contains the columns
 
-    and a time in seconds past midnight, return the number of trips in
-    the DataFrame that are active at the given time.
-    A trip is a considered active at time t if
-    start_time <= t < end_time.
+        - trip_id
+        - start_time: start time of the trip in seconds past midnight
+        - end_time: end time of the trip in seconds past midnight
+
+    time : integer
+        Number of seconds past midnight
+
+    Returns
+    -------
+    integer
+         number of trips in ``trip_times`` that are active at ``time``.
+        A trip is a considered active at time t if and only if
+        start_time <= t < end_time.
+
     """
     t = trip_times
     return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
 
 def combine_time_series(time_series_dict, kind, split_directions=False):
     """
-    Given a dictionary of time series DataFrames, combine the time series
-    into one time series DataFrame with multi-index (hierarchical) columns
-    and return the result.
-    The top level columns are the keys of the dictionary and
-    the second and third level columns are 'route_id' and 'direction_id',
-    if ``kind == 'route'``, or 'stop_id' and 'direction_id',
-    if ``kind == 'stop'``.
-    If ``split_directions == False``, then there is no third column level,
-    no 'direction_id' column.
+    Combine the many time series DataFrames in the given dictionary
+    into one time series DataFrame with hierarchical columns.
+
+    Parameters
+    ----------
+    time_series_dict : dictionary
+        Has the form string -> time series
+    kind : string
+        ``'route'`` or ``'stop'``
+    split_directions : boolean
+        If ``True``, then assume the original time series contains data
+        separated by trip direction; otherwise, assume not.
+        The separation is indicated by a suffix ``'-0'`` (direction 0)
+        or ``'-1'`` (direction 1) in the route ID or stop ID column
+        values.
+
+    Returns
+    -------
+    DataFrame
+        Columns are hierarchical (multi-index).
+        The top level columns are the keys of the dictionary and
+        the second level columns are ``'route_id'`` and
+        ``'direction_id'``, if ``kind == 'route'``, or 'stop_id' and
+        ``'direction_id'``, if ``kind == 'stop'``.
+        If ``split_directions``, then third column is
+        ``'direction_id'``; otherwise, there is no ``'direction_id'``
+        column.
+
     """
     if kind not in ['stop', 'route']:
         raise ValueError(
@@ -269,9 +317,10 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
 def downsample(time_series, freq):
     """
     Downsample the given route, stop, or feed time series,
-    (outputs of ``Feed.compute_route_time_series()``,
-    ``Feed.compute_stop_time_series()``, or ``Feed.compute_feed_time_series()``,
-    respectively) to the given Pandas frequency.
+    (outputs of :func:`routes.compute_route_time_series``,
+    :func:`stops.compute_stop_time_series``, or
+    :func:`miscellany.compute_feed_time_series`,
+    respectively) to the given Pandas frequency string (e.g. '15Min').
     Return the given time series unchanged if the given frequency is
     shorter than the original frequency.
     """

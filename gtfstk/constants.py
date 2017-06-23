@@ -4,7 +4,8 @@ Constants useful across modules.
 
 import pandas as pd
 
-# Record some data from the GTFS reference at https://developers.google.com/transit/gtfs/reference/
+# Record some data from the GTFS reference at
+# https://developers.google.com/transit/gtfs/reference/
 columns = ['table', 'table_required', 'column', 'column_required', 'dtype']
 rows = [
     ['agency', True, 'agency_id', False, 'str'],
