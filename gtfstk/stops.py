@@ -205,8 +205,7 @@ def compute_stop_time_series_base(stop_times, trip_subset,
           Counter(group['departure_index'].values)
         series_by_stop[stop] = [counts[bin] for bin in bins]
 
-    # Combine lists into one time series.
-    # Actually, a dictionary indicator -> time series.
+    # Combine lists into dictionary of form indicator -> time series.
     # Only one indicator in this case, but could add more
     # in the future as was done with route time series.
     rng = pd.date_range(date_label, periods=24*60, freq='Min')
