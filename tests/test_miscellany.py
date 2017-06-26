@@ -133,6 +133,14 @@ def test_compute_bounds():
     assert -18 < minlat < -15
     assert -18 < maxlat < -15
 
+def test_compute_convex_hull():
+    feed = cairns.copy()
+    hull = compute_convex_hull(feed)
+    assert isinstance(hull, sg.Polygon)
+    # Hull should encompass all stops
+    m = sg.MultiPoint(feed.stops[['stop_lon', 'stop_lat']].values)
+    assert hull.contains(m)
+
 def test_compute_center():
     feed = cairns.copy()
     centers = [compute_center(feed), compute_center(feed, 20)]
