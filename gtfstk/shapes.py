@@ -12,13 +12,28 @@ from . import helpers as hp
 
 def build_geometry_by_shape(feed, use_utm=False, shape_ids=None):
     """
-    Return a dictionary with structure shape_id -> Shapely linestring of shape.
-    If ``feed.shapes is None``, then return ``None``.
-    If ``use_utm``, then return each linestring in in UTM coordinates.
-    Otherwise, return each linestring in WGS84 longitude-latitude    coordinates.
-    If a list of shape IDs ``shape_ids`` is given, then only include the given shape IDs.
+    Return a dictionary with structure shape_id -> Shapely LineString
+    of shape.
 
-    Return the empty dictionary if ``feed.shapes is None``.
+    Parameters
+    ----------
+    feed : Feed
+    use_utm : boolean
+        If ``True``, then use local UTM coordinates; otherwise, use
+        WGS84 coordinates
+    shape_ids : list
+        IDs of shapes in ``feed.shapes`` to restrict output to; return
+        all shapes if ``None``.
+
+    Returns
+    -------
+    dictionary
+        Has the structure
+        shape_id -> Shapely LineString of shape.
+        If ``feed.shapes is None``, then return ``None``.
+
+        Return the empty dictionary if ``feed.shapes is None``.
+
     """
     if feed.shapes is None:
         return {}
@@ -49,11 +64,12 @@ def build_geometry_by_shape(feed, use_utm=False, shape_ids=None):
 
 def shapes_to_geojson(feed):
     """
-    Return a (decoded) GeoJSON FeatureCollection of linestring features representing ``feed.shapes``.
+    Return a (decoded) GeoJSON FeatureCollection of LineString features
+    representing ``feed.shapes``.
     Each feature will have a ``shape_id`` property.
-    The coordinates reference system is the default one for GeoJSON, namely WGS84.
-
-    Return the empty dictionary of ``feed.shapes is None``
+    The coordinates reference system is the default one for GeoJSON,
+    namely WGS84.
+    Return the empty dictionary if ``feed.shapes is None``
     """
     geometry_by_shape = feed.build_geometry_by_shape(use_utm=False)
     if geometry_by_shape:
@@ -72,19 +88,33 @@ def shapes_to_geojson(feed):
 def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None,
   geometrized=False):
     """
-    Return the slice of ``feed.shapes`` that contains all shapes that intersect the given Shapely geometry object (e.g. a Polygon or LineString).
-    Assume the geometry is specified in WGS84 longitude-latitude coordinates.
+    Return the slice of ``feed.shapes`` that contains all shapes that
+    intersect the given Shapely geometry, e.g. a Polygon or LineString.
 
-    To do this, first geometrize ``feed.shapes`` via :func:`geometrize_shapes`.
-    Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
-    Requires GeoPandas.
+    Parameters
+    ----------
+    feed : Feed
+    geometry : Shapley geometry, e.g. a Polygon
+        Specified in WGS84 coordinates
+    geo_shapes : GeoPandas GeoDataFrame
+        The output of :func:`geometrize_shapes`
+    geometrize : boolean
+        If ``True``, then return the shapes DataFrame as a GeoDataFrame
+        of the form output by :func:`geometrize_shapes`
 
-    Assume the following feed attributes are not ``None``:
+    Returns
+    -------
+    DataFrame or GeoDataFrame
 
-    - ``feed.shapes``, if ``geo_shapes`` is not given
+    Notes
+    -----
+    - Requires GeoPandas
+    - Specifying ``geo_shapes`` will skip the first step of the
+      algorithm, namely, geometrizing ``feed.shapes``
+    - Assume the following feed attributes are not ``None``:
 
-    If ``geometrized`` is ``True``, then return the
-    resulting shapes DataFrame in geometrized form.
+        * ``feed.shapes``, if ``geo_shapes`` is not given
+
     """
     if geo_shapes is not None:
         f = geo_shapes.copy()
@@ -102,15 +132,20 @@ def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None,
 
 def append_dist_to_shapes(feed):
     """
-    Calculate and append the optional ``shape_dist_traveled`` field in ``feed.shapes`` in terms of the distance units ``feed.dist_units``.
+    Calculate and append the optional ``shape_dist_traveled`` field in
+    ``feed.shapes`` in terms of the distance units ``feed.dist_units``.
     Return the resulting Feed.
 
-    Assume the following feed attributes are not ``None``:
+    Notes
+    -----
+    - As a benchmark, using this function on `this Portland feed
+      <https://transitfeeds.com/p/trimet/43/1400947517>`_
+      produces a ``shape_dist_traveled`` column that differs by at most
+      0.016 km in absolute value from of the original values
+    - Assume the following feed attributes are not ``None``:
 
-    - ``feed.shapes``
+        * ``feed.shapes``
 
-    NOTES:
-        - All of the calculated ``shape_dist_traveled`` values for the Portland feed https://transitfeeds.com/p/trimet/43/1400947517 differ by at most 0.016 km in absolute values from of the original values.
     """
     if feed.shapes is None:
         raise ValueError(
@@ -148,10 +183,15 @@ def append_dist_to_shapes(feed):
 
 def geometrize_shapes(shapes, use_utm=False):
     """
-    Given a shapes DataFrame, convert it to a GeoPandas GeoDataFrame and return the result.
-    The result has a 'geometry' column of WGS84 line strings instead of 'shape_pt_sequence', 'shape_pt_lon', 'shape_pt_lat', and 'shape_dist_traveled' columns.
-    If ``use_utm``, then use UTM coordinates for the geometries.
+    Given a GTFS shapes DataFrame, convert it to a GeoPandas
+    GeoDataFrame and return the result.
+    The result has a ``'geometry'`` column of WGS84 LineStrings
+    instead of the columns ``'shape_pt_sequence'``, ``'shape_pt_lon'``,
+    ``'shape_pt_lat'``, and ``'shape_dist_traveled'``.
+    If ``use_utm``, then use local UTM coordinates for the geometries.
 
+    Notes
+    ------
     Requires GeoPandas.
     """
     import geopandas as gpd
@@ -179,12 +219,14 @@ def ungeometrize_shapes(geo_shapes):
     The inverse of :func:`geometrize_shapes`.
     Produces the columns:
 
-    - shape_id
-    - shape_pt_sequence
-    - shape_pt_lon
-    - shape_pt_lat
+    - ``'shape_id'``
+    - ``'shape_pt_sequence'``
+    - ``'shape_pt_lon'``
+    - ``'shape_pt_lat'``
 
-    If ``geo_shapes`` is in UTM (has a UTM CRS property), then convert UTM coordinates back to WGS84 coordinates,
+    If ``geo_shapes`` is in UTM coordinates (has a UTM CRS property),
+    then convert thoes UTM coordinates back to WGS84 coordinates,
+    which is the standard for a GTFS shapes table.
     """
     geo_shapes = geo_shapes.to_crs(cs.CRS_WGS84)
 
