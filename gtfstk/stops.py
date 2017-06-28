@@ -582,25 +582,26 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
 
     return f
 
-def build_stop_timetable(feed, stop_id, date):
+def build_stop_timetable(feed, stop_id, dates):
     """
     Return a DataFrame containing the timetable for the given stop ID
-    on the given date.
+    and dates.
 
     Parameters
     ----------
     feed : Feed
     stop_id : string
         ID of the stop for which to build the timetable
-    date : string
-        YYYYMMDD date string specifying the date of the timetable
+    dates : list
+        YYYYMMDD date strings
 
     Returns
     -------
     DataFrame
         The columns are all those in ``feed.trips`` plus those in
-        ``feed.stop_times``.
-        The result is sorted by departure time.
+        ``feed.stop_times`` plus ``'date'``, and the stop IDs are
+        restricted to the given stop ID.
+        The result is sorted by date then departure time.
 
     Notes
     -----
@@ -610,10 +611,32 @@ def build_stop_timetable(feed, stop_id, date):
     - Those used in :func:`.stop_times.get_stop_times`
 
     """
-    f = feed.get_stop_times(date)
-    f = pd.merge(f, feed.trips)
-    f = f[f['stop_id'] == stop_id]
-    return f.sort_values('departure_time')
+    if not isinstance(dates, list):
+        raise ValueError('dates must be a list')
+
+    cols = feed.trips.columns.tolist()\
+      + feed.stop_times.columns.tolist()\
+      + ['date']
+
+    # Restrict to feed dates
+    dates = set(dates) & set(feed.get_dates())
+    if not dates:
+        return pd.DataFrame([], columns=cols)
+
+    t = pd.merge(feed.trips, feed.stop_times)
+    t = t[t['stop_id'] == stop_id].copy()
+    a = feed.compute_trip_activity(dates)
+
+    frames = []
+    for date in dates:
+        # Slice to stops active on date
+        ids = a.loc[a[date] == 1, 'trip_id']
+        f = t[t['trip_id'].isin(ids)].copy()
+        f['date'] = date
+        frames.append(f)
+
+    f = pd.concat(frames)
+    return f.sort_values(['date', 'departure_time'])
 
 def get_stops_in_polygon(feed, polygon, geo_stops=None):
     """

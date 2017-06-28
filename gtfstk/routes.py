@@ -669,8 +669,8 @@ def build_route_timetable(feed, route_id, dates):
     feed : Feed
     route_id : string
         ID of a route in ``feed.routes``
-    date : string
-        YYYYMMDD date string
+    dates : list
+        YYYYMMDD date strings
 
     Returns
     -------
@@ -706,14 +706,13 @@ def build_route_timetable(feed, route_id, dates):
     if not dates:
         return pd.DataFrame([], columns=cols)
 
-    t = feed.get_trips()
+    t = pd.merge(feed.trips, feed.stop_times)
     t = t[t['route_id'] == route_id].copy()
-    t = pd.merge(t, feed.stop_times)
     a = feed.compute_trip_activity(dates)
 
     frames = []
     for date in dates:
-        # Get active trips
+        # Slice to trips active on date
         ids = a.loc[a[date] == 1, 'trip_id']
         f = t[t['trip_id'].isin(ids)].copy()
         f['date'] = date
@@ -725,9 +724,8 @@ def build_route_timetable(feed, route_id, dates):
         frames.append(f)
 
     f = pd.concat(frames)
-    f = f.sort_values(['date', 'min_dt', 'stop_sequence']).drop(
+    return f.sort_values(['date', 'min_dt', 'stop_sequence']).drop(
       ['min_dt', 'dt'], axis=1)
-    return f
 
 def route_to_geojson(feed, route_id, include_stops=False):
     """

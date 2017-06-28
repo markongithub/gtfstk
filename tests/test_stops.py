@@ -221,14 +221,25 @@ def test_compute_stop_time_series():
 
 def test_build_stop_timetable():
     feed = cairns.copy()
-    stop = feed.stops['stop_id'].values[0]
-    date = cairns_date
-    f = build_stop_timetable(feed, stop, date)
+    stop_id = feed.stops['stop_id'].values[0]
+    dates = [cairns_date, '20010101']
+    f = build_stop_timetable(feed, stop_id, dates)
+
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
+
     # Should have the correct columns
-    expect_cols = set(feed.trips.columns) |\
-      set(feed.stop_times.columns)
+    expect_cols = set(feed.trips.columns)\
+      | set(feed.stop_times.columns)\
+      | set(['date'])
+    assert set(f.columns) == expect_cols
+
+    # Should only have feed dates
+    assert f.date.unique().tolist() == [dates[0]]
+
+    # Empty check
+    f = build_stop_timetable(feed, stop_id, dates[1:])
+    assert f.empty
     assert set(f.columns) == expect_cols
 
 @pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
