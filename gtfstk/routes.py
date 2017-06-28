@@ -33,54 +33,56 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
     Returns
     -------
     DataFrame
-        Has the columns:
+        Columns are
 
-        -``'route_id'``
-        -``'route_short_name'``
-        -``'route_type'``
-        -``'direction_id'``
-        -``'num_trips'``: number of trips
-        -``'is_loop'``: 1 if at least one of the trips on the route has
+        - ``'route_id'``
+        - ``'route_short_name'``
+        - ``'route_type'``
+        - ``'direction_id'``
+        - ``'num_trips'``: number of trips
+        - ``'is_loop'``: 1 if at least one of the trips on the route has
           its ``is_loop`` field equal to 1; 0 otherwise
-        -``'is_bidirectional'``: 1 if the route has trips in both
+        - ``'is_bidirectional'``: 1 if the route has trips in both
           directions; 0 otherwise
-        -``'start_time'``: start time of the earliest trip on the route
-        -``'end_time'``: end time of latest trip on the route
-        -``'max_headway'``: maximum of the durations (in minutes)
+        - ``'start_time'``: start time of the earliest trip on the route
+        - ``'end_time'``: end time of latest trip on the route
+        - ``'max_headway'``: maximum of the durations (in minutes)
           between trip starts on the route between
           ``headway_start_time`` and ``headway_end_time`` on the given
           dates
-        -``'min_headway'``: minimum of the durations (in minutes)
+        - ``'min_headway'``: minimum of the durations (in minutes)
           mentioned above
-        -``'mean_headway'``: mean of the durations (in minutes)
+        - ``'mean_headway'``: mean of the durations (in minutes)
           mentioned above
-        -``'peak_num_trips'``: maximum number of simultaneous trips in
+        - ``'peak_num_trips'``: maximum number of simultaneous trips in
           service (for the given direction, or for both directions when
           ``split_directions==False``)
-        -``'peak_start_time'``: start time of first longest period
+        - ``'peak_start_time'``: start time of first longest period
           during which the peak number of trips occurs
-        -``'peak_end_time'``: end time of first longest period during
+        - ``'peak_end_time'``: end time of first longest period during
           which the peak number of trips occurs
-        -``'service_duration'``: total of the duration of each trip on
+        - ``'service_duration'``: total of the duration of each trip on
           the route in the given subset of trips; measured in hours
-        -``'service_distance'``: total of the distance traveled by each
+        - ``'service_distance'``: total of the distance traveled by each
           trip on the route in the given subset of trips; measured in
           whatever distance units are present in ``trip_stats_subset``;
           contains all ``np.nan`` entries if ``feed.shapes is None``
-        -``'service_speed'``: service_distance/service_duration;
+        - ``'service_speed'``: service_distance/service_duration;
           measured in distance units per hour
-        -``'mean_trip_distance'``: service_distance/num_trips
-        -``'mean_trip_duration'``: service_duration/num_trips
+        - ``'mean_trip_distance'``: service_distance/num_trips
+        - ``'mean_trip_duration'``: service_duration/num_trips
 
-    If not ``split_directions == False``, then remove the direction_id
-    column and compute each route's stats, except for headways, using
-    its trips running in both directions.
-    In this case, (1) compute max headway by taking the max of the max
-    headways in both directions; (2) compute mean headway by taking the
-    weighted mean of the mean headways in both directions.
+        If not ``split_directions``, then remove the
+        direction_id column and compute each route's stats,
+        except for headways, using
+        its trips running in both directions.
+        In this case, (1) compute max headway by taking the max of the
+        max headways in both directions; (2) compute mean headway by
+        taking the weighted mean of the mean headways in both
+        directions.
 
-    If ``trip_stats_subset`` is empty, return an empty DataFrame with
-    the columns specified above.
+        If ``trip_stats_subset`` is empty, return an empty DataFrame
+        with the columns specified above.
 
     """
     cols = [
@@ -256,11 +258,13 @@ def compute_route_time_series_base(trip_stats_subset,
 
         The columns are hierarchical (multi-indexed) with
 
-        - top level: name = ``'indicator'``, values =
-          ``['service_distance', 'service_duration', 'num_trip_starts',
-          'num_trips', 'service_speed']``
-        - middle level: name = 'route_id', values = the active routes
-        - bottom level: name = 'direction_id', values = 0s and 1s
+        - top level: name is ``'indicator'``; values are
+          ``'service_distance'``, ``'service_duration'``,
+          ``'num_trip_starts'``, ``'num_trips'``, and
+          ``'service_speed'``
+        - middle level: name is ``'route_id'``;
+          values are the active routes
+        - bottom level: name is ``'direction_id'``; values are 0s and 1s
 
         If not ``split_directions``, then don't include the bottom level.
 
@@ -268,9 +272,9 @@ def compute_route_time_series_base(trip_stats_subset,
         sampled at the given frequency.
         The maximum allowable frequency is 1 minute.
         If ``trip_stats_subset`` is empty, then return an empty
-        DataFrame with the columns ``['service_distance',
-          'service_duration', 'num_trip_starts',
-          'num_trips', 'service_speed']``
+        DataFrame with the columns ``'service_distance'``,
+        ``'service_duration'``, ``'num_trip_starts'``,
+        ``'num_trips'``, and ``'service_speed'``.
 
     Notes
     -----
@@ -433,55 +437,56 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
     Returns
     -------
     DataFrame
-        Has the columns:
+        Columns are
 
-        -``'route_id'``
-        -``'route_short_name'``
-        -``'route_type'``
-        -``'direction_id'``
-        -``'num_trips'``: number of trips
-        -``'is_loop'``: 1 if at least one of the trips on the route has
-          its ``is_loop`` field equal to 1; 0 otherwise
-        -``'is_bidirectional'``: 1 if the route has trips in both
-          directions; 0 otherwise
-        -``'start_time'``: start time of the earliest trip on the route
-        -``'end_time'``: end time of latest trip on the route
-        -``'max_headway'``: maximum of the durations (in minutes)
+        - ``'route_id'``
+        - ``'route_short_name'``
+        - ``'route_type'``
+        - ``'direction_id'``
+        - ``'num_trips'``: number of trips
+        - ``'is_loop'``: 1 if at least one of the trips on the route has
+           its ``is_loop`` field equal to 1; 0 otherwise
+        - ``'is_bidirectional'``: 1 if the route has trips in both
+           directions; 0 otherwise
+        - ``'start_time'``: start time of the earliest trip on the route
+        - ``'end_time'``: end time of latest trip on the route
+        - ``'max_headway'``: maximum of the durations (in minutes)
           between trip starts on the route between
           ``headway_start_time`` and ``headway_end_time`` on the given
           dates
-        -``'min_headway'``: minimum of the durations (in minutes)
+        - ``'min_headway'``: minimum of the durations (in minutes)
           mentioned above
-        -``'mean_headway'``: mean of the durations (in minutes)
+        - ``'mean_headway'``: mean of the durations (in minutes)
           mentioned above
-        -``'peak_num_trips'``: maximum number of simultaneous trips in
+        - ``'peak_num_trips'``: maximum number of simultaneous trips in
           service (for the given direction, or for both directions when
           ``split_directions==False``)
-        -``'peak_start_time'``: start time of first longest period
+        - ``'peak_start_time'``: start time of first longest period
           during which the peak number of trips occurs
-        -``'peak_end_time'``: end time of first longest period during
+        - ``'peak_end_time'``: end time of first longest period during
           which the peak number of trips occurs
-        -``'service_duration'``: total of the duration of each trip on
+        - ``'service_duration'``: total of the duration of each trip on
           the route in the given subset of trips; measured in hours
-        -``'service_distance'``: total of the distance traveled by each
+        - ``'service_distance'``: total of the distance traveled by each
           trip on the route in the given subset of trips; measured in
           whatever distance units are present in ``trip_stats_subset``;
           contains all ``np.nan`` entries if ``feed.shapes is None``
-        -``'service_speed'``: service_distance/service_duration;
+        - ``'service_speed'``: service_distance/service_duration;
           measured in distance units per hour
-        -``'mean_trip_distance'``: service_distance/num_trips
-        -``'mean_trip_duration'``: service_duration/num_trips
+        - ``'mean_trip_distance'``: service_distance/num_trips
+        - ``'mean_trip_duration'``: service_duration/num_trips
 
-    If not ``split_directions == False``, then remove the direction_id
-    column and compute each route's stats, except for headways, using
-    its trips running in both directions.
-    In this case, (1) compute max headway by taking the max of the max
-    headways in both directions; (2) compute mean headway by taking the
-    weighted mean of the mean headways in both directions.
+        If not ``split_directions``, then remove the
+        direction_id column and compute each route's stats, except for
+        headways, using its trips running in both directions.
+        In this case, (1) compute max headway by taking the max of the
+        max headways in both directions; (2) compute mean headway by
+        taking the weighted mean of the mean headways in both
+        directions.
 
-    Ignore dates outside the date range of the Feed.
-    If there are no stats for the given dates, then return an empty
-    DataFrame with the columns above.
+        Ignore dates outside the date range of the Feed.
+        If there are no stats for the given dates, then return an empty
+        DataFrame with the columns above.
 
     Notes
     -----

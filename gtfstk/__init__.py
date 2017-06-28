@@ -10,3 +10,5 @@ from .miscellany import *
 from .cleaners import *
 from .validators import *
 from .feed import *
+
+__version__ = '9.0.0'

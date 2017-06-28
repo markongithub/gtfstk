@@ -387,31 +387,30 @@ def compute_stop_stats(feed, dates, split_directions=False,
     DataFrame
         Columns are
 
-        - date
-        - stop_id
-        - direction_id: present if and only if ``split_directions``
-        - num_routes: number of routes visiting the stop
+        - ``'date'``
+        - ``'stop_id'``
+        - ``'direction_id'``: present if and only if ``split_directions``
+        - ``'num_routes'``: number of routes visiting the stop
           (in the given direction) on the date
-        - num_trips: number of trips visiting stop
+        - ``'num_trips'``: number of trips visiting stop
           (in the givin direction) on the date
-        - max_headway: maximum of the durations (in minutes)
+        - ``'max_headway'``: maximum of the durations (in minutes)
           between trip departures at the stop between
           ``headway_start_time`` and ``headway_end_time`` on the date
-        - min_headway: minimum of the durations (in minutes) mentioned
+        - ``'min_headway'``: minimum of the durations (in minutes) mentioned
           above
-        - mean_headway: mean of the durations (in minutes) mentioned
+        - ``'mean_headway'``: mean of the durations (in minutes) mentioned
           above
-        - start_time: earliest departure time of a trip from this stop
+        - ``'start_time'``: earliest departure time of a trip from this stop
           on the date
-        - end_time: latest departure time of a trip from this stop on
+        - ``'end_time'``: latest departure time of a trip from this stop on
           the date
 
     Notes
     -----
     - If there are no stats for the given dates, then return an empty
-    DataFrame with the columns above
+      DataFrame with the columns above
     - Assume the following feed attributes are not ``None``:
-
         * ``feed.stop_times``
         * Those used in :func:`.trips.get_trips`
 

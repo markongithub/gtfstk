@@ -126,14 +126,14 @@ def check_for_required_columns(problems, table, df):
         A four-tuple containing
 
         1. A problem type (string) equal to ``'error'`` or ``'warning'``;
-          ``'error'`` means the GTFS is violated;
-          ``'warning'`` means there is a problem but it is not a
-          GTFS violation
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
         2. A message (string) that describes the problem
         3. A GTFS table name, e.g. ``'routes'``, in which the problem
-          occurs
+           occurs
         4. A list of rows (integers) of the table's DataFrame where the
-          problem occurs
+           problem occurs
 
     table : string
         Name of a GTFS table
@@ -168,14 +168,14 @@ def check_for_invalid_columns(problems, table, df):
         A four-tuple containing
 
         1. A problem type (string) equal to ``'error'`` or ``'warning'``;
-          ``'error'`` means the GTFS is violated;
-          ``'warning'`` means there is a problem but it is not a
-          GTFS violation
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
         2. A message (string) that describes the problem
         3. A GTFS table name, e.g. ``'routes'``, in which the problem
-          occurs
+           occurs
         4. A list of rows (integers) of the table's DataFrame where the
-          problem occurs
+           problem occurs
 
     table : string
         Name of a GTFS table
@@ -211,14 +211,14 @@ def check_table(problems, table, df, condition, message, type_='error'):
         A four-tuple containing
 
         1. A problem type (string) equal to ``'error'`` or ``'warning'``;
-          ``'error'`` means the GTFS is violated;
-          ``'warning'`` means there is a problem but it is not a
-          GTFS violation
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
         2. A message (string) that describes the problem
         3. A GTFS table name, e.g. ``'routes'``, in which the problem
-          occurs
+           occurs
         4. A list of rows (integers) of the table's DataFrame where the
-          problem occurs
+           problem occurs
 
     table : string
         Name of a GTFS table
@@ -260,14 +260,14 @@ def check_column(problems, table, df, column, column_required, checker,
         A four-tuple containing
 
         1. A problem type (string) equal to ``'error'`` or ``'warning'``;
-          ``'error'`` means the GTFS is violated;
-          ``'warning'`` means there is a problem but it is not a
-          GTFS violation
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
         2. A message (string) that describes the problem
         3. A GTFS table name, e.g. ``'routes'``, in which the problem
-          occurs
+           occurs
         4. A list of rows (integers) of the table's DataFrame where the
-          problem occurs
+           problem occurs
 
     table : string
         Name of a GTFS table
@@ -320,14 +320,14 @@ def check_column_id(problems, table, df, column, column_required=True):
         A four-tuple containing
 
         1. A problem type (string) equal to ``'error'`` or ``'warning'``;
-          ``'error'`` means the GTFS is violated;
-          ``'warning'`` means there is a problem but it is not a
-          GTFS violation
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
         2. A message (string) that describes the problem
         3. A GTFS table name, e.g. ``'routes'``, in which the problem
-          occurs
+           occurs
         4. A list of rows (integers) of the table's DataFrame where the
-          problem occurs
+           problem occurs
 
     table : string
         Name of a GTFS table
@@ -380,14 +380,14 @@ def check_column_linked_id(problems, table, df, column, column_required,
         A four-tuple containing
 
         1. A problem type (string) equal to ``'error'`` or ``'warning'``;
-          ``'error'`` means the GTFS is violated;
-          ``'warning'`` means there is a problem but it is not a
-          GTFS violation
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
         2. A message (string) that describes the problem
         3. A GTFS table name, e.g. ``'routes'``, in which the problem
-          occurs
+           occurs
         4. A list of rows (integers) of the table's DataFrame where the
-          problem occurs
+           problem occurs
 
     table : string
         Name of a GTFS table
@@ -454,14 +454,15 @@ def format_problems(problems, as_df):
         A four-tuple containing
 
         1. A problem type (string) equal to ``'error'`` or ``'warning'``;
-          ``'error'`` means the GTFS is violated;
-          ``'warning'`` means there is a problem but it is not a
-          GTFS violation
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
         2. A message (string) that describes the problem
         3. A GTFS table name, e.g. ``'routes'``, in which the problem
-          occurs
+           occurs
         4. A list of rows (integers) of the table's DataFrame where the
-          problem occurs
+           problem occurs
+
     as_df : boolean
 
     Returns
@@ -470,6 +471,7 @@ def format_problems(problems, as_df):
         Return ``problems`` if not ``as_df``; otherwise return a
         DataFrame with the problems as rows and the columns
         ``['type', 'message', 'table', 'rows']``.
+
     """
     if as_df:
         problems = pd.DataFrame(problems, columns=['type', 'message',
@@ -1203,7 +1205,8 @@ def validate(feed, as_df=True, include_warnings=True):
         otherwise return the result as a list
     include_warnings : boolean
         If ``True``, then include problems of types ``'error'`` and
-        ``'warning'``; otherwise, only return problems of type ``'error'
+        ``'warning'``; otherwise, only return problems of type
+        ``'error'``
 
     Returns
     -------

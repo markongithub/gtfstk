@@ -113,7 +113,7 @@ def get_max_runs(x):
     Given a list of numbers, return a NumPy array of pairs
     (start index, end index + 1) of the runs of max value.
 
-    EXAMPLES::
+    Example::
 
         >>> get_max_runs([7, 1, 2, 7, 7, 1, 2])
         array([[0, 1],
@@ -246,7 +246,7 @@ def count_active_trips(trip_times, time):
     Returns
     -------
     integer
-         number of trips in ``trip_times`` that are active at ``time``.
+        Number of trips in ``trip_times`` that are active at ``time``.
         A trip is a considered active at time t if and only if
         start_time <= t < end_time.
 

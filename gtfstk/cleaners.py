@@ -161,11 +161,11 @@ def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
         The result is built from the given Feed as follows.
         Group ``feed.routes`` by the ``by`` column, and for each group
 
-        1. choose the first route in the group,
-        2. assign a new route ID based on the given ``route_id_prefix``
-          string and a running count, e.g. ``'route_013'``
-        3. assign all the trips associated with routes in the group to
-          that first route.
+        1. Choose the first route in the group
+        2. Assign a new route ID based on the given ``route_id_prefix``
+           string and a running count, e.g. ``'route_013'``
+        3. Assign all the trips associated with routes in the group to
+           that first route
         4. Update the route IDs in the other Feed tables
 
     """

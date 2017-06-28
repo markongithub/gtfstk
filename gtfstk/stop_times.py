@@ -50,33 +50,32 @@ def append_dist_to_stop_times(feed, trip_stats):
     Notes
     -----
     - Does not always give accurate results, as described below.
+    - The algorithm works as follows.
+      Compute the ``shape_dist_traveled`` field by using Shapely to
+      measure the distance of a stop along its trip linestring.
+      If for a given trip this process produces a non-monotonically
+      increasing, hence incorrect, list of (cumulative) distances, then
+      fall back to estimating the distances as follows.
+
+      Get the average speed of the trip via ``trip_stats`` and use is to
+      linearly interpolate distances for stop times, assuming that the
+      first stop is at shape_dist_traveled = 0 (the start of the shape)
+      and the last stop is at shape_dist_traveled = the length of the trip
+      (taken from trip_stats and equal to the length of the shape, unless
+      ``trip_stats`` was called with ``get_dist_from_shapes == False``).
+      This fallback method usually kicks in on trips with
+      self-intersecting linestrings.
+      Unfortunately, this fallback method will produce incorrect results
+      when the first stop does not start at the start of its shape
+      (so shape_dist_traveled != 0).
+      This is the case for several trips in `this Portland feed
+      <https://transitfeeds.com/p/trimet/43/1400947517>`_, for example.
     - Assume the following feed attributes are not ``None``:
 
         * ``feed.stop_times``
         * Those used in :func:`.shapes.build_geometry_by_shape`
         * Those used in :func:`.stops.build_geometry_by_stop`
 
-    Algorithm
-    ----------
-    Compute the ``shape_dist_traveled`` field by using Shapely to
-    measure the distance of a stop along its trip linestring.
-    If for a given trip this process produces a non-monotonically
-    increasing, hence incorrect, list of (cumulative) distances, then
-    fall back to estimating the distances as follows.
-
-    Get the average speed of the trip via ``trip_stats`` and use is to
-    linearly interpolate distances for stop times, assuming that the
-    first stop is at shape_dist_traveled = 0 (the start of the shape)
-    and the last stop is at shape_dist_traveled = the length of the trip
-    (taken from trip_stats and equal to the length of the shape, unless
-    ``trip_stats`` was called with ``get_dist_from_shapes == False``).
-    This fallback method usually kicks in on trips with
-    self-intersecting linestrings.
-    Unfortunately, this fallback method will produce incorrect results
-    when the first stop does not start at the start of its shape
-    (so shape_dist_traveled != 0).
-    This is the case for several trips in `this Portland feed
-    <https://transitfeeds.com/p/trimet/43/1400947517>`_, for example.
     """
     feed = feed.copy()
     geometry_by_shape = feed.build_geometry_by_shape(use_utm=True)

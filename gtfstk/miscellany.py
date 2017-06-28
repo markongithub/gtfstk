@@ -27,7 +27,7 @@ def summarize(feed, table=None):
     Returns
     -------
     DataFrame
-        Has the columns
+        Columns are
 
         - ``'table'``: name of the GTFS table, e.g. ``'stops'``
         - ``'column'``: name of a column in the table,
@@ -431,7 +431,7 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
         - ``'service_speed'``: service_distance/service_duration
 
         Exclude dates that lie outside of the Feed's date range.
-        If all the dates given lie outside of the feed's date range,
+        If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame with the specified columns.
 
     Notes
@@ -448,8 +448,7 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
           ``'service_duration'``
 
     - To remove the date and seconds from the time series f, do
-      ``f.index = [t.time().strftime('%H:%M') for t in
-        f.index.to_datetime()]``
+      ``f.index = [t.time().strftime('%H:%M') for t in f.index.to_datetime()]``
     - If all dates lie outside the feed's date range, then return an
       empty DataFrame with only the column ``'num_trips'``.
     - Dates with no active stops will not appear in the result
@@ -781,23 +780,22 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
       the screen line is straight and doesn't double back on itself.
     - Probably does not give correct results for trips with
       self-intersecting shapes.
+    - The algorithm works as follows
+
+        1. Compute all the shapes that intersect the linestring
+        2. For each such shape, compute the intersection points
+        3. For each point p, scan through all the trips in the feed
+           that have that shape
+        4. For each date in ``dates``, restrict to trips active on the
+           date and interpolate a stop time for p by assuming that the
+           feed has the shape_dist_traveled field in stop times
+        5. Use that interpolated time as the crossing time of the trip
+           vehicle, and compute the trip orientation to the screen line
+           via a cross product of a vector in the direction of the
+           screen line and a tiny vector in the direction of trip travel
+
     - Assume the following feed attributes are not ``None``:
-
          * ``feed.shapes``, if ``geo_shapes`` is not given
-
-    Algorithm
-    ---------
-    #. Compute all the shapes that intersect the linestring.
-    #. For each such shape, compute the intersection points.
-    #. For each point p, scan through all the trips in the feed
-      that have that shape
-    #. For each date in ``dates``, restrict to trips active on the date
-      and interpolate a stop time for p by assuming that the feed
-      has the shape_dist_traveled field in stop times.
-    #. Use that interpolated time as the crossing time of the trip
-      vehicle, and compute the trip orientation to the screen line
-      via a cross product of a vector in the direction of the screen
-      line and a tiny vector in the direction of trip travel.
 
     """
     if not isinstance(dates, list):

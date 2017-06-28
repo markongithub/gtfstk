@@ -27,7 +27,7 @@ def is_active_trip(feed, trip_id, date):
     Returns
     -------
     boolean
-        ``True`` if and if the given trip is active on the given
+        ``True`` if and only if the given trip is active on the given
         date.
 
     Notes
@@ -128,7 +128,7 @@ def compute_trip_activity(feed, dates):
     Returns
     -------
     DataFrame
-        Has the columns
+        Columns are
 
         - ``'trip_id'``
         - ``dates[0]``: 1 if the trip is active on ``dates[0]``;
@@ -194,7 +194,7 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
       0 otherwise
     - ``'distance'``: distance of the trip in ``feed.dist_units``;
       contains all ``np.nan`` entries if ``feed.shapes is None``
-    - ``'duration: duration of the trip in hours
+    - ``'duration'``: duration of the trip in hours
     - ``'speed'``: distance/duration
 
     If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at
@@ -344,7 +344,7 @@ def locate_trips(feed, date, times):
     Returns
     -------
     DataFrame
-        Has the columns:
+        Columns are:
 
         - ``'trip_id'``
         - ``'route_id'``
