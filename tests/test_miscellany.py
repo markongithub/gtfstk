@@ -197,7 +197,7 @@ def test_restrict_to_polygon():
 @pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
 def test_compute_screen_line_counts():
     feed = cairns.copy()
-    date = cairns_date
+    dates = [cairns_date, '20010101']
     trip_stats = cairns_trip_stats
     feed = append_dist_to_stop_times(feed, trip_stats)
 
@@ -206,16 +206,11 @@ def test_compute_screen_line_counts():
         line = json.load(src)
         line = sg.shape(line['features'][0]['geometry'])
 
-    f = compute_screen_line_counts(feed, line, date)
+    f = compute_screen_line_counts(feed, line, dates)
 
     # Should have correct columns
-    expect_cols = set([
-      'trip_id',
-      'route_id',
-      'route_short_name',
-      'crossing_time',
-      'orientation',
-      ])
+    expect_cols = {'date', 'trip_id', 'route_id', 'route_short_name',
+      'crossing_time', 'orientation'}
     assert set(f.columns) == expect_cols
 
     # Should have correct routes
@@ -229,3 +224,12 @@ def test_compute_screen_line_counts():
     # Should have correct orientations
     for ori in [-1, 1]:
         assert f[f['orientation'] == ori].shape[0] == expect_num_trips
+
+    # Should only have feed dates
+    assert f.date.unique().tolist() == [dates[0]]
+
+    # Empty check
+    f = compute_screen_line_counts(feed, line, dates[1:])
+    assert f.empty
+    assert set(f.columns) == expect_cols
+
