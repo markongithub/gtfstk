@@ -212,7 +212,7 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
         * ``feed.routes``
         * ``feed.stop_times``
         * ``feed.shapes`` (optionally)
-        * Those used in :func:`build_geometry_by_stop`
+        * Those used in :func:`.stops.build_geometry_by_stop`
 
     - Calculating trip distances with ``compute_dist_from_shapes=True``
       seems pretty accurate.  For example, calculating trip distances on
@@ -363,8 +363,8 @@ def locate_trips(feed, date, times):
     Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
-    - Those used in :func:`get_stop_times`
-    - Those used in :func:`build_geometry_by_shape`
+    - Those used in :func:`.stop_times.get_stop_times`
+    - Those used in :func:`.shapes.build_geometry_by_shape`
 
     """
     if not hp.is_not_null(feed.stop_times, 'shape_dist_traveled'):

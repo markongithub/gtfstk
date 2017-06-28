@@ -317,9 +317,9 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
 def downsample(time_series, freq):
     """
     Downsample the given route, stop, or feed time series,
-    (outputs of :func:`routes.compute_route_time_series``,
-    :func:`stops.compute_stop_time_series``, or
-    :func:`miscellany.compute_feed_time_series`,
+    (outputs of :func:`.routes.compute_route_time_series``,
+    :func:`.stops.compute_stop_time_series``, or
+    :func:`.miscellany.compute_feed_time_series`,
     respectively) to the given Pandas frequency string (e.g. '15Min').
     Return the given time series unchanged if the given frequency is
     shorter than the original frequency.

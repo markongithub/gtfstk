@@ -247,7 +247,7 @@ def get_stops(feed, date=None, trip_id=None, route_id=None, in_stations=False):
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stops``
-    - Those used in :func:`stop_times.get_stop_times`
+    - Those used in :func:`.stop_times.get_stop_times`
 
     """
     s = feed.stops.copy()
@@ -343,7 +343,7 @@ def compute_stop_activity(feed, dates):
     - Assume the following feed attributes are not ``None``:
 
         * ``feed.stop_times``
-        * Those used in :func:`compute_trip_activity`
+        * Those used in :func:`.trips.compute_trip_activity`
 
     """
     if not dates:
@@ -413,7 +413,7 @@ def compute_stop_stats(feed, dates, split_directions=False,
     - Assume the following feed attributes are not ``None``:
 
         * ``feed.stop_times``
-        * Those used in :func:`trips.get_trips`
+        * Those used in :func:`.trips.get_trips`
 
     """
     if not isinstance(dates, list):
@@ -478,7 +478,7 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     """
     Compute time series for the given stops on the given dates at the
     given frequency and return the result as a DataFrame of the same
-    form as output by :func:`compute_stop_time_series_base`.
+    form as output by :func:`.stop_times.compute_stop_time_series_base`.
 
     Parameters
     ----------
@@ -524,7 +524,7 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     - Assume the following feed attributes are not ``None``:
 
         * ``feed.stop_times``
-        * Those used in :func:`get_trips`
+        * Those used in :func:`.trips.get_trips`
 
     """
     if not isinstance(dates, list):
@@ -607,7 +607,7 @@ def build_stop_timetable(feed, stop_id, date):
     Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
-    - Those used in :func:`stop_times.get_stop_times`
+    - Those used in :func:`.stop_times.get_stop_times`
 
     """
     f = feed.get_stop_times(date)

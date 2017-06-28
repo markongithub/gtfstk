@@ -598,7 +598,7 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
     -----
     Assume the following feed attributes are not ``None``:
 
-    - Those used in :func:`get_trips`
+    - Those used in :func:`.trips.get_trips`
 
     """
     if not isinstance(dates, list):
@@ -685,7 +685,7 @@ def build_route_timetable(feed, route_id, date):
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stop_times``
-    - Those used in :func:`get_trips`
+    - Those used in :func:`.trips.get_trips`
 
     """
     f = feed.get_trips(date)

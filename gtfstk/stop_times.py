@@ -28,7 +28,7 @@ def get_stop_times(feed, date=None):
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stop_times``
-    - Those used in :func:`get_trips`
+    - Those used in :func:`.trips.get_trips`
 
     """
     f = feed.stop_times.copy()

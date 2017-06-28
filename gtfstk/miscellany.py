@@ -303,9 +303,9 @@ def compute_feed_stats(feed, trip_stats, dates):
     -----
     Assume the following feed attributes are not ``None``:
 
-    - Those used in :func:`get_trips`
-    - Those used in :func:`get_routes`
-    - Those used in :func:`get_stops`
+    - Those used in :func:`.trips.get_trips`
+    - Those used in :func:`.routes.get_routes`
+    - Those used in :func:`.stops.get_stops`
 
     """
     if not isinstance(dates, list):
@@ -456,7 +456,7 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
       (in contrast to the output of :func:`compute_feed_stats`)
     - Assume the following feed attributes are not ``None``:
 
-       * Those used in :func:`compute_route_time_series`
+       * Those used in :func:`.routes.compute_route_time_series`
 
     """
     if not isinstance(dates, list):
@@ -674,7 +674,7 @@ def restrict_to_polygon(feed, polygon):
     - ``feed.trips``
     - ``feed.stops``
     - ``feed.routes``
-    - Those used in :func:`get_stops_in_polygon`
+    - Those used in :func:`.stops.get_stops_in_polygon`
 
     """
     # Initialize the new feed as the old feed.
@@ -770,7 +770,7 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
     -----
     - Requires GeoPandas.
     - The first step is to geometrize ``feed.shapes`` via
-      :func:`geometrize_shapes`. Alternatively, use the
+      :func:`.shapes.geometrize_shapes`. Alternatively, use the
       ``geo_shapes`` GeoDataFrame, if given.
     - Assume ``feed.stop_times`` has an accurate
       ``shape_dist_traveled`` column.
