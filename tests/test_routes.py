@@ -223,13 +223,24 @@ def test_compute_route_time_series():
 def test_build_route_timetable():
     feed = cairns.copy()
     route_id = feed.routes['route_id'].values[0]
-    date = cairns_date
-    f = build_route_timetable(feed, route_id, date)
+    dates = [cairns_date, '20010101']
+    f = build_route_timetable(feed, route_id, dates)
+
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
+
     # Should have the correct columns
-    expect_cols = set(feed.trips.columns) |\
-      set(feed.stop_times.columns)
+    expect_cols = set(feed.trips.columns)\
+      | set(feed.stop_times.columns)\
+      | set(['date'])
+    assert set(f.columns) == expect_cols
+
+    # Should only have feed dates
+    assert f.date.unique().tolist() == [dates[0]]
+
+    # Empty check
+    f = build_route_timetable(feed, route_id, dates[1:])
+    assert f.empty
     assert set(f.columns) == expect_cols
 
 def test_route_to_geojson():

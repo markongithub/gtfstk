@@ -660,9 +660,9 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
 
     return f
 
-def build_route_timetable(feed, route_id, date):
+def build_route_timetable(feed, route_id, dates):
     """
-    Return a timetable for the given route and date.
+    Return a timetable for the given route and dates.
 
     Parameters
     ----------
@@ -676,9 +676,15 @@ def build_route_timetable(feed, route_id, date):
     -------
     DataFrame
         The columns are all those in ``feed.trips`` plus those in
-        ``feed.stop_times``, but restricted to the given route ID.
-        The result is sorted by grouping by trip ID and sorting
-        the groups by their first departure time.
+        ``feed.stop_times`` plus ``'date'``, and the trip IDs
+        are restricted to the given route ID.
+        The result is sorted first by date and then by grouping by
+        trip ID and sorting the groups by their first departure time.
+
+        Skip dates outside of the Feed's dates.
+
+        If there is no route activity on the given dates, then return
+        an empty DataFrame with the columns above.
 
     Notes
     -----
@@ -688,16 +694,40 @@ def build_route_timetable(feed, route_id, date):
     - Those used in :func:`.trips.get_trips`
 
     """
-    f = feed.get_trips(date)
-    f = f[f['route_id'] == route_id].copy()
-    f = pd.merge(f, feed.stop_times)
-    # Groupby trip ID and sort groups by their minimum departure time.
-    # For some reason NaN departure times mess up the transform below.
-    # So temporarily fill NaN departure times as a workaround.
-    f['dt'] = f['departure_time'].fillna(method='ffill')
-    f['min_dt'] = f.groupby('trip_id')['dt'].transform(min)
-    return f.sort_values(['min_dt', 'stop_sequence']).drop(
+    if not isinstance(dates, list):
+        raise ValueError('dates must be a list')
+
+    cols = feed.trips.columns.tolist()\
+      + feed.stop_times.columns.tolist()\
+      + ['date']
+
+    # Restrict to feed dates
+    dates = set(dates) & set(feed.get_dates())
+    if not dates:
+        return pd.DataFrame([], columns=cols)
+
+    t = feed.get_trips()
+    t = t[t['route_id'] == route_id].copy()
+    t = pd.merge(t, feed.stop_times)
+    a = feed.compute_trip_activity(dates)
+
+    frames = []
+    for date in dates:
+        # Get active trips
+        ids = a.loc[a[date] == 1, 'trip_id']
+        f = t[t['trip_id'].isin(ids)].copy()
+        f['date'] = date
+        # Groupby trip ID and sort groups by their minimum departure time.
+        # For some reason NaN departure times mess up the transform below.
+        # So temporarily fill NaN departure times as a workaround.
+        f['dt'] = f['departure_time'].fillna(method='ffill')
+        f['min_dt'] = f.groupby('trip_id')['dt'].transform(min)
+        frames.append(f)
+
+    f = pd.concat(frames)
+    f = f.sort_values(['date', 'min_dt', 'stop_sequence']).drop(
       ['min_dt', 'dt'], axis=1)
+    return f
 
 def route_to_geojson(feed, route_id, include_stops=False):
     """
