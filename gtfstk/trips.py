@@ -122,8 +122,9 @@ def compute_trip_activity(feed, dates):
     Parameters
     ----------
     feed : Feed
-    dates : list
-        YYYYMMDD date strings
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute activity
 
     Returns
     -------
@@ -150,6 +151,8 @@ def compute_trip_activity(feed, dates):
     - Those used in :func:`is_active_trip`
 
     """
+    dates = feed.restrict_dates(dates)
+
     if not dates:
         return pd.DataFrame(columns=['trip_id'])
 
@@ -172,7 +175,7 @@ def compute_busiest_date(feed, dates):
 
     """
     f = feed.compute_trip_activity(dates)
-    s = [(f[date].sum(), date) for date in dates]
+    s = [(f[c].sum(), c) for c in f.columns if c != 'trip_id']
     return max(s)[1]
 
 def compute_trip_stats(feed, compute_dist_from_shapes=False):

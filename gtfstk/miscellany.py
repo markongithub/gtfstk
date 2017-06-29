@@ -273,8 +273,9 @@ def compute_feed_stats(feed, trip_stats, dates):
     trip_stats : DataFrame
         Trip stats to consider in the format output by
         :func:`.trips.compute_trip_stats`
-    dates : list
-        YYYYMMDD date strings specifying the dates to compute stats
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
 
     Returns
     -------
@@ -311,9 +312,7 @@ def compute_feed_stats(feed, trip_stats, dates):
     - Those used in :func:`.stops.get_stops`
 
     """
-    if not isinstance(dates, list):
-        raise ValueError('dates must be a list')
-
+    dates = feed.restrict_dates(dates)
     cols = [
       'date',
       'num_trips',
@@ -326,9 +325,6 @@ def compute_feed_stats(feed, trip_stats, dates):
       'service_duration',
       'service_speed',
     ]
-
-    # Restrict to feed dates
-    dates = set(dates) & set(feed.get_dates())
     if not dates:
         return pd.DataFrame([], columns=cols)
 
@@ -407,8 +403,9 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     trip_stats : DataFrame
         Trip stats to consider in the format output by
         :func:`.trips.compute_trip_stats`
-    dates : list
-        YYYYMMDD date strings specifying the dates to compute stats
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
     freq : string
         Pandas frequency string specifying the frequency of the
         resulting time series, e.g. '5Min'; highest frequency allowable
@@ -461,9 +458,6 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
        * Those used in :func:`.routes.compute_route_time_series`
 
     """
-    if not isinstance(dates, list):
-        raise ValueError('dates must be a list')
-
     cols = [
       'num_trip_starts',
       'num_trips',
@@ -801,14 +795,9 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
          * ``feed.shapes``, if ``geo_shapes`` is not given
 
     """
-    if not isinstance(dates, list):
-        raise ValueError('dates must be a list')
-
+    dates = feed.restrict_dates(dates)
     cols = ['date', 'trip_id', 'route_id', 'route_short_name',
       'crossing_time', 'orientation']
-
-    # Restrict to feed dates
-    dates = set(dates) & set(feed.get_dates())
     if not dates:
         return pd.DataFrame([], columns=cols)
 

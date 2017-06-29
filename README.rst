@@ -83,7 +83,7 @@ History
 - Improved function names, e.g. ``compute_trips_stats`` -> ``compute_trip_stats``
 - Added functions to ``cleaner.py`` and changed cleaning function outputs to feed instances
 - Made ``feed.copy`` a method
-- Simplified Feed objects and added auto-updates to private attributes
+- Simplified Feed objects and added auto-updates to secondary attributes
 - Changed the signatures of a few functions, e.g. ``calculator.append_dist_to_shapes`` now returns a feed instead of a shapes data frame
 - Fixed formatting of properties field in ``calculator.trip_to_geojson`` and ``calculator.route_to_geojson``
 

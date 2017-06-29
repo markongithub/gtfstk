@@ -54,8 +54,8 @@ def test_compute_trip_activity():
 
 def test_compute_busiest_date():
     feed = cairns.copy()
-    dates = get_first_week(feed) + ['19000101']
-    date = compute_busiest_date(feed, dates)
+    dates = get_first_week(feed)[:1]
+    date = compute_busiest_date(feed, dates + ['999'])
     # Busiest day should lie in first week
     assert date in dates
 

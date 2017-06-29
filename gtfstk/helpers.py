@@ -2,6 +2,7 @@
 Functions useful across modules.
 """
 import datetime as dt
+import dateutil.relativedelta as rd
 
 import pandas as pd
 import numpy as np

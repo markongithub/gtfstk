@@ -115,8 +115,8 @@ DTYPE = {col: str for col in STR_COLS}
 #:
 DIST_UNITS = ['ft', 'mi', 'm', 'km']
 
-#:
-FEED_ATTRS_PUBLIC = [
+#: Primary feed attributes
+FEED_ATTRS_1 = [
     'agency',
     'calendar',
     'calendar_dates',
@@ -133,15 +133,15 @@ FEED_ATTRS_PUBLIC = [
     'dist_units',
 ]
 
-#:
-FEED_ATTRS_PRIVATE = [
+#: Secondary feed attributes; derived from primary ones
+FEED_ATTRS_2 = [
     '_trips_i',
     '_calendar_i',
     '_calendar_dates_g',
 ]
 
 #:
-FEED_ATTRS = FEED_ATTRS_PUBLIC + FEED_ATTRS_PRIVATE
+FEED_ATTRS = FEED_ATTRS_1 + FEED_ATTRS_2
 
 #:
 CRS_WGS84 = {'init': 'epsg:4326', 'no_defs': True}

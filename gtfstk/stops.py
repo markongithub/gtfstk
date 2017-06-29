@@ -319,8 +319,9 @@ def compute_stop_activity(feed, dates):
     Parameters
     ----------
     feed : Feed
-    dates : list
-        YYYYMMDD date strings
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute activity
 
     Returns
     -------
@@ -346,6 +347,7 @@ def compute_stop_activity(feed, dates):
         * Those used in :func:`.trips.compute_trip_activity`
 
     """
+    dates = feed.restrict_dates(dates)
     if not dates:
         return pd.DataFrame(columns=['stop_id'])
 
@@ -369,8 +371,9 @@ def compute_stop_stats(feed, dates, split_directions=False,
     Parameters
     ----------
     feed : Feed
-    dates : list
-        YYYYMMDD strings for which to compute stats
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
     split_directions : boolean
         If ``True``, then separate the stop stats by direction (0 or 1)
         of the trips visiting the stops; otherwise aggregate trips
@@ -415,9 +418,7 @@ def compute_stop_stats(feed, dates, split_directions=False,
         * Those used in :func:`.trips.get_trips`
 
     """
-    if not isinstance(dates, list):
-        raise ValueError('dates must be a list')
-
+    dates = feed.restrict_dates(dates)
     cols = [
       'date',
       'stop_id',
@@ -431,9 +432,6 @@ def compute_stop_stats(feed, dates, split_directions=False,
       ]
     if split_directions:
         cols.append('direction_id')
-
-    # Restrict to feed dates
-    dates = set(dates) & set(feed.get_dates())
     if not dates:
         return pd.DataFrame([], columns=cols)
 
@@ -482,8 +480,9 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     Parameters
     ----------
     feed : Feed
-    dates : list
-        YYYYMMDD date strings for which to compute time series
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
     split_directions : boolean
         If ``True``, then separate the stop stats by direction (0 or 1)
         of the trips visiting the stops; otherwise aggregate trips
@@ -526,20 +525,16 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
         * Those used in :func:`.trips.get_trips`
 
     """
-    if not isinstance(dates, list):
-        raise ValueError('dates must be a list')
-
+    dates = feed.restrict_dates(dates)
     cols = [
       'num_trips',
       ]
-
-    # Restrict to feed dates
-    dates = set(dates) & set(feed.get_dates())
     if not dates:
         return pd.DataFrame([], columns=cols)
 
     if split_directions:
         cols.append('direction_id')
+
 
     activity = feed.compute_trip_activity(dates)
 
@@ -591,8 +586,8 @@ def build_stop_timetable(feed, stop_id, dates):
     feed : Feed
     stop_id : string
         ID of the stop for which to build the timetable
-    dates : list
-        YYYYMMDD date strings
+    dates : string or list
+        A YYYYMMDD date string or list thereof
 
     Returns
     -------
@@ -610,15 +605,10 @@ def build_stop_timetable(feed, stop_id, dates):
     - Those used in :func:`.stop_times.get_stop_times`
 
     """
-    if not isinstance(dates, list):
-        raise ValueError('dates must be a list')
-
+    dates = feed.restrict_dates(dates)
     cols = feed.trips.columns.tolist()\
       + feed.stop_times.columns.tolist()\
       + ['date']
-
-    # Restrict to feed dates
-    dates = set(dates) & set(feed.get_dates())
     if not dates:
         return pd.DataFrame([], columns=cols)
 

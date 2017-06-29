@@ -106,10 +106,8 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
       'mean_trip_distance',
       'mean_trip_duration',
     ]
-
     if split_directions:
         cols.append('direction_id')
-
     if trip_stats_subset.empty:
         return pd.DataFrame(columns=cols)
 
@@ -424,6 +422,9 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
     feed : Feed
     trip_stats : DataFrame
         Output of :func:`.trips.compute_trip_stats`
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
     split_directions : boolean
         If ``True``, then separate the stats by trip direction (0 or 1);
         otherwise aggregate trips visiting from both directions
@@ -495,9 +496,7 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
     - Those used in :func:`.helpers.compute_route_stats_base`
 
     """
-    if not isinstance(dates, list):
-        raise ValueError('dates must be a list')
-
+    dates = feed.restrict_dates(dates)
     cols = [
       'date',
       'route_id',
@@ -522,9 +521,6 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
       ]
     if split_directions:
         cols.append('direction_id')
-
-    # Restrict to feed dates
-    dates = set(dates) & set(feed.get_dates())
     if not dates:
         return pd.DataFrame([], columns=cols)
 
@@ -574,9 +570,9 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
     feed : Feed
     trip_stats : DataFrame
         Output of :func:`.trips.compute_trip_stats`
-    dates : list
-        YYYYMMDD date strings indicating the dates for which to compute
-        stats
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
     split_directions : boolean
         If ``True``, then separate each routes's stats by trip direction;
         otherwise aggregate trips in both directions
@@ -606,9 +602,7 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
     - Those used in :func:`.trips.get_trips`
 
     """
-    if not isinstance(dates, list):
-        raise ValueError('dates must be a list')
-
+    dates = feed.restrict_dates(dates)
     cols = [
       'service_distance',
       'service_duration',
@@ -616,9 +610,6 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
       'num_trips',
       'service_speed',
     ]
-
-    # Restrict to feed dates
-    dates = set(dates) & set(feed.get_dates())
     if not dates:
         return pd.DataFrame([], columns=cols)
 
@@ -674,8 +665,8 @@ def build_route_timetable(feed, route_id, dates):
     feed : Feed
     route_id : string
         ID of a route in ``feed.routes``
-    dates : list
-        YYYYMMDD date strings
+    dates : string or list
+        A YYYYMMDD date string or list thereof
 
     Returns
     -------
@@ -699,15 +690,10 @@ def build_route_timetable(feed, route_id, dates):
     - Those used in :func:`.trips.get_trips`
 
     """
-    if not isinstance(dates, list):
-        raise ValueError('dates must be a list')
-
+    dates = feed.restrict_dates(dates)
     cols = feed.trips.columns.tolist()\
       + feed.stop_times.columns.tolist()\
       + ['date']
-
-    # Restrict to feed dates
-    dates = set(dates) & set(feed.get_dates())
     if not dates:
         return pd.DataFrame([], columns=cols)
 

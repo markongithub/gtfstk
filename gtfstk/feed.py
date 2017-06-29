@@ -28,6 +28,7 @@ import pandas as pd
 from . import constants as cs
 from . import helpers as hp
 from . import cleaners as cn
+from . import calendar as cd
 
 
 class Feed(object):
@@ -37,7 +38,7 @@ class Feed(object):
     Beware that the stop times DataFrame can be big (several gigabytes),
     so make sure you have enough memory to handle it.
 
-    Public instance attributes:
+    Primary instance attributes:
 
     - ``dist_units``: a string in :const:`.constants.DIST_UNITS`;
       specifies the distance units to use when calculating various
@@ -58,9 +59,9 @@ class Feed(object):
     - ``transfers``
     - ``feed_info``
 
-    There are also a few private instance attributes that are derived
-    from public attributes and are automatically updated when those
-    public attributes change.
+    There are also a few secondary instance attributes that are derived
+    from the primary attributes and are automatically updated when the
+    primary attributes change.
     However, for this update to work, you must update the primary
     attributes like this (good)::
 
@@ -81,6 +82,7 @@ class Feed(object):
     from .calendar import (
         get_dates,
         get_first_week,
+        restrict_dates,
         )
     from .routes import (
         get_routes,
@@ -172,17 +174,17 @@ class Feed(object):
         In particular, a Feed instance need not represent a valid GTFS
         feed.
         """
-        # Set primary attributes; the @property magic below will then
-        # validate some and automatically set secondary attributes
+        # Set primary attributes from inputs.
+        # The @property magic below will then
+        # validate some and set some derived attributes
         for prop, val in locals().items():
-            if prop in cs.FEED_ATTRS_PUBLIC:
+            if prop in cs.FEED_ATTRS_1:
                 setattr(self, prop, val)
 
     @property
     def dist_units(self):
         """
-        A public Feed attribute made into a property for easy
-        validation.
+        The distance units of the Feed.
         """
         return self._dist_units
 
@@ -194,54 +196,55 @@ class Feed(object):
         else:
             self._dist_units = val
 
-    # If ``self.trips`` changes then update ``self._trips_i``
     @property
     def trips(self):
         """
-        A public Feed attribute made into a property for easy
-        auto-updating of private feed attributes based on the
-        trips DataFrame.
+        The trips table of this Feed.
         """
         return self._trips
 
     @trips.setter
     def trips(self, val):
+        """
+        Update ``self._trips_i`` if ``self.trips`` changes.
+        """
         self._trips = val
         if val is not None and not val.empty:
             self._trips_i = self._trips.set_index('trip_id')
         else:
             self._trips_i = None
 
-    # If ``self.calendar`` changes, then update ``self._calendar_i``
     @property
     def calendar(self):
         """
-        A public Feed attribute made into a property for easy
-        auto-updating of private feed attributes based on the calendar
-        DataFrame.
+        The calendar table of this Feed.
         """
         return self._calendar
 
     @calendar.setter
     def calendar(self, val):
+        """
+        Update ``self._calendar_i``if ``self.calendar`` changes.
+        """
         self._calendar = val
         if val is not None and not val.empty:
             self._calendar_i = self._calendar.set_index('service_id')
         else:
             self._calendar_i = None
 
-    # If ``self.calendar_dates`` changes, then update ``self._calendar_dates_g``
     @property
     def calendar_dates(self):
         """
-        A public Feed attribute made into a property for easy
-        auto-updating of private feed attributes based on the calendar
-        dates DataFrame.
+        The calendar_dates table of this Feed.
         """
         return self._calendar_dates
 
     @calendar_dates.setter
     def calendar_dates(self, val):
+        """
+        Update ``self._calendar_dates_g``
+        if ``self.calendar_dates`` changes.
+        """
         self._calendar_dates = val
         if val is not None and not val.empty:
             self._calendar_dates_g = self._calendar_dates.groupby(
@@ -260,6 +263,7 @@ class Feed(object):
             except:
                 d[table] = None
         d['dist_units'] = self.dist_units
+        d['dates'] = self.dates
 
         return '\n'.join(['* {!s} --------------------\n\t{!s}'.format(
           k, v) for k, v in d.items()])
@@ -274,7 +278,7 @@ class Feed(object):
         which   canonically sorts DataFrame rows and columns.
         """
         # Return False if failures
-        for key in cs.FEED_ATTRS_PUBLIC:
+        for key in cs.FEED_ATTRS_1:
             x = getattr(self, key)
             y = getattr(other, key)
             # DataFrame case
@@ -292,7 +296,7 @@ class Feed(object):
     def copy(self):
         """
         Return a copy of this feed, that is, a feed with all the same
-        public and private attributes.
+        attributes.
         """
         other = Feed(dist_units=self.dist_units)
         for key in set(cs.FEED_ATTRS) - set(['dist_units']):
