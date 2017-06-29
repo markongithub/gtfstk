@@ -1,11 +1,7 @@
 import pytest
-import importlib
-from pathlib import Path
 
 import pandas as pd
-from pandas.util.testing import assert_frame_equal, assert_series_equal
-import numpy as np
-import utm
+from pandas.util.testing import assert_frame_equal
 import shapely.geometry as sg
 
 from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats

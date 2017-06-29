@@ -1238,7 +1238,7 @@ def validate(feed, as_df=True, include_warnings=True):
     - Timing benchmark: on a 2.80 GHz processor machine with 16 GB of
       memory, this function checks `this 31 MB Southeast Queensland feed
       <http://transitfeeds.com/p/translink/21/20170310>`_
-      in 22 seconds (including warnings).
+      in 22 seconds, including warnings.
 
     """
     problems = []

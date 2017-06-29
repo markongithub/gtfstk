@@ -120,7 +120,8 @@ def get_max_runs(x):
                [3, 5]])
 
     Assume x is not empty.
-    Recipe `from Stack Overflow <http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array>`_.
+    Recipe comes from
+    `Stack Overflow <http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array>`_.
     """
     # Get 0-1 array where 1 marks the max values of x
     x = np.array(x)
@@ -317,8 +318,8 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
 def downsample(time_series, freq):
     """
     Downsample the given route, stop, or feed time series,
-    (outputs of :func:`.routes.compute_route_time_series``,
-    :func:`.stops.compute_stop_time_series``, or
+    (outputs of :func:`.routes.compute_route_time_series`,
+    :func:`.stops.compute_stop_time_series`, or
     :func:`.miscellany.compute_feed_time_series`,
     respectively) to the given Pandas frequency string (e.g. '15Min').
     Return the given time series unchanged if the given frequency is

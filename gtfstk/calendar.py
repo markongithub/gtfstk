@@ -21,6 +21,7 @@ def get_dates(feed, as_date_obj=False):
     Returns
     -------
     list
+        Dates
 
     Notes
     -----
@@ -68,6 +69,7 @@ def get_first_week(feed, as_date_obj=False):
     Returns
     -------
     list
+        Dates
 
     """
     dates = feed.get_dates(as_date_obj=True)

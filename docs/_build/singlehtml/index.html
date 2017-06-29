@@ -40,6 +40,7 @@
   <ul>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-introduction">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#document-modules">Module constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.helpers">Module helpers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="index.html#module-gtfstk.validators">Module validators</a></li>
@@ -75,12 +76,22 @@ It uses Pandas and Shapely to do the heavy lifting.</p>
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <p>You can play with <code class="docutils literal"><span class="pre">ipynb/examples.ipynb</span></code> in a Jupyter notebook</p>
 </div>
+<div class="section" id="conventions">
+<h2>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Dates are encoded as date strings of the form YYMMDD</li>
+<li>Times are encoded as time strings of the form HH:MM:SS with the possibility
+that the hour is greater than 24</li>
+<li>‘DataFrame’ and ‘Series’ refer to Pandas DataFrame and Series objects,
+respectively</li>
+</ul>
+</div>
 <span id="document-modules"></span><div class="section" id="module-gtfstk.constants">
 <span id="module-constants"></span><h2>Module constants<a class="headerlink" href="#module-gtfstk.constants" title="Permalink to this headline">¶</a></h2>
 <p>Constants useful across modules.</p>
 <dl class="data">
 <dt id="gtfstk.constants.CRS_WGS84">
-<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {‘init’: ‘epsg:4326’, ‘no_defs’: True}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.constants.</code><code class="descname">CRS_WGS84</code><em class="property"> = {‘no_defs’: True, ‘init’: ‘epsg:4326’}</em><a class="headerlink" href="#gtfstk.constants.CRS_WGS84" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="data">
@@ -210,8 +221,8 @@ its corresponding string in the given format.</p>
 <dt id="gtfstk.helpers.downsample">
 <code class="descclassname">gtfstk.helpers.</code><code class="descname">downsample</code><span class="sig-paren">(</span><em>time_series</em>, <em>freq</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.helpers.downsample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Downsample the given route, stop, or feed time series,
-(outputs of <code class="xref py py-func docutils literal"><span class="pre">routes.compute_route_time_series`()</span></code>,
-<code class="xref py py-func docutils literal"><span class="pre">stops.compute_stop_time_series`()</span></code>, or
+(outputs of <a class="reference internal" href="#gtfstk.routes.compute_route_time_series" title="gtfstk.routes.compute_route_time_series"><code class="xref py py-func docutils literal"><span class="pre">routes.compute_route_time_series()</span></code></a>,
+<a class="reference internal" href="#gtfstk.stops.compute_stop_time_series" title="gtfstk.stops.compute_stop_time_series"><code class="xref py py-func docutils literal"><span class="pre">stops.compute_stop_time_series()</span></code></a>, or
 <a class="reference internal" href="#gtfstk.miscellany.compute_feed_time_series" title="gtfstk.miscellany.compute_feed_time_series"><code class="xref py py-func docutils literal"><span class="pre">miscellany.compute_feed_time_series()</span></code></a>,
 respectively) to the given Pandas frequency string (e.g. ‘15Min’).
 Return the given time series unchanged if the given frequency is
@@ -240,7 +251,8 @@ distance in the units <code class="docutils literal"><span class="pre">dist_unit
 </pre></div>
 </div>
 <p>Assume x is not empty.
-Recipe <a class="reference external" href="http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array">from Stack Overflow</a>.</p>
+Recipe comes from
+<a class="reference external" href="http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array">Stack Overflow</a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -830,7 +842,7 @@ in the stop times table (a trip with no stop times),
 then that’s a warning and not an error.</li>
 <li>Timing benchmark: on a 2.80 GHz processor machine with 16 GB of
 memory, this function checks <a class="reference external" href="http://transitfeeds.com/p/translink/21/20170310">this 31 MB Southeast Queensland feed</a>
-in 22 seconds (including warnings).</li>
+in 22 seconds, including warnings.</li>
 </ul>
 </dd></dl>
 
@@ -957,7 +969,7 @@ otherwise return them as strings</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dates</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
@@ -989,7 +1001,7 @@ otherwise return them as strings</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dates</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
@@ -1062,7 +1074,7 @@ headway stats</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Has the columns</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Columns are</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">'route_id'</span></code></li>
 <li><code class="docutils literal"><span class="pre">'route_short_name'</span></code></li>
@@ -2150,7 +2162,7 @@ maximum number of active trips.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Has the columns</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Columns are</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">'trip_id'</span></code></li>
 <li><code class="docutils literal"><span class="pre">dates[0]</span></code>: 1 if the trip is active on <code class="docutils literal"><span class="pre">dates[0]</span></code>;
@@ -2315,7 +2327,7 @@ given date and times</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Has the columns:</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Columns are:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">'trip_id'</span></code></li>
 <li><code class="docutils literal"><span class="pre">'route_id'</span></code></li>
@@ -2408,9 +2420,9 @@ e.g. number of trips missing shapes.</p>
 </table>
 <p class="rubric">Notes</p>
 <ul class="simple">
-<li>This is an odd function, but i use it to see roughly how broken a
-feed, which helps me decide if i can fix it</li>
-<li>This is not a GTFS validator</li>
+<li>An odd function, but useful to see roughly how broken a
+feed is</li>
+<li>Not a GTFS validator</li>
 </ul>
 </dd></dl>
 
@@ -2753,7 +2765,7 @@ Return the resulting feed.</p>
 <dt id="gtfstk.miscellany.summarize">
 <code class="descclassname">gtfstk.miscellany.</code><code class="descname">summarize</code><span class="sig-paren">(</span><em>feed</em>, <em>table=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.miscellany.summarize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a DataFrame summarizing all GTFS tables in the given feed
-or only the given table if specified.</p>
+or in the given table if specified.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2764,15 +2776,17 @@ or only the given table if specified.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Has the columns</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Columns are</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">'table'</span></code>: name of the GTFS table, e.g. <code class="docutils literal"><span class="pre">'stops'</span></code></li>
 <li><code class="docutils literal"><span class="pre">'column'</span></code>: name of a column in the table,
 e.g. <code class="docutils literal"><span class="pre">'stop_id'</span></code></li>
-<li><code class="docutils literal"><span class="pre">'#values'</span></code>: number of values in the column</li>
-<li><code class="docutils literal"><span class="pre">'#nonnull_values'</span></code>: number of nonnull values in the column</li>
-<li><code class="docutils literal"><span class="pre">'#unique_values'</span></code>: number of unique values in the column</li>
-<li><code class="docutils literal"><span class="pre">'min_value'</span></code>: minimum value in the colum</li>
+<li><code class="docutils literal"><span class="pre">'num_values'</span></code>: number of values in the column</li>
+<li><code class="docutils literal"><span class="pre">'num_nonnull_values'</span></code>: number of nonnull values in the
+column</li>
+<li><code class="docutils literal"><span class="pre">'num_unique_values'</span></code>: number of unique values in the
+column, excluding null values</li>
+<li><code class="docutils literal"><span class="pre">'min_value'</span></code>: minimum value in the column</li>
 <li><code class="docutils literal"><span class="pre">'max_value'</span></code>: maximum value in the column</li>
 </ul>
 </p>
@@ -2809,17 +2823,6 @@ documentation generated by Sphinx, introducing an extra leading <code class="doc
 parameter in the method signatures.
 Ignore that extra parameter; it refers to the Feed instance,
 usually called <code class="docutils literal"><span class="pre">self</span></code> and usually hidden automatically by Sphinx.</p>
-<dl class="docutils">
-<dt>Conventions in the code below:</dt>
-<dd><ul class="first last simple">
-<li>Dates are encoded as date strings of the form YYMMDD</li>
-<li>Times are encoded as time strings of the form HH:MM:SS with the possibility
-that the hour is greater than 24</li>
-<li>‘DataFrame’ and ‘Series’ refer to Pandas DataFrame and Series objects,
-respectively</li>
-</ul>
-</dd>
-</dl>
 <dl class="class">
 <dt id="gtfstk.feed.Feed">
 <em class="property">class </em><code class="descclassname">gtfstk.feed.</code><code class="descname">Feed</code><span class="sig-paren">(</span><em>dist_units</em>, <em>agency=None</em>, <em>stops=None</em>, <em>routes=None</em>, <em>trips=None</em>, <em>stop_times=None</em>, <em>calendar=None</em>, <em>calendar_dates=None</em>, <em>fare_attributes=None</em>, <em>fare_rules=None</em>, <em>shapes=None</em>, <em>frequencies=None</em>, <em>transfers=None</em>, <em>feed_info=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed" title="Permalink to this definition">¶</a></dt>
@@ -2988,9 +2991,9 @@ e.g. number of trips missing shapes.</p>
 </table>
 <p class="rubric">Notes</p>
 <ul class="simple">
-<li>This is an odd function, but i use it to see roughly how broken a
-feed, which helps me decide if i can fix it</li>
-<li>This is not a GTFS validator</li>
+<li>An odd function, but useful to see roughly how broken a
+feed is</li>
+<li>Not a GTFS validator</li>
 </ul>
 </dd></dl>
 
@@ -3460,7 +3463,7 @@ headway stats</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Has the columns</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Columns are</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">'route_id'</span></code></li>
 <li><code class="docutils literal"><span class="pre">'route_short_name'</span></code></li>
@@ -3856,7 +3859,7 @@ empty DataFrame with only the column <code class="docutils literal"><span class=
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Has the columns</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Columns are</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">'trip_id'</span></code></li>
 <li><code class="docutils literal"><span class="pre">dates[0]</span></code>: 1 if the trip is active on <code class="docutils literal"><span class="pre">dates[0]</span></code>;
@@ -4043,7 +4046,7 @@ otherwise return them as strings</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dates</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
@@ -4075,7 +4078,7 @@ otherwise return them as strings</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dates</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
@@ -4363,7 +4366,7 @@ given date and times</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Has the columns:</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Columns are:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">'trip_id'</span></code></li>
 <li><code class="docutils literal"><span class="pre">'route_id'</span></code></li>
@@ -4473,7 +4476,7 @@ Return the empty dictionary if <code class="docutils literal"><span class="pre">
 <dt id="gtfstk.feed.Feed.summarize">
 <code class="descname">summarize</code><span class="sig-paren">(</span><em>feed</em>, <em>table=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.summarize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a DataFrame summarizing all GTFS tables in the given feed
-or only the given table if specified.</p>
+or in the given table if specified.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -4484,15 +4487,17 @@ or only the given table if specified.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Has the columns</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Columns are</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">'table'</span></code>: name of the GTFS table, e.g. <code class="docutils literal"><span class="pre">'stops'</span></code></li>
 <li><code class="docutils literal"><span class="pre">'column'</span></code>: name of a column in the table,
 e.g. <code class="docutils literal"><span class="pre">'stop_id'</span></code></li>
-<li><code class="docutils literal"><span class="pre">'#values'</span></code>: number of values in the column</li>
-<li><code class="docutils literal"><span class="pre">'#nonnull_values'</span></code>: number of nonnull values in the column</li>
-<li><code class="docutils literal"><span class="pre">'#unique_values'</span></code>: number of unique values in the column</li>
-<li><code class="docutils literal"><span class="pre">'min_value'</span></code>: minimum value in the colum</li>
+<li><code class="docutils literal"><span class="pre">'num_values'</span></code>: number of values in the column</li>
+<li><code class="docutils literal"><span class="pre">'num_nonnull_values'</span></code>: number of nonnull values in the
+column</li>
+<li><code class="docutils literal"><span class="pre">'num_unique_values'</span></code>: number of unique values in the
+column, excluding null values</li>
+<li><code class="docutils literal"><span class="pre">'min_value'</span></code>: minimum value in the column</li>
 <li><code class="docutils literal"><span class="pre">'max_value'</span></code>: maximum value in the column</li>
 </ul>
 </p>
@@ -4606,7 +4611,7 @@ in the stop times table (a trip with no stop times),
 then that’s a warning and not an error.</li>
 <li>Timing benchmark: on a 2.80 GHz processor machine with 16 GB of
 memory, this function checks <a class="reference external" href="http://transitfeeds.com/p/translink/21/20170310">this 31 MB Southeast Queensland feed</a>
-in 22 seconds (including warnings).</li>
+in 22 seconds, including warnings.</li>
 </ul>
 </dd></dl>
 

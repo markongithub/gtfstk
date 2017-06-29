@@ -16,7 +16,7 @@ from . import constants as cs
 def summarize(feed, table=None):
     """
     Return a DataFrame summarizing all GTFS tables in the given feed
-    or only the given table if specified.
+    or in the given table if specified.
 
     Parameters
     ----------
@@ -32,10 +32,12 @@ def summarize(feed, table=None):
         - ``'table'``: name of the GTFS table, e.g. ``'stops'``
         - ``'column'``: name of a column in the table,
           e.g. ``'stop_id'``
-        - ``'#values'``: number of values in the column
-        - ``'#nonnull_values'``: number of nonnull values in the column
-        - ``'#unique_values'``: number of unique values in the column
-        - ``'min_value'``: minimum value in the colum
+        - ``'num_values'``: number of values in the column
+        - ``'num_nonnull_values'``: number of nonnull values in the
+          column
+        - ``'num_unique_values'``: number of unique values in the
+          column, excluding null values
+        - ``'min_value'``: minimum value in the column
         - ``'max_value'``: maximum value in the column
 
     Notes
@@ -66,7 +68,7 @@ def summarize(feed, table=None):
             d['column'] = col.name
             d['num_values'] = col.size
             d['num_nonnull_values'] = col.count()
-            d['unm_unique_values'] = col.nunique()
+            d['num_unique_values'] = col.nunique()
             d['min_value'] = col.dropna().min()
             d['max_value'] = col.dropna().max()
             return pd.Series(d)
@@ -87,7 +89,7 @@ def summarize(feed, table=None):
 
     return f
 
-def describe(feed, date=None):
+def describe(feed, sample_date=None):
     """
     Return a DataFrame of various feed indicators and values,
     e.g. number of routes.
@@ -97,7 +99,7 @@ def describe(feed, date=None):
     Parameters
     ----------
     feed : Feed
-    date : string
+    sample_date : string
         YYYYMMDD date string specifying the date to compute sample
         stats; defaults to the first Thursday of the Feed's period
 
@@ -126,14 +128,15 @@ def describe(feed, date=None):
     else:
         d['num_shapes'] = 0
 
-    if date is None:
-        date = cl.get_first_week(feed)[3]
-    d['sample_date'] = date
-    d['num_routes_active_on_sample_date'] = feed.get_routes(date).shape[0]
-    trips = feed.get_trips(date)
+    if sample_date is None or sample_date not in feed.get_dates():
+        sample_date = cl.get_first_week(feed)[3]
+    d['sample_date'] = sample_date
+    d['num_routes_active_on_sample_date'] = feed.get_routes(
+      sample_date).shape[0]
+    trips = feed.get_trips(sample_date)
     d['num_trips_active_on_sample_date'] = trips.shape[0]
-    d['num_stops_active_on_sample_date'] = feed.get_stops(date).shape[0]
-
+    d['num_stops_active_on_sample_date'] = feed.get_stops(
+      sample_date).shape[0]
     f = pd.DataFrame(list(d.items()), columns=['indicator', 'value'])
 
     return f
@@ -157,9 +160,9 @@ def assess_quality(feed):
 
     Notes
     -----
-    - This is an odd function, but i use it to see roughly how broken a
-      feed, which helps me decide if i can fix it
-    - This is not a GTFS validator
+    - An odd function, but useful to see roughly how broken a
+      feed is
+    - Not a GTFS validator
 
     """
     d = OrderedDict()
@@ -584,7 +587,7 @@ def compute_center(feed, num_busiest_stops=None):
         lon, lat = list(hull.centroid.coords)[0]
     else:
         date = feed.get_first_week()[0]
-        ss = feed.compute_stop_stats(date).sort_values(
+        ss = feed.compute_stop_stats([date]).sort_values(
           'num_trips', ascending=False)
         f = ss.head(num_busiest_stops)
         f = s.merge(f)
