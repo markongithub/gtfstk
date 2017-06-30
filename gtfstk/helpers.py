@@ -313,8 +313,10 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
             new_frames.append(ft.T)
     else:
         new_frames = frames
-    return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
+    result = pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
       names=subcolumns)
+
+    return result
 
 def downsample(time_series, freq):
     """
@@ -326,31 +328,32 @@ def downsample(time_series, freq):
     Return the given time series unchanged if the given frequency is
     shorter than the original frequency.
     """
+
     f = time_series.copy()
 
     # Can't downsample to a shorter frequency
-    if f.empty or pd.tseries.frequencies.to_offset(freq) < f.index.freq:
+    if f.empty or f.index.freq is None or\
+      pd.tseries.frequencies.to_offset(freq) < f.index.freq:
         return f
 
     result = None
     if 'route_id' in f.columns.names:
         # It's a routes time series
         has_multiindex = True
+
         # Resample indicators differently.
         # For some reason in Pandas 0.18.1 the column multi-index gets
         # messed up when i try to do the resampling all at once via
         # f.resample(freq).agg(how_dict).
         # Workaround is to operate on indicators separately.
-        inds_and_hows = [
-          ('num_trips', 'mean'),
-          ('num_trip_starts', 'sum'),
-          ('service_distance', 'sum'),
-          ('service_duration', 'sum'),
-        ]
+        inds = ['num_trip_starts', 'num_trips', 'service_distance',
+          'service_duration']
+        hows = ['sum', 'mean', 'sum', 'sum']
         frames = []
-        for ind, how in inds_and_hows:
-            frames.append(f[ind].resample(freq).agg({ind: how}))
-        g = pd.concat(frames, axis=1)
+        for ind, how in zip(inds, hows):
+            frames.append(f[ind].resample(freq).agg(how))
+        g = pd.concat(frames, axis=1, keys=inds)
+
         # Calculate speed and add it to f. Can't resample it.
         speed = g['service_distance']/g['service_duration']
         speed = pd.concat({'service_speed': speed}, axis=1)
@@ -362,26 +365,22 @@ def downsample(time_series, freq):
     else:
         # It's a feed time series
         has_multiindex = False
-        inds_and_hows = [
-          ('num_trips', 'mean'),
-          ('num_trip_starts', 'sum'),
-          ('service_distance', 'sum'),
-          ('service_duration', 'sum'),
-        ]
+        inds = ['num_trip_starts', 'num_trips', 'service_distance',
+          'service_duration']
+        hows = ['sum', 'mean', 'sum', 'sum']
         frames = []
-        for ind, how in inds_and_hows:
-            frames.append(f[ind].resample(freq).agg({ind: how}))
-        g = pd.concat(frames, axis=1)
-        # Calculate speed and add it to f. Can't resample it.
+        for ind, how in zip(inds, hows):
+            frames.append(f[ind].resample(freq).agg(how))
+        g = pd.concat(frames, axis=1, keys=inds)
         speed = g['service_distance']/g['service_duration']
         speed = pd.concat({'service_speed': speed}, axis=1)
         result = pd.concat([g, speed], axis=1)
 
-    # Reset column names in result, because they disappear after resampling.
-    # Pandas 0.14.0 bug?
-    result.columns.names = f.columns.names
     # Sort the multiindex column to make slicing possible;
-    # see http://pandas.pydata.org/pandas-docs/stable/indexing.html#multiindexing-using-slicers
+    # see http://pandas.pydata.org/pandas-docs/stable/advanced.html#sorting-a-multiindex
+    # And fix column names.
     if has_multiindex:
-        result = result.sortlevel(axis=1)
+        result = result.sort_index()
+        result.columns.names = f.columns.names
+
     return result

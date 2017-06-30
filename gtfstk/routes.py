@@ -291,10 +291,10 @@ def compute_route_time_series_base(trip_stats_subset,
 
     """
     cols = [
-      'service_distance',
-      'service_duration',
       'num_trip_starts',
       'num_trips',
+      'service_distance',
+      'service_duration',
       'service_speed',
     ]
     if trip_stats_subset.empty:
@@ -376,6 +376,7 @@ def compute_route_time_series_base(trip_stats_subset,
     # Combine all time series into one time series
     g = hp.combine_time_series(series_by_indicator, kind='route',
       split_directions=split_directions)
+
     return hp.downsample(g, freq=freq)
 
 def get_routes(feed, date=None, time=None):
@@ -604,10 +605,10 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
     """
     dates = feed.restrict_dates(dates)
     cols = [
-      'service_distance',
-      'service_duration',
       'num_trip_starts',
       'num_trips',
+      'service_distance',
+      'service_duration',
       'service_speed',
     ]
     if not dates:
@@ -653,6 +654,11 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
               year=d.year, month=d.month, day=d.day))
             frames.append(f)
     f = pd.concat(frames).sort_index()
+
+    # Infer and set frequency.
+    # Could be None if date gaps exist in ``dates``.
+    ifreq = pd.infer_freq(f.index)
+    f.index.freq = pd.tseries.frequencies.to_offset(ifreq)
 
     return f
 

@@ -263,7 +263,6 @@ class Feed(object):
             except:
                 d[table] = None
         d['dist_units'] = self.dist_units
-        d['dates'] = self.dates
 
         return '\n'.join(['* {!s} --------------------\n\t{!s}'.format(
           k, v) for k, v in d.items()])

@@ -574,6 +574,11 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
             frames.append(f)
     f = pd.concat(frames).sort_index()
 
+    # Infer and set frequency.
+    # Could be None if date gaps exist in ``dates``.
+    ifreq = pd.infer_freq(f.index)
+    f.index.freq = pd.tseries.frequencies.to_offset(ifreq)
+
     return f
 
 def build_stop_timetable(feed, stop_id, dates):

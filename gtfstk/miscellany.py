@@ -469,10 +469,9 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     if rts.empty:
         return pd.DataFrame(columns=cols)
 
-    stats = rts.columns.levels[0].tolist()
-    f = pd.concat([rts[stat].sum(axis=1) for stat in stats], axis=1,
-      keys=stats)
+    f = pd.concat([rts[col].sum(axis=1) for col in cols], axis=1, keys=cols)
     f['service_speed'] = f['service_distance']/f['service_duration']
+
     return f
 
 def create_shapes(feed, all_trips=False):
