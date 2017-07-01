@@ -317,6 +317,7 @@ def compute_route_time_series_base(trip_stats_subset,
     rng = pd.period_range(day_start, day_end, freq='Min')
     indicators = [
       'num_trip_starts',
+      'num_trip_ends',
       'num_trips',
       'service_duration',
       'service_distance',
@@ -325,15 +326,13 @@ def compute_route_time_series_base(trip_stats_subset,
     bins = [i for i in range(24*60)]  # One bin for each minute
     num_bins = len(bins)
 
-    # Bin start and end times
-    def F(x):
-        return (hp.timestr_to_seconds(x)//60) % (24*60)
-
+    # Bin start and end times by minute
     tss[['start_index', 'end_index']] = tss[['start_time', 'end_time']
-      ].applymap(F)
+      ].applymap(lambda x: hp.timestr_to_seconds(x)//60)
     routes = sorted(set(tss['route_id'].values))
 
-    # Bin each trip according to its start and end time and weight
+    # Bin each trip according to its start and end times and weight,
+    # Ignoring end times 23:59
     series_by_route_by_indicator = {indicator:
       {route: [0 for i in range(num_bins)] for route in routes}
       for indicator in indicators}
@@ -347,22 +346,23 @@ def compute_route_time_series_base(trip_stats_subset,
             continue
 
         # Get bins to fill
-        if start <= end:
-            bins_to_fill = bins[start:end]
-        else:
-            bins_to_fill = bins[start:] + bins[:end]
+        e = min(end, bins[-1])
+        bins_to_fill = bins[start:e]
 
         # Bin trip
         # Do num trip starts
         series_by_route_by_indicator['num_trip_starts'][route][start] += 1
+        if end <= bins[-1]:
+            series_by_route_by_indicator['num_trip_ends'][route][end] += 1
+
         # Do rest of indicators
-        for indicator in indicators[1:]:
+        for indicator in indicators[2:]:
             if indicator == 'num_trips':
                 weight = 1
             elif indicator == 'service_duration':
                 weight = 1/60
             else:
-                weight = distance/len(bins_to_fill)
+                weight = distance/(end - start)
             for bin in bins_to_fill:
                 series_by_route_by_indicator[indicator][route][bin] += weight
 
@@ -376,6 +376,7 @@ def compute_route_time_series_base(trip_stats_subset,
     # Combine all time series into one time series
     g = hp.combine_time_series(series_by_indicator, kind='route',
       split_directions=split_directions)
+
     return hp.downsample(g, freq=freq)
 
 def get_routes(feed, date=None, time=None):
@@ -652,7 +653,12 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
             f.index = f.index.map(lambda t: t.replace(
               year=d.year, month=d.month, day=d.day))
             frames.append(f)
-    f = pd.concat(frames).sort_index()
+
+    f = pd.concat(frames).sort_index(axis=1, sort_remaining=True)
+
+    # Set frequency
+    ifreq = pd.infer_freq(f.index)
+    f.index.freq = pd.tseries.frequencies.to_offset(ifreq)
 
     return f
 
