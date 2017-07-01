@@ -326,13 +326,15 @@ def compute_route_time_series_base(trip_stats_subset,
     bins = [i for i in range(24*60)]  # One bin for each minute
     num_bins = len(bins)
 
-    # Bin start and end times by minute
+    # Bin start and end times modulo 24 hours
+    def F(x):
+        return (hp.timestr_to_seconds(x)//60) % (24*60)
+
     tss[['start_index', 'end_index']] = tss[['start_time', 'end_time']
-      ].applymap(lambda x: hp.timestr_to_seconds(x)//60)
+      ].applymap(F)
     routes = sorted(set(tss['route_id'].values))
 
-    # Bin each trip according to its start and end times and weight,
-    # Ignoring end times 23:59
+    # Bin each trip according to its start and end time and weight
     series_by_route_by_indicator = {indicator:
       {route: [0 for i in range(num_bins)] for route in routes}
       for indicator in indicators}
@@ -346,15 +348,19 @@ def compute_route_time_series_base(trip_stats_subset,
             continue
 
         # Get bins to fill
-        e = min(end, bins[-1])
-        bins_to_fill = bins[start:e]
+        if start <= end:
+            bins_to_fill = bins[start:end]
+        else:
+            # Possible because times are modulo 24
+            bins_to_fill = bins[start:] + bins[:end]
 
         # Bin trip
         # Do num trip starts
         series_by_route_by_indicator['num_trip_starts'][route][start] += 1
-        if end <= bins[-1]:
+        # Don't mark trip ends for trips that run past midnight;
+        # allows for easy resampling of num_trips later
+        if start <= end:
             series_by_route_by_indicator['num_trip_ends'][route][end] += 1
-
         # Do rest of indicators
         for indicator in indicators[2:]:
             if indicator == 'num_trips':
@@ -362,12 +368,12 @@ def compute_route_time_series_base(trip_stats_subset,
             elif indicator == 'service_duration':
                 weight = 1/60
             else:
-                weight = distance/(end - start)
+                weight = distance/len(bins_to_fill)
             for bin in bins_to_fill:
                 series_by_route_by_indicator[indicator][route][bin] += weight
 
     # Create one time series per indicator
-    rng = pd.date_range(date_str, periods=24*60, freq='Min')
+    rng = pd.date_range(date_str, periods=num_bins, freq='Min')
     series_by_indicator = {indicator:
       pd.DataFrame(series_by_route_by_indicator[indicator],
         index=rng).fillna(0)
@@ -657,8 +663,7 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
     f = pd.concat(frames).sort_index(axis=1, sort_remaining=True)
 
     # Set frequency
-    ifreq = pd.infer_freq(f.index)
-    f.index.freq = pd.tseries.frequencies.to_offset(ifreq)
+    f.index.freq = pd.tseries.frequencies.to_offset(freq)
 
     return f
 
