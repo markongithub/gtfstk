@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, sample
 from gtfstk import *
 
 

@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_dates, cairns_trip_stats
 from gtfstk import *
 
 
 def test_get_stop_times():
     feed = cairns.copy()
-    date = cairns_date
+    date = cairns_dates[0]
     f = get_stop_times(feed, date)
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
@@ -18,7 +18,7 @@ def test_get_stop_times():
 
 def test_get_start_and_end_times():
     feed = cairns.copy()
-    date = cairns_date
+    date = cairns_dates[0]
     st = get_stop_times(feed, date)
     times = get_start_and_end_times(feed, date)
     # Should be strings

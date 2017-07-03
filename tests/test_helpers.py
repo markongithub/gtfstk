@@ -5,7 +5,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import shapely.geometry as sg
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow
 from gtfstk import *
 
 

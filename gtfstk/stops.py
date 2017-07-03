@@ -561,23 +561,27 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
 
     # Assemble stats into DataFrame
     frames = []
-    for stats, dates in stats_and_dates_by_ids.values():
+    for stats, dates_ in stats_and_dates_by_ids.values():
         if stats.empty:
             # Skip empty stats
             continue
-        for date in dates:
+        for date in dates_:
             f = stats.copy()
             # Replace date
             d = hp.datestr_to_date(date)
             f.index = f.index.map(lambda t: t.replace(
               year=d.year, month=d.month, day=d.day))
             frames.append(f)
-    f = pd.concat(frames).sort_index()
 
-    # Infer and set frequency.
-    # Could be None if date gaps exist in ``dates``.
-    ifreq = pd.infer_freq(f.index)
-    f.index.freq = pd.tseries.frequencies.to_offset(ifreq)
+    f = pd.concat(frames).sort_index().sort_index(axis=1, sort_remaining=True)
+
+    if len(dates) > 1:
+        # Insert missing dates and NaNs to complete series index
+        new_index = pd.date_range(f.index[0], f.index[-1], freq=freq)
+        f = f.reindex(new_index)
+    else:
+        # Set frequency
+        f.index.freq = pd.tseries.frequencies.to_offset(freq)
 
     return f
 

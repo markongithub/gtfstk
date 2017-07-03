@@ -32,5 +32,6 @@ cairns_shapeless.shapes = None
 t = cairns_shapeless.trips
 t['shape_id'] = np.nan
 cairns_shapeless.trips = t
-cairns_date = cairns.get_first_week()[0]
+week = cairns.get_first_week()
+cairns_dates = [week[0], week[1]]
 cairns_trip_stats = pd.read_csv(DATA_DIR/'cairns_trip_stats.csv', dtype=gtfstk.DTYPE)

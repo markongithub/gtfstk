@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_dates, cairns_trip_stats
 from gtfstk import *
 
 
@@ -53,18 +53,17 @@ def test_compute_route_stats_base():
 
 @slow
 def test_compute_route_time_series_base():
-    feed = cairns.copy()
     trip_stats = cairns_trip_stats
     for split_directions in [True, False]:
         rs = compute_route_stats_base(trip_stats,
           split_directions=split_directions)
         rts = compute_route_time_series_base(trip_stats,
-          split_directions=split_directions, freq='1H')
+          split_directions=split_directions, freq='H')
 
         # Should be a data frame of the correct shape
         assert isinstance(rts, pd.core.frame.DataFrame)
         assert rts.shape[0] == 24
-        assert rts.shape[1] == 5*rs.shape[0]
+        assert rts.shape[1] == 6*rs.shape[0]
 
         # Should have correct column names
         if split_directions:
@@ -89,7 +88,7 @@ def test_compute_route_time_series_base():
 
 def test_get_routes():
     feed = cairns.copy()
-    date = cairns_date
+    date = cairns_dates[0]
     f = get_routes(feed, date)
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
@@ -111,9 +110,8 @@ def test_get_routes():
 @slow
 def test_compute_route_stats():
     feed = cairns.copy()
-    dates = [cairns_date, '20010101']
+    dates = cairns_dates + ['20010101']
     trip_stats = cairns_trip_stats
-    f = pd.merge(trip_stats, get_trips(feed, dates[0]))
     for split_directions in [True, False]:
         rs = compute_route_stats(feed, trip_stats, dates,
           split_directions=split_directions)
@@ -125,7 +123,7 @@ def test_compute_route_stats():
         else:
             max_num_routes = feed.routes.shape[0]
 
-        assert rs.shape[0] <= max_num_routes
+        assert rs.shape[0] <= 2*max_num_routes
 
         # Should contain the correct columns
         expect_cols = {
@@ -155,9 +153,8 @@ def test_compute_route_stats():
 
         assert set(rs.columns) == expect_cols
 
-        # Should have NaNs for last date
-        cols = [c for c in expect_cols if c != 'date']
-        assert rs.loc[rs['date'] == dates[-1], cols].isnull().values.all()
+        # Should only contains valid dates
+        rs.date.unique().tolist() == cairns_dates
 
         # Empty dates should yield empty DataFrame
         rs = compute_route_stats(feed, trip_stats, [],
@@ -168,19 +165,18 @@ def test_compute_route_stats():
 @slow
 def test_compute_route_time_series():
     feed = cairns.copy()
-    dates = [cairns_date, '20010101']
+    dates = cairns_dates + ['20010101']
     trip_stats = cairns_trip_stats
-    ats = pd.merge(trip_stats, get_trips(feed, dates[0]))
     for split_directions in [True, False]:
-        f = compute_route_stats(feed, trip_stats, dates[:1],
+        rs = compute_route_stats(feed, trip_stats, dates,
           split_directions=split_directions)
         rts = compute_route_time_series(feed, trip_stats, dates,
           split_directions=split_directions, freq='1H')
 
         # Should be a data frame of the correct shape
         assert isinstance(rts, pd.core.frame.DataFrame)
-        assert rts.shape[0] == 24
-        assert rts.shape[1] == 5*f.shape[0]
+        assert rts.shape[0] == 2*24
+        assert rts.shape[1] == 6*rs.shape[0]/2
 
         # Should have correct column names
         if split_directions:
@@ -189,23 +185,24 @@ def test_compute_route_time_series():
             expect = ['indicator', 'route_id']
         assert rts.columns.names, expect
 
-        # Each route have a correct service distance total
+        # Each route have a correct num_trip_starts
         if split_directions == False:
-            atsg = ats.groupby('route_id')
-            for route in ats['route_id'].values:
-                get = rts['service_distance'][route].sum()
-                expect = atsg.get_group(route)['distance'].sum()
-                assert abs((get - expect)/expect) < 0.001
+            rsg = rs.groupby('route_id')
+            for route in rs.route_id.values:
+                get = rts['num_trip_starts'][route].sum()
+                expect = rsg.get_group(route)['num_trips'].sum()
+                assert get == expect
 
         # Empty dates should yield empty DataFrame
         rts = compute_route_time_series(feed, trip_stats, [],
           split_directions=split_directions)
         assert rts.empty
         expect_cols = {
+          'num_trip_starts',
+          'num_trip_ends',
+          'num_trips',
           'service_distance',
           'service_duration',
-          'num_trip_starts',
-          'num_trips',
           'service_speed',
           }
         assert set(rts.columns) == expect_cols
@@ -213,7 +210,7 @@ def test_compute_route_time_series():
 def test_build_route_timetable():
     feed = cairns.copy()
     route_id = feed.routes['route_id'].values[0]
-    dates = [cairns_date, '20010101']
+    dates = cairns_dates + ['20010101']
     f = build_route_timetable(feed, route_id, dates)
 
     # Should be a data frame
@@ -226,10 +223,10 @@ def test_build_route_timetable():
     assert set(f.columns) == expect_cols
 
     # Should only have feed dates
-    assert f.date.unique().tolist() == [dates[0]]
+    assert f.date.unique().tolist() == cairns_dates
 
     # Empty check
-    f = build_route_timetable(feed, route_id, dates[1:])
+    f = build_route_timetable(feed, route_id, dates[2:])
     assert f.empty
     assert set(f.columns) == expect_cols
 

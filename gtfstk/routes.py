@@ -292,6 +292,7 @@ def compute_route_time_series_base(trip_stats_subset,
     """
     cols = [
       'num_trip_starts',
+      'num_trip_ends',
       'num_trips',
       'service_distance',
       'service_duration',
@@ -317,6 +318,7 @@ def compute_route_time_series_base(trip_stats_subset,
     rng = pd.period_range(day_start, day_end, freq='Min')
     indicators = [
       'num_trip_starts',
+      'num_trip_ends',
       'num_trips',
       'service_duration',
       'service_distance',
@@ -355,8 +357,12 @@ def compute_route_time_series_base(trip_stats_subset,
         # Bin trip
         # Do num trip starts
         series_by_route_by_indicator['num_trip_starts'][route][start] += 1
+        # Don't mark trip ends for trips that run past midnight;
+        # allows for easy resampling of num_trips later
+        if start <= end:
+            series_by_route_by_indicator['num_trip_ends'][route][end] += 1
         # Do rest of indicators
-        for indicator in indicators[1:]:
+        for indicator in indicators[2:]:
             if indicator == 'num_trips':
                 weight = 1
             elif indicator == 'service_duration':
@@ -606,13 +612,14 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
     dates = feed.restrict_dates(dates)
     cols = [
       'num_trip_starts',
+      'num_trip_ends',
       'num_trips',
       'service_distance',
       'service_duration',
       'service_speed',
     ]
     if not dates:
-        return pd.DataFrame([], columns=cols)
+        return pd.DataFrame([], columns=cols).sort_index(axis=1)
 
     if split_directions:
         cols.append('direction_id')
@@ -642,23 +649,27 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
 
     # Assemble stats into DataFrame
     frames = []
-    for stats, dates in stats_and_dates_by_ids.values():
+    for stats, dates_ in stats_and_dates_by_ids.values():
         if stats.empty:
             # Skip empty stats
             continue
-        for date in dates:
+        for date in dates_:
             f = stats.copy()
             # Replace date
             d = hp.datestr_to_date(date)
             f.index = f.index.map(lambda t: t.replace(
               year=d.year, month=d.month, day=d.day))
             frames.append(f)
-    f = pd.concat(frames).sort_index()
 
-    # Infer and set frequency.
-    # Could be None if date gaps exist in ``dates``.
-    ifreq = pd.infer_freq(f.index)
-    f.index.freq = pd.tseries.frequencies.to_offset(ifreq)
+    f = pd.concat(frames).sort_index().sort_index(axis=1, sort_remaining=True)
+
+    if len(dates) > 1:
+        # Insert missing dates and NaNs to complete series index
+        new_index = pd.date_range(f.index[0], f.index[-1], freq=freq)
+        f = f.reindex(new_index)
+    else:
+        # Set frequency
+        f.index.freq = pd.tseries.frequencies.to_offset(freq)
 
     return f
 

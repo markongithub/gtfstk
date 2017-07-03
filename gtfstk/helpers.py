@@ -332,55 +332,48 @@ def downsample(time_series, freq):
     f = time_series.copy()
 
     # Can't downsample to a shorter frequency
-    if f.empty or f.index.freq is None or\
-      pd.tseries.frequencies.to_offset(freq) < f.index.freq:
+    if f.empty or pd.tseries.frequencies.to_offset(freq) < f.index.freq:
         return f
 
     result = None
-    if 'route_id' in f.columns.names:
-        # It's a routes time series
+    if 'stop_id' in time_series.columns.names:
+        # It's a stops time series
         has_multiindex = True
-
-        # Resample indicators differently.
-        # For some reason in Pandas 0.18.1 the column multi-index gets
-        # messed up when i try to do the resampling all at once via
-        # f.resample(freq).agg(how_dict).
-        # Workaround is to operate on indicators separately.
-        inds = ['num_trip_starts', 'num_trips', 'service_distance',
-          'service_duration']
-        hows = ['sum', 'mean', 'sum', 'sum']
+        result = f.resample(freq).sum()
+    else:
+        # It's a route or feed time series.
+        inds = [
+          'num_trips',
+          'num_trip_starts',
+          'num_trip_ends',
+          'service_distance',
+          'service_duration',
+          ]
         frames = []
-        for ind, how in zip(inds, hows):
-            frames.append(f[ind].resample(freq).agg(how))
+
+        # Resample num_trips in a custom way that depends on
+        # num_trips and num_trip_ends
+        def agg_num_trips(group):
+            return group['num_trips'].iloc[-1]\
+              + group['num_trip_ends'].iloc[:-1].sum()
+
+        num_trips = f.groupby(pd.TimeGrouper(freq)).apply(agg_num_trips)
+        frames.append(num_trips)
+
+        # Resample the rest of the indicators via summing
+        frames.extend(
+          [f[ind].resample(freq).agg('sum') for ind in inds[1:]])
+
         g = pd.concat(frames, axis=1, keys=inds)
 
         # Calculate speed and add it to f. Can't resample it.
         speed = g['service_distance']/g['service_duration']
         speed = pd.concat({'service_speed': speed}, axis=1)
         result = pd.concat([g, speed], axis=1)
-    elif 'stop_id' in time_series.columns.names:
-        # It's a stops time series
-        has_multiindex = True
-        result = f.resample(freq).sum()
-    else:
-        # It's a feed time series
-        has_multiindex = False
-        inds = ['num_trip_starts', 'num_trips', 'service_distance',
-          'service_duration']
-        hows = ['sum', 'mean', 'sum', 'sum']
-        frames = []
-        for ind, how in zip(inds, hows):
-            frames.append(f[ind].resample(freq).agg(how))
-        g = pd.concat(frames, axis=1, keys=inds)
-        speed = g['service_distance']/g['service_duration']
-        speed = pd.concat({'service_speed': speed}, axis=1)
-        result = pd.concat([g, speed], axis=1)
 
-    # Sort the multiindex column to make slicing possible;
+    # Reset column names and sort the hierarchical columns to allow slicing;
     # see http://pandas.pydata.org/pandas-docs/stable/advanced.html#sorting-a-multiindex
-    # And fix column names.
-    if has_multiindex:
-        result = result.sort_index()
-        result.columns.names = f.columns.names
+    result.columns.names = f.columns.names
+    result = result.sort_index(axis=1, sort_remaining=True)
 
     return result

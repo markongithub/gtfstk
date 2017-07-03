@@ -5,7 +5,7 @@ from pandas.util.testing import assert_series_equal
 import numpy as np
 import shapely.geometry as sg
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_dates, cairns_trip_stats
 from gtfstk import *
 
 
@@ -53,13 +53,13 @@ def test_convert_dist():
 
 def test_compute_feed_stats():
     feed = cairns.copy()
-    dates = [cairns_date, '20010101']
+    dates = cairns_dates + ['20010101']
     trip_stats = cairns_trip_stats
     f = compute_feed_stats(feed, trip_stats, dates)
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
-    # Should have the correct number of rows
-    assert f.shape[0] == 1
+    # Should have the correct dates
+    assert f.date.tolist() == cairns_dates
     # Should contain the correct columns
     expect_cols = {
       'num_trips',
@@ -82,16 +82,17 @@ def test_compute_feed_stats():
 
 def test_compute_feed_time_series():
     feed = cairns.copy()
-    dates = [cairns_date, '20010101']
+    dates = cairns_dates + ['20010101']
     trip_stats = cairns_trip_stats
     f = compute_feed_time_series(feed, trip_stats, dates, freq='1H')
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct number of rows
-    assert f.shape[0] == 24
+    assert f.shape[0] == 24*2
     # Should have the correct columns
     expect_cols = set([
       'num_trip_starts',
+      'num_trip_ends',
       'num_trips',
       'service_distance',
       'service_duration',
@@ -194,7 +195,7 @@ def test_restrict_to_polygon():
 @pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
 def test_compute_screen_line_counts():
     feed = cairns.copy()
-    dates = [cairns_date, '20010101']
+    dates = cairns_dates + ['20010101']
     trip_stats = cairns_trip_stats
     feed = append_dist_to_stop_times(feed, trip_stats)
 
@@ -215,18 +216,18 @@ def test_compute_screen_line_counts():
     assert set(f['route_short_name']) == set(rsns)
 
     # Should have correct number of trips
-    expect_num_trips = 34
-    assert f['trip_id'].nunique() == expect_num_trips
+    num_unique_trips = 34
+    assert f['trip_id'].nunique() == num_unique_trips
 
     # Should have correct orientations
     for ori in [-1, 1]:
-        assert f[f['orientation'] == ori].shape[0] == expect_num_trips
+        assert f[f['orientation'] == ori].shape[0] == 2*num_unique_trips
 
     # Should only have feed dates
-    assert f.date.unique().tolist() == [dates[0]]
+    assert f.date.unique().tolist() == cairns_dates
 
     # Empty check
-    f = compute_screen_line_counts(feed, line, dates[1:])
+    f = compute_screen_line_counts(feed, line, [])
     assert f.empty
     assert set(f.columns) == expect_cols
 

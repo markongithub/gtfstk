@@ -315,9 +315,9 @@ def compute_feed_stats(feed, trip_stats, dates):
     dates = feed.restrict_dates(dates)
     cols = [
       'date',
-      'num_trips',
-      'num_routes',
       'num_stops',
+      'num_routes',
+      'num_trips',
       'peak_num_trips',
       'peak_start_time',
       'peak_end_time',
@@ -356,10 +356,10 @@ def compute_feed_stats(feed, trip_stats, dates):
         else:
             # Compute stats
             f = ts[ts['trip_id'].isin(ids)].copy()
-            stats['num_trips'] = f.shape[0]
-            stats['num_routes'] = f['route_id'].nunique()
             stats['num_stops'] = stop_times.loc[
               stop_times['trip_id'].isin(ids), 'stop_id'].nunique()
+            stats['num_routes'] = f['route_id'].nunique()
+            stats['num_trips'] = f.shape[0]
             stats['service_distance'] = f['distance'].sum()
             stats['service_duration'] = f['duration'].sum()
             stats['service_speed'] =\
@@ -390,7 +390,7 @@ def compute_feed_stats(feed, trip_stats, dates):
     f[times] = f[times].applymap(
       lambda t: hp.timestr_to_seconds(t, inverse=True))
 
-    return f
+    return f[cols].copy()
 
 def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     """
@@ -460,6 +460,7 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     """
     cols = [
       'num_trip_starts',
+      'num_trip_ends',
       'num_trips',
       'service_distance',
       'service_duration',
@@ -467,12 +468,12 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     ]
     rts = feed.compute_route_time_series(trip_stats, dates, freq=freq)
     if rts.empty:
-        return pd.DataFrame(columns=cols)
+        return pd.DataFrame(columns=cols).sort_index(axis=1)
 
     f = pd.concat([rts[col].sum(axis=1) for col in cols], axis=1, keys=cols)
     f['service_speed'] = f['service_distance']/f['service_duration']
 
-    return f
+    return f.sort_index(axis=1)
 
 def create_shapes(feed, all_trips=False):
     """
