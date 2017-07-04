@@ -152,6 +152,11 @@ def compute_stop_time_series_base(stop_times, trip_subset,
     DataFrame
         A time series with a timestamp index for a 24-hour period
         sampled at the given frequency.
+        The only indicator variable for each stop is
+
+        - ``num_trips``: the number of trips that visit the stop and
+          have a nonnull departure time from the stop
+
         The maximum allowable frequency is 1 minute.
 
         The columns are hierarchical (multi-indexed) with
@@ -166,11 +171,15 @@ def compute_stop_time_series_base(stop_times, trip_subset,
     -----
     - The time series is computed at a one-minute frequency, then
       resampled at the end to the given frequency
+    - Stop times with null departure times are ignored, so the aggregate
+      of ``num_trips`` across the day could be less than the
+      ``num_trips`` column in :func:`compute_stop_stats_base`
+    - All trip departure times are taken modulo 24 hours,
+      so routes with trips that end past 23:59:59 will have all
+      their stats wrap around to the early morning of the time series.
     - 'num_trips' should be resampled with ``how=np.sum``
     - If ``trip_subset`` is empty, then return an empty DataFrame with
       the column ``num_trips``
-    - To remove the date and seconds from the time series f, do
-      ``f.index = [t.time().strftime('%H:%M') for t in f.index.to_datetime()]``
 
     """
     cols = ['num_trips']
@@ -186,11 +195,10 @@ def compute_stop_time_series_base(stop_times, trip_subset,
           f['direction_id'].map(str)
     stops = f['stop_id'].unique()
 
-    # Create one time series for each stop. Use a list first.
+    # Bin each stop departure time
     bins = [i for i in range(24*60)]  # One bin for each minute
     num_bins = len(bins)
 
-    # Bin each stop departure time
     def F(x):
         return (hp.timestr_to_seconds(x)//60) % (24*60)
 
@@ -314,7 +322,9 @@ def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
 
 def compute_stop_activity(feed, dates):
     """
-    Return a DataFrame of stop activity for the given dates.
+    Mark stops as active or inactive on the given dates.
+    A stop is *active* on a given date if some trips that starts on the
+    date visits the stop (possibly after midnight).
 
     Parameters
     ----------
@@ -498,27 +508,14 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
         sampled at the given frequency.
         The maximum allowable frequency is 1 minute.
 
-        The columns are hierarchical (multi-indexed) with
-
-        - top level: name = 'indicator', values = ['num_trips']
-        - middle level: name = 'stop_id', values = the active stop IDs
-        - bottom level: name = 'direction_id', values = 0s and 1s
-
-        If not ``split_directions``, then don't include the bottom level.
+        The columns are the same as in
+        :func:`compute_stop_time_series_base`.
 
     Notes
     -----
-    - The time series is computed at a one-minute frequency, then
-      resampled at the end to the given frequency
-    - 'num_trips' should be resampled with ``how=np.sum``
-    - If ``trip_subset`` is empty, then return an empty DataFrame with
-      the column ``num_trips``
-    - To remove the date and seconds from the time series f, do
-      ``f.index = [t.time().strftime('%H:%M') for t in f.index.to_datetime()]``
+    - See the notes for :func:`compute_stop_time_series_base`
     - If all dates lie outside the feed's date range, then return an
       empty DataFrame with only the column ``'num_trips'``.
-    - Dates with no active stops will not appear in the result
-      (in contrast to the output of :func:`compute_stop_stats`)
     - Assume the following feed attributes are not ``None``:
 
         * ``feed.stop_times``
@@ -526,15 +523,12 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
 
     """
     dates = feed.restrict_dates(dates)
-    cols = [
-      'num_trips',
-      ]
+    cols = ['num_trips']
     if not dates:
         return pd.DataFrame([], columns=cols)
 
     if split_directions:
         cols.append('direction_id')
-
 
     activity = feed.compute_trip_activity(dates)
 
@@ -577,7 +571,8 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
 
     if len(dates) > 1:
         # Insert missing dates and NaNs to complete series index
-        new_index = pd.date_range(f.index[0], f.index[-1], freq=freq)
+        end_datetime = pd.to_datetime(dates[-1] + ' 23:59:59')
+        new_index = pd.date_range(f.index[0], end_datetime, freq=freq)
         f = f.reindex(new_index)
     else:
         # Set frequency

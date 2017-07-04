@@ -63,6 +63,8 @@ def test_compute_feed_stats():
     # Should contain the correct columns
     expect_cols = {
       'num_trips',
+      'num_trip_starts',
+      'num_trip_ends',
       'num_routes',
       'num_stops',
       'peak_num_trips',

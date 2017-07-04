@@ -13,8 +13,14 @@ from . import helpers as hp
 
 def is_active_trip(feed, trip_id, date):
     """
-    Return ``True`` if the given trip is active on the given
-    date and ``False`` otherwise.
+    Return ``True`` if the ``feed.calendar`` or ``feed.calendar_dates``
+    says that the trip runs on the given date; return ``False``
+    otherwise.
+    Note that a trip that starts on date d, ends after 23:59:59, and
+    does not start again on date d+1 is considered active on date d and
+    not active on date d+1.
+    This subtle point, which is a side effect of the GTFS, can
+    lead to confusion.
 
     Parameters
     ----------
@@ -27,7 +33,7 @@ def is_active_trip(feed, trip_id, date):
     Returns
     -------
     boolean
-        ``True`` if and only if the given trip is active on the given
+        ``True`` if and only if the given trip starts on the given
         date.
 
     Notes
@@ -79,8 +85,8 @@ def get_trips(feed, date=None, time=None):
     Returns
     -------
     DataFrame
-        The subset of ``feed.trips`` containing trips active on the
-        given date at the given time.
+        The subset of ``feed.trips`` containing trips active (starting)
+        on the given date at the given time.
         If no date or time are specified, then return the entire
         ``feed.trips``.
 
@@ -117,7 +123,8 @@ def get_trips(feed, date=None, time=None):
 
 def compute_trip_activity(feed, dates):
     """
-    Mark trips active on the given dates.
+    Mark trip as active or inactive on the given dates as computed
+    by :func:`is_active_trip`.
 
     Parameters
     ----------

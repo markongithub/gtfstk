@@ -43,7 +43,9 @@ History
 - Added the ``__str__`` method to the Feed class
 - Removed ``time_it`` decorator. Use the IPython magic ``%time`` instead.
 - Inspired by the `Transitland Dispatcher <https://transit.land/dispatcher/feed-versions/eb0cbe5ab41c9cfde0ebae42471ab5b3f712b008>`_, added the ``summarize`` method and the ``list_gtfs`` function
-- Extended stats and time series function to accept multiple dates, which is a breaking change
+- Extended several functions, such as stats functions to accept multiple dates, which is a breaking change. For example, now you compute feed stats for the entire feed period more easily and much more quickly (by memoizing active trip IDs) than computing the stats separately for each date.
+- By popular demand, redefined the ``num_trips`` indicator in route and feed time series to be the number of unique trips active in a time bin (instead of the time weighted average thereof)
+- Elaborated the docstrings
 
 
 8.0.2, 2017-05-09

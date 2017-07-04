@@ -160,8 +160,7 @@ def assess_quality(feed):
 
     Notes
     -----
-    - An odd function, but useful to see roughly how broken a
-      feed is
+    - An odd function, but useful to see roughly how broken a feed is
     - Not a GTFS validator
 
     """
@@ -283,9 +282,14 @@ def compute_feed_stats(feed, trip_stats, dates):
         The columns are
 
         - ``'date'``
-        - ``'num_trips'``: number of trips active on the date
-        - ``'num_routes'``: number of routes active on the date
         - ``'num_stops'``: number of stops active on the date
+        - ``'num_routes'``: number of routes active on the date
+        - ``'num_trips'``: number of trips that start on the date
+        - ``'num_trip_starts'``: number of trips with nonnull start
+          times on the date
+        - ``'num_trip_ends'``: number of trips with nonnull start times
+          and nonnull end times on the date, ignoring trips that end
+          after 23:59:59 on the date
         - ``'peak_num_trips'``: maximum number of simultaneous trips in
           service on the date
         - ``'peak_start_time'``: start time of first longest period
@@ -305,11 +309,14 @@ def compute_feed_stats(feed, trip_stats, dates):
 
     Notes
     -----
-    Assume the following feed attributes are not ``None``:
+    - The route and trip stats for date d contain stats for trips that
+      start on date d only and ignore trips that start on date d-1 and
+      end on date d
+    - Assume the following feed attributes are not ``None``:
 
-    - Those used in :func:`.trips.get_trips`
-    - Those used in :func:`.routes.get_routes`
-    - Those used in :func:`.stops.get_stops`
+        * Those used in :func:`.trips.get_trips`
+        * Those used in :func:`.routes.get_routes`
+        * Those used in :func:`.stops.get_stops`
 
     """
     dates = feed.restrict_dates(dates)
@@ -318,6 +325,8 @@ def compute_feed_stats(feed, trip_stats, dates):
       'num_stops',
       'num_routes',
       'num_trips',
+      'num_trip_starts',
+      'num_trip_ends',
       'peak_num_trips',
       'peak_start_time',
       'peak_end_time',
@@ -360,6 +369,9 @@ def compute_feed_stats(feed, trip_stats, dates):
               stop_times['trip_id'].isin(ids), 'stop_id'].nunique()
             stats['num_routes'] = f['route_id'].nunique()
             stats['num_trips'] = f.shape[0]
+            stats['num_trip_starts'] = f['start_time'].count()
+            stats['num_trip_ends'] = f.loc[f['end_time'] < 24*3600,
+              'end_time'].count()
             stats['service_distance'] = f['distance'].sum()
             stats['service_duration'] = f['duration'].sum()
             stats['service_speed'] =\
@@ -420,15 +432,17 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
 
         The columns are
 
-        - ``'num_trip_starts'``: number of trips starting during the
-          time period
         - ``'num_trips'``: number of trips in service during during the
           time period
-        - ``'service_distance'``: distance traveled by all active trips
-          during the time period
-        - ``'service_duration'``: duration traveled by all active trips
-          during the time period
-        - ``'service_speed'``: service_distance/service_duration
+        - ``'num_trip_starts'``: number of trips with starting during the
+          time period
+        - ``'num_trip_ends'``: number of trips ending during the
+          time period, ignoring the trips the end past midnight
+        - ``'service_distance'``: distance traveled during the time
+          period by all trips active during the time period
+        - ``'service_duration'``: duration traveled during the time
+          period by all trips active during the time period
+        - ``'service_speed'``: ``service_distance/service_duration``
 
         Exclude dates that lie outside of the Feed's date range.
         If all the dates given lie outside of the Feed's date range,
@@ -436,23 +450,9 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
 
     Notes
     -----
-    - The time series is computed at a one-minute frequency, then
-      resampled at the end to the given frequency
-    - To manually resample the resulting time series, use the following
-      methods:
-
-        * for ``'num_trips'`` series, use ``how=np.mean``
-        * for the other series, use ``how=np.sum``
-        * ``'service_speed'`` cannot be resampled and must be
-          recalculated from ``'service_distance'`` and
-          ``'service_duration'``
-
-    - To remove the date and seconds from the time series f, do
-      ``f.index = [t.time().strftime('%H:%M') for t in f.index.to_datetime()]``
+    - See the notes for :func:`.routes.compute_route_time_series_base`
     - If all dates lie outside the feed's date range, then return an
       empty DataFrame with only the column ``'num_trips'``.
-    - Dates with no active stops will not appear in the result
-      (in contrast to the output of :func:`compute_feed_stats`)
     - Assume the following feed attributes are not ``None``:
 
        * Those used in :func:`.routes.compute_route_time_series`

@@ -14,8 +14,6 @@ You can play with ``ipynb/examples.ipynb`` in a Jupyter notebook
 
 Conventions
 ============
-- Dates are encoded as date strings of the form YYMMDD
-- Times are encoded as time strings of the form HH:MM:SS with the possibility
-  that the hour is greater than 24
+- In conformance with GTFS, dates are encoded as YYYYMMDD date strings, and times are encoded as HH:MM:SS time strings with the possibility that HH > 24. Watch out for that possibility, because it has counterintuitive consequences; see e.g. :func:`.trips.is_active_trip`, which is used in ``.routes.compute_route_stats``,  ``.stops.compute_stop_stats``, and ``.miscellany.compute_feed_stats``.
 - 'DataFrame' and 'Series' refer to Pandas DataFrame and Series objects,
   respectively
