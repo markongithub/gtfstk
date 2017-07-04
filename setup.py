@@ -1,9 +1,8 @@
 from setuptools import setup, find_packages
-import re
 
 
-with open('gtfstk/_version.py') as f:
-    version = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", f.read()).group(1)
+# Import ``version`` variable
+exec(open('gtfstk/_version.py').read())
 
 with open('README.rst') as f:
     readme = f.read()
