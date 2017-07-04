@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 with open('gtfstk/_version.py') as f:
-    version = f.read()
+    version = f.read().split('=')[-1].strip()
 
 with open('README.rst') as f:
     readme = f.read()
