@@ -35,7 +35,8 @@ COLOR_PATTERN = re.compile(r'(?:[0-9a-fA-F]{2}){3}$')
 
 def valid_str(x):
     """
-    Return ``True`` if ``x`` is a non-blank string; otherwise return ``False``.
+    Return ``True`` if ``x`` is a non-blank string;
+    otherwise return ``False``.
     """
     if isinstance(x, str) and x.strip():
         return True
@@ -44,7 +45,8 @@ def valid_str(x):
 
 def valid_time(x):
     """
-    Return ``True`` if ``x`` is a valid H:MM:SS or HH:MM:SS time; otherwise return ``False``.
+    Return ``True`` if ``x`` is a valid H:MM:SS or HH:MM:SS time;
+    otherwise return ``False``.
     """
     if isinstance(x, str) and\
       (re.match(TIME_PATTERN1, x) or re.match(TIME_PATTERN2, x)):
@@ -54,7 +56,8 @@ def valid_time(x):
 
 def valid_date(x):
     """
-    Retrun ``True`` if ``x`` is a valid date; otherwise return ``False``.
+    Retrun ``True`` if ``x`` is a valid YYYYMMDD date;
+    otherwise return ``False``.
     """
     try:
         if x != dt.datetime.strptime(x, DATE_FORMAT).strftime(DATE_FORMAT):
@@ -65,19 +68,22 @@ def valid_date(x):
 
 def valid_timezone(x):
     """
-    Retrun ``True`` if ``x`` is a valid human-readable timezone string, e.g. 'Africa/Abidjan'; otherwise return ``False``.
+    Retrun ``True`` if ``x`` is a valid human-readable timezone string,
+    e.g. 'Africa/Abidjan'; otherwise return ``False``.
     """
     return x in TIMEZONES
 
 def valid_lang(x):
     """
-    Return ``True`` if ``x`` is a valid two-letter ISO 639 language code, e.g. 'aa'; otherwise return ``False``.
+    Return ``True`` if ``x`` is a valid two-letter ISO 639 language
+    code, e.g. 'aa'; otherwise return ``False``.
     """
     return x in LANGS
 
 def valid_currency(x):
     """
-    Return ``True`` if ``x`` is a valid three-letter ISO 4217 currency code, e.g. 'AED'; otherwise return ``False``.
+    Return ``True`` if ``x`` is a valid three-letter ISO 4217 currency
+    code, e.g. 'AED'; otherwise return ``False``.
     """
     return x in CURRENCIES
 
@@ -92,7 +98,8 @@ def valid_url(x):
 
 def valid_email(x):
     """
-    Return ``True`` if ``x`` is a valid email address; otherwise return ``False``.
+    Return ``True`` if ``x`` is a valid email address; otherwise return
+    ``False``.
     """
     if isinstance(x, str) and re.match(EMAIL_PATTERN, x):
         return True
@@ -101,7 +108,8 @@ def valid_email(x):
 
 def valid_color(x):
     """
-    Return ``True`` if ``x`` a valid hexadecimal color string without the leading hash; otherwise return ``False``.
+    Return ``True`` if ``x`` a valid hexadecimal color string without
+    the leading hash; otherwise return ``False``.
     """
     if isinstance(x, str) and re.match(COLOR_PATTERN, x):
         return True
@@ -110,8 +118,36 @@ def valid_color(x):
 
 def check_for_required_columns(problems, table, df):
     """
-    Given a list of problems (each a list of length 4), a table name (string), and the DataFrame corresponding to the table, do the following.
-    Check that the DataFrame contains the colums required by GTFS, append to the problems list one error for each column missing, and return the resulting problems list.
+    Check that the given GTFS table has the required columns.
+
+    Parameters
+    ----------
+    problems : list
+        A four-tuple containing
+
+        1. A problem type (string) equal to ``'error'`` or ``'warning'``;
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
+        2. A message (string) that describes the problem
+        3. A GTFS table name, e.g. ``'routes'``, in which the problem
+           occurs
+        4. A list of rows (integers) of the table's DataFrame where the
+           problem occurs
+
+    table : string
+        Name of a GTFS table
+    df : DataFrame
+        The GTFS table corresponding to ``table``
+
+    Returns
+    -------
+    list
+        The ``problems`` list extended as follows.
+        Check that the DataFrame contains the colums required by GTFS
+        and append to the problems list one error for each column
+        missing.
+
     """
     r = cs.GTFS_REF
     req_columns = r.loc[(r['table'] == table) & r['column_required'],
@@ -124,8 +160,36 @@ def check_for_required_columns(problems, table, df):
 
 def check_for_invalid_columns(problems, table, df):
     """
-    Given a list of problems (each a list of length 4), a table name (string), and the DataFrame corresponding to the table, do the following.
-    Check whether the DataFrame contains extra columns not in the GTFS, append to the problems list one warning for each extra column, and return the resulting problems list.
+    Check for invalid columns in the given GTFS DataFrame.
+
+    Parameters
+    ----------
+    problems : list
+        A four-tuple containing
+
+        1. A problem type (string) equal to ``'error'`` or ``'warning'``;
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
+        2. A message (string) that describes the problem
+        3. A GTFS table name, e.g. ``'routes'``, in which the problem
+           occurs
+        4. A list of rows (integers) of the table's DataFrame where the
+           problem occurs
+
+    table : string
+        Name of a GTFS table
+    df : DataFrame
+        The GTFS table corresponding to ``table``
+
+    Returns
+    -------
+    list
+        The ``problems`` list extended as follows.
+        Check whether the DataFrame contains extra columns not in the
+        GTFS and append to the problems list one warning for each extra
+        column.
+
     """
     r = cs.GTFS_REF
     valid_columns = r.loc[r['table'] == table, 'column'].values
@@ -139,9 +203,44 @@ def check_for_invalid_columns(problems, table, df):
 
 def check_table(problems, table, df, condition, message, type_='error'):
     """
-    Given a list of problems (each a list of length 4), a table (string), the DataFrame corresponding to the table, a boolean condition on the DataFrame, a message (string), and a problem type ('error' or 'warning'), do the following.
-    Record the indices where the DataFrame statisfies the condition, then if the list of indices is nonempty, append to the problems the item ``[type_, message, table, indices]``.
-    If the list of indices is empty, then return the original list of problems.
+    Check the given GTFS table for the given problem condition.
+
+    Parameters
+    ----------
+    problems : list
+        A four-tuple containing
+
+        1. A problem type (string) equal to ``'error'`` or ``'warning'``;
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
+        2. A message (string) that describes the problem
+        3. A GTFS table name, e.g. ``'routes'``, in which the problem
+           occurs
+        4. A list of rows (integers) of the table's DataFrame where the
+           problem occurs
+
+    table : string
+        Name of a GTFS table
+    df : DataFrame
+        The GTFS table corresponding to ``table``
+    condition : boolean expression
+        One involving ``df``, e.g.`df['route_id'].map(is_valid_str)``
+    message : string
+        Problem message, e.g. ``'Invalid route_id'``
+    type_ : string
+        ``'error'`` or ``'warning'`` indicating the type of problem
+        encountered
+
+    Returns
+    -------
+    list
+        The ``problems`` list extended as follows.
+        Record the indices of ``df`` that statisfy the condition.
+        If the list of indices is nonempty, append to the
+        problems the item ``[type_, message, table, indices]``;
+        otherwise do not append anything.
+
     """
     indices = df.loc[condition].index.tolist()
     if indices:
@@ -152,12 +251,52 @@ def check_table(problems, table, df, condition, message, type_='error'):
 def check_column(problems, table, df, column, column_required, checker,
   type_='error'):
     """
-    Given a list of problems (each a list of length 4), a table name (string), the DataFrame corresponding to the table, a column name (string), a boolean indicating whether the table is required, a checker (boolean-valued unary function), and a probelm type ('error' or 'warning'), do the following.
-    Apply the checker to the column entries and record the indices of hits.
-    If the list of indices is nonempty, append to the problems the item ``[type_, problem, table, indices]``.
-    Otherwise, return the original list of problems.
+    Check the given column of the given GTFS with the given problem
+    checker.
 
-    If the column is not required, then NaN entries will be ignored in the checking.
+    Parameters
+    ----------
+    problems : list
+        A four-tuple containing
+
+        1. A problem type (string) equal to ``'error'`` or ``'warning'``;
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
+        2. A message (string) that describes the problem
+        3. A GTFS table name, e.g. ``'routes'``, in which the problem
+           occurs
+        4. A list of rows (integers) of the table's DataFrame where the
+           problem occurs
+
+    table : string
+        Name of a GTFS table
+    df : DataFrame
+        The GTFS table corresponding to ``table``
+    column : string
+        A column of ``df``
+    column_required : boolean
+        ``True`` if and only if ``column`` is required
+        (and not optional) by the GTFS
+    checker : boolean valued unary function
+        Returns ``True`` if and only if no problem is encountered
+    type_ : string
+        ``'error'`` or ``'warning'`` indicating the type of problem
+        encountered
+
+    Returns
+    -------
+    list
+        The ``problems`` list extended as follows.
+        Apply the checker to the column entries and record the indices
+        of ``df`` where the checker returns ``False``.
+        If the list of indices of is nonempty, append to the problems the
+        item ``[type_, problem, table, indices]``; otherwise do not
+        append anything.
+
+        If not ``column_required``, then NaN entries will be ignored
+        before applying the checker.
+
     """
     f = df.copy()
     if not column_required:
@@ -173,10 +312,46 @@ def check_column(problems, table, df, column, column_required, checker,
 
 def check_column_id(problems, table, df, column, column_required=True):
     """
-    A modified version of :func:`check_column`.
-    The given column must have unduplicated IDs that are valid strings.
+    A specialization of :func:`check_column`.
 
-    If the column is not required, then NaN entries will be ignored in the checking.
+    Parameters
+    ----------
+    problems : list
+        A four-tuple containing
+
+        1. A problem type (string) equal to ``'error'`` or ``'warning'``;
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
+        2. A message (string) that describes the problem
+        3. A GTFS table name, e.g. ``'routes'``, in which the problem
+           occurs
+        4. A list of rows (integers) of the table's DataFrame where the
+           problem occurs
+
+    table : string
+        Name of a GTFS table
+    df : DataFrame
+        The GTFS table corresponding to ``table``
+    column : string
+        A column of ``df``
+    column_required : boolean
+        ``True`` if and only if ``column`` is required
+        (and not optional) by the GTFS
+
+    Returns
+    -------
+    list
+        The ``problems`` list extended as follows.
+        Record the indices of ``df`` where the given column has
+        duplicated entry or an invalid strings.
+        If the list of indices is nonempty, append to the problems the
+        item ``[type_, problem, table, indices]``; otherwise do not
+        append anything.
+
+        If not ``column_required``, then NaN entries will be ignored
+        in the checking.
+
     """
     f = df.copy()
     if not column_required:
@@ -197,10 +372,51 @@ def check_column_id(problems, table, df, column, column_required=True):
 def check_column_linked_id(problems, table, df, column, column_required,
   target_df, target_column=None):
     """
-    A modified version of :func:`check_column`.
-    The given column must contain IDs that are valid strings and are in the target DataFrame under the target column name, the latter of which defaults to the given column name.
+    A modified version of :func:`check_column_id`.
 
-    If the column is not required, then NaN entries will be ignored in the checking.
+    Parameters
+    ----------
+    problems : list
+        A four-tuple containing
+
+        1. A problem type (string) equal to ``'error'`` or ``'warning'``;
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
+        2. A message (string) that describes the problem
+        3. A GTFS table name, e.g. ``'routes'``, in which the problem
+           occurs
+        4. A list of rows (integers) of the table's DataFrame where the
+           problem occurs
+
+    table : string
+        Name of a GTFS table
+    df : DataFrame
+        The GTFS table corresponding to ``table``
+    column : string
+        A column of ``df``
+    column_required : boolean
+        ``True`` if and only if ``column`` is required
+        (and not optional) by the GTFS
+    target_df : DataFrame
+        A GTFS table
+    target_column : string
+        A column of ``target_df``; defaults to ``column_name``
+
+    Returns
+    -------
+    list
+        The ``problems`` list extended as follows.
+        Record indices of ``df`` where the following condition is
+        violated: ``column`` contain IDs that are valid strings and are
+        present in ``target_df`` under the ``target_column`` name.
+        If the list of indices is nonempty, append to the problems the
+        item ``[type_, problem, table, indices]``; otherwise do not
+        append anything.
+
+        If not ``column_required``, then NaN entries will be ignored
+        in the checking.
+
     """
     if target_column is None:
         target_column = column
@@ -230,8 +446,32 @@ def check_column_linked_id(problems, table, df, column, column_required,
 
 def format_problems(problems, as_df):
     """
-    Given a possibly empty list of problems of the form described in :func:`check_table`, return a DataFrame with the problems as rows and the columns ['type', 'message', 'table', 'rows'], if ``as_df``.
-    If not ``as_df``, then return the given list of problems.
+    Format the given problems list as a DataFrame.
+
+    Parameters
+    ----------
+    problems : list
+        A four-tuple containing
+
+        1. A problem type (string) equal to ``'error'`` or ``'warning'``;
+           ``'error'`` means the GTFS is violated;
+           ``'warning'`` means there is a problem but it is not a
+           GTFS violation
+        2. A message (string) that describes the problem
+        3. A GTFS table name, e.g. ``'routes'``, in which the problem
+           occurs
+        4. A list of rows (integers) of the table's DataFrame where the
+           problem occurs
+
+    as_df : boolean
+
+    Returns
+    -------
+    list or DataFrame
+        Return ``problems`` if not ``as_df``; otherwise return a
+        DataFrame with the problems as rows and the columns
+        ``['type', 'message', 'table', 'rows']``.
+
     """
     if as_df:
         problems = pd.DataFrame(problems, columns=['type', 'message',
@@ -241,7 +481,9 @@ def format_problems(problems, as_df):
 def check_agency(feed, as_df=False, include_warnings=False):
     """
     Check that ``feed.agency`` follows the GTFS.
-    Return a list of problems of the form described in :func:`check_table`; the list will be empty if no problems are found.
+    Return a list of problems of the form described in
+    :func:`check_table`;
+    the list will be empty if no problems are found.
     """
     table = 'agency'
     problems = []
@@ -387,7 +629,8 @@ def check_fare_attributes(feed, as_df=False, include_warnings=False):
     problems = check_column_id(problems, table, f, 'fare_id')
 
     # Check currency_type
-    problems = check_column(problems, table, f, 'currency_type', True, valid_currency)
+    problems = check_column(problems, table, f, 'currency_type', True,
+      valid_currency)
 
     # Check payment_method
     v = lambda x: x in range(2)
@@ -517,7 +760,8 @@ def check_frequencies(feed, as_df=False, include_warnings=False):
 
     # start_time should be earlier than end_time
     cond = f['start_time'] >= f['end_time']
-    problems = check_table(problems, table, f, cond, 'start_time not earlier than end_time')
+    problems = check_table(problems, table, f, cond,
+      'start_time not earlier than end_time')
 
     # Headway periods should not overlap
     f = f.sort_values(['trip_id', 'start_time'])
@@ -526,8 +770,8 @@ def check_frequencies(feed, as_df=False, include_warnings=False):
         b = group['end_time'].values
         indices = np.flatnonzero(a[1:] < b[:-1]).tolist()
         if indices:
-            problems.append(['error', 'Headway periods for the same trip overlap',
-              table, indices])
+            problems.append(['error',
+              'Headway periods for the same trip overlap', table, indices])
 
     # Check headway_secs
     v = lambda x: x >= 0
@@ -565,11 +809,13 @@ def check_routes(feed, as_df=False, include_warnings=False):
     if 'agency_id' in f:
         if 'agency_id' not in feed.agency.columns:
             problems.append(['error',
-              'agency_id column present in routes but not in agency', table, []])
+              'agency_id column present in routes but not in agency', table,
+              []])
         else:
             g = f.dropna(subset=['agency_id'])
             cond = ~g['agency_id'].isin(feed.agency['agency_id'])
-            problems = check_table(problems, table, g, cond, 'Undefined agency_id')
+            problems = check_table(problems, table, g, cond,
+              'Undefined agency_id')
 
     # Check route_short_name and route_long_name
     for column in ['route_short_name', 'route_long_name']:
@@ -599,7 +845,8 @@ def check_routes(feed, as_df=False, include_warnings=False):
         # Check for routes without trips
         s = feed.trips['route_id']
         cond = ~f['route_id'].isin(s)
-        problems = check_table(problems, table, f, cond, 'Route has no trips', 'warning')
+        problems = check_table(problems, table, f, cond,
+          'Route has no trips', 'warning')
 
     return format_problems(problems, as_df)
 
@@ -652,8 +899,8 @@ def check_shapes(feed, as_df=False, include_warnings=False):
             prev_dist = dist
 
         if indices:
-            problems.append(['error', 'shape_dist_traveled decreases on a trip',
-              table, indices])
+            problems.append(['error',
+              'shape_dist_traveled decreases on a trip', table, indices])
 
     return format_problems(problems, as_df)
 
@@ -701,11 +948,13 @@ def check_stops(feed, as_df=False, include_warnings=False):
     problems = check_column(problems, table, f, 'location_type', False, v)
 
     # Check stop_timezone
-    problems = check_column(problems, table, f, 'stop_timezone', False, valid_timezone)
+    problems = check_column(problems, table, f, 'stop_timezone', False,
+      valid_timezone)
 
     # Check wheelchair_boarding
     v = lambda x: x in range(3)
-    problems = check_column(problems, table, f, 'wheelchair_boarding', False, v)
+    problems = check_column(problems, table, f, 'wheelchair_boarding', False,
+      v)
 
     # Check further location_type and parent_station
     if 'parent_station' in f.columns:
@@ -715,7 +964,8 @@ def check_stops(feed, as_df=False, include_warnings=False):
               table, []])
         else:
             # Stations must have location type 1
-            station_ids = f.loc[f['parent_station'].notnull(), 'parent_station']
+            station_ids = f.loc[f['parent_station'].notnull(),
+              'parent_station']
             cond = f['stop_id'].isin(station_ids) & (f['location_type'] != 1)
             problems = check_table(problems, table, f, cond,
               'A station must have location_type 1')
@@ -729,7 +979,8 @@ def check_stops(feed, as_df=False, include_warnings=False):
         # Check for stops without trips
         s = feed.stop_times['stop_id']
         cond = ~feed.stops['stop_id'].isin(s)
-        problems = check_table(problems, table, f, cond, 'Stop has no stop times', 'warning')
+        problems = check_table(problems, table, f, cond,
+          'Stop has no stop times', 'warning')
 
     return format_problems(problems, as_df)
 
@@ -761,8 +1012,10 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
     for col in ['arrival_time', 'departure_time']:
         problems = check_column(problems, table, f, col, True, v)
 
-    # Check that arrival and departure times exist for the first and last stop of each trip and for each timepoint.
-    # For feeds with many trips, iterating through the stop time rows is faster than uisg groupby.
+    # Check that arrival and departure times exist for the first and last
+    # stop of each trip and for each timepoint.
+    # For feeds with many trips, iterating through the stop time rows is
+    # faster than uisg groupby.
     if 'timepoint' not in f.columns:
         f['timepoint'] = np.nan  # This will not mess up later timepoint check
 
@@ -788,7 +1041,8 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
         prev_dtime = dtime
 
     if indices:
-        problems.append(['error', 'First/last/time point arrival/departure time missing',
+        problems.append(['error',
+          'First/last/time point arrival/departure time missing',
           table, indices])
 
     # Check stop_id
@@ -801,7 +1055,8 @@ def check_stop_times(feed, as_df=False, include_warnings=False):
       'Repeated pair (trip_id, stop_sequence)')
 
     # Check stop_headsign
-    problems = check_column(problems, table, f, 'stop_headsign', False, valid_str)
+    problems = check_column(problems, table, f, 'stop_headsign', False,
+      valid_str)
 
     # Check pickup_type and drop_off_type
     for col in ['pickup_type', 'drop_off_type']:
@@ -921,7 +1176,8 @@ def check_trips(feed, as_df=False, include_warnings=False):
         problems = check_table(problems, table, g, cond, 'Unrepeated block_id')
 
     # Check shape_id
-    problems = check_column_linked_id(problems, table, f, 'shape_id', False, feed.shapes)
+    problems = check_column_linked_id(problems, table, f, 'shape_id', False,
+      feed.shapes)
 
     # Check wheelchair_accessible and bikes_allowed
     v = lambda x: x in range(3)
@@ -932,28 +1188,58 @@ def check_trips(feed, as_df=False, include_warnings=False):
     if include_warnings:
         s = feed.stop_times['trip_id']
         cond = ~f['trip_id'].isin(s)
-        problems = check_table(problems, table, f, cond, 'Trip has no stop times', 'warning')
+        problems = check_table(problems, table, f, cond,
+          'Trip has no stop times', 'warning')
 
     return format_problems(problems, as_df)
 
 def validate(feed, as_df=True, include_warnings=True):
     """
-    Check whether the given feed satisfies the GTFS by running the functions all the table-checking functions: :func:`check_agency`, :func:`check_calendar`, etc.
-    Return the problems found as a possibly empty list of items [problem type, message, table, rows].
-    If ``as_df``, then format the error list as a DataFrame with the columns
+    Check whether the given feed satisfies the GTFS.
 
-    - ``'type'``: 'error' or 'warning'; 'error' means the GTFS is violated; 'warning' means there is a problem but it's not a GTFS violation
-    - ``'message'``: description of the problem
-    - ``'table'``: table in which problem occurs, e.g. 'routes'
-    - ``'rows'``: rows of the table's DataFrame where problem occurs
+    Parameters
+    ----------
+    feed : Feed
+    as_df : boolean
+        If ``True``, then return the resulting report as a DataFrame;
+        otherwise return the result as a list
+    include_warnings : boolean
+        If ``True``, then include problems of types ``'error'`` and
+        ``'warning'``; otherwise, only return problems of type
+        ``'error'``
 
-    Return early if the feed is missing required tables or required columns.
+    Returns
+    -------
+    list or DataFrame
+        Run all the table-checking functions: :func:`check_agency`,
+        :func:`check_calendar`, etc.
+        This yields a possibly empty list of items
+        [problem type, message, table, rows].
+        If ``as_df``, then format the error list as a DataFrame with the
+        columns
 
-    Include warning problems only if ``include_warning``.
+        - ``'type'``: 'error' or 'warning'; 'error' means the GTFS is
+          violated; 'warning' means there is a problem but it's not a
+          GTFS violation
+        - ``'message'``: description of the problem
+        - ``'table'``: table in which problem occurs, e.g. 'routes'
+        - ``'rows'``: rows of the table's DataFrame where problem occurs
 
-    NOTES:
-        - This function interprets the GTFS liberally, classifying problems as warnings rather than errors where the GTFS is unclear. For example if a trip_id listed in the trips table is not listed in the stop times table (a trip with no stop times), then that's a warning and not an error.
-        - Timing benchmark: on my 2.80 GHz processor machine with 16 GB of memory, this function can check the 31 MB Southeast Queensland feed at http://transitfeeds.com/p/translink/21/20170310 in 22 seconds (including warnings).
+        Return early if the feed is missing required tables or required
+        columns.
+
+    Notes
+    -----
+    - This function interprets the GTFS liberally, classifying problems
+      as warnings rather than errors where the GTFS is unclear.
+      For example if a trip_id listed in the trips table is not listed
+      in the stop times table (a trip with no stop times),
+      then that's a warning and not an error.
+    - Timing benchmark: on a 2.80 GHz processor machine with 16 GB of
+      memory, this function checks `this 31 MB Southeast Queensland feed
+      <http://transitfeeds.com/p/translink/21/20170310>`_
+      in 22 seconds, including warnings.
+
     """
     problems = []
 

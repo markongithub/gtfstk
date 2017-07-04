@@ -1,20 +1,13 @@
-import pytest
-import importlib
-from pathlib import Path
-
 import pandas as pd
-from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
-import utm
-import shapely.geometry as sg
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_dates, cairns_trip_stats
 from gtfstk import *
 
 
 def test_get_stop_times():
     feed = cairns.copy()
-    date = cairns_date
+    date = cairns_dates[0]
     f = get_stop_times(feed, date)
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
@@ -25,7 +18,7 @@ def test_get_stop_times():
 
 def test_get_start_and_end_times():
     feed = cairns.copy()
-    date = cairns_date
+    date = cairns_dates[0]
     st = get_stop_times(feed, date)
     times = get_start_and_end_times(feed, date)
     # Should be strings

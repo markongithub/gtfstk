@@ -13,15 +13,38 @@ from . import helpers as hp
 
 def is_active_trip(feed, trip_id, date):
     """
-    If the given trip is active on the given date, then return ``True``; otherwise return ``False``.
-    To avoid error checking in the interest of speed, assume ``trip`` is a valid trip ID in the given feed and ``date`` is a valid date object.
+    Return ``True`` if the ``feed.calendar`` or ``feed.calendar_dates``
+    says that the trip runs on the given date; return ``False``
+    otherwise.
 
-    Assume the following feed attributes are not ``None``:
+    Note that a trip that starts on date d, ends after 23:59:59, and
+    does not start again on date d+1 is considered active on date d and
+    not active on date d+1.
+    This subtle point, which is a side effect of the GTFS, can
+    lead to confusion.
 
-    - ``feed.trips``
+    Parameters
+    ----------
+    feed : Feed
+    trip_id : string
+        ID of a trip in ``feed.trips``
+    date : string
+        YYYYMMDD date string
 
-    NOTES:
-        - This function is key for getting all trips, routes, etc. that are active on a given date, so the function needs to be fast.
+    Returns
+    -------
+    boolean
+        ``True`` if and only if the given trip starts on the given
+        date.
+
+    Notes
+    -----
+    - This function is key for getting all trips, routes, etc. that are
+      active on a given date, so the function needs to be fast
+    - Assume the following feed attributes are not ``None``:
+
+        * ``feed.trips``
+
     """
     service = feed._trips_i.at[trip_id, 'service_id']
     # Check feed._calendar_dates_g.
@@ -50,10 +73,24 @@ def is_active_trip(feed, trip_id, date):
 
 def get_trips(feed, date=None, time=None):
     """
-    Return the section of ``feed.trips`` that contains only trips active on the given date.
-    If ``feed.trips`` is ``None`` or the date is ``None``, then return all ``feed.trips``.
-    If a date and time are given, then return only those trips active at that date and time.
-    Do not take times modulo 24.
+    Return a subset of ``feed.trips``.
+
+    Parameters
+    ----------
+    feed : Feed
+    date : string
+        YYYYMMDD date string
+    time : string
+        HH:MM:SS time string, possibly with HH > 23
+
+    Returns
+    -------
+    DataFrame
+        The subset of ``feed.trips`` containing trips active (starting)
+        on the given date at the given time.
+        If no date or time are specified, then return the entire
+        ``feed.trips``.
+
     """
     if feed.trips is None or date is None:
         return feed.trips
@@ -87,82 +124,114 @@ def get_trips(feed, date=None, time=None):
 
 def compute_trip_activity(feed, dates):
     """
-    Return a  DataFrame with the columns
+    Mark trip as active or inactive on the given dates as computed
+    by :func:`is_active_trip`.
 
-    - trip_id
-    - ``dates[0]``: 1 if the trip is active on ``dates[0]``; 0 otherwise
-    - ``dates[1]``: 1 if the trip is active on ``dates[1]``; 0 otherwise
-    - etc.
-    - ``dates[-1]``: 1 if the trip is active on ``dates[-1]``; 0 otherwise
+    Parameters
+    ----------
+    feed : Feed
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute activity
 
-    If ``dates`` is ``None`` or the empty list, then return an empty DataFrame with the column 'trip_id'.
+    Returns
+    -------
+    DataFrame
+        Columns are
 
+        - ``'trip_id'``
+        - ``dates[0]``: 1 if the trip is active on ``dates[0]``;
+          0 otherwise
+        - ``dates[1]``: 1 if the trip is active on ``dates[1]``;
+          0 otherwise
+        - etc.
+        - ``dates[-1]``: 1 if the trip is active on ``dates[-1]``;
+          0 otherwise
+
+        If ``dates`` is ``None`` or the empty list, then return an
+        empty DataFrame.
+
+    Notes
+    -----
     Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
     - Those used in :func:`is_active_trip`
 
     """
+    dates = feed.restrict_dates(dates)
     if not dates:
-        return pd.DataFrame(columns=['trip_id'])
+        return pd.DataFrame()
 
     f = feed.trips.copy()
     for date in dates:
         f[date] = f['trip_id'].map(lambda trip_id:
           int(feed.is_active_trip(trip_id, date)))
-    return f[['trip_id'] + dates]
+    return f[['trip_id'] + list(dates)]
 
 def compute_busiest_date(feed, dates):
     """
-    Given a list of dates, return the first date that has the maximum number of active trips.
-    If the list of dates is empty, then raise a ``ValueError``.
+    Given a list of dates, return the first date that has the
+    maximum number of active trips.
 
+    Notes
+    -----
     Assume the following feed attributes are not ``None``:
 
     - Those used in :func:`compute_trip_activity`
 
     """
     f = feed.compute_trip_activity(dates)
-    s = [(f[date].sum(), date) for date in dates]
+    s = [(f[c].sum(), c) for c in f.columns if c != 'trip_id']
     return max(s)[1]
 
 def compute_trip_stats(feed, compute_dist_from_shapes=False):
     """
     Return a DataFrame with the following columns:
 
-    - trip_id
-    - route_id
-    - route_short_name
-    - route_type
-    - direction_id
-    - shape_id
-    - num_stops: number of stops on trip
-    - start_time: first departure time of the trip
-    - end_time: last departure time of the trip
-    - start_stop_id: stop ID of the first stop of the trip
-    - end_stop_id: stop ID of the last stop of the trip
-    - is_loop: 1 if the start and end stop are less than 400m apart and
+    - ``'trip_id'``
+    - ``'route_id'``
+    - ``'route_short_name'``
+    - ``'route_type'``
+    - ``'direction_id'``
+    - ``'shape_id'``
+    - ``'num_stops'``: number of stops on trip
+    - ``'start_time'``: first departure time of the trip
+    - ``'end_time'``: last departure time of the trip
+    - ``'start_stop_id'``: stop ID of the first stop of the trip
+    - ``'end_stop_id'``: stop ID of the last stop of the trip
+    - ``'is_loop'``: 1 if the start and end stop are less than 400m apart and
       0 otherwise
-    - distance: distance of the trip in ``feed.dist_units``;
+    - ``'distance'``: distance of the trip in ``feed.dist_units``;
       contains all ``np.nan`` entries if ``feed.shapes is None``
-    - duration: duration of the trip in hours
-    - speed: distance/duration
+    - ``'duration'``: duration of the trip in hours
+    - ``'speed'``: distance/duration
 
-    Assume the following feed attributes are not ``None``:
+    If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at
+    least one non-NaN value and ``compute_dist_from_shapes == False``,
+    then use that column to compute the distance column.
+    Else if ``feed.shapes is not None``, then compute the distance
+    column using the shapes and Shapely.
+    Otherwise, set the distances to NaN.
 
-    - ``feed.trips``
-    - ``feed.routes``
-    - ``feed.stop_times``
-    - ``feed.shapes`` (optionally)
-    - Those used in :func:`build_geometry_by_stop`
+    Notes
+    -----
+    - Assume the following feed attributes are not ``None``:
 
-    NOTES:
-        If ``feed.stop_times`` has a ``shape_dist_traveled`` column with at least one non-NaN value and ``compute_dist_from_shapes == False``, then use that column to compute the distance column.
-        Else if ``feed.shapes is not None``, then compute the distance column using the shapes and Shapely.
-        Otherwise, set the distances to ``np.nan``.
+        * ``feed.trips``
+        * ``feed.routes``
+        * ``feed.stop_times``
+        * ``feed.shapes`` (optionally)
+        * Those used in :func:`.stops.build_geometry_by_stop`
 
-        Calculating trip distances with ``compute_dist_from_shapes=True`` seems pretty accurate.
-        For example, calculating trip distances on the Portland feed at https://transitfeeds.com/p/trimet/43/1400947517 using ``compute_dist_from_shapes=False`` and ``compute_dist_from_shapes=True``, yields a difference of at most 0.83km.
+    - Calculating trip distances with ``compute_dist_from_shapes=True``
+      seems pretty accurate.  For example, calculating trip distances on
+      `this Portland feed
+      <https://transitfeeds.com/p/trimet/43/1400947517>`_
+      using ``compute_dist_from_shapes=False`` and
+      ``compute_dist_from_shapes=True``,
+      yields a difference of at most 0.83km from the original values.
+
     """
     # Start with stop times and extra trip info.
     # Convert departure times to seconds past midnight to
@@ -271,25 +340,41 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
 
 def locate_trips(feed, date, times):
     """
-    Return a  DataFrame of the positions of all trips active on the given date and times
-    Include the columns:
+    Return the positions of all trips active on the
+    given date and times
 
-    - trip_id
-    - route_id
-    - direction_id
-    - time
-    - rel_dist: number between 0 (start) and 1 (end) indicating
-      the relative distance of the trip along its path
-    - lon: longitude of trip at given time
-    - lat: latitude of trip at given time
+    Parameters
+    ----------
+    feed : Feed
+    date : string
+        YYYYMMDD date string
+    times : list
+        HH:MM:SS time strings, possibly with HH > 23
 
-    Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled`` column.
+    Returns
+    -------
+    DataFrame
+        Columns are:
 
+        - ``'trip_id'``
+        - ``'route_id'``
+        - ``'direction_id'``
+        - ``'time'``
+        - ``'rel_dist'``: number between 0 (start) and 1 (end) indicating
+          the relative distance of the trip along its path
+        - ``'lon'``: longitude of trip at given time
+        - ``'lat'``: latitude of trip at given time
+
+        Assume ``feed.stop_times`` has an accurate
+        ``shape_dist_traveled`` column.
+
+    Notes
+    -----
     Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
-    - Those used in :func:`get_stop_times`
-    - Those used in :func:`build_geometry_by_shape`
+    - Those used in :func:`.stop_times.get_stop_times`
+    - Those used in :func:`.shapes.build_geometry_by_shape`
 
     """
     if not hp.is_not_null(feed.stop_times, 'shape_dist_traveled'):
@@ -353,11 +438,31 @@ def locate_trips(feed, date, times):
 
 def trip_to_geojson(feed, trip_id, include_stops=False):
     """
-    Given a feed and a trip ID (string), return a (decoded) GeoJSON feature collection comprising a Linestring feature of representing the trip's shape.
-    If ``include_stops``, then also include one Point feature for each stop  visited by the trip.
-    The Linestring feature will contain as properties all the columns in ``feed.trips`` pertaining to the given trip, and each Point feature will contain as properties all the columns in ``feed.stops`` pertaining    to the stop, except the ``stop_lat`` and ``stop_lon`` properties.
+    Return a GeoJSON representation of the given trip, optionally with
+    its stops.
 
-    Return the empty dictionary if the trip has no shape.
+    Parameters
+    ----------
+    feed : Feed
+    trip_id : string
+        ID of trip in ``feed.trips``
+    include_stops : boolean
+
+    Returns
+    -------
+    dictionary
+        A (decoded) GeoJSON FeatureCollection comprising a Linestring
+        feature representing the trip's shape.
+        If ``include_stops``, then also include one Point feature for
+        each stop  visited by the trip.
+        The Linestring feature will contain as properties all the
+        columns in ``feed.trips`` pertaining to the given trip,
+        and each Point feature will contain as properties all the
+        columns in ``feed.stops`` pertaining to the stop,
+        except the ``stop_lat`` and ``stop_lon`` properties.
+
+        Return the empty dictionary if the trip has no shape.
+
     """
     # Get the relevant shapes
     t = feed.trips.copy()

@@ -2,8 +2,8 @@ GTFSTK
 ********
 .. image:: https://travis-ci.org/araichev/gtfstk.svg?branch=master
     :target: https://travis-ci.org/araichev/gtfstk
-    
-GTFSTK is a Python 3.4+ tool kit that analyzes `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
+
+GTFSTK is a Python 3.4+ tool kit for analyzing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
 It uses Pandas and Shapely to do the heavy lifting.
 
 
@@ -25,8 +25,8 @@ Documentation is in ``docs/`` and also on RawGit `here <https://rawgit.com/araic
 Notes
 =====
 - Development status is Alpha
-- This project uses `semantic versioning <http://semver.org/>`_
-- Thanks to `MRCagney <http://www.mrcagney.com/>`_ for partially funding this project
+- This project uses semantic versioning
+- Thanks to `MRCagney <http://www.mrcagney.com/>`_ for donating to this project
 - Constructive feedback and code contributions welcome
 
 
@@ -38,9 +38,20 @@ Authors
 History
 =========
 
+9.0.0, 2017-07-04
+-------------------
+- Added informative printing for Feeds
+- Removed the ``time_it`` decorator in favor of IPython's ``%time`` magic .
+- Inspired by the `Transitland Dispatcher <https://transit.land/dispatcher/feed-versions/eb0cbe5ab41c9cfde0ebae42471ab5b3f712b008>`_, added the ``summarize`` function and the ``list_gtfs`` function
+- Extended several functions to accept date lists, a breaking change for the outputs of those functions. For example, now you can compute feed stats for the entire feed period more easily and quickly (by memoizing active trip IDs) than computing the stats separately for each date.
+- By popular demand, redefined the ``num_trips`` indicator in route and feed time series to be the number of unique trips active in a time bin instead of the time weighted average thereof
+- Removed columns from empty DataFrames returned by ``compute_route_stats`` etc.
+- Elaborated docstrings
+
+
 8.0.2, 2017-05-09
 -------------------
-- Updated the installation requirements in ``setup.py`` 
+- Updated the installation requirements in ``setup.py``
 
 
 8.0.1, 2017-04-26
@@ -75,7 +86,7 @@ History
 - Improved function names, e.g. ``compute_trips_stats`` -> ``compute_trip_stats``
 - Added functions to ``cleaner.py`` and changed cleaning function outputs to feed instances
 - Made ``feed.copy`` a method
-- Simplified Feed objects and added auto-updates to private attributes
+- Simplified Feed objects and added auto-updates to secondary attributes
 - Changed the signatures of a few functions, e.g. ``calculator.append_dist_to_shapes`` now returns a feed instead of a shapes data frame
 - Fixed formatting of properties field in ``calculator.trip_to_geojson`` and ``calculator.route_to_geojson``
 
@@ -139,7 +150,7 @@ History
 - Added ``cleaner.aggregate_routes``
 
 
-3.0.1, 2015-12-16 
+3.0.1, 2015-12-16
 ------------------
 - Bugfix: formatted ``parent_station`` as a string in ``constants.DTYPE``
 
@@ -258,7 +269,7 @@ History
 0.11.7, 2015-03-27
 ---------------------
 - Added more columns to ``get_routes_stats``
-- Added ``get_feed_stats`` and ``get_feed_time_series`` and removed the similar ``agg_routes_stats`` and ``agg_routes_time_series`` 
+- Added ``get_feed_stats`` and ``get_feed_time_series`` and removed the similar ``agg_routes_stats`` and ``agg_routes_time_series``
 - Removed ``dump_all_stats``, because it wasn't very useful
 - Replaced ``get_busiest_date_of_first_week`` with ``get_busiest_date``
 
@@ -295,7 +306,7 @@ History
 0.11.2, 2014-12-10
 ----------------------
 - Scooped out main logic from ``Feed.get_stops_stats`` and ``Feed.get_stops_time_series`` and put it into top level functions
-  for the sake of greater flexibility.  Similar to what i did for 
+  for the sake of greater flexibility.  Similar to what i did for
   ``Feed.get_routes_stats`` and ``Feed.get_routes_time_series``
 - Fixed a bug in computing the last stop of each trip in ``get_trips_stats``
 - Improved the accuracy of trip distances in ``get_trips_stats``
@@ -322,7 +333,7 @@ History
 
 0.9, 2014-10-29
 ----------------------
-- Scooped out main logic from ``Feed.get_routes_stats`` and ``Feed.get_routes_time_series`` and put it into top level functions for the sake of greater flexibility.  I at least need that flexibility to plug into another project. 
+- Scooped out main logic from ``Feed.get_routes_stats`` and ``Feed.get_routes_time_series`` and put it into top level functions for the sake of greater flexibility.  I at least need that flexibility to plug into another project.
 
 
 0.8, 2014-10-24
@@ -337,7 +348,7 @@ History
 
 0.6, 2014-10-08
 ----------------------
-- Changed ``seconds_to_time`` to ``timestr_to_seconds.``.  Added ``get_busiest_date_of_first_week``. 
+- Changed ``seconds_to_time`` to ``timestr_to_seconds.``.  Added ``get_busiest_date_of_first_week``.
 
 
 0.5, 2014-10-02
@@ -368,13 +379,13 @@ History
 
 0.2.1, 2014-07-22
 ----------------------
-- Changed from period indices to timestamp indices for time series, because the latter are better supported in Pandas. 
+- Changed from period indices to timestamp indices for time series, because the latter are better supported in Pandas.
 - Upgraded to Pandas 0.14.1.
 
 
 0.2.0, 2014-07-22
 ----------------------
-- Restructured modules 
+- Restructured modules
 
 
 0.1.12, 2014-07-21
@@ -384,7 +395,7 @@ History
 
 0.1.11, 2014-07-17
 ----------------------
-- Added ``get_dist_from_shapes`` keyword to ``get_trips_stats`` 
+- Added ``get_dist_from_shapes`` keyword to ``get_trips_stats``
 
 
 0.1.10, 2014-07-17

@@ -10,7 +10,8 @@ from . import constants as cs
 
 def clean_column_names(df):
     """
-    Strip the whitespace from all column names in the given DataFrame and return the result.
+    Strip the whitespace from all column names in the given DataFrame
+    and return the result.
     """
     f = df.copy()
     f.columns = [col.strip() for col in f.columns]
@@ -18,8 +19,10 @@ def clean_column_names(df):
 
 def drop_zombies(feed):
     """
-    Drop stops with no stop times, trips with no stop times, shapes with no trips, routes with no trips, and services with no trips, in that order.
-    Return the resulting new feed.
+    In the given Feed, drop stops with no stop times,
+    trips with no stop times, shapes with no trips,
+    routes with no trips, and services with no trips, in that order.
+    Return the resulting Feed.
     """
     feed = feed.copy()
 
@@ -57,8 +60,9 @@ def drop_zombies(feed):
 
 def clean_ids(feed):
     """
-    Strip whitespace from all string IDs and then replace every remaining whitespace chunk with an underscore.
-    Return the resulting feed.
+    In the given Feed, strip whitespace from all string IDs and
+    then replace every remaining whitespace chunk with an underscore.
+    Return the resulting Feed.
     """
     # Alter feed inputs only, and build a new feed from them.
     # The derived feed attributes, such as feed.trips_i,
@@ -83,9 +87,9 @@ def clean_ids(feed):
 
 def clean_times(feed):
     """
-    Prefix a zero to each H:MM:SS time to make it an HH:MM:SS.
-    This makes sorting by time work as expected.
-    Return the resulting feed.
+    In the given Feed, convert H:MM:SS time strings to HH:MM:SS time
+    strings to make sorting by time work as expected.
+    Return the resulting Feed.
     """
     def reformat(t):
         if pd.isnull(t):
@@ -110,9 +114,11 @@ def clean_times(feed):
 
 def clean_route_short_names(feed):
     """
-    In ``feed.routes``, assign 'n/a' to missing route short names and strip whitespace from route short names.
-    Then disambiguate each route short name that is duplicated by appending '-' and its route ID.
-    Return the resulting feed.
+    In ``feed.routes``, assign 'n/a' to missing route short names and
+    strip whitespace from route short names.
+    Then disambiguate each route short name that is duplicated by
+    appending '-' and its route ID.
+    Return the resulting Feed.
     """
     feed = feed.copy()
     r = feed.routes
@@ -139,13 +145,29 @@ def clean_route_short_names(feed):
 
 def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
     """
-    Group ``feed.routes`` by the ``by`` column, and for each group
+    Aggregate routes by route short name, say, and assign new route IDs.
 
-    1. choose the first route in the group,
-    2. assign a new route ID based on the given ``route_id_prefix`` string and a running count, e.g. ``'route_013'``
-    3. assign all the trips associated with routes in the group to that first route.
+    Parameters
+    ----------
+    feed : Feed
+    by : string
+        A column of ``feed.routes``
+    route_id_prefix : string
+        Prefix to use when creating new route IDs
 
-    Return a new feed with the updated routes and trips.
+    Returns
+    -------
+    Feed
+        The result is built from the given Feed as follows.
+        Group ``feed.routes`` by the ``by`` column, and for each group
+
+        1. Choose the first route in the group
+        2. Assign a new route ID based on the given ``route_id_prefix``
+           string and a running count, e.g. ``'route_013'``
+        3. Assign all the trips associated with routes in the group to
+           that first route
+        4. Update the route IDs in the other Feed tables
+
     """
     if by not in feed.routes.columns:
         raise ValueError("Column {!s} not in feed.routes".format(
@@ -192,8 +214,8 @@ def clean(feed):
     #. :func:`clean_times`
     #. :func:`clean_route_short_names`
 
-    to the given feed in that order.
-    Return the resulting feed.
+    to the given Feed in that order.
+    Return the resulting Feed.
     """
     feed = feed.copy()
     ops = [
@@ -209,8 +231,9 @@ def clean(feed):
 
 def drop_invalid_columns(feed):
     """
-    Drop all data frame columns of this feed not listed in the GTFS.
-    Return the resulting new feed.
+    Drop all DataFrame columns of the given Feed that are not
+    listed in the GTFS.
+    Return the resulting new Feed.
     """
     feed = feed.copy()
     for table, group in cs.GTFS_REF.groupby('table'):

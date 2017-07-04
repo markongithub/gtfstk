@@ -15,40 +15,56 @@ from . import helpers as hp
 def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
   headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Given a stop times DataFrame and a subset of a trips DataFrame, return a DataFrame that provides summary stats about the stops in the (inner) join of the two DataFrames.
+    Given a stop times DataFrame and a subset of a trips DataFrame,
+    return a DataFrame that provides summary stats about the stops
+    in the (inner) join of the two DataFrames.
 
-    The columns of the output DataFrame are:
+    Parameters
+    ----------
+    stop_times : DataFrame
+        A valid GTFS stop times table
+    trip_subset : DataFrame
+        A valid GTFS trips table
+    split_directions : boolean
+        If ``True``, then separate the stop stats by direction (0 or 1)
+        of the trips visiting the stops; otherwise aggregate trips
+        visiting from both directions
+    headway_start_time : string
+        HH:MM:SS time string indicating the start time for computing
+        headway stats
+    headway_end_time : string
+        HH:MM:SS time string indicating the end time for computing
+        headway stats
 
-    - stop_id
-    - direction_id: present if and only if ``split_directions``
-    - num_routes: number of routes visiting stop (in the given direction)
-    - num_trips: number of trips visiting stop (in the givin direction)
-    - max_headway: maximum of the durations (in minutes) between trip departures at the stop between ``headway_start_time`` and      ``headway_end_time`` on the given date
-    - min_headway: minimum of the durations (in minutes) mentioned above
-    - mean_headway: mean of the durations (in minutes) mentioned above
-    - start_time: earliest departure time of a trip from this stop on the given date
-    - end_time: latest departure time of a trip from this stop on the given date
+    Returns
+    -------
+    DataFrame
+        The columns are
 
-    If ``split_directions == False``, then compute each stop's stats using trips visiting it from both directions.
+        - stop_id
+        - direction_id: present if and only if ``split_directions``
+        - num_routes: number of routes visiting stop
+          (in the given direction)
+        - num_trips: number of trips visiting stop
+          (in the givin direction)
+        - max_headway: maximum of the durations (in minutes)
+          between trip departures at the stop between
+          ``headway_start_time`` and ``headway_end_time``
+        - min_headway: minimum of the durations (in minutes) mentioned
+          above
+        - mean_headway: mean of the durations (in minutes) mentioned
+          above
+        - start_time: earliest departure time of a trip from this stop
+        - end_time: latest departure time of a trip from this stop
 
-    If ``trip_subset`` is empty, then return an empty DataFrame with the columns specified above.
+
+    Notes
+    -----
+    If ``trip_subset`` is empty, then return an empty DataFrame.
+
     """
-    cols = [
-      'stop_id',
-      'num_routes',
-      'num_trips',
-      'max_headway',
-      'min_headway',
-      'mean_headway',
-      'start_time',
-      'end_time',
-    ]
-
-    if split_directions:
-        cols.append('direction_id')
-
     if trip_subset.empty:
-        return pd.DataFrame(columns=cols)
+        return pd.DataFrame()
 
     f = pd.merge(stop_times, trip_subset)
 
@@ -94,35 +110,66 @@ def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
 
     return result
 
-def compute_stop_time_series_base(stop_times, trips_subset,
+def compute_stop_time_series_base(stop_times, trip_subset,
   split_directions=False, freq='5Min', date_label='20010101'):
     """
-    Given a stop times DataFrame and a subset of a trips DataFrame, return a DataFrame that provides summary stats about the stops in the (inner) join of the two DataFrames.
+    Given a stop times DataFrame and a subset of a trips DataFrame,
+    return a DataFrame that provides a summary time series about the
+    stops in the (inner) join of the two DataFrames.
 
-    The time series is a DataFrame with a timestamp index for a 24-hour period sampled at the given frequency.
-    The maximum allowable frequency is 1 minute.
-    The timestamp includes the date given by ``date_label``, a date string of the form '%Y%m%d'.
+    Parameters
+    ----------
+    stop_times : DataFrame
+        A valid GTFS stop times table
+    trip_subset : DataFrame
+        A valid GTFS trips table
+    split_directions : boolean
+        If ``True``, then separate each stop's stats by trip direction;
+        otherwise aggregate trips visiting from both directions
+    freq : Pandas frequency string
+        Specifices the frequency with which to resample the time series;
+        max frequency is one minute ('Min')
+    date_label : string
+        YYYYMMDD date string used as the date in the time series index
 
-    The columns of the DataFrame are hierarchical (multi-index) with
+    Returns
+    -------
+    DataFrame
+        A time series with a timestamp index for a 24-hour period
+        sampled at the given frequency.
+        The only indicator variable for each stop is
 
-    - top level: name = 'indicator', values = ['num_trips']
-    - middle level: name = 'stop_id', values = the active stop IDs
-    - bottom level: name = 'direction_id', values = 0s and 1s
+        - ``num_trips``: the number of trips that visit the stop and
+          have a nonnull departure time from the stop
 
-    If ``split_directions == False``, then don't include the bottom level.
+        The maximum allowable frequency is 1 minute.
 
-    If ``trips_subset`` is empty, then return an empty DataFrame with the indicator columns.
+        The columns are hierarchical (multi-indexed) with
 
-    NOTES:
+        - top level: name = 'indicator', values = ['num_trips']
+        - middle level: name = 'stop_id', values = the active stop IDs
+        - bottom level: name = 'direction_id', values = 0s and 1s
 
+        If not ``split_directions``, then don't include the bottom level.
+
+    Notes
+    -----
+    - The time series is computed at a one-minute frequency, then
+      resampled at the end to the given frequency
+    - Stop times with null departure times are ignored, so the aggregate
+      of ``num_trips`` across the day could be less than the
+      ``num_trips`` column in :func:`compute_stop_stats_base`
+    - All trip departure times are taken modulo 24 hours,
+      so routes with trips that end past 23:59:59 will have all
+      their stats wrap around to the early morning of the time series.
     - 'num_trips' should be resampled with ``how=np.sum``
-    - To remove the date and seconds from the time series f, do ``f.index = [t.time().strftime('%H:%M') for t in f.index.to_datetime()]``
-    """
-    cols = ['num_trips']
-    if trips_subset.empty:
-        return pd.DataFrame(columns=cols)
+    - If ``trip_subset`` is empty, then return an empty DataFrame
 
-    f = pd.merge(stop_times, trips_subset)
+    """
+    if trip_subset.empty:
+        return pd.DataFrame()
+
+    f = pd.merge(stop_times, trip_subset)
 
     if split_directions:
         # Alter stop IDs to encode trip direction:
@@ -131,11 +178,10 @@ def compute_stop_time_series_base(stop_times, trips_subset,
           f['direction_id'].map(str)
     stops = f['stop_id'].unique()
 
-    # Create one time series for each stop. Use a list first.
+    # Bin each stop departure time
     bins = [i for i in range(24*60)]  # One bin for each minute
     num_bins = len(bins)
 
-    # Bin each stop departure time
     def F(x):
         return (hp.timestr_to_seconds(x)//60) % (24*60)
 
@@ -150,10 +196,9 @@ def compute_stop_time_series_base(stop_times, trips_subset,
           Counter(group['departure_index'].values)
         series_by_stop[stop] = [counts[bin] for bin in bins]
 
-    # Combine lists into one time series.
-    # Actually, a dictionary indicator -> time series.
+    # Combine lists into dictionary of form indicator -> time series.
     # Only one indicator in this case, but could add more
-    # in the future as was done with routes time series.
+    # in the future as was done with route time series.
     rng = pd.date_range(date_label, periods=24*60, freq='Min')
     series_by_indicator = {'num_trips':
       pd.DataFrame(series_by_stop, index=rng).fillna(0)}
@@ -165,16 +210,36 @@ def compute_stop_time_series_base(stop_times, trips_subset,
 
 def get_stops(feed, date=None, trip_id=None, route_id=None, in_stations=False):
     """
-    Return ``feed.stops``.
-    If a date is given, then restrict the output to stops that are visited by trips active on the given date.
-    If a trip ID (string) is given, then restrict the output possibly further to stops that are visited by the trip.
-    Else if a route ID (string) is given, then restrict the output possibly further to stops that are visited by at least one trip on the route.
-    If ``in_stations``, then restrict the output further to only include stops are within stations, if station data is available in ``feed.stops``.
+    Return a section of ``feed.stops``.
+
+    Parameters
+    -----------
+    feed : Feed
+    date : string
+        YYYYMMDD string; restricts the output to stops active
+        (visited by trips) on the date
+    trip_id : string
+        ID of a trip in ``feed.trips``; restricts output to stops
+        visited by the trip
+    route_id : string
+        ID of route in ``feed.routes``; restricts output to stops
+        visited by the route
+    in_stations : boolean
+        If ``True``, then restricts output to stops in stations if
+        station data is available in ``feed.stops``
+
+    Returns
+    -------
+    DataFrame
+        A subset of ``feed.stops`` defined by the parameters above
+
+    Notes
+    -----
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stops``
-    - Those used in :func:`get_stop_times`
-    - ``feed.routes``
+    - Those used in :func:`.stop_times.get_stop_times`
+
     """
     s = feed.stops.copy()
     if date is not None:
@@ -197,11 +262,27 @@ def get_stops(feed, date=None, trip_id=None, route_id=None, in_stations=False):
 
 def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
     """
-    Return a dictionary with structure stop_id -> Shapely point object.
-    If ``use_utm``, then return each point in in UTM coordinates.
-    Otherwise, return each point in WGS84 longitude-latitude coordinates.
-    If a list of stop IDs ``stop_ids`` is given, then only include the given stop IDs.
+    Return a dictionary with the structure
+    stop_id -> Shapely Point with coordinates of the stop.
 
+    Parameters
+    ----------
+    feed : Feed
+    use_utm : boolean
+        If ``True``, then return each point in UTM coordinates
+        appropriate to the region; otherwise use the default WGS84
+        coordinates
+    stop_ids : list
+        Stop IDs (strings) from ``feed.stops`` to restrict output to
+
+    Returns
+    -------
+    dictionary
+        Each key is a stop ID and each value is a Shapely Point with
+        coordinates of the stop
+
+    Notes
+    -----
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stops``
@@ -224,25 +305,44 @@ def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
 
 def compute_stop_activity(feed, dates):
     """
-    Return a  DataFrame with the columns
+    Mark stops as active or inactive on the given dates.
+    A stop is *active* on a given date if some trips that starts on the
+    date visits the stop (possibly after midnight).
 
-    - stop_id
-    - ``dates[0]``: 1 if the stop has at least one trip visiting it on ``dates[0]``; 0 otherwise
-    - ``dates[1]``: 1 if the stop has at least one trip visiting it on ``dates[1]``; 0 otherwise
-    - etc.
-    - ``dates[-1]``: 1 if the stop has at least one trip visiting it on ``dates[-1]``; 0 otherwise
+    Parameters
+    ----------
+    feed : Feed
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute activity
 
-    If ``dates`` is ``None`` or the empty list, then return an empty DataFrame with the column 'stop_id'.
+    Returns
+    -------
+    DataFrame
+        Columns are
 
-    Assume the following feed attributes are not ``None``:
+        - stop_id
+        - ``dates[0]``: 1 if the stop has at least one trip visiting it
+          on ``dates[0]``; 0 otherwise
+        - ``dates[1]``: 1 if the stop has at least one trip visiting it
+          on ``dates[1]``; 0 otherwise
+        - etc.
+        - ``dates[-1]``: 1 if the stop has at least one trip visiting it
+          on ``dates[-1]``; 0 otherwise
 
-    - ``feed.stop_times``
-    - Those used in :func:`compute_trip_activity`
+    Notes
+    -----
+    - If all dates lie outside the Feed period, then return an empty
+      DataFrame
+    - Assume the following feed attributes are not ``None``:
 
+        * ``feed.stop_times``
+        * Those used in :func:`.trips.compute_trip_activity`
 
     """
+    dates = feed.restrict_dates(dates)
     if not dates:
-        return pd.DataFrame(columns=['stop_id'])
+        return pd.DataFrame()
 
     trip_activity = feed.compute_trip_activity(dates)
     g = pd.merge(trip_activity, feed.stop_times).groupby('stop_id')
@@ -256,75 +356,272 @@ def compute_stop_activity(feed, dates):
             f = f.merge(g[date].max().reset_index())
     return f
 
-def compute_stop_stats(feed, date, split_directions=False,
+def compute_stop_stats(feed, dates, split_directions=False,
   headway_start_time='07:00:00', headway_end_time='19:00:00'):
     """
-    Call ``compute_stop_stats_base()`` with the subset of trips active on the given date and with the keyword arguments ``split_directions``,   ``headway_start_time``, and ``headway_end_time``.
+    Compute stats for all stops for the given dates.
 
-    See ``compute_stop_stats_base()`` for a description of the output.
+    Parameters
+    ----------
+    feed : Feed
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
+    split_directions : boolean
+        If ``True``, then separate the stop stats by direction (0 or 1)
+        of the trips visiting the stops; otherwise aggregate trips
+        visiting from both directions
+    headway_start_time : string
+        HH:MM:SS time string indicating the start time for computing
+        headway stats
+    headway_end_time : string
+        HH:MM:SS time string indicating the end time for computing
+        headway stats
 
-    Assume the following feed attributes are not ``None``:
+    Returns
+    -------
+    DataFrame
+        Columns are
 
-    - ``feed.stop_timtes``
-    - Those used in :func:`get_trips`
+        - ``'date'``
+        - ``'stop_id'``
+        - ``'direction_id'``: present if and only if ``split_directions``
+        - ``'num_routes'``: number of routes visiting the stop
+          (in the given direction) on the date
+        - ``'num_trips'``: number of trips visiting stop
+          (in the givin direction) on the date
+        - ``'max_headway'``: maximum of the durations (in minutes)
+          between trip departures at the stop between
+          ``headway_start_time`` and ``headway_end_time`` on the date
+        - ``'min_headway'``: minimum of the durations (in minutes) mentioned
+          above
+        - ``'mean_headway'``: mean of the durations (in minutes) mentioned
+          above
+        - ``'start_time'``: earliest departure time of a trip from this stop
+          on the date
+        - ``'end_time'``: latest departure time of a trip from this stop on
+          the date
 
-    NOTES:
+    Notes
+    -----
+    - If there are no stats for the given dates, then return an empty
+      DataFrame
+    - Assume the following feed attributes are not ``None``:
+        * ``feed.stop_times``
+        * Those used in :func:`.trips.get_trips`
 
-    This is a more user-friendly version of ``compute_stop_stats_base()``.
-    The latter function works without a feed, though.
     """
-    # Get stop times active on date and direction IDs
-    return compute_stop_stats_base(feed.stop_times, feed.get_trips(date),
-      split_directions=split_directions,
-      headway_start_time=headway_start_time,
-      headway_end_time=headway_end_time)
+    dates = feed.restrict_dates(dates)
+    if not dates:
+        return pd.DataFrame()
 
-def compute_stop_time_series(feed, date, split_directions=False, freq='5Min'):
+    activity = feed.compute_trip_activity(dates)
+
+    # Collect stats for each date, memoizing stats by trip ID sequence
+    # to avoid unnecessary recomputations.
+    # Store in dictionary of the form
+    # trip ID sequence ->
+    # [stats DataFarme, date list that stats apply]
+    stats_and_dates_by_ids = {}
+    for date in dates:
+        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        if ids in stats_and_dates_by_ids:
+            # Append date to date list
+            stats_and_dates_by_ids[ids][1].append(date)
+        else:
+            # Compute stats
+            t = feed.trips
+            trips = t[t['trip_id'].isin(ids)].copy()
+            stats = compute_stop_stats_base(feed.stop_times, trips,
+              split_directions=split_directions,
+              headway_start_time=headway_start_time,
+              headway_end_time=headway_end_time)
+
+            # Remember stats
+            stats_and_dates_by_ids[ids] = [stats, [date]]
+
+    # Assemble stats into DataFrame
+    frames = []
+    for stats, dates in stats_and_dates_by_ids.values():
+        for date in dates:
+            f = stats.copy()
+            f['date'] = date
+            frames.append(f)
+    f = pd.concat(frames).sort_values(['date', 'stop_id'])
+
+    return f
+
+def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     """
-    Call :func:`.helpers.compute_stops_times_series_base` with the subset of trips  active on the given date and with the keyword arguments ``split_directions``and ``freq`` and with ``date_label`` equal to ``date``.
-    See :func:`.helpers.compute_stop_time_series_base` for a description of the output.
+    Compute time series for the given stops on the given dates at the
+    given frequency and return the result as a DataFrame of the same
+    form as output by :func:`.stop_times.compute_stop_time_series_base`.
 
-    Assume the following feed attributes are not ``None``:
+    Parameters
+    ----------
+    feed : Feed
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
+    split_directions : boolean
+        If ``True``, then separate the stop stats by direction (0 or 1)
+        of the trips visiting the stops; otherwise aggregate trips
+        visiting from both directions
+    freq : Pandas frequency string
+        Specifices the frequency with which to resample the time series;
+        max frequency is one minute ('Min')
 
-    - ``feed.stop_times``
-    - Those used in :func:`get_trips`
+    Returns
+    -------
+    DataFrame
+        A time series with a timestamp index across the given dates
+        sampled at the given frequency.
+        The maximum allowable frequency is 1 minute.
 
-    NOTES:
-      - This is a more user-friendly version of :func:`.helpers.compute_stop_time_series_base`. The latter function works without a feed, though.
+        The columns are the same as in
+        :func:`compute_stop_time_series_base`.
+
+    Notes
+    -----
+    - See the notes for :func:`compute_stop_time_series_base`
+    - If all dates lie outside the feed's date range, then return an
+      empty DataFrame
+    - Assume the following feed attributes are not ``None``:
+
+        * ``feed.stop_times``
+        * Those used in :func:`.trips.get_trips`
+
     """
-    return compute_stop_time_series_base(feed.stop_times,
-      feed.get_trips(date), split_directions=split_directions,
-      freq=freq, date_label=date)
+    dates = feed.restrict_dates(dates)
+    if not dates:
+        return pd.DataFrame()
 
-def build_stop_timetable(feed, stop_id, date):
+    activity = feed.compute_trip_activity(dates)
+
+    # Collect stats for each date, memoizing stats by trip ID sequence
+    # to avoid unnecessary recomputations.
+    # Store in dictionary of the form
+    # trip ID sequence ->
+    # [stats DataFarme, date list that stats apply]
+    stats_and_dates_by_ids = {}
+    for date in dates:
+        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        if ids in stats_and_dates_by_ids:
+            # Append date to date list
+            stats_and_dates_by_ids[ids][1].append(date)
+        else:
+            # Compute stats
+            t = feed.trips
+            trips = t[t['trip_id'].isin(ids)].copy()
+            stats = compute_stop_time_series_base(feed.stop_times, trips,
+              split_directions=split_directions, freq=freq, date_label=date)
+
+            # Remember stats
+            stats_and_dates_by_ids[ids] = [stats, [date]]
+
+    # Assemble stats into DataFrame
+    frames = []
+    for stats, dates_ in stats_and_dates_by_ids.values():
+        if stats.empty:
+            # Skip empty stats
+            continue
+        for date in dates_:
+            f = stats.copy()
+            # Replace date
+            d = hp.datestr_to_date(date)
+            f.index = f.index.map(lambda t: t.replace(
+              year=d.year, month=d.month, day=d.day))
+            frames.append(f)
+
+    f = pd.concat(frames).sort_index().sort_index(axis=1, sort_remaining=True)
+
+    if len(dates) > 1:
+        # Insert missing dates and NaNs to complete series index
+        end_datetime = pd.to_datetime(dates[-1] + ' 23:59:59')
+        new_index = pd.date_range(f.index[0], end_datetime, freq=freq)
+        f = f.reindex(new_index)
+    else:
+        # Set frequency
+        f.index.freq = pd.tseries.frequencies.to_offset(freq)
+
+    return f
+
+def build_stop_timetable(feed, stop_id, dates):
     """
-    Return a  DataFrame encoding the timetable for the given stop ID on the given date.
-    The columns are all those in ``feed.trips`` plus those in ``feed.stop_times``.
-    The result is sorted by departure time.
+    Return a DataFrame containing the timetable for the given stop ID
+    and dates.
 
+    Parameters
+    ----------
+    feed : Feed
+    stop_id : string
+        ID of the stop for which to build the timetable
+    dates : string or list
+        A YYYYMMDD date string or list thereof
+
+    Returns
+    -------
+    DataFrame
+        The columns are all those in ``feed.trips`` plus those in
+        ``feed.stop_times`` plus ``'date'``, and the stop IDs are
+        restricted to the given stop ID.
+        The result is sorted by date then departure time.
+
+    Notes
+    -----
     Assume the following feed attributes are not ``None``:
 
     - ``feed.trips``
-    - Those used in :func:`get_stop_times`
+    - Those used in :func:`.stop_times.get_stop_times`
 
     """
-    f = feed.get_stop_times(date)
-    f = pd.merge(f, feed.trips)
-    f = f[f['stop_id'] == stop_id]
-    return f.sort_values('departure_time')
+    dates = feed.restrict_dates(dates)
+    if not dates:
+        return pd.DataFrame()
+
+    t = pd.merge(feed.trips, feed.stop_times)
+    t = t[t['stop_id'] == stop_id].copy()
+    a = feed.compute_trip_activity(dates)
+
+    frames = []
+    for date in dates:
+        # Slice to stops active on date
+        ids = a.loc[a[date] == 1, 'trip_id']
+        f = t[t['trip_id'].isin(ids)].copy()
+        f['date'] = date
+        frames.append(f)
+
+    f = pd.concat(frames)
+    return f.sort_values(['date', 'departure_time'])
 
 def get_stops_in_polygon(feed, polygon, geo_stops=None):
     """
-    Return the slice of ``feed.stops`` that contains all stops that lie within the given Shapely Polygon object.
-    Assume the polygon specified in WGS84 longitude-latitude coordinates.
+    Return the slice of ``feed.stops`` that contains all stops that lie
+    within the given Shapely Polygon object that is specified in
+    WGS84 coordinates.
 
-    To do this, first geometrize ``feed.stops`` via :func:`geometrize_stops`.
-    Alternatively, use the ``geo_stops`` GeoDataFrame, if given.
-    Requires GeoPandas.
+    Parameters
+    ----------
+    feed : Feed
+    polygon : Shapely Polygon
+        Specified in WGS84 coordinates
+    geo_stops : Geopandas GeoDataFrame
+        A geographic version of ``feed.stops`` which will be computed
+        if not given.
+        Specify this parameter in batch jobs to avoid unnecessary
+        computation.
 
-    Assume the following feed attributes are not ``None``:
+    Returns
+    -------
+    DataFrame
+        Subset of ``feed.stops``
 
-    - ``feed.stops``, if ``geo_stops`` is not given
+    Notes
+    -----
+    - Requires GeoPandas
+    - Assume the following feed attributes are not ``None``:
+
+        * ``feed.stops``, if ``geo_stops`` is not given
 
     """
     if geo_stops is not None:
@@ -339,10 +636,28 @@ def get_stops_in_polygon(feed, polygon, geo_stops=None):
 
 def geometrize_stops(stops, use_utm=False):
     """
-    Given a stops DataFrame, convert it to a GeoPandas GeoDataFrame and return the result.
-    The result has a 'geometry' column of WGS84 points instead of 'stop_lon' and 'stop_lat' columns.
-    If ``use_utm``, then use UTM coordinates for the geometries.
+    Given a stops DataFrame, convert it to a GeoPandas GeoDataFrame
+    and return the result.
+
+    Parameters
+    ----------
+    stops : DataFrame
+        A GTFS stops table
+    use_utm : boolean
+        If ``True``, then convert the output to local UTM coordinates;
+        otherwise use WGS84 coordinates
+
+    Returns
+    -------
+    GeoPandas GeoDataFrame
+        Looks like the given stops DataFrame, but has a ``'geometry'``
+        column of Shapely Point objects that replaces
+        the ``'stop_lon'`` and ``'stop_lat'`` columns.
+
+    Notes
+    -----
     Requires GeoPandas.
+
     """
     import geopandas as gpd
 
@@ -363,12 +678,25 @@ def geometrize_stops(stops, use_utm=False):
 def ungeometrize_stops(geo_stops):
     """
     The inverse of :func:`geometrize_stops`.
-    If ``geo_stops`` is in UTM (has a UTM CRS property), then convert UTM coordinates back to WGS84 coordinates,
+
+    Parameters
+    ----------
+    geo_stops : GeoPandas GeoDataFrame
+        Looks like a GTFS stops table, but has a ``'geometry'`` column
+        of Shapely Point objects that replaces the
+        ``'stop_lon'`` and ``'stop_lat'`` columns.
+
+    Returns
+    -------
+    DataFrame
+        A GTFS stops table where the ``'stop_lon'`` and ``'stop_lat'``
+        columns are derived from the points in the given GeoDataFrame
+        and are in WGS84 coordinates regardless of the coordinate
+        reference system of the given GeoDataFrame.
+
     """
     f = geo_stops.copy().to_crs(cs.CRS_WGS84)
-    f['stop_lon'] = f['geometry'].map(
-      lambda p: p.x)
-    f['stop_lat'] = f['geometry'].map(
-      lambda p: p.y)
+    f['stop_lon'], f['stop_lat'] = zip(*f['geometry'].map(
+      lambda p: [p.x, p.y]))
     del f['geometry']
     return f

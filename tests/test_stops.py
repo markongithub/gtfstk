@@ -1,14 +1,10 @@
 import pytest
-import importlib
-from pathlib import Path
 
 import pandas as pd
-from pandas.util.testing import assert_frame_equal, assert_series_equal
-import numpy as np
-import utm
+from pandas.util.testing import assert_frame_equal
 import shapely.geometry as sg
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_dates, cairns_trip_stats
 from gtfstk import *
 if HAS_GEOPANDAS:
     from geopandas import GeoDataFrame
@@ -84,7 +80,7 @@ def test_compute_stop_time_series_base():
 
 def test_get_stops():
     feed = cairns.copy()
-    date = cairns_date
+    date = cairns_dates[0]
     trip_id = feed.trips['trip_id'].iat[0]
     route_id = feed.routes['route_id'].iat[0]
     frames = [
@@ -139,37 +135,61 @@ def test_compute_stop_activity():
 
 def test_compute_stop_stats():
     feed = cairns.copy()
-    date = cairns_date
-    stop_stats = compute_stop_stats(feed, date)
-    # Should be a data frame
-    assert isinstance(stop_stats, pd.core.frame.DataFrame)
-    # Should contain the correct stops
-    get = set(stop_stats['stop_id'].values)
-    f = get_stops(feed, date)
-    expect = set(f['stop_id'].values)
-    assert get == expect
+    dates = cairns_dates + ['20010101']
+    for split_directions in [True, False]:
+        f = compute_stop_stats(feed, dates,
+          split_directions=split_directions)
 
-    # Empty check
-    f = compute_stop_stats(feed, '20010101')
-    assert f.empty
+        # Should be a data frame
+        assert isinstance(f, pd.core.frame.DataFrame)
+
+        # Should contain the correct stops
+        get = set(f['stop_id'].values)
+        g = get_stops(feed, dates[0])
+        expect = set(g['stop_id'].values)
+        assert get == expect
+
+        # Should contain the correct columns
+        expect_cols = {
+          'date',
+          'stop_id',
+          'num_routes',
+          'num_trips',
+          'max_headway',
+          'min_headway',
+          'mean_headway',
+          'start_time',
+          'end_time',
+          }
+        if split_directions:
+            expect_cols.add('direction_id')
+
+        assert set(f.columns) == expect_cols
+
+        # Should have correct dates
+        f.date.tolist() == cairns_dates
+
+        # Empty dates should yield empty DataFrame
+        f = compute_stop_stats(feed, [],
+          split_directions=split_directions)
+        assert f.empty
 
 @slow
 def test_compute_stop_time_series():
     feed = cairns.copy()
-    date = cairns_date
-    ast = pd.merge(get_trips(feed, date), feed.stop_times)
+    dates = cairns_dates + ['20010101']
     for split_directions in [True, False]:
-        f = compute_stop_stats(feed, date,
+        s = compute_stop_stats(feed, dates,
           split_directions=split_directions)
-        ts = compute_stop_time_series(feed, date, freq='1H',
+        ts = compute_stop_time_series(feed, dates, freq='1H',
           split_directions=split_directions)
 
         # Should be a data frame
         assert isinstance(ts, pd.core.frame.DataFrame)
 
         # Should have the correct shape
-        assert ts.shape[0] == 24
-        assert ts.shape[1] == f.shape[0]
+        assert ts.shape[0] == 24*2
+        assert ts.shape[1] == s.shape[0]/2
 
         # Should have correct column names
         if split_directions:
@@ -180,29 +200,40 @@ def test_compute_stop_time_series():
 
         # Each stop should have a correct total trip count
         if split_directions == False:
-            astg = ast.groupby('stop_id')
-            for stop in set(ast['stop_id'].values):
+            sg = s.groupby('stop_id')
+            for stop in s.stop_id.values:
                 get = ts['num_trips'][stop].sum()
-                expect = astg.get_group(stop)['departure_time'].count()
-                assert get == expect
+                expect = sg.get_group(stop)['num_trips'].sum()
+                # Stop stats could have more num trips in case of
+                # trips without departure times
+                assert get <= expect
 
-    # Empty check
-    date = '19000101'
-    ts = compute_stop_time_series(feed, date, freq='1H',
-      split_directions=split_directions)
-    assert ts.empty
+        # Empty dates should yield empty DataFrame
+        ts = compute_stop_time_series(feed, [],
+          split_directions=split_directions)
+        assert ts.empty
 
 def test_build_stop_timetable():
     feed = cairns.copy()
-    stop = feed.stops['stop_id'].values[0]
-    date = cairns_date
-    f = build_stop_timetable(feed, stop, date)
+    stop_id = feed.stops['stop_id'].values[0]
+    dates = cairns_dates + ['20010101']
+    f = build_stop_timetable(feed, stop_id, dates)
+
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
+
     # Should have the correct columns
-    expect_cols = set(feed.trips.columns) |\
-      set(feed.stop_times.columns)
+    expect_cols = set(feed.trips.columns)\
+      | set(feed.stop_times.columns)\
+      | set(['date'])
     assert set(f.columns) == expect_cols
+
+    # Should only have feed dates
+    assert f.date.unique().tolist() == cairns_dates
+
+    # Empty check
+    f = build_stop_timetable(feed, stop_id, [])
+    assert f.empty
 
 @pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
 def test_get_stops_in_polygon():

@@ -1,16 +1,27 @@
 import pytest
-import importlib
-from pathlib import Path
 
 import pandas as pd
-from pandas.util.testing import assert_frame_equal, assert_series_equal
+from pandas.util.testing import assert_series_equal
 import numpy as np
-import utm
 import shapely.geometry as sg
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_dates, cairns_trip_stats
 from gtfstk import *
 
+
+def test_summarize():
+    feed = sample.copy()
+
+    with pytest.raises(ValueError):
+        summarize(feed, 'bad_table')
+
+    for table in [None, 'stops']:
+        f = summarize(feed, table)
+        assert isinstance(f, pd.DataFrame)
+        expect_cols = {'table', 'column', 'num_values', 'num_nonnull_values',
+          'num_unique_values', 'min_value', 'max_value'}
+        assert set(f.columns) == expect_cols
+        assert f.shape[0]
 
 def test_describe():
     feed = sample.copy() # No distances here
@@ -42,16 +53,18 @@ def test_convert_dist():
 
 def test_compute_feed_stats():
     feed = cairns.copy()
-    date = cairns_date
+    dates = cairns_dates + ['20010101']
     trip_stats = cairns_trip_stats
-    f = compute_feed_stats(feed, trip_stats, date)
+    f = compute_feed_stats(feed, trip_stats, dates)
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
-    # Should have the correct number of rows
-    assert f.shape[0] == 1
+    # Should have the correct dates
+    assert f.date.tolist() == cairns_dates
     # Should contain the correct columns
-    expect_cols = set([
+    expect_cols = {
       'num_trips',
+      'num_trip_starts',
+      'num_trip_ends',
       'num_routes',
       'num_stops',
       'peak_num_trips',
@@ -60,25 +73,27 @@ def test_compute_feed_stats():
       'service_duration',
       'service_distance',
       'service_speed',
-      ])
+      'date',
+      }
     assert set(f.columns) == expect_cols
 
-    # Empty check
-    f = compute_feed_stats(feed, trip_stats, '20010101')
+    # Empty dates should yield empty DataFrame
+    f = compute_feed_stats(feed, trip_stats, [])
     assert f.empty
 
 def test_compute_feed_time_series():
     feed = cairns.copy()
-    date = cairns_date
+    dates = cairns_dates + ['20010101']
     trip_stats = cairns_trip_stats
-    f = compute_feed_time_series(feed, trip_stats, date, freq='1H')
+    f = compute_feed_time_series(feed, trip_stats, dates, freq='1H')
     # Should be a data frame
     assert isinstance(f, pd.core.frame.DataFrame)
     # Should have the correct number of rows
-    assert f.shape[0] == 24
+    assert f.shape[0] == 24*2
     # Should have the correct columns
     expect_cols = set([
       'num_trip_starts',
+      'num_trip_ends',
       'num_trips',
       'service_distance',
       'service_duration',
@@ -87,7 +102,7 @@ def test_compute_feed_time_series():
     assert set(f.columns) == expect_cols
 
     # Empty check
-    f = compute_feed_time_series(feed, trip_stats, '20010101')
+    f = compute_feed_time_series(feed, trip_stats, [])
     assert f.empty
 
 def test_create_shapes():
@@ -115,6 +130,14 @@ def test_compute_bounds():
     assert 145 < maxlon < 146
     assert -18 < minlat < -15
     assert -18 < maxlat < -15
+
+def test_compute_convex_hull():
+    feed = cairns.copy()
+    hull = compute_convex_hull(feed)
+    assert isinstance(hull, sg.Polygon)
+    # Hull should encompass all stops
+    m = sg.MultiPoint(feed.stops[['stop_lon', 'stop_lat']].values)
+    assert hull.contains(m)
 
 def test_compute_center():
     feed = cairns.copy()
@@ -172,7 +195,7 @@ def test_restrict_to_polygon():
 @pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
 def test_compute_screen_line_counts():
     feed = cairns.copy()
-    date = cairns_date
+    dates = cairns_dates + ['20010101']
     trip_stats = cairns_trip_stats
     feed = append_dist_to_stop_times(feed, trip_stats)
 
@@ -181,16 +204,11 @@ def test_compute_screen_line_counts():
         line = json.load(src)
         line = sg.shape(line['features'][0]['geometry'])
 
-    f = compute_screen_line_counts(feed, line, date)
+    f = compute_screen_line_counts(feed, line, dates)
 
     # Should have correct columns
-    expect_cols = set([
-      'trip_id',
-      'route_id',
-      'route_short_name',
-      'crossing_time',
-      'orientation',
-      ])
+    expect_cols = {'date', 'trip_id', 'route_id', 'route_short_name',
+      'crossing_time', 'orientation'}
     assert set(f.columns) == expect_cols
 
     # Should have correct routes
@@ -198,9 +216,16 @@ def test_compute_screen_line_counts():
     assert set(f['route_short_name']) == set(rsns)
 
     # Should have correct number of trips
-    expect_num_trips = 34
-    assert f['trip_id'].nunique() == expect_num_trips
+    num_unique_trips = 34
+    assert f['trip_id'].nunique() == num_unique_trips
 
     # Should have correct orientations
     for ori in [-1, 1]:
-        assert f[f['orientation'] == ori].shape[0] == expect_num_trips
+        assert f[f['orientation'] == ori].shape[0] == 2*num_unique_trips
+
+    # Should only have feed dates
+    assert f.date.unique().tolist() == cairns_dates
+
+    # Empty check
+    f = compute_screen_line_counts(feed, line, [])
+    assert f.empty

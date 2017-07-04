@@ -9,13 +9,26 @@ from . import helpers as hp
 
 def get_stop_times(feed, date=None):
     """
-    Return the section of ``feed.stop_times`` that contains only trips active on the given date.
-    If no date is given, then return all stop times.
+    Return a subset of ``feed.stop_times``.
 
+    Parameters
+    ----------
+    feed : Feed
+    date : string
+        YYYYMMDD date string restricting the output to trips active
+        on the date
+
+    Returns
+    -------
+    DataFrame
+        Subset of ``feed.stop_times``
+
+    Notes
+    -----
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stop_times``
-    - Those used in :func:`get_trips`
+    - Those used in :func:`.trips.get_trips`
 
     """
     f = feed.stop_times.copy()
@@ -27,25 +40,42 @@ def get_stop_times(feed, date=None):
 
 def append_dist_to_stop_times(feed, trip_stats):
     """
-    Calculate and append the optional ``shape_dist_traveled`` field in ``feed.stop_times`` in terms of the distance units ``feed.dist_units``.
-    Need trip stats in the form output by :func:`compute_trip_stats` for this.
+    Calculate and append the optional ``shape_dist_traveled`` field in
+    ``feed.stop_times`` in terms of the distance units
+    ``feed.dist_units``.
+    Need trip stats in the form output by
+    :func:`.trips.compute_trip_stats` for this.
     Return the resulting Feed.
-    Does not always give accurate results, as described below.
 
-    Assume the following feed attributes are not ``None``:
+    Notes
+    -----
+    - Does not always give accurate results, as described below.
+    - The algorithm works as follows.
+      Compute the ``shape_dist_traveled`` field by using Shapely to
+      measure the distance of a stop along its trip linestring.
+      If for a given trip this process produces a non-monotonically
+      increasing, hence incorrect, list of (cumulative) distances, then
+      fall back to estimating the distances as follows.
 
-    - ``feed.stop_times``
-    - Those used in :func:`build_geometry_by_shape`
-    - Those used in :func:`build_geometry_by_stop`
+      Get the average speed of the trip via ``trip_stats`` and use is to
+      linearly interpolate distances for stop times, assuming that the
+      first stop is at shape_dist_traveled = 0 (the start of the shape)
+      and the last stop is at shape_dist_traveled = the length of the trip
+      (taken from trip_stats and equal to the length of the shape, unless
+      ``trip_stats`` was called with ``get_dist_from_shapes == False``).
+      This fallback method usually kicks in on trips with
+      self-intersecting linestrings.
+      Unfortunately, this fallback method will produce incorrect results
+      when the first stop does not start at the start of its shape
+      (so shape_dist_traveled != 0).
+      This is the case for several trips in `this Portland feed
+      <https://transitfeeds.com/p/trimet/43/1400947517>`_, for example.
+    - Assume the following feed attributes are not ``None``:
 
-    ALGORITHM:
-        Compute the ``shape_dist_traveled`` field by using Shapely to measure the distance of a stop along its trip linestring.
-        If for a given trip this process produces a non-monotonically    increasing, hence incorrect, list of (cumulative) distances, then   fall back to estimating the distances as follows.
+        * ``feed.stop_times``
+        * Those used in :func:`.shapes.build_geometry_by_shape`
+        * Those used in :func:`.stops.build_geometry_by_stop`
 
-        Get the average speed of the trip via ``trip_stats`` and use is to linearly interpolate distances for stop times, assuming that the first stop is at shape_dist_traveled = 0 (the start of the shape) and the last stop is at shape_dist_traveled = the length of the trip (taken from trip_stats and equal to the length of the shape, unless trip_stats was called with ``get_dist_from_shapes == False``).
-        This fallback method usually kicks in on trips with feed-intersecting    linestrings.
-        Unfortunately, this fallback method will produce incorrect results when the first stop does not start at the start of its shape (so shape_dist_traveled != 0).
-        This is the case for several trips in the Portland feed at https://transitfeeds.com/p/trimet/43/1400947517, for example.
     """
     feed = feed.copy()
     geometry_by_shape = feed.build_geometry_by_shape(use_utm=True)
@@ -122,8 +152,9 @@ def append_dist_to_stop_times(feed, trip_stats):
 
 def get_start_and_end_times(feed, date=None):
     """
-    Return the first departure time and last arrival time (time strings) listed in ``feed.stop_times``, respectively.
-    Restrict to the given date if specified.
+    Return the first departure time and last arrival time
+    (HH:MM:SS time strings) listed in ``feed.stop_times``, respectively.
+    Restrict to the given date (YYYYMMDD string) if specified.
     """
     st = feed.get_stop_times(date)
     return st['departure_time'].dropna().min(), st['arrival_time'].dropna(

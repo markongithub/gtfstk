@@ -2,6 +2,7 @@
 Functions useful across modules.
 """
 import datetime as dt
+import dateutil.relativedelta as rd
 
 import pandas as pd
 import numpy as np
@@ -11,22 +12,12 @@ import utm
 from . import constants as cs
 
 
-def time_it(f):
-    def wrap(*args, **kwargs):
-        t1 = dt.datetime.now()
-        print('Timing', f.__name__)
-        print(t1, 'Began process')
-        result = f(*args, **kwargs)
-        t2 = dt.datetime.now()
-        minutes = (t2 - t1).seconds/60
-        print(t2, 'Finished in %.2f min' % minutes)
-        return result
-    return wrap
-
 def datestr_to_date(x, format_str='%Y%m%d', inverse=False):
     """
-    Given a string object ``x`` representing a date in the given format,     convert it to a datetime.date object and return the result.
-    If ``inverse``, then assume that ``x`` is a date object and return its corresponding string in the given format.
+    Given a string object ``x`` representing a date in the given format,
+    convert it to a Datetime Date object and return the result.
+    If ``inverse``, then assume that ``x`` is a date object and return
+    its corresponding string in the given format.
     """
     if x is None:
         return None
@@ -38,11 +29,14 @@ def datestr_to_date(x, format_str='%Y%m%d', inverse=False):
 
 def timestr_to_seconds(x, inverse=False, mod24=False):
     """
-    Given a time string of the form '%H:%M:%S', return the number of seconds  past midnight that it represents.
-    In keeping with GTFS standards, the hours entry may be greater than 23.
+    Given an HH:MM:SS time string ``x``, return the number of seconds
+    past midnight that it represents.
+    In keeping with GTFS standards, the hours entry may be greater than
+    23.
     If ``mod24``, then return the number of seconds modulo ``24*3600``.
     If ``inverse``, then do the inverse operation.
-    In this case, if ``mod24`` also, then first take the number of  seconds modulo ``24*3600``.
+    In this case, if ``mod24`` also, then first take the number of
+    seconds modulo ``24*3600``.
     """
     if not inverse:
         try:
@@ -66,7 +60,8 @@ def timestr_to_seconds(x, inverse=False, mod24=False):
 
 def timestr_mod24(timestr):
     """
-    Given a GTFS time string in the format %H:%M:%S, return a timestring in the same format but with the hours taken modulo 24.
+    Given a GTFS HH:MM:SS time string, return a timestring in the same
+    format but with the hours taken modulo 24.
     """
     try:
         hours, mins, seconds = [int(x) for x in timestr.split(':')]
@@ -78,7 +73,8 @@ def timestr_mod24(timestr):
 
 def weekday_to_str(weekday, inverse=False):
     """
-    Given a weekday, that is, an integer in ``range(7)``, return it's corresponding weekday name as a lowercase string.
+    Given a weekday number (integer in the range 0, 1, ..., 6),
+    return its corresponding weekday name as a lowercase string.
     Here 0 -> 'monday', 1 -> 'tuesday', and so on.
     If ``inverse``, then perform the inverse operation.
     """
@@ -97,8 +93,11 @@ def weekday_to_str(weekday, inverse=False):
 
 def get_segment_length(linestring, p, q=None):
     """
-    Given a Shapely linestring and two Shapely points, project the points onto the linestring, and return the distance along the linestring between the two points.
-    If ``q is None``, then return the distance from the start of the linestring to the projection of ``p``.
+    Given a Shapely linestring and two Shapely points,
+    project the points onto the linestring, and return the distance
+    along the linestring between the two points.
+    If ``q is None``, then return the distance from the start of the
+    linestring to the projection of ``p``.
     The distance is measured in the native coordinates of the linestring.
     """
     # Get projected distances
@@ -112,16 +111,18 @@ def get_segment_length(linestring, p, q=None):
 
 def get_max_runs(x):
     """
-    Given a list of numbers, return a NumPy array of pairs (start index, end index + 1) of the runs of max value.
+    Given a list of numbers, return a NumPy array of pairs
+    (start index, end index + 1) of the runs of max value.
 
-    EXAMPLES::
+    Example::
 
         >>> get_max_runs([7, 1, 2, 7, 7, 1, 2])
         array([[0, 1],
                [3, 5]])
 
     Assume x is not empty.
-    Recipe from `here <http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array>`_
+    Recipe comes from
+    `Stack Overflow <http://stackoverflow.com/questions/1066758/find-length-of-sequences-of-identical-values-in-a-numpy-array>`_.
     """
     # Get 0-1 array where 1 marks the max values of x
     x = np.array(x)
@@ -140,7 +141,11 @@ def get_max_runs(x):
 
 def get_peak_indices(times, counts):
     """
-    Given an increasing list of times as seconds past midnight and a list of  trip counts at those times, return a pair of indices i, j such that times[i] to times[j] is the first longest time period such that for all i <= x < j, counts[x] is the max of counts.
+    Given an increasing list of times as seconds past midnight and a
+    list of trip counts at those respective times,
+    return a pair of indices i, j such that times[i] to times[j] is
+    the first longest time period such that for all i <= x < j,
+    counts[x] is the max of counts.
     Assume times and counts have the same nonzero length.
     """
     max_runs = get_max_runs(counts)
@@ -158,7 +163,7 @@ def get_convert_dist(dist_units_in, dist_units_out):
       distance in the units ``dist_units_in`` ->
       distance in the units ``dist_units_out``
 
-    Only supports distance units in ``DIST_UNITS``.
+    Only supports distance units in :const:`constants.DIST_UNITS`.
     """
     di, do = dist_units_in, dist_units_out
     DU = cs.DIST_UNITS
@@ -176,7 +181,9 @@ def get_convert_dist(dist_units_in, dist_units_out):
 
 def almost_equal(f, g):
     """
-    Return ``True`` if and only if the given DataFrames are equal after sorting their columns names, sorting their values, and reseting their indices.
+    Return ``True`` if and only if the given DataFrames are equal after
+    sorting their columns names, sorting their values, and
+    reseting their indices.
     """
     if f.empty or g.empty:
         return f.equals(g)
@@ -190,7 +197,9 @@ def almost_equal(f, g):
 
 def is_not_null(data_frame, column_name):
     """
-    Return ``True`` if the given DataFrame has a column of the given name (string), and there exists at least one non-NaN value in that column;  return ``False`` otherwise.
+    Return ``True`` if the given DataFrame has a column of the given
+    name (string), and there exists at least one non-NaN value in that
+    column; return ``False`` otherwise.
     """
     f = data_frame
     c = column_name
@@ -201,7 +210,9 @@ def is_not_null(data_frame, column_name):
 
 def get_utm_crs(lat, lon):
     """
-    Return a GeoPandas coordinate reference system (CRS) dictionary   corresponding to the UTM projection appropriate to the given WGS84    latitude and longitude.
+    Return a GeoPandas coordinate reference system (CRS) dictionary
+    corresponding to the UTM projection appropriate to the given WGS84
+    latitude and longitude.
     """
     zone = utm.from_latlon(lat, lon)[2]
     south = lat < 0
@@ -210,7 +221,8 @@ def get_utm_crs(lat, lon):
 
 def linestring_to_utm(linestring):
     """
-    Given a Shapely LineString in WGS84 coordinates, convert it to the appropriate UTM coordinates.
+    Given a Shapely LineString in WGS84 coordinates,
+    convert it to the appropriate UTM coordinates.
     If ``inverse``, then do the inverse.
     """
     proj = lambda x, y: utm.from_latlon(y, x)[:2]
@@ -218,29 +230,62 @@ def linestring_to_utm(linestring):
 
 def count_active_trips(trip_times, time):
     """
-    Given a DataFrame ``trip_times`` containing the columns
+    Count the number of trips in ``trip_times`` that are active
+    at the given time.
 
-    - trip_id
-    - start_time: start time of the trip in seconds past midnight
-    - end_time: end time of the trip in seconds past midnight
+    Parameters
+    ----------
+    trip_times : DataFrame
+        Contains the columns
 
-    and a time in seconds past midnight, return the number of trips in the DataFrame that are active at the given time.
-    A trip is a considered active at time t if start_time <= t < end_time.
+        - trip_id
+        - start_time: start time of the trip in seconds past midnight
+        - end_time: end time of the trip in seconds past midnight
+
+    time : integer
+        Number of seconds past midnight
+
+    Returns
+    -------
+    integer
+        Number of trips in ``trip_times`` that are active at ``time``.
+        A trip is a considered active at time t if and only if
+        start_time <= t < end_time.
+
     """
     t = trip_times
     return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
 
 def combine_time_series(time_series_dict, kind, split_directions=False):
     """
-    Given a dictionary of time series DataFrames, combine the time series
-    into one time series DataFrame with multi-index (hierarchical) columns
-    and return the result.
-    The top level columns are the keys of the dictionary and
-    the second and third level columns are 'route_id' and 'direction_id',
-    if ``kind == 'route'``, or 'stop_id' and 'direction_id',
-    if ``kind == 'stop'``.
-    If ``split_directions == False``, then there is no third column level,
-    no 'direction_id' column.
+    Combine the many time series DataFrames in the given dictionary
+    into one time series DataFrame with hierarchical columns.
+
+    Parameters
+    ----------
+    time_series_dict : dictionary
+        Has the form string -> time series
+    kind : string
+        ``'route'`` or ``'stop'``
+    split_directions : boolean
+        If ``True``, then assume the original time series contains data
+        separated by trip direction; otherwise, assume not.
+        The separation is indicated by a suffix ``'-0'`` (direction 0)
+        or ``'-1'`` (direction 1) in the route ID or stop ID column
+        values.
+
+    Returns
+    -------
+    DataFrame
+        Columns are hierarchical (multi-index).
+        The top level columns are the keys of the dictionary and
+        the second level columns are ``'route_id'`` and
+        ``'direction_id'``, if ``kind == 'route'``, or 'stop_id' and
+        ``'direction_id'``, if ``kind == 'stop'``.
+        If ``split_directions``, then third column is
+        ``'direction_id'``; otherwise, there is no ``'direction_id'``
+        column.
+
     """
     if kind not in ['stop', 'route']:
         raise ValueError(
@@ -268,18 +313,22 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
             new_frames.append(ft.T)
     else:
         new_frames = frames
-    return pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
+    result = pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
       names=subcolumns)
+
+    return result
 
 def downsample(time_series, freq):
     """
     Downsample the given route, stop, or feed time series,
-    (outputs of ``Feed.compute_route_time_series()``,
-    ``Feed.compute_stop_time_series()``, or ``Feed.compute_feed_time_series()``,
-    respectively) to the given Pandas frequency.
+    (outputs of :func:`.routes.compute_route_time_series`,
+    :func:`.stops.compute_stop_time_series`, or
+    :func:`.miscellany.compute_feed_time_series`,
+    respectively) to the given Pandas frequency string (e.g. '15Min').
     Return the given time series unchanged if the given frequency is
     shorter than the original frequency.
     """
+
     f = time_series.copy()
 
     # Can't downsample to a shorter frequency
@@ -287,55 +336,43 @@ def downsample(time_series, freq):
         return f
 
     result = None
-    if 'route_id' in f.columns.names:
-        # It's a routes time series
-        has_multiindex = True
-        # Resample indicators differently.
-        # For some reason in Pandas 0.18.1 the column multi-index gets
-        # messed up when i try to do the resampling all at once via
-        # f.resample(freq).agg(how_dict).
-        # Workaround is to operate on indicators separately.
-        inds_and_hows = [
-          ('num_trips', 'mean'),
-          ('num_trip_starts', 'sum'),
-          ('service_distance', 'sum'),
-          ('service_duration', 'sum'),
-        ]
-        frames = []
-        for ind, how in inds_and_hows:
-            frames.append(f[ind].resample(freq).agg({ind: how}))
-        g = pd.concat(frames, axis=1)
-        # Calculate speed and add it to f. Can't resample it.
-        speed = g['service_distance']/g['service_duration']
-        speed = pd.concat({'service_speed': speed}, axis=1)
-        result = pd.concat([g, speed], axis=1)
-    elif 'stop_id' in time_series.columns.names:
+    if 'stop_id' in time_series.columns.names:
         # It's a stops time series
-        has_multiindex = True
         result = f.resample(freq).sum()
     else:
-        # It's a feed time series
-        has_multiindex = False
-        inds_and_hows = [
-          ('num_trips', 'mean'),
-          ('num_trip_starts', 'sum'),
-          ('service_distance', 'sum'),
-          ('service_duration', 'sum'),
-        ]
+        # It's a route or feed time series.
+        inds = [
+          'num_trips',
+          'num_trip_starts',
+          'num_trip_ends',
+          'service_distance',
+          'service_duration',
+          ]
         frames = []
-        for ind, how in inds_and_hows:
-            frames.append(f[ind].resample(freq).agg({ind: how}))
-        g = pd.concat(frames, axis=1)
+
+        # Resample num_trips in a custom way that depends on
+        # num_trips and num_trip_ends
+        def agg_num_trips(group):
+            return group['num_trips'].iloc[-1]\
+              + group['num_trip_ends'].iloc[:-1].sum()
+
+        num_trips = f.groupby(pd.TimeGrouper(freq)).apply(agg_num_trips)
+        frames.append(num_trips)
+
+        # Resample the rest of the indicators via summing
+        frames.extend(
+          [f[ind].resample(freq).agg('sum') for ind in inds[1:]])
+
+        g = pd.concat(frames, axis=1, keys=inds)
+
         # Calculate speed and add it to f. Can't resample it.
         speed = g['service_distance']/g['service_duration']
         speed = pd.concat({'service_speed': speed}, axis=1)
         result = pd.concat([g, speed], axis=1)
 
-    # Reset column names in result, because they disappear after resampling.
-    # Pandas 0.14.0 bug?
+    # Reset column names and sort the hierarchical columns to allow slicing;
+    # see http://pandas.pydata.org/pandas-docs/stable/advanced.html#sorting-a-multiindex
     result.columns.names = f.columns.names
-    # Sort the multiindex column to make slicing possible;
-    # see http://pandas.pydata.org/pandas-docs/stable/indexing.html#multiindexing-using-slicers
-    if has_multiindex:
-        result = result.sortlevel(axis=1)
+    result = result.sort_index(axis=1, sort_remaining=True)
+
     return result

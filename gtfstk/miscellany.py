@@ -3,24 +3,112 @@ Functions about miscellany.
 """
 from collections import OrderedDict
 import math
+import copy
 
 import pandas as pd
 import numpy as np
 import shapely.geometry as sg
 
 from . import helpers as hp
+from . import constants as cs
 
 
-def describe(feed, date=None):
+def summarize(feed, table=None):
     """
-    Return a DataFrame of various feed indicators and values, e.g. number of routes.
-    Also specialize some those indicators to the given sample date, e.g. number of routes active on the date.
-    If a sample date is not given, then set it to the first Thursday of the feed.
+    Return a DataFrame summarizing all GTFS tables in the given feed
+    or in the given table if specified.
 
-    The columns of the DataFrame are
+    Parameters
+    ----------
+    feed : Feed
+    table : string
+        A GTFS table name, e.g. ``'stop_times'``
 
-    - ``'indicator'``: string; name of an indicator, e.g. 'num_routes'
-    - ``'value'``: value of the indicator, e.g. 27
+    Returns
+    -------
+    DataFrame
+        Columns are
+
+        - ``'table'``: name of the GTFS table, e.g. ``'stops'``
+        - ``'column'``: name of a column in the table,
+          e.g. ``'stop_id'``
+        - ``'num_values'``: number of values in the column
+        - ``'num_nonnull_values'``: number of nonnull values in the
+          column
+        - ``'num_unique_values'``: number of unique values in the
+          column, excluding null values
+        - ``'min_value'``: minimum value in the column
+        - ``'max_value'``: maximum value in the column
+
+    Notes
+    -----
+    - If the table is not in the feed, then return an empty DataFrame
+    - If the table is not valid, raise a ValueError
+
+    """
+    gtfs_tables = cs.GTFS_REF.table.unique()
+
+    if table is not None:
+        if table not in gtfs_tables:
+            raise ValueError('{!s} is not a GTFS table'.format(table))
+        else:
+            tables = [table]
+    else:
+        tables = gtfs_tables
+
+    frames = []
+    for table in tables:
+        f = getattr(feed, table)
+        if f is None:
+            continue
+
+        def my_agg(col):
+            d = {}
+            d['column'] = col.name
+            d['num_values'] = col.size
+            d['num_nonnull_values'] = col.count()
+            d['num_unique_values'] = col.nunique()
+            d['min_value'] = col.dropna().min()
+            d['max_value'] = col.dropna().max()
+            return pd.Series(d)
+
+        g = f.apply(my_agg).T.reset_index(drop=True)
+        g['table'] = table
+        frames.append(g)
+
+    cols = ['table', 'column', 'num_values', 'num_nonnull_values',
+      'num_unique_values', 'min_value', 'max_value']
+
+    if not frames:
+        f = pd.DataFrame()
+    else:
+        f = pd.concat(frames)
+        # Rearrange columns
+        f = f[cols].copy()
+
+    return f
+
+def describe(feed, sample_date=None):
+    """
+    Return a DataFrame of various feed indicators and values,
+    e.g. number of routes.
+    Specialize some those indicators to the given sample date,
+    e.g. number of routes active on the date.
+
+    Parameters
+    ----------
+    feed : Feed
+    sample_date : string
+        YYYYMMDD date string specifying the date to compute sample
+        stats; defaults to the first Thursday of the Feed's period
+
+    Returns
+    -------
+    DataFrame
+        The columns are
+
+        - ``'indicator'``: string; name of an indicator, e.g. 'num_routes'
+        - ``'value'``: value of the indicator, e.g. 27
 
     """
     from . import calendar as cl
@@ -39,29 +127,41 @@ def describe(feed, date=None):
     else:
         d['num_shapes'] = 0
 
-    if date is None:
-        date = cl.get_first_week(feed)[3]
-    d['sample_date'] = date
-    d['num_routes_active_on_sample_date'] = feed.get_routes(date).shape[0]
-    trips = feed.get_trips(date)
+    if sample_date is None or sample_date not in feed.get_dates():
+        sample_date = cl.get_first_week(feed)[3]
+    d['sample_date'] = sample_date
+    d['num_routes_active_on_sample_date'] = feed.get_routes(
+      sample_date).shape[0]
+    trips = feed.get_trips(sample_date)
     d['num_trips_active_on_sample_date'] = trips.shape[0]
-    d['num_stops_active_on_sample_date'] = feed.get_stops(date).shape[0]
-
+    d['num_stops_active_on_sample_date'] = feed.get_stops(
+      sample_date).shape[0]
     f = pd.DataFrame(list(d.items()), columns=['indicator', 'value'])
 
     return f
 
 def assess_quality(feed):
     """
-    Return a DataFrame of various feed indicators and values, such as the number of trips missing shapes.
-    The columns of the DataFrame are
+    Return a DataFrame of various feed indicators and values,
+    e.g. number of trips missing shapes.
 
-    - ``'indicator'``: string; name of an indicator, e.g. 'num_trips_missing_shapes'
-    - ``'value'``: value of the indicator, e.g. 27
+    Parameters
+    ----------
+    feed : Feed
 
-    NOTES:
-        - This is an odd function, but i use it to see roughly how broken a feed, which helps me decide if i can fix it
-        - This is not a GTFS validator
+    Returns
+    -------
+    DataFrame
+        The columns are
+
+        - ``'indicator'``: string; name of an indicator, e.g. 'num_routes'
+        - ``'value'``: value of the indicator, e.g. 27
+
+    Notes
+    -----
+    - An odd function, but useful to see roughly how broken a feed is
+    - Not a GTFS validator
+
     """
     d = OrderedDict()
 
@@ -136,7 +236,8 @@ def assess_quality(feed):
 
 def convert_dist(feed, new_dist_units):
     """
-    Convert the distances recorded in the ``shape_dist_traveled`` columns of the given feed from this Feed's native distance units (recorded in ``feed.dist_units``) to the given new distance units.
+    Convert the distances recorded in the ``shape_dist_traveled``
+    columns of the given Feed to the given distance units.
     New distance units must lie in :const:`.constants.DIST_UNITS`.
     """
     feed = feed.copy()
@@ -160,35 +261,88 @@ def convert_dist(feed, new_dist_units):
 
     return feed
 
-def compute_feed_stats(feed, trips_stats, date):
+def compute_feed_stats(feed, trip_stats, dates):
     """
-    Given trip stats of the form output by :func:`compute_trip_stats` and a date, return a DataFrame including the following feed stats for the date.
+    Compute some feed stats for the given dates and trip stats.
 
-    - num_trips: number of trips active on the given date
-    - num_routes: number of routes active on the given date
-    - num_stops: number of stops active on the given date
-    - peak_num_trips: maximum number of simultaneous trips in service
-    - peak_start_time: start time of first longest period during which
-      the peak number of trips occurs
-    - peak_end_time: end time of first longest period during which
-      the peak number of trips occurs
-    - service_distance: sum of the service distances for the active routes
-    - service_duration: sum of the service durations for the active routes
-    - service_speed: service_distance/service_duration
+    Parameters
+    ----------
+    feed : Feed
+    trip_stats : DataFrame
+        Trip stats to consider in the format output by
+        :func:`.trips.compute_trip_stats`
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
 
-    If there are no stats for the given date, return an empty DataFrame with the specified columns.
+    Returns
+    -------
+    DataFrame
+        The columns are
 
-    Assume the following feed attributes are not ``None``:
+        - ``'date'``
+        - ``'num_stops'``: number of stops active on the date
+        - ``'num_routes'``: number of routes active on the date
+        - ``'num_trips'``: number of trips that start on the date
+        - ``'num_trip_starts'``: number of trips with nonnull start
+          times on the date
+        - ``'num_trip_ends'``: number of trips with nonnull start times
+          and nonnull end times on the date, ignoring trips that end
+          after 23:59:59 on the date
+        - ``'peak_num_trips'``: maximum number of simultaneous trips in
+          service on the date
+        - ``'peak_start_time'``: start time of first longest period
+          during which the peak number of trips occurs on the date
+        - ``'peak_end_time'``: end time of first longest period during
+          which the peak number of trips occurs on the date
+        - ``'service_distance'``: sum of the service distances for the
+          active routes on the date
+        - ``'service_duration'``: sum of the service durations for the
+          active routes on the date
+        - ``'service_speed'``: service_distance/service_duration on the
+          date
 
-    - Those used in :func:`get_trips`
-    - Those used in :func:`get_routes`
-    - Those used in :func:`get_stops`
+        Exclude dates that lie outside of the Feed's date range.
+        If all the dates given lie outside of the feed's date range,
+        then return an empty DataFrame.
+
+    Notes
+    -----
+    - The route and trip stats for date d contain stats for trips that
+      start on date d only and ignore trips that start on date d-1 and
+      end on date d
+    - Assume the following feed attributes are not ``None``:
+
+        * Those used in :func:`.trips.get_trips`
+        * Those used in :func:`.routes.get_routes`
+        * Those used in :func:`.stops.get_stops`
 
     """
+    dates = feed.restrict_dates(dates)
+    if not dates:
+        return pd.DataFrame()
+
+    ts = trip_stats.copy()
+    activity = feed.compute_trip_activity(dates)
+    stop_times = feed.stop_times.copy()
+
+    # Convert timestrings to seconds for quicker calculations
+    ts[['start_time', 'end_time']] =\
+      ts[['start_time', 'end_time']].applymap(hp.timestr_to_seconds)
+
+    # Collect stats for each date, memoizing stats by trip ID sequence
+    # to avoid unnecessary recomputations.
+    # Store in dictionary of the form
+    # trip ID sequence ->
+    # [stats dictionary, date list that stats apply]
+    stats_and_dates_by_ids = {}
     cols = [
-      'num_trips',
-      'num_routes',
+      'date',
       'num_stops',
+      'num_routes',
+      'num_trips',
+      'num_trip_starts',
+      'num_trip_ends',
       'peak_num_trips',
       'peak_start_time',
       'peak_end_time',
@@ -196,85 +350,147 @@ def compute_feed_stats(feed, trips_stats, date):
       'service_duration',
       'service_speed',
     ]
-    d = OrderedDict()
-    trips = feed.get_trips(date)
-    if trips.empty:
-        return pd.DataFrame(columns=cols)
+    for date in dates:
+        stats = {}
+        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        if ids in stats_and_dates_by_ids:
+            # Append date to date list
+            stats_and_dates_by_ids[ids][1].append(date)
+        elif not ids:
+            # Empty stats
+            stats = {col: np.nan for col in cols
+              if col != 'date'}
+            stats_and_dates_by_ids[ids] = [stats, [date]]
+        else:
+            # Compute stats
+            f = ts[ts['trip_id'].isin(ids)].copy()
+            stats['num_stops'] = stop_times.loc[
+              stop_times['trip_id'].isin(ids), 'stop_id'].nunique()
+            stats['num_routes'] = f['route_id'].nunique()
+            stats['num_trips'] = f.shape[0]
+            stats['num_trip_starts'] = f['start_time'].count()
+            stats['num_trip_ends'] = f.loc[f['end_time'] < 24*3600,
+              'end_time'].count()
+            stats['service_distance'] = f['distance'].sum()
+            stats['service_duration'] = f['duration'].sum()
+            stats['service_speed'] =\
+              stats['service_distance']/stats['service_duration']
 
-    d['num_trips'] = trips.shape[0]
-    d['num_routes'] = feed.get_routes(date).shape[0]
-    d['num_stops'] = feed.get_stops(date).shape[0]
+            # Compute peak stats, which is the slowest part
+            times = np.unique(f[['start_time', 'end_time']].values)
+            counts = [hp.count_active_trips(f, t) for t in times]
+            start, end = hp.get_peak_indices(times, counts)
+            stats['peak_num_trips'] = counts[start]
+            stats['peak_start_time'] = times[start]
+            stats['peak_end_time'] = times[end]
 
-    # Compute peak stats
-    f = trips.merge(trips_stats)
-    f[['start_time', 'end_time']] =\
-      f[['start_time', 'end_time']].applymap(hp.timestr_to_seconds)
+            # Record stats
+            stats_and_dates_by_ids[ids] = [stats, [date]]
 
-    times = np.unique(f[['start_time', 'end_time']].values)
-    counts = [hp.count_active_trips(f, t) for t in times]
-    start, end = hp.get_peak_indices(times, counts)
-    d['peak_num_trips'] = counts[start]
-    d['peak_start_time'] =\
-      hp.timestr_to_seconds(times[start], inverse=True)
-    d['peak_end_time'] =\
-      hp.timestr_to_seconds(times[end], inverse=True)
+    # Assemble stats into DataFrame
+    rows = []
+    for stats, dates in stats_and_dates_by_ids.values():
+        for date in dates:
+            s = copy.copy(stats)
+            s['date'] = date
+            rows.append(s)
+    f = pd.DataFrame(rows).sort_values('date')
 
-    # Compute remaining stats
-    d['service_distance'] = f['distance'].sum()
-    d['service_duration'] = f['duration'].sum()
-    d['service_speed'] = d['service_distance']/d['service_duration']
+    # Convert seconds back to timestrings
+    times = ['peak_start_time', 'peak_end_time']
+    f[times] = f[times].applymap(
+      lambda t: hp.timestr_to_seconds(t, inverse=True))
 
-    return pd.DataFrame(d, index=[0])
+    return f[cols].copy()
 
-def compute_feed_time_series(feed, trip_stats, date, freq='5Min'):
+def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     """
-    Given trips stats (output of ``feed.compute_trip_stats()``), a date, and a Pandas frequency string, return a time series of stats for this feed on the given date at the given frequency with the following columns
+    Compute some feed stats in time series form for the given dates
+    and trip stats.
 
-    - num_trip_starts: number of trips starting at this time
-    - num_trips: number of trips in service during this time period
-    - service_distance: distance traveled by all active trips during
-      this time period
-    - service_duration: duration traveled by all active trips during this
-      time period
-    - service_speed: service_distance/service_duration
+    Parameters
+    ----------
+    feed : Feed
+    trip_stats : DataFrame
+        Trip stats to consider in the format output by
+        :func:`.trips.compute_trip_stats`
+    dates : string or list
+        A YYYYMMDD date string or list thereof indicating the date(s)
+        for which to compute stats
+    freq : string
+        Pandas frequency string specifying the frequency of the
+        resulting time series, e.g. '5Min'; highest frequency allowable
+        is one minute ('Min').
 
-    If there is no time series for the given date, return an empty DataFrame with specified columns.
+    Returns
+    -------
+    DataFrame
+        A time series with a timestamp index across the given dates
+        sampled at the given frequency.
+        The maximum allowable frequency is 1 minute.
 
-    Assume the following feed attributes are not ``None``:
+        The columns are
 
-    - Those used in :func:`compute_route_time_series`
+        - ``'num_trips'``: number of trips in service during during the
+          time period
+        - ``'num_trip_starts'``: number of trips with starting during the
+          time period
+        - ``'num_trip_ends'``: number of trips ending during the
+          time period, ignoring the trips the end past midnight
+        - ``'service_distance'``: distance traveled during the time
+          period by all trips active during the time period
+        - ``'service_duration'``: duration traveled during the time
+          period by all trips active during the time period
+        - ``'service_speed'``: ``service_distance/service_duration``
+
+        Exclude dates that lie outside of the Feed's date range.
+        If all the dates given lie outside of the Feed's date range,
+        then return an empty DataFrame with the specified columns.
+
+    Notes
+    -----
+    - See the notes for :func:`.routes.compute_route_time_series_base`
+    - If all dates lie outside the feed's date range, then return an
+      empty DataFrame
+    - Assume the following feed attributes are not ``None``:
+
+       * Those used in :func:`.routes.compute_route_time_series`
 
     """
+    rts = feed.compute_route_time_series(trip_stats, dates, freq=freq)
+    if rts.empty:
+        return pd.DataFrame()
+
     cols = [
       'num_trip_starts',
+      'num_trip_ends',
       'num_trips',
       'service_distance',
       'service_duration',
       'service_speed',
     ]
-    rts = feed.compute_route_time_series(trip_stats, date, freq=freq)
-    if rts.empty:
-        return pd.DataFrame(columns=cols)
-
-    stats = rts.columns.levels[0].tolist()
-    f = pd.concat([rts[stat].sum(axis=1) for stat in stats], axis=1,
-      keys=stats)
+    f = pd.concat([rts[col].sum(axis=1) for col in cols], axis=1, keys=cols)
     f['service_speed'] = f['service_distance']/f['service_duration']
-    return f
+
+    return f.sort_index(axis=1)
 
 def create_shapes(feed, all_trips=False):
     """
-    Given a feed, create a shape for every trip that is missing a shape ID.
+    Given a feed, create a shape for every trip that is missing a
+    shape ID.
     Do this by connecting the stops on the trip with straight lines.
-    Return the resulting feed which has updated shapes and trips DataFrames.
+    Return the resulting feed which has updated shapes and trips
+    tables.
 
-    If ``all_trips``, then create new shapes for all trips by connecting stops, and remove the old shapes.
+    If ``all_trips``, then create new shapes for all trips by
+    connecting stops, and remove the old shapes.
 
     Assume the following feed attributes are not ``None``:
 
     - ``feed.stop_times``
     - ``feed.trips``
     - ``feed.stops``
+
     """
     feed = feed.copy()
 
@@ -333,33 +549,50 @@ def create_shapes(feed, all_trips=False):
 
 def compute_bounds(feed):
     """
-    Return the tuple (min longitude, min latitude, max longitude, max latitude) where the longitudes and latitude vary across all the stop (WGS84)coordinates.
+    Return the tuple (min longitude, min latitude, max longitude,
+    max latitude) where the longitudes and latitude vary across all
+    the feed's stop coordinates.
     """
     lons, lats = feed.stops['stop_lon'], feed.stops['stop_lat']
     return lons.min(), lats.min(), lons.max(), lats.max()
 
+def compute_convex_hull(feed):
+    """
+    Return a Shapely Polygon representing the convex hull formed by
+    the stops of the given Feed.
+    """
+    m = sg.MultiPoint(feed.stops[['stop_lon', 'stop_lat']].values)
+    return m.convex_hull
+
 def compute_center(feed, num_busiest_stops=None):
     """
-    Compute the convex hull of all the stop points of this Feed and return the centroid.
-    If an integer ``num_busiest_stops`` is given, then compute the ``num_busiest_stops`` busiest stops in the feed on the first Monday of the feed and return the mean of the longitudes and the mean of the latitudes of these stops, respectively.
+    Return the centroid (WGS84 longitude-latitude pair) of the convex
+    hull of the stops of the given Feed.
+    If ``num_busiest_stops`` (integer) is given,
+    then compute the ``num_busiest_stops`` busiest stops in the feed
+    on the first Monday of the feed and return the mean of the
+    longitudes and the mean of the latitudes of these stops,
+    respectively.
     """
     s = feed.stops.copy()
-    if num_busiest_stops is not None:
+    if num_busiest_stops is None:
+        hull = compute_convex_hull(feed)
+        lon, lat = list(hull.centroid.coords)[0]
+    else:
         date = feed.get_first_week()[0]
-        ss = feed.compute_stop_stats(date).sort_values(
+        ss = feed.compute_stop_stats([date]).sort_values(
           'num_trips', ascending=False)
         f = ss.head(num_busiest_stops)
         f = s.merge(f)
         lon = f['stop_lon'].mean()
         lat = f['stop_lat'].mean()
-    else:
-        m = sg.MultiPoint(s[['stop_lon', 'stop_lat']].values)
-        lon, lat = list(m.convex_hull.centroid.coords)[0]
     return lon, lat
 
 def restrict_to_routes(feed, route_ids):
     """
-    Build a new feed by restricting this one to only the stops, trips, shapes, etc. used by the routes with the given list of route IDs.
+    Build a new feed by restricting this one to only the stops,
+    trips, shapes, etc. used by the routes with the given list of
+    route IDs.
     Return the resulting feed.
     """
     # Initialize the new feed as the old feed.
@@ -422,8 +655,12 @@ def restrict_to_routes(feed, route_ids):
 
 def restrict_to_polygon(feed, polygon):
     """
-    Build a new feed by restricting this on to only the trips that have at least one stop intersecting the given polygon, then        restricting stops, routes, stop times, etc. to those associated with that subset of trips.
+    Build a new feed by restricting this one to only the trips
+    that have at least one stop intersecting the given polygon,
+    then restricting stops, routes, stop times, etc. to those
+    associated with that subset of trips.
     Return the resulting feed.
+
     Requires GeoPandas.
 
     Assume the following feed attributes are not ``None``:
@@ -432,7 +669,7 @@ def restrict_to_polygon(feed, polygon):
     - ``feed.trips``
     - ``feed.stops``
     - ``feed.routes``
-    - Those used in :func:`get_stops_in_polygon`
+    - Those used in :func:`.stops.get_stops_in_polygon`
 
     """
     # Initialize the new feed as the old feed.
@@ -497,32 +734,70 @@ def restrict_to_polygon(feed, polygon):
 
     return feed
 
-def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
+def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
     """
-    Compute all the trips active in the given feed on the given date that intersect the given Shapely LineString (with WGS84 longitude-latitude coordinates), and return a DataFrame with the columns:
+    Find all the Feed trips active on the given dates
+    that intersect the given Shapely LineString (with WGS84
+    longitude-latitude coordinates).
 
-    - ``'trip_id'``
-    - ``'route_id'``
-    - ``'route_short_name'``
-    - ``'crossing_time'``: time that the trip's vehicle crosses the linestring; one trip could cross multiple times
-    - ``'orientation'``: 1 or -1; 1 indicates trip travel from the left side to the right side of the screen line; -1 indicates trip travel in the  opposite direction
+    Parameters
+    ----------
+    feed : Feed
+    linestring : Shapely LineString
+    dates : list
+        YYYYMMDD date strings
 
-    NOTES:
-        - Requires GeoPandas.
-        - The first step is to geometrize ``feed.shapes`` via   :func:`geometrize_shapes`. Alternatively, use the ``geo_shapes`` GeoDataFrame, if given.
-        - Assume ``feed.stop_times`` has an accurate ``shape_dist_traveled`` column.
-        - Assume the following feed attributes are not ``None``:
-             * ``feed.shapes``, if ``geo_shapes`` is not given
-        - Assume that trips travel in the same direction as their shapes. That restriction is part of GTFS, by the way. To calculate direction quickly and accurately, assume that the screen line is straight and doesn't double back on itfeed.
-        - Probably does not give correct results for trips with feed-intersecting shapes.
+    Returns
+    -------
+    DataFrame
+        The columns are
 
-    ALGORITHM:
-        #. Compute all the shapes that intersect the linestring.
-        #. For each such shape, compute the intersection points.
-        #. For each point p, scan through all the trips in the feed that have that shape and are active on the given date.
-        #. Interpolate a stop time for p by assuming that the feed has the shape_dist_traveled field in stop times.
-        #. Use that interpolated time as the crossing time of the trip vehicle, and compute the trip orientation to the screen line via a cross product of a vector in the direction of the screen line and a tiny vector in the direction of trip travel.
+        - ``'date'``
+        - ``'trip_id'``
+        - ``'route_id'``
+        - ``'route_short_name'``
+        - ``'crossing_time'``: time that the trip's vehicle crosses
+          the linestring; one trip could cross multiple times
+        - ``'orientation'``: 1 or -1; 1 indicates trip travel from the
+          left side to the right side of the screen line;
+          -1 indicates trip travel in the  opposite direction
+
+    Notes
+    -----
+    - Requires GeoPandas
+    - The first step is to geometrize ``feed.shapes`` via
+      :func:`.shapes.geometrize_shapes`. Alternatively, use the
+      ``geo_shapes`` GeoDataFrame, if given.
+    - Assume ``feed.stop_times`` has an accurate
+      ``shape_dist_traveled`` column.
+    - Assume that trips travel in the same direction as their
+      shapes. That restriction is part of GTFS, by the way.
+      To calculate direction quickly and accurately, assume that
+      the screen line is straight and doesn't double back on itself.
+    - Probably does not give correct results for trips with
+      self-intersecting shapes.
+    - The algorithm works as follows
+
+        1. Compute all the shapes that intersect the linestring
+        2. For each such shape, compute the intersection points
+        3. For each point p, scan through all the trips in the feed
+           that have that shape
+        4. For each date in ``dates``, restrict to trips active on the
+           date and interpolate a stop time for p by assuming that the
+           feed has the shape_dist_traveled field in stop times
+        5. Use that interpolated time as the crossing time of the trip
+           vehicle, and compute the trip orientation to the screen line
+           via a cross product of a vector in the direction of the
+           screen line and a tiny vector in the direction of trip travel
+
+    - Assume the following feed attributes are not ``None``:
+         * ``feed.shapes``, if ``geo_shapes`` is not given
+
     """
+    dates = feed.restrict_dates(dates)
+    if not dates:
+        return pd.DataFrame()
+
     # Get all shapes that intersect the screen line
     shapes = feed.get_shapes_intersecting_geometry(linestring, geo_shapes,
       geometrized=True)
@@ -566,50 +841,55 @@ def compute_screen_line_counts(feed, linestring, date, geo_shapes=None):
         distances = [convert_dist(d) for d in distances]
         dv_by_shape[sid] = list(zip(distances, vectors))
 
-    # Get trips with those shapes that are active on the given date
-    trips = feed.get_trips(date)
-    trips = trips[trips['shape_id'].isin(dv_by_shape.keys())]
+    # Get trips with those shapes
+    t = feed.trips
+    t = t[t['shape_id'].isin(dv_by_shape.keys())].copy()
 
-    # Merge in route short names
-    trips = trips.merge(feed.routes[['route_id', 'route_short_name']])
-
-    # Merge in stop times
-    f = trips.merge(feed.stop_times)
+    # Merge in route short names and stop times
+    t = t.merge(feed.routes[['route_id', 'route_short_name']])\
+      .merge(feed.stop_times)
 
     # Drop NaN departure times and convert to seconds past midnight
-    f = f[f['departure_time'].notnull()]
-    f['departure_time'] = f['departure_time'].map(hp.timestr_to_seconds)
+    t = t[t['departure_time'].notnull()].copy()
+    t['departure_time'] = t['departure_time'].map(hp.timestr_to_seconds)
 
-    # For each shape find the trips that cross the screen line
-    # and get crossing times and orientation
-    f = f.sort_values(['trip_id', 'stop_sequence'])
-    G = []  # output table
-    for tid, group in f.groupby('trip_id'):
-        sid = group['shape_id'].iat[0]
-        rid = group['route_id'].iat[0]
-        rsn = group['route_short_name'].iat[0]
-        stop_times = group['departure_time'].values
-        stop_distances = group['shape_dist_traveled'].values
-        for d, v in dv_by_shape[sid]:
-            # Interpolate crossing time
-            t = np.interp(d, stop_distances, stop_times)
-            # Compute direction of trip travel relative to
-            # screen line by looking at the sign of the cross
-            # product of tiny shape vector and screen line vector
-            det = np.linalg.det(np.array([v, w]))
-            if det >= 0:
-                orientation = 1
-            else:
-                orientation = -1
-            # Update G
-            G.append([tid, rid, rsn, t, orientation])
+    # Compile crossings by date
+    a = feed.compute_trip_activity(dates)
+    rows = []
+    for date in dates:
+        # Slice to trips active on date
+        ids = a.loc[a[date] == 1, 'trip_id']
+        f = t[t['trip_id'].isin(ids)].copy()
+
+        # For each shape find the trips that cross the screen line
+        # and get crossing times and orientation
+        f = f.sort_values(['trip_id', 'stop_sequence'])
+        for tid, group in f.groupby('trip_id'):
+            sid = group['shape_id'].iat[0]
+            rid = group['route_id'].iat[0]
+            rsn = group['route_short_name'].iat[0]
+            stop_times = group['departure_time'].values
+            stop_distances = group['shape_dist_traveled'].values
+            for d, v in dv_by_shape[sid]:
+                # Interpolate crossing time
+                time = np.interp(d, stop_distances, stop_times)
+                # Compute direction of trip travel relative to
+                # screen line by looking at the sign of the cross
+                # product of tiny shape vector and screen line vector
+                det = np.linalg.det(np.array([v, w]))
+                if det >= 0:
+                    orientation = 1
+                else:
+                    orientation = -1
+                # Update rows
+                rows.append([date, tid, rid, rsn, time, orientation])
 
     # Create DataFrame
-    g = pd.DataFrame(G, columns=['trip_id', 'route_id',
-      'route_short_name', 'crossing_time', 'orientation']
-      ).sort_values('crossing_time')
+    cols = ['date', 'trip_id', 'route_id', 'route_short_name',
+      'crossing_time', 'orientation']
+    g = pd.DataFrame(rows, columns=cols).sort_values(['date', 'crossing_time'])
 
-    # Convert departure times to time strings
+    # Convert departure times back to time strings
     g['crossing_time'] = g['crossing_time'].map(
       lambda x: hp.timestr_to_seconds(x, inverse=True))
 

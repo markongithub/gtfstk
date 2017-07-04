@@ -1,17 +1,8 @@
-import pytest
-import importlib
-from pathlib import Path
-
 import pandas as pd
-from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
-import utm
-import shapely.geometry as sg
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_shapeless, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, DATA_DIR, cairns, cairns_shapeless, cairns_dates, cairns_trip_stats
 from gtfstk import *
-if HAS_GEOPANDAS:
-    from geopandas import GeoDataFrame
 
 
 def test_is_active_trip():
@@ -30,7 +21,7 @@ def test_is_active_trip():
 
 def test_get_trips():
     feed = cairns.copy()
-    date = cairns_date
+    date = cairns_dates[0]
     trips1 = get_trips(feed, date)
     # Should be a data frame
     assert isinstance(trips1, pd.core.frame.DataFrame)
@@ -63,8 +54,8 @@ def test_compute_trip_activity():
 
 def test_compute_busiest_date():
     feed = cairns.copy()
-    dates = get_first_week(feed) + ['19000101']
-    date = compute_busiest_date(feed, dates)
+    dates = get_first_week(feed)[:1]
+    date = compute_busiest_date(feed, dates + ['999'])
     # Busiest day should lie in first week
     assert date in dates
 
@@ -113,7 +104,7 @@ def test_locate_trips():
     feed = cairns.copy()
     trip_stats = cairns_trip_stats
     feed = append_dist_to_stop_times(feed, trip_stats)
-    date = cairns_date
+    date = cairns_dates[0]
     times = ['08:00:00']
     f = locate_trips(feed, date, times)
     g = get_trips(feed, date, times[0])

@@ -1,14 +1,11 @@
 import pytest
-import importlib
 from pathlib import Path
 
 import pandas as pd
-from pandas.util.testing import assert_frame_equal, assert_series_equal
+from pandas.util.testing import assert_frame_equal
 import numpy as np
-import utm
-import shapely.geometry as sg
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_date, cairns_trip_stats
+from .context import gtfstk, slow, DATA_DIR
 from gtfstk import *
 
 
@@ -22,6 +19,9 @@ def test_feed():
             assert isinstance(val, pd.DataFrame)
         else:
             assert val is None
+
+def test_str():
+    assert isinstance(str(feed), str)
 
 def test_eq():
     assert Feed(dist_units='m') == Feed(dist_units='m')
@@ -63,6 +63,17 @@ def test_copy():
 # --------------------------------------------
 # Test functions about inputs and outputs
 # --------------------------------------------
+def test_list_gtfs():
+    # Bad path
+    with pytest.raises(ValueError):
+        list_gtfs('bad_path!')
+
+    for path in [DATA_DIR/'sample_gtfs.zip', DATA_DIR/'sample_gtfs']:
+        f = list_gtfs(path)
+        assert isinstance(f, pd.DataFrame)
+        assert set(f.columns) == {'file_name', 'file_size'}
+        assert f.shape[0] == 11
+
 def test_read_gtfs():
     # Bad path
     with pytest.raises(ValueError):
