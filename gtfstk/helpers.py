@@ -338,7 +338,6 @@ def downsample(time_series, freq):
     result = None
     if 'stop_id' in time_series.columns.names:
         # It's a stops time series
-        has_multiindex = True
         result = f.resample(freq).sum()
     else:
         # It's a route or feed time series.

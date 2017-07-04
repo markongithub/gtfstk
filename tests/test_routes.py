@@ -164,7 +164,6 @@ def test_compute_route_stats():
         rs = compute_route_stats(feed, trip_stats, [],
           split_directions=split_directions)
         assert rs.empty
-        assert set(rs.columns) == expect_cols
 
 @slow
 def test_compute_route_time_series():
@@ -201,15 +200,6 @@ def test_compute_route_time_series():
         rts = compute_route_time_series(feed, trip_stats, [],
           split_directions=split_directions)
         assert rts.empty
-        expect_cols = {
-          'num_trip_starts',
-          'num_trip_ends',
-          'num_trips',
-          'service_distance',
-          'service_duration',
-          'service_speed',
-          }
-        assert set(rts.columns) == expect_cols
 
 def test_build_route_timetable():
     feed = cairns.copy()
@@ -232,7 +222,6 @@ def test_build_route_timetable():
     # Empty check
     f = build_route_timetable(feed, route_id, dates[2:])
     assert f.empty
-    assert set(f.columns) == expect_cols
 
 def test_route_to_geojson():
     feed = cairns.copy()

@@ -16,6 +16,7 @@ def is_active_trip(feed, trip_id, date):
     Return ``True`` if the ``feed.calendar`` or ``feed.calendar_dates``
     says that the trip runs on the given date; return ``False``
     otherwise.
+
     Note that a trip that starts on date d, ends after 23:59:59, and
     does not start again on date d+1 is considered active on date d and
     not active on date d+1.
@@ -148,7 +149,7 @@ def compute_trip_activity(feed, dates):
           0 otherwise
 
         If ``dates`` is ``None`` or the empty list, then return an
-        empty DataFrame with the single column ``'trip_id'``.
+        empty DataFrame.
 
     Notes
     -----
@@ -159,9 +160,8 @@ def compute_trip_activity(feed, dates):
 
     """
     dates = feed.restrict_dates(dates)
-
     if not dates:
-        return pd.DataFrame(columns=['trip_id'])
+        return pd.DataFrame()
 
     f = feed.trips.copy()
     for date in dates:

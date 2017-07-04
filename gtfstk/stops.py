@@ -60,26 +60,11 @@ def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
 
     Notes
     -----
-    If ``trip_subset`` is empty, then return an empty DataFrame with
-    the columns specified above.
+    If ``trip_subset`` is empty, then return an empty DataFrame.
 
     """
-    cols = [
-      'stop_id',
-      'num_routes',
-      'num_trips',
-      'max_headway',
-      'min_headway',
-      'mean_headway',
-      'start_time',
-      'end_time',
-    ]
-
-    if split_directions:
-        cols.append('direction_id')
-
     if trip_subset.empty:
-        return pd.DataFrame(columns=cols)
+        return pd.DataFrame()
 
     f = pd.merge(stop_times, trip_subset)
 
@@ -178,13 +163,11 @@ def compute_stop_time_series_base(stop_times, trip_subset,
       so routes with trips that end past 23:59:59 will have all
       their stats wrap around to the early morning of the time series.
     - 'num_trips' should be resampled with ``how=np.sum``
-    - If ``trip_subset`` is empty, then return an empty DataFrame with
-      the column ``num_trips``
+    - If ``trip_subset`` is empty, then return an empty DataFrame
 
     """
-    cols = ['num_trips']
     if trip_subset.empty:
-        return pd.DataFrame(columns=cols)
+        return pd.DataFrame()
 
     f = pd.merge(stop_times, trip_subset)
 
@@ -349,8 +332,8 @@ def compute_stop_activity(feed, dates):
 
     Notes
     -----
-    - If ``dates`` is ``None`` or the empty list, then return an empty
-      DataFrame with the column ``'stop_id'``
+    - If all dates lie outside the Feed period, then return an empty
+      DataFrame
     - Assume the following feed attributes are not ``None``:
 
         * ``feed.stop_times``
@@ -359,7 +342,7 @@ def compute_stop_activity(feed, dates):
     """
     dates = feed.restrict_dates(dates)
     if not dates:
-        return pd.DataFrame(columns=['stop_id'])
+        return pd.DataFrame()
 
     trip_activity = feed.compute_trip_activity(dates)
     g = pd.merge(trip_activity, feed.stop_times).groupby('stop_id')
@@ -422,28 +405,15 @@ def compute_stop_stats(feed, dates, split_directions=False,
     Notes
     -----
     - If there are no stats for the given dates, then return an empty
-      DataFrame with the columns above
+      DataFrame
     - Assume the following feed attributes are not ``None``:
         * ``feed.stop_times``
         * Those used in :func:`.trips.get_trips`
 
     """
     dates = feed.restrict_dates(dates)
-    cols = [
-      'date',
-      'stop_id',
-      'num_routes',
-      'num_trips',
-      'max_headway',
-      'min_headway',
-      'mean_headway',
-      'start_time',
-      'end_time',
-      ]
-    if split_directions:
-        cols.append('direction_id')
     if not dates:
-        return pd.DataFrame([], columns=cols)
+        return pd.DataFrame()
 
     activity = feed.compute_trip_activity(dates)
 
@@ -515,7 +485,7 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     -----
     - See the notes for :func:`compute_stop_time_series_base`
     - If all dates lie outside the feed's date range, then return an
-      empty DataFrame with only the column ``'num_trips'``.
+      empty DataFrame
     - Assume the following feed attributes are not ``None``:
 
         * ``feed.stop_times``
@@ -523,12 +493,8 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
 
     """
     dates = feed.restrict_dates(dates)
-    cols = ['num_trips']
     if not dates:
-        return pd.DataFrame([], columns=cols)
-
-    if split_directions:
-        cols.append('direction_id')
+        return pd.DataFrame()
 
     activity = feed.compute_trip_activity(dates)
 
@@ -610,11 +576,8 @@ def build_stop_timetable(feed, stop_id, dates):
 
     """
     dates = feed.restrict_dates(dates)
-    cols = feed.trips.columns.tolist()\
-      + feed.stop_times.columns.tolist()\
-      + ['date']
     if not dates:
-        return pd.DataFrame([], columns=cols)
+        return pd.DataFrame()
 
     t = pd.merge(feed.trips, feed.stop_times)
     t = t[t['stop_id'] == stop_id].copy()

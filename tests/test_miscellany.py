@@ -80,7 +80,6 @@ def test_compute_feed_stats():
     # Empty dates should yield empty DataFrame
     f = compute_feed_stats(feed, trip_stats, [])
     assert f.empty
-    assert set(f.columns) == expect_cols
 
 def test_compute_feed_time_series():
     feed = cairns.copy()
@@ -105,7 +104,6 @@ def test_compute_feed_time_series():
     # Empty check
     f = compute_feed_time_series(feed, trip_stats, [])
     assert f.empty
-    assert set(f.columns) == expect_cols
 
 def test_create_shapes():
     feed1 = cairns.copy()
@@ -231,5 +229,3 @@ def test_compute_screen_line_counts():
     # Empty check
     f = compute_screen_line_counts(feed, line, [])
     assert f.empty
-    assert set(f.columns) == expect_cols
-

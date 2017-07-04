@@ -85,37 +85,11 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
         taking the weighted mean of the mean headways in both
         directions.
 
-        If ``trip_stats_subset`` is empty, return an empty DataFrame
-        with the columns specified above.
+        If ``trip_stats_subset`` is empty, return an empty DataFrame.
 
     """
-    cols = [
-      'route_id',
-      'route_short_name',
-      'route_type',
-      'num_trips',
-      'num_trip_starts',
-      'num_trip_ends',
-      'is_loop',
-      'is_bidirectional',
-      'start_time',
-      'end_time',
-      'max_headway',
-      'min_headway',
-      'mean_headway',
-      'peak_num_trips',
-      'peak_start_time',
-      'peak_end_time',
-      'service_duration',
-      'service_distance',
-      'service_speed',
-      'mean_trip_distance',
-      'mean_trip_duration',
-    ]
-    if split_directions:
-        cols.append('direction_id')
     if trip_stats_subset.empty:
-        return pd.DataFrame(columns=cols)
+        return pd.DataFrame()
 
     # Convert trip start and end times to seconds to ease calculations below
     f = trip_stats_subset.copy()
@@ -318,16 +292,8 @@ def compute_route_time_series_base(trip_stats_subset,
     - All other indicators are downsampled by summing.
 
     """
-    cols = [
-      'num_trip_starts',
-      'num_trip_ends',
-      'num_trips',
-      'service_distance',
-      'service_duration',
-      'service_speed',
-    ]
     if trip_stats_subset.empty:
-        return pd.DataFrame(columns=cols)
+        return pd.DataFrame()
 
     tss = trip_stats_subset.copy()
     if split_directions:
@@ -480,7 +446,7 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 
         Ignore dates outside the date range of the Feed.
         If there are no stats for the given dates, then return an empty
-        DataFrame with the columns above.
+        DataFrame.
 
     Notes
     -----
@@ -493,34 +459,8 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 
     """
     dates = feed.restrict_dates(dates)
-    cols = [
-      'date',
-      'route_id',
-      'route_short_name',
-      'route_type',
-      'num_trips',
-      'num_trip_starts',
-      'num_trip_ends',
-      'is_bidirectional',
-      'is_loop',
-      'start_time',
-      'end_time',
-      'max_headway',
-      'min_headway',
-      'mean_headway',
-      'peak_num_trips',
-      'peak_start_time',
-      'peak_end_time',
-      'service_duration',
-      'service_distance',
-      'service_speed',
-      'mean_trip_distance',
-      'mean_trip_duration',
-      ]
-    if split_directions:
-        cols.append('direction_id')
     if not dates:
-        return pd.DataFrame([], columns=cols)
+        return pd.DataFrame()
 
     ts = trip_stats.copy()
     activity = feed.compute_trip_activity(dates)
@@ -586,9 +526,7 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
         but with multiple dates
 
         If all dates lie outside the feed's date range, then return an
-        empty DataFrame with only the columns ``'service_distance'``
-        ``'service_duration'``, ``'num_trip_starts'``, ``'num_trips'``,
-        and ``'service_speed'``.
+        empty DataFrame.
 
     Notes
     -----
@@ -599,19 +537,8 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
 
     """
     dates = feed.restrict_dates(dates)
-    cols = [
-      'num_trip_starts',
-      'num_trip_ends',
-      'num_trips',
-      'service_distance',
-      'service_duration',
-      'service_speed',
-    ]
     if not dates:
-        return pd.DataFrame([], columns=cols).sort_index(axis=1)
-
-    if split_directions:
-        cols.append('direction_id')
+        return pd.DataFrame()
 
     activity = feed.compute_trip_activity(dates)
     ts = trip_stats.copy()
@@ -687,7 +614,7 @@ def build_route_timetable(feed, route_id, dates):
         Skip dates outside of the Feed's dates.
 
         If there is no route activity on the given dates, then return
-        an empty DataFrame with the columns above.
+        an empty DataFrame.
 
     Notes
     -----
@@ -698,11 +625,8 @@ def build_route_timetable(feed, route_id, dates):
 
     """
     dates = feed.restrict_dates(dates)
-    cols = feed.trips.columns.tolist()\
-      + feed.stop_times.columns.tolist()\
-      + ['date']
     if not dates:
-        return pd.DataFrame([], columns=cols)
+        return pd.DataFrame()
 
     t = pd.merge(feed.trips, feed.stop_times)
     t = t[t['route_id'] == route_id].copy()

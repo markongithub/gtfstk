@@ -173,7 +173,6 @@ def test_compute_stop_stats():
         f = compute_stop_stats(feed, [],
           split_directions=split_directions)
         assert f.empty
-        assert set(f.columns) == expect_cols
 
 @slow
 def test_compute_stop_time_series():
@@ -213,7 +212,6 @@ def test_compute_stop_time_series():
         ts = compute_stop_time_series(feed, [],
           split_directions=split_directions)
         assert ts.empty
-        assert set(ts.columns) == {'num_trips'}
 
 def test_build_stop_timetable():
     feed = cairns.copy()
@@ -236,7 +234,6 @@ def test_build_stop_timetable():
     # Empty check
     f = build_stop_timetable(feed, stop_id, [])
     assert f.empty
-    assert set(f.columns) == expect_cols
 
 @pytest.mark.skipif(not HAS_GEOPANDAS, reason="Requires GeoPandas")
 def test_get_stops_in_polygon():

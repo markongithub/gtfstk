@@ -43,8 +43,7 @@ def summarize(feed, table=None):
     Notes
     -----
     - If the table is not in the feed, then return an empty DataFrame
-      with the columns above.
-    - If the table is not valid, raise a ValueError.
+    - If the table is not valid, raise a ValueError
 
     """
     gtfs_tables = cs.GTFS_REF.table.unique()
@@ -81,7 +80,7 @@ def summarize(feed, table=None):
       'num_unique_values', 'min_value', 'max_value']
 
     if not frames:
-        f = pd.DataFrame(columns=cols)
+        f = pd.DataFrame()
     else:
         f = pd.concat(frames)
         # Rearrange columns
@@ -305,7 +304,7 @@ def compute_feed_stats(feed, trip_stats, dates):
 
         Exclude dates that lie outside of the Feed's date range.
         If all the dates given lie outside of the feed's date range,
-        then return an empty DataFrame with the specified columns.
+        then return an empty DataFrame.
 
     Notes
     -----
@@ -320,22 +319,8 @@ def compute_feed_stats(feed, trip_stats, dates):
 
     """
     dates = feed.restrict_dates(dates)
-    cols = [
-      'date',
-      'num_stops',
-      'num_routes',
-      'num_trips',
-      'num_trip_starts',
-      'num_trip_ends',
-      'peak_num_trips',
-      'peak_start_time',
-      'peak_end_time',
-      'service_distance',
-      'service_duration',
-      'service_speed',
-    ]
     if not dates:
-        return pd.DataFrame([], columns=cols)
+        return pd.DataFrame()
 
     ts = trip_stats.copy()
     activity = feed.compute_trip_activity(dates)
@@ -351,6 +336,20 @@ def compute_feed_stats(feed, trip_stats, dates):
     # trip ID sequence ->
     # [stats dictionary, date list that stats apply]
     stats_and_dates_by_ids = {}
+    cols = [
+      'date',
+      'num_stops',
+      'num_routes',
+      'num_trips',
+      'num_trip_starts',
+      'num_trip_ends',
+      'peak_num_trips',
+      'peak_start_time',
+      'peak_end_time',
+      'service_distance',
+      'service_duration',
+      'service_speed',
+    ]
     for date in dates:
         stats = {}
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
@@ -452,12 +451,16 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     -----
     - See the notes for :func:`.routes.compute_route_time_series_base`
     - If all dates lie outside the feed's date range, then return an
-      empty DataFrame with only the column ``'num_trips'``.
+      empty DataFrame
     - Assume the following feed attributes are not ``None``:
 
        * Those used in :func:`.routes.compute_route_time_series`
 
     """
+    rts = feed.compute_route_time_series(trip_stats, dates, freq=freq)
+    if rts.empty:
+        return pd.DataFrame()
+
     cols = [
       'num_trip_starts',
       'num_trip_ends',
@@ -466,10 +469,6 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
       'service_duration',
       'service_speed',
     ]
-    rts = feed.compute_route_time_series(trip_stats, dates, freq=freq)
-    if rts.empty:
-        return pd.DataFrame(columns=cols).sort_index(axis=1)
-
     f = pd.concat([rts[col].sum(axis=1) for col in cols], axis=1, keys=cols)
     f['service_speed'] = f['service_distance']/f['service_duration']
 
@@ -796,10 +795,8 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
 
     """
     dates = feed.restrict_dates(dates)
-    cols = ['date', 'trip_id', 'route_id', 'route_short_name',
-      'crossing_time', 'orientation']
     if not dates:
-        return pd.DataFrame([], columns=cols)
+        return pd.DataFrame()
 
     # Get all shapes that intersect the screen line
     shapes = feed.get_shapes_intersecting_geometry(linestring, geo_shapes,
@@ -888,6 +885,8 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
                 rows.append([date, tid, rid, rsn, time, orientation])
 
     # Create DataFrame
+    cols = ['date', 'trip_id', 'route_id', 'route_short_name',
+      'crossing_time', 'orientation']
     g = pd.DataFrame(rows, columns=cols).sort_values(['date', 'crossing_time'])
 
     # Convert departure times back to time strings
