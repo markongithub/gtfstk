@@ -1,5 +1,4 @@
-__version__ = '9.0.0'
-
+from ._version import __version__
 from .constants import *
 from .helpers import *
 from .calendar import *

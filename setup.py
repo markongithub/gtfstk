@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
-#from gtfstk import __version__
 
-__version__='9.0.0'
+with open('gtfstk/_version.py') as f:
+    version = f.read()
 
 with open('README.rst') as f:
     readme = f.read()
@@ -11,7 +11,7 @@ with open('LICENSE.txt') as f:
 
 setup(
     name='gtfstk',
-    version=__version__,
+    version=version,
     author='Alex Raichev',
     url='https://github.com/araichev/gtfstk',
     data_files = [('', ['LICENSE.txt'])],
