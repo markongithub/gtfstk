@@ -1,3 +1,5 @@
+__version__ = '9.0.0'
+
 from .constants import *
 from .helpers import *
 from .calendar import *
@@ -10,5 +12,3 @@ from .miscellany import *
 from .cleaners import *
 from .validators import *
 from .feed import *
-
-__version__ = '9.0.0'
