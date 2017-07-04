@@ -26,7 +26,7 @@ Notes
 =====
 - Development status is Alpha
 - This project uses semantic versioning
-- Thanks to `MRCagney <http://www.mrcagney.com/>`_ for partially funding this project
+- Thanks to `MRCagney <http://www.mrcagney.com/>`_ for donating to this project
 - Constructive feedback and code contributions welcome
 
 
@@ -40,11 +40,11 @@ History
 
 9.0.0, 2017-07-04
 -------------------
-- Added the ``__str__`` method to the Feed class
-- Removed ``time_it`` decorator in favor of IPython's ``%time`` magic .
+- Added informative printing for Feeds
+- Removed the ``time_it`` decorator in favor of IPython's ``%time`` magic .
 - Inspired by the `Transitland Dispatcher <https://transit.land/dispatcher/feed-versions/eb0cbe5ab41c9cfde0ebae42471ab5b3f712b008>`_, added the ``summarize`` function and the ``list_gtfs`` function
-- Extended several functions, such as stats functions, to accept multiple dates, a breaking change for the outputs of those functions. For example, now you can compute feed stats for the entire feed period more easily and much more quickly (by memoizing active trip IDs) than computing the stats separately for each date.
-- By popular demand, redefined the ``num_trips`` indicator in route and feed time series to be the number of unique trips active in a time bin (instead of the time weighted average thereof)
+- Extended several functions to accept date lists, a breaking change for the outputs of those functions. For example, now you can compute feed stats for the entire feed period more easily and quickly (by memoizing active trip IDs) than computing the stats separately for each date.
+- By popular demand, redefined the ``num_trips`` indicator in route and feed time series to be the number of unique trips active in a time bin instead of the time weighted average thereof
 - Removed columns from empty DataFrames returned by ``compute_route_stats`` etc.
 - Elaborated docstrings
 
