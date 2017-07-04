@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 
+
 with open('gtfstk/_version.py') as f:
     version = f.read().split('=')[-1].strip()
 
