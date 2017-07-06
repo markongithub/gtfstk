@@ -350,7 +350,7 @@ def compute_feed_stats(feed, trip_stats, dates):
       'service_duration',
       'service_speed',
     ]
-    empty_stats = {c: np.nan for c in cols}
+    null_stats = {c: np.nan for c in cols}
     for date in dates:
         stats = {}
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
@@ -358,8 +358,8 @@ def compute_feed_stats(feed, trip_stats, dates):
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
         elif not ids:
-            # Empty stats
-            stats_and_dates_by_ids[ids] = [empty_stats, [date]]
+            # Null stats
+            stats_and_dates_by_ids[ids] = [null_stats, [date]]
         else:
             # Compute stats
             f = ts[ts['trip_id'].isin(ids)].copy()

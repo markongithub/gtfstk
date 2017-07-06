@@ -211,8 +211,8 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
 
     return g
 
-def compute_route_time_series_base(trip_stats_subset,
-  split_directions=False, freq='5Min', date_label='20010101'):
+def compute_route_time_series_base(trip_stats_subset, date_label='20010101',
+  split_directions=False, freq='5Min'):
     """
     Compute stats in a 24-hour time series form for the given subset of trips.
 
@@ -497,7 +497,7 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
     ]
     if split_directions:
         cols.append('direction_id')
-    empty_stats = pd.DataFrame(
+    null_stats = pd.DataFrame(
       OrderedDict([(c, np.nan) for c in cols]), index=[0])
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
@@ -505,8 +505,8 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
         elif not ids:
-            # Empty stats
-            stats_and_dates_by_ids[ids] = [empty_stats, [date]]
+            # Null stats
+            stats_and_dates_by_ids[ids] = [null_stats, [date]]
         else:
             # Compute stats
             t = ts[ts['trip_id'].isin(ids)].copy()
@@ -529,6 +529,35 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
       drop=True)
 
     return f
+
+def build_null_route_time_series(feed, date_label='20010101', split_directions=False,
+  freq='5Min'):
+    """
+    Return a stop time series with the same index and hierarchical columns
+    as output by :func:`compute_route_time_series_base`,
+    but fill it full of null values.
+    """
+    start = date_label
+    end = pd.to_datetime(date_label + ' 23:59:00')
+    rng = pd.date_range(start, end, freq=freq)
+    inds = [
+      'num_trip_starts',
+      'num_trip_ends',
+      'num_trips',
+      'service_duration',
+      'service_distance',
+      'service_speed',
+    ]
+    rids = feed.routes.route_id
+    if split_directions:
+        product = [inds, rids, [0, 1]]
+        names = ['indicator', 'route_id', 'direction_id']
+    else:
+        product = [inds, rids]
+        names = ['indicator', 'route_id']
+    cols = pd.MultiIndex.from_product(product, names=names)
+    return pd.DataFrame([], index=rng, columns=cols).sort_index(
+      axis=1, sort_remaining=True)
 
 def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
   freq='5Min'):
@@ -581,11 +610,16 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
+    null_stats = build_null_route_time_series(feed,
+      split_directions=split_directions, freq=freq)
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
+        elif not ids:
+            # Null stats
+            stats_and_dates_by_ids[ids] = [null_stats, [date]]
         else:
             # Compute stats
             t = ts[ts['trip_id'].isin(ids)].copy()
@@ -598,9 +632,6 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
     # Assemble stats into DataFrame
     frames = []
     for stats, dates_ in stats_and_dates_by_ids.values():
-        if stats.empty:
-            # Skip empty stats
-            continue
         for date in dates_:
             f = stats.copy()
             # Replace date

@@ -101,19 +101,28 @@ def test_compute_feed_time_series():
     # Should have the correct number of rows
     assert f.shape[0] == 24*2
     # Should have the correct columns
-    expect_cols = set([
+    expect_cols = {
       'num_trip_starts',
       'num_trip_ends',
       'num_trips',
       'service_distance',
       'service_duration',
       'service_speed',
-      ])
+      }
     assert set(f.columns) == expect_cols
 
     # Empty check
     f = compute_feed_time_series(feed, trip_stats, [])
     assert f.empty
+
+    # No services should yield null stats
+    feed1 = feed.copy()
+    c = feed1.calendar
+    c['monday'] = 0
+    feed1.calendar = c
+    f = compute_feed_time_series(feed1, trip_stats, dates[0])
+    assert set(f.columns) == expect_cols
+    assert pd.isnull(f.values).all()
 
 def test_create_shapes():
     feed1 = cairns.copy()

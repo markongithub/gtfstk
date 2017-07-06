@@ -291,17 +291,18 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
         raise ValueError(
           "kind must be 'stop' or 'route'")
 
-    subcolumns = ['indicator']
+    names = ['indicator']
     if kind == 'stop':
-        subcolumns.append('stop_id')
+        names.append('stop_id')
     else:
-        subcolumns.append('route_id')
+        names.append('route_id')
 
     if split_directions:
-        subcolumns.append('direction_id')
+        names.append('direction_id')
 
     def process_index(k):
-        return tuple(k.rsplit('-', 1))
+        t = k.rsplit('-', 1)
+        return t[0], int(t[1])
 
     frames = list(time_series_dict.values())
     new_frames = []
@@ -309,12 +310,12 @@ def combine_time_series(time_series_dict, kind, split_directions=False):
         for f in frames:
             ft = f.T
             ft.index = pd.MultiIndex.from_tuples([process_index(k)
-              for (k, v) in ft.iterrows()])
+              for (k, __) in ft.iterrows()])
             new_frames.append(ft.T)
     else:
         new_frames = frames
     result = pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
-      names=subcolumns)
+      names=names)
 
     return result
 

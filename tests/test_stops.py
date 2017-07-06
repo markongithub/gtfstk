@@ -185,6 +185,24 @@ def test_compute_stop_stats():
         assert f.date.iat[0] == dates[0]
         assert pd.isnull(f.stop_id.iat[0])
 
+def test_build_null_stop_time_series():
+    feed = cairns.copy()
+    for split_directions in [True, False]:
+        if split_directions:
+            expect_names = ['indicator', 'stop_id', 'direction_id']
+            expect_shape = (2, feed.stops.shape[0]*2)
+        else:
+            expect_names = ['indicator', 'stop_id']
+            expect_shape = (2, feed.stops.shape[0])
+
+        f = build_null_stop_time_series(feed,
+          split_directions=split_directions, freq='12H')
+
+        assert isinstance(f, pd.core.frame.DataFrame)
+        assert f.shape == expect_shape
+        assert f.columns.names == expect_names
+        assert pd.isnull(f.values).all()
+
 @slow
 def test_compute_stop_time_series():
     feed = cairns.copy()
@@ -204,10 +222,10 @@ def test_compute_stop_time_series():
 
         # Should have correct column names
         if split_directions:
-            expect = ['indicator', 'stop_id', 'direction_id']
+            expect_names = ['indicator', 'stop_id', 'direction_id']
         else:
-            expect = ['indicator', 'stop_id']
-        assert ts.columns.names == expect
+            expect_names = ['indicator', 'stop_id']
+        assert ts.columns.names == expect_names
 
         # Each stop should have a correct total trip count
         if split_directions == False:
@@ -223,6 +241,16 @@ def test_compute_stop_time_series():
         ts = compute_stop_time_series(feed, [],
           split_directions=split_directions)
         assert ts.empty
+
+        # No services should yield null stats
+        feed1 = feed.copy()
+        c = feed1.calendar
+        c['monday'] = 0
+        feed1.calendar = c
+        ts = compute_stop_time_series(feed1, dates[0],
+          split_directions=split_directions)
+        assert ts.columns.names == expect_names
+        assert pd.isnull(ts.values).all()
 
 def test_build_stop_timetable():
     feed = cairns.copy()

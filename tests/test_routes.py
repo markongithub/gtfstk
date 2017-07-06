@@ -176,6 +176,24 @@ def test_compute_route_stats():
         assert rs.date.iat[0] == dates[0]
         assert pd.isnull(rs.route_id.iat[0])
 
+def test_build_null_route_time_series():
+    feed = cairns.copy()
+    for split_directions in [True, False]:
+        if split_directions:
+            expect_names = ['indicator', 'route_id', 'direction_id']
+            expect_shape = (2, 6*feed.routes.shape[0]*2)
+        else:
+            expect_names = ['indicator', 'route_id']
+            expect_shape = (2, 6*feed.routes.shape[0])
+
+        f = build_null_route_time_series(feed,
+          split_directions=split_directions, freq='12H')
+
+        assert isinstance(f, pd.core.frame.DataFrame)
+        assert f.shape == expect_shape
+        assert f.columns.names == expect_names
+        assert pd.isnull(f.values).all()
+
 @slow
 def test_compute_route_time_series():
     feed = cairns.copy()
@@ -194,10 +212,10 @@ def test_compute_route_time_series():
 
         # Should have correct column names
         if split_directions:
-            expect = ['indicator', 'route_id', 'direction_id']
+            expect_names = ['indicator', 'route_id', 'direction_id']
         else:
-            expect = ['indicator', 'route_id']
-        assert rts.columns.names, expect
+            expect_names = ['indicator', 'route_id']
+        assert rts.columns.names, expect_names
 
         # Each route have a correct num_trip_starts
         if split_directions == False:
@@ -211,6 +229,16 @@ def test_compute_route_time_series():
         rts = compute_route_time_series(feed, trip_stats, [],
           split_directions=split_directions)
         assert rts.empty
+
+        # No services should yield null stats
+        feed1 = feed.copy()
+        c = feed1.calendar
+        c['monday'] = 0
+        feed1.calendar = c
+        rts = compute_route_time_series(feed1, trip_stats, dates[0],
+          split_directions=split_directions)
+        assert rts.columns.names == expect_names
+        assert pd.isnull(rts.values).all()
 
 def test_build_route_timetable():
     feed = cairns.copy()
