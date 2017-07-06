@@ -402,11 +402,14 @@ def compute_stop_stats(feed, dates, split_directions=False,
         - ``'end_time'``: latest departure time of a trip from this stop on
           the date
 
+        Dates with no trip activity will have null stats.
+        Exclude dates that lie outside of the Feed's date range.
+        If all the dates given lie outside of the feed's date range,
+        then return an empty DataFrame.
+
     Notes
     -----
-    - If there are no stats for the given dates, then return an empty
-      DataFrame
-    - Assume the following feed attributes are not ``None``:
+    Assume the following feed attributes are not ``None``:
         * ``feed.stop_times``
         * Those used in :func:`.trips.get_trips`
 
@@ -423,11 +426,27 @@ def compute_stop_stats(feed, dates, split_directions=False,
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
+    cols = [
+      'stop_id',
+      'num_routes',
+      'num_trips',
+      'max_headway',
+      'min_headway',
+      'mean_headway',
+      'start_time',
+      'end_time',
+    ]
+    if split_directions:
+        cols.append('direction_id')
+    empty_stats = pd.DataFrame({c: np.nan for c in cols}, index=[0])
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
+        elif not ids:
+            # Empty stats
+            stats_and_dates_by_ids[ids] = [empty_stats, [date]]
         else:
             # Compute stats
             t = feed.trips
@@ -442,12 +461,13 @@ def compute_stop_stats(feed, dates, split_directions=False,
 
     # Assemble stats into DataFrame
     frames = []
-    for stats, dates in stats_and_dates_by_ids.values():
-        for date in dates:
+    for stats, dates_ in stats_and_dates_by_ids.values():
+        for date in dates_:
             f = stats.copy()
             f['date'] = date
             frames.append(f)
-    f = pd.concat(frames).sort_values(['date', 'stop_id'])
+    f = pd.concat(frames).sort_values(['date', 'stop_id']).reset_index(
+      drop=True)
 
     return f
 

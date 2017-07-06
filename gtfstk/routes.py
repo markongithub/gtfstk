@@ -444,9 +444,10 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
         - ``'date'``
         - the columns listed in :func:``compute_route_stats_base``
 
-        Ignore dates outside the date range of the Feed.
-        If there are no stats for the given dates, then return an empty
-        DataFrame.
+        Dates with no trip activity will have null stats.
+        Exclude dates that lie outside of the Feed's date range.
+        If all the dates given lie outside of the feed's date range,
+        then return an empty DataFrame.
 
     Notes
     -----
@@ -471,11 +472,41 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
+    cols = [
+      'route_id',
+      'route_short_name',
+      'route_type',
+      'num_trips',
+      'num_trip_ends',
+      'num_trip_starts',
+      'is_bidirectional',
+      'is_loop',
+      'start_time',
+      'end_time',
+      'max_headway',
+      'min_headway',
+      'mean_headway',
+      'peak_num_trips',
+      'peak_start_time',
+      'peak_end_time',
+      'service_duration',
+      'service_distance',
+      'service_speed',
+      'mean_trip_distance',
+      'mean_trip_duration',
+    ]
+    if split_directions:
+        cols.append('direction_id')
+    empty_stats = pd.DataFrame(
+      OrderedDict([(c, np.nan) for c in cols]), index=[0])
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
+        elif not ids:
+            # Empty stats
+            stats_and_dates_by_ids[ids] = [empty_stats, [date]]
         else:
             # Compute stats
             t = ts[ts['trip_id'].isin(ids)].copy()
@@ -489,12 +520,13 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 
     # Assemble stats into DataFrame
     frames = []
-    for stats, dates in stats_and_dates_by_ids.values():
-        for date in dates:
+    for stats, dates_ in stats_and_dates_by_ids.values():
+        for date in dates_:
             f = stats.copy()
             f['date'] = date
             frames.append(f)
-    f = pd.concat(frames).sort_values(['date', 'route_id'])
+    f = pd.concat(frames).sort_values(['date', 'route_id']).reset_index(
+      drop=True)
 
     return f
 

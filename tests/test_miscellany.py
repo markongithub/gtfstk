@@ -81,6 +81,16 @@ def test_compute_feed_stats():
     f = compute_feed_stats(feed, trip_stats, [])
     assert f.empty
 
+    # No services should yield null stats
+    feed1 = feed.copy()
+    c = feed1.calendar
+    c['monday'] = 0
+    feed1.calendar = c
+    f = compute_feed_stats(feed1, trip_stats, dates[0])
+    assert set(f.columns) == expect_cols
+    assert f.date.iat[0] == dates[0]
+    assert pd.isnull(f.num_trips.iat[0])
+
 def test_compute_feed_time_series():
     feed = cairns.copy()
     dates = cairns_dates + ['20010101']

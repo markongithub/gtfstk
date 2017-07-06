@@ -165,6 +165,17 @@ def test_compute_route_stats():
           split_directions=split_directions)
         assert rs.empty
 
+        # No services should yield null stats
+        feed1 = feed.copy()
+        c = feed1.calendar
+        c['monday'] = 0
+        feed1.calendar = c
+        rs = compute_route_stats(feed1, trip_stats, dates[0],
+          split_directions=split_directions)
+        assert set(rs.columns) == expect_cols
+        assert rs.date.iat[0] == dates[0]
+        assert pd.isnull(rs.route_id.iat[0])
+
 @slow
 def test_compute_route_time_series():
     feed = cairns.copy()

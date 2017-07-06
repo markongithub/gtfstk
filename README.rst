@@ -38,6 +38,11 @@ Authors
 History
 =========
 
+9.0.1, 2017-07-06
+-------------------
+- Bugfixed the stop, route, and feed stats functions. They were throwing errors in the edge case where all the given dates had no active trips.
+
+
 9.0.0, 2017-07-04
 -------------------
 - Added informative printing for Feeds

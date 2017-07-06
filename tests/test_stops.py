@@ -134,8 +134,8 @@ def test_compute_stop_activity():
     assert set(stop_activity[dates].values.flatten()) == {0, 1}
 
 def test_compute_stop_stats():
-    feed = cairns.copy()
     dates = cairns_dates + ['20010101']
+    feed = cairns.copy()
     for split_directions in [True, False]:
         f = compute_stop_stats(feed, dates,
           split_directions=split_directions)
@@ -173,6 +173,17 @@ def test_compute_stop_stats():
         f = compute_stop_stats(feed, [],
           split_directions=split_directions)
         assert f.empty
+
+        # No services should yield null stats
+        feed1 = feed.copy()
+        c = feed1.calendar
+        c['monday'] = 0
+        feed1.calendar = c
+        f = compute_stop_stats(feed1, dates[0],
+          split_directions=split_directions)
+        assert set(f.columns) == expect_cols
+        assert f.date.iat[0] == dates[0]
+        assert pd.isnull(f.stop_id.iat[0])
 
 @slow
 def test_compute_stop_time_series():
