@@ -446,7 +446,7 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 
         Dates with no trip activity will have null stats.
         Exclude dates that lie outside of the Feed's date range.
-        If all the dates given lie outside of the feed's date range,
+        If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame.
 
     Notes
@@ -586,7 +586,8 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
         Same format as output by :func:`compute_route_time_series_base`
         but with multiple dates
 
-        If all dates lie outside the feed's date range, then return an
+        Exclude dates that lie outside of the Feed's date range.
+        If all dates lie outside the Feed's date range, then return an
         empty DataFrame.
 
     Notes

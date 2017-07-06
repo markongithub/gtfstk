@@ -87,6 +87,7 @@ class Feed(object):
     from .routes import (
         get_routes,
         compute_route_stats,
+        build_null_route_time_series,
         compute_route_time_series,
         build_route_timetable,
         route_to_geojson,
@@ -102,6 +103,7 @@ class Feed(object):
         build_geometry_by_stop,
         compute_stop_activity,
         compute_stop_stats,
+        build_null_stop_time_series,
         compute_stop_time_series,
         build_stop_timetable,
         get_stops_in_polygon,

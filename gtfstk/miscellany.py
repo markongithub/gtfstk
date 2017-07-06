@@ -304,7 +304,7 @@ def compute_feed_stats(feed, trip_stats, dates):
 
         Dates with no trip activity will have null stats.
         Exclude dates that lie outside of the Feed's date range.
-        If all the dates given lie outside of the feed's date range,
+        If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame.
 
     Notes
@@ -449,7 +449,7 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     Notes
     -----
     - See the notes for :func:`.routes.compute_route_time_series_base`
-    - If all dates lie outside the feed's date range, then return an
+    - If all dates lie outside the Feed's date range, then return an
       empty DataFrame
     - Assume the following feed attributes are not ``None``:
 
@@ -550,7 +550,7 @@ def compute_bounds(feed):
     """
     Return the tuple (min longitude, min latitude, max longitude,
     max latitude) where the longitudes and latitude vary across all
-    the feed's stop coordinates.
+    the Feed's stop coordinates.
     """
     lons, lats = feed.stops['stop_lon'], feed.stops['stop_lat']
     return lons.min(), lats.min(), lons.max(), lats.max()

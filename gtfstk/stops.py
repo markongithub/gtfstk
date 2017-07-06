@@ -404,7 +404,7 @@ def compute_stop_stats(feed, dates, split_directions=False,
 
         Dates with no trip activity will have null stats.
         Exclude dates that lie outside of the Feed's date range.
-        If all the dates given lie outside of the feed's date range,
+        If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame.
 
     Notes
@@ -525,11 +525,13 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
         The columns are the same as in
         :func:`compute_stop_time_series_base`.
 
+        Exclude dates that lie outside of the Feed's date range.
+        If all dates lie outside the Feed's date range, then return an
+        empty DataFrame
+
     Notes
     -----
     - See the notes for :func:`compute_stop_time_series_base`
-    - If all dates lie outside the feed's date range, then return an
-      empty DataFrame
     - Assume the following feed attributes are not ``None``:
 
         * ``feed.stop_times``
