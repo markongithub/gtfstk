@@ -38,6 +38,12 @@ Authors
 History
 =========
 
+9.0.1, 2017-07-06
+-------------------
+- Bugfixed the stats and time series functions. They were throwing errors in the edge case where all the given dates had no active trips.
+- Bugfixed ``combine_time_series()``. Its direction ID column names were ``'0'`` and ``'1'`` but should be ``0`` and ``1``.
+
+
 9.0.0, 2017-07-04
 -------------------
 - Added informative printing for Feeds

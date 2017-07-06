@@ -302,8 +302,9 @@ def compute_feed_stats(feed, trip_stats, dates):
         - ``'service_speed'``: service_distance/service_duration on the
           date
 
+        Dates with no trip activity will have null stats.
         Exclude dates that lie outside of the Feed's date range.
-        If all the dates given lie outside of the feed's date range,
+        If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame.
 
     Notes
@@ -337,7 +338,6 @@ def compute_feed_stats(feed, trip_stats, dates):
     # [stats dictionary, date list that stats apply]
     stats_and_dates_by_ids = {}
     cols = [
-      'date',
       'num_stops',
       'num_routes',
       'num_trips',
@@ -350,6 +350,7 @@ def compute_feed_stats(feed, trip_stats, dates):
       'service_duration',
       'service_speed',
     ]
+    null_stats = {c: np.nan for c in cols}
     for date in dates:
         stats = {}
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
@@ -357,10 +358,8 @@ def compute_feed_stats(feed, trip_stats, dates):
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
         elif not ids:
-            # Empty stats
-            stats = {col: np.nan for col in cols
-              if col != 'date'}
-            stats_and_dates_by_ids[ids] = [stats, [date]]
+            # Null stats
+            stats_and_dates_by_ids[ids] = [null_stats, [date]]
         else:
             # Compute stats
             f = ts[ts['trip_id'].isin(ids)].copy()
@@ -389,8 +388,8 @@ def compute_feed_stats(feed, trip_stats, dates):
 
     # Assemble stats into DataFrame
     rows = []
-    for stats, dates in stats_and_dates_by_ids.values():
-        for date in dates:
+    for stats, dates_ in stats_and_dates_by_ids.values():
+        for date in dates_:
             s = copy.copy(stats)
             s['date'] = date
             rows.append(s)
@@ -401,7 +400,7 @@ def compute_feed_stats(feed, trip_stats, dates):
     f[times] = f[times].applymap(
       lambda t: hp.timestr_to_seconds(t, inverse=True))
 
-    return f[cols].copy()
+    return f
 
 def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     """
@@ -450,7 +449,7 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
     Notes
     -----
     - See the notes for :func:`.routes.compute_route_time_series_base`
-    - If all dates lie outside the feed's date range, then return an
+    - If all dates lie outside the Feed's date range, then return an
       empty DataFrame
     - Assume the following feed attributes are not ``None``:
 
@@ -551,7 +550,7 @@ def compute_bounds(feed):
     """
     Return the tuple (min longitude, min latitude, max longitude,
     max latitude) where the longitudes and latitude vary across all
-    the feed's stop coordinates.
+    the Feed's stop coordinates.
     """
     lons, lats = feed.stops['stop_lon'], feed.stops['stop_lat']
     return lons.min(), lats.min(), lons.max(), lats.max()

@@ -402,11 +402,14 @@ def compute_stop_stats(feed, dates, split_directions=False,
         - ``'end_time'``: latest departure time of a trip from this stop on
           the date
 
+        Dates with no trip activity will have null stats.
+        Exclude dates that lie outside of the Feed's date range.
+        If all the dates given lie outside of the Feed's date range,
+        then return an empty DataFrame.
+
     Notes
     -----
-    - If there are no stats for the given dates, then return an empty
-      DataFrame
-    - Assume the following feed attributes are not ``None``:
+    Assume the following feed attributes are not ``None``:
         * ``feed.stop_times``
         * Those used in :func:`.trips.get_trips`
 
@@ -423,11 +426,27 @@ def compute_stop_stats(feed, dates, split_directions=False,
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
+    cols = [
+      'stop_id',
+      'num_routes',
+      'num_trips',
+      'max_headway',
+      'min_headway',
+      'mean_headway',
+      'start_time',
+      'end_time',
+    ]
+    if split_directions:
+        cols.append('direction_id')
+    null_stats = pd.DataFrame({c: np.nan for c in cols}, index=[0])
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
+        elif not ids:
+            # Null stats
+            stats_and_dates_by_ids[ids] = [null_stats, [date]]
         else:
             # Compute stats
             t = feed.trips
@@ -442,14 +461,39 @@ def compute_stop_stats(feed, dates, split_directions=False,
 
     # Assemble stats into DataFrame
     frames = []
-    for stats, dates in stats_and_dates_by_ids.values():
-        for date in dates:
+    for stats, dates_ in stats_and_dates_by_ids.values():
+        for date in dates_:
             f = stats.copy()
             f['date'] = date
             frames.append(f)
-    f = pd.concat(frames).sort_values(['date', 'stop_id'])
+    f = pd.concat(frames).sort_values(['date', 'stop_id']).reset_index(
+      drop=True)
 
     return f
+
+def build_null_stop_time_series(feed, date_label='20010101', split_directions=False,
+  freq='5Min'):
+    """
+    Return a stop time series with the same index and hierarchical columns
+    as output by :func:`compute_stop_time_series_base`,
+    but fill it full of null values.
+    """
+    start = date_label
+    end = pd.to_datetime(date_label + ' 23:59:00')
+    rng = pd.date_range(start, end, freq=freq)
+    inds = [
+      'num_trips',
+    ]
+    sids = feed.stops.stop_id
+    if split_directions:
+        product = [inds, sids, [0, 1]]
+        names = ['indicator', 'stop_id', 'direction_id']
+    else:
+        product = [inds, sids]
+        names = ['indicator', 'stop_id']
+    cols = pd.MultiIndex.from_product(product, names=names)
+    return pd.DataFrame([], index=rng, columns=cols).sort_index(
+      axis=1, sort_remaining=True)
 
 def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     """
@@ -481,11 +525,13 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
         The columns are the same as in
         :func:`compute_stop_time_series_base`.
 
+        Exclude dates that lie outside of the Feed's date range.
+        If all dates lie outside the Feed's date range, then return an
+        empty DataFrame
+
     Notes
     -----
     - See the notes for :func:`compute_stop_time_series_base`
-    - If all dates lie outside the feed's date range, then return an
-      empty DataFrame
     - Assume the following feed attributes are not ``None``:
 
         * ``feed.stop_times``
@@ -504,11 +550,16 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
+    null_stats = build_null_stop_time_series(feed,
+      split_directions=split_directions, freq=freq)
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
+        elif not ids:
+            # Null stats
+            stats_and_dates_by_ids[ids] = [null_stats, [date]]
         else:
             # Compute stats
             t = feed.trips
@@ -522,9 +573,6 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     # Assemble stats into DataFrame
     frames = []
     for stats, dates_ in stats_and_dates_by_ids.values():
-        if stats.empty:
-            # Skip empty stats
-            continue
         for date in dates_:
             f = stats.copy()
             # Replace date

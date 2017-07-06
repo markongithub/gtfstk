@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>GTFSTK 9.0.0 documentation</title>
+    <title>GTFSTK 9.0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '9.0.0',
+        VERSION:     '9.0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -31,7 +31,7 @@
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 9.0.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 9.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -64,7 +64,7 @@
           <div class="body" role="main">
             
   <div class="section" id="gtfstk-version-documentation">
-<h1>GTFSTK 9.0.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>GTFSTK 9.0.1 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <span id="document-introduction"></span><p>GTFSTK is a Python 3.4+ tool kit that analyzes <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
 It uses Pandas and Shapely to do the heavy lifting.</p>
@@ -1022,6 +1022,14 @@ Intended as a helper function.</p>
 <span id="module-routes"></span><h2>Module routes<a class="headerlink" href="#module-gtfstk.routes" title="Permalink to this headline">¶</a></h2>
 <p>Functions about routes.</p>
 <dl class="function">
+<dt id="gtfstk.routes.build_null_route_time_series">
+<code class="descclassname">gtfstk.routes.</code><code class="descname">build_null_route_time_series</code><span class="sig-paren">(</span><em>feed</em>, <em>date_label=‘20010101’</em>, <em>split_directions=False</em>, <em>freq=‘5Min’</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.routes.build_null_route_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a stop time series with the same index and hierarchical columns
+as output by <a class="reference internal" href="#gtfstk.routes.compute_route_time_series_base" title="gtfstk.routes.compute_route_time_series_base"><code class="xref py py-func docutils literal"><span class="pre">compute_route_time_series_base()</span></code></a>,
+but fill it full of null values.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfstk.routes.build_route_timetable">
 <code class="descclassname">gtfstk.routes.</code><code class="descname">build_route_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>route_id</em>, <em>dates</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.routes.build_route_timetable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a timetable for the given route and dates.</p>
@@ -1087,9 +1095,10 @@ headway stats</li>
 <li><code class="docutils literal"><span class="pre">'date'</span></code></li>
 <li>the columns listed in :func:<code class="docutils literal"><span class="pre">compute_route_stats_base</span></code></li>
 </ul>
-<p>Ignore dates outside the date range of the Feed.
-If there are no stats for the given dates, then return an empty
-DataFrame.</p>
+<p>Dates with no trip activity will have null stats.
+Exclude dates that lie outside of the Feed’s date range.
+If all the dates given lie outside of the Feed’s date range,
+then return an empty DataFrame.</p>
 </p>
 </td>
 </tr>
@@ -1218,7 +1227,8 @@ max frequency is one minute (‘Min’)</li>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Same format as output by <a class="reference internal" href="#gtfstk.routes.compute_route_time_series_base" title="gtfstk.routes.compute_route_time_series_base"><code class="xref py py-func docutils literal"><span class="pre">compute_route_time_series_base()</span></code></a>
 but with multiple dates</p>
-<p>If all dates lie outside the feed’s date range, then return an
+<p>Exclude dates that lie outside of the Feed’s date range.
+If all dates lie outside the Feed’s date range, then return an
 empty DataFrame.</p>
 </p>
 </td>
@@ -1244,7 +1254,7 @@ empty DataFrame.</p>
 
 <dl class="function">
 <dt id="gtfstk.routes.compute_route_time_series_base">
-<code class="descclassname">gtfstk.routes.</code><code class="descname">compute_route_time_series_base</code><span class="sig-paren">(</span><em>trip_stats_subset</em>, <em>split_directions=False</em>, <em>freq=‘5Min’</em>, <em>date_label=‘20010101’</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.routes.compute_route_time_series_base" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gtfstk.routes.</code><code class="descname">compute_route_time_series_base</code><span class="sig-paren">(</span><em>trip_stats_subset</em>, <em>date_label=‘20010101’</em>, <em>split_directions=False</em>, <em>freq=‘5Min’</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.routes.compute_route_time_series_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute stats in a 24-hour time series form for the given subset of trips.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1664,6 +1674,14 @@ coordinates of the stop</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="gtfstk.stops.build_null_stop_time_series">
+<code class="descclassname">gtfstk.stops.</code><code class="descname">build_null_stop_time_series</code><span class="sig-paren">(</span><em>feed</em>, <em>date_label=‘20010101’</em>, <em>split_directions=False</em>, <em>freq=‘5Min’</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.stops.build_null_stop_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a stop time series with the same index and hierarchical columns
+as output by <a class="reference internal" href="#gtfstk.stops.compute_stop_time_series_base" title="gtfstk.stops.compute_stop_time_series_base"><code class="xref py py-func docutils literal"><span class="pre">compute_stop_time_series_base()</span></code></a>,
+but fill it full of null values.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="gtfstk.stops.build_stop_timetable">
 <code class="descclassname">gtfstk.stops.</code><code class="descname">build_stop_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>stop_id</em>, <em>dates</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.stops.build_stop_timetable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a DataFrame containing the timetable for the given stop ID
@@ -1793,6 +1811,10 @@ on the date</li>
 <li><code class="docutils literal"><span class="pre">'end_time'</span></code>: latest departure time of a trip from this stop on
 the date</li>
 </ul>
+<p>Dates with no trip activity will have null stats.
+Exclude dates that lie outside of the Feed’s date range.
+If all the dates given lie outside of the Feed’s date range,
+then return an empty DataFrame.</p>
 </p>
 </td>
 </tr>
@@ -1802,19 +1824,14 @@ the date</li>
 </tbody>
 </table>
 <p class="rubric">Notes</p>
-<ul class="simple">
-<li>If there are no stats for the given dates, then return an empty
-DataFrame</li>
-<li><dl class="first docutils">
+<dl class="docutils">
 <dt>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</dt>
-<dd><ul class="first last">
+<dd><ul class="first last simple">
 <li><code class="docutils literal"><span class="pre">feed.stop_times</span></code></li>
 <li>Those used in <a class="reference internal" href="#gtfstk.trips.get_trips" title="gtfstk.trips.get_trips"><code class="xref py py-func docutils literal"><span class="pre">trips.get_trips()</span></code></a></li>
 </ul>
 </dd>
 </dl>
-</li>
-</ul>
 </dd></dl>
 
 <dl class="function">
@@ -1897,6 +1914,9 @@ sampled at the given frequency.
 The maximum allowable frequency is 1 minute.</p>
 <p>The columns are the same as in
 <a class="reference internal" href="#gtfstk.stops.compute_stop_time_series_base" title="gtfstk.stops.compute_stop_time_series_base"><code class="xref py py-func docutils literal"><span class="pre">compute_stop_time_series_base()</span></code></a>.</p>
+<p>Exclude dates that lie outside of the Feed’s date range.
+If all dates lie outside the Feed’s date range, then return an
+empty DataFrame</p>
 </p>
 </td>
 </tr>
@@ -1908,9 +1928,6 @@ The maximum allowable frequency is 1 minute.</p>
 <p class="rubric">Notes</p>
 <ul>
 <li><p class="first">See the notes for <a class="reference internal" href="#gtfstk.stops.compute_stop_time_series_base" title="gtfstk.stops.compute_stop_time_series_base"><code class="xref py py-func docutils literal"><span class="pre">compute_stop_time_series_base()</span></code></a></p>
-</li>
-<li><p class="first">If all dates lie outside the feed’s date range, then return an
-empty DataFrame</p>
 </li>
 <li><p class="first">Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
 <blockquote>
@@ -2420,7 +2437,7 @@ e.g. number of trips missing shapes.</p>
 <code class="descclassname">gtfstk.miscellany.</code><code class="descname">compute_bounds</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.miscellany.compute_bounds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the tuple (min longitude, min latitude, max longitude,
 max latitude) where the longitudes and latitude vary across all
-the feed’s stop coordinates.</p>
+the Feed’s stop coordinates.</p>
 </dd></dl>
 
 <dl class="function">
@@ -2483,8 +2500,9 @@ active routes on the date</li>
 <li><code class="docutils literal"><span class="pre">'service_speed'</span></code>: service_distance/service_duration on the
 date</li>
 </ul>
-<p>Exclude dates that lie outside of the Feed’s date range.
-If all the dates given lie outside of the feed’s date range,
+<p>Dates with no trip activity will have null stats.
+Exclude dates that lie outside of the Feed’s date range.
+If all the dates given lie outside of the Feed’s date range,
 then return an empty DataFrame.</p>
 </p>
 </td>
@@ -2565,7 +2583,7 @@ then return an empty DataFrame with the specified columns.</p>
 <ul>
 <li><p class="first">See the notes for <a class="reference internal" href="#gtfstk.routes.compute_route_time_series_base" title="gtfstk.routes.compute_route_time_series_base"><code class="xref py py-func docutils literal"><span class="pre">routes.compute_route_time_series_base()</span></code></a></p>
 </li>
-<li><p class="first">If all dates lie outside the feed’s date range, then return an
+<li><p class="first">If all dates lie outside the Feed’s date range, then return an
 empty DataFrame</p>
 </li>
 <li><p class="first">Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
@@ -3050,6 +3068,22 @@ coordinates of the stop</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gtfstk.feed.Feed.build_null_route_time_series">
+<code class="descname">build_null_route_time_series</code><span class="sig-paren">(</span><em>feed</em>, <em>date_label=‘20010101’</em>, <em>split_directions=False</em>, <em>freq=‘5Min’</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.build_null_route_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a stop time series with the same index and hierarchical columns
+as output by <code class="xref py py-func docutils literal"><span class="pre">compute_route_time_series_base()</span></code>,
+but fill it full of null values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfstk.feed.Feed.build_null_stop_time_series">
+<code class="descname">build_null_stop_time_series</code><span class="sig-paren">(</span><em>feed</em>, <em>date_label=‘20010101’</em>, <em>split_directions=False</em>, <em>freq=‘5Min’</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.build_null_stop_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a stop time series with the same index and hierarchical columns
+as output by <code class="xref py py-func docutils literal"><span class="pre">compute_stop_time_series_base()</span></code>,
+but fill it full of null values.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gtfstk.feed.Feed.build_route_timetable">
 <code class="descname">build_route_timetable</code><span class="sig-paren">(</span><em>feed</em>, <em>route_id</em>, <em>dates</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.build_route_timetable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a timetable for the given route and dates.</p>
@@ -3261,7 +3295,7 @@ Return the resulting Feed.</p>
 <code class="descname">compute_bounds</code><span class="sig-paren">(</span><em>feed</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.compute_bounds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the tuple (min longitude, min latitude, max longitude,
 max latitude) where the longitudes and latitude vary across all
-the feed’s stop coordinates.</p>
+the Feed’s stop coordinates.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3329,8 +3363,9 @@ active routes on the date</li>
 <li><code class="docutils literal"><span class="pre">'service_speed'</span></code>: service_distance/service_duration on the
 date</li>
 </ul>
-<p>Exclude dates that lie outside of the Feed’s date range.
-If all the dates given lie outside of the feed’s date range,
+<p>Dates with no trip activity will have null stats.
+Exclude dates that lie outside of the Feed’s date range.
+If all the dates given lie outside of the Feed’s date range,
 then return an empty DataFrame.</p>
 </p>
 </td>
@@ -3411,7 +3446,7 @@ then return an empty DataFrame with the specified columns.</p>
 <ul>
 <li><p class="first">See the notes for <a class="reference internal" href="#gtfstk.routes.compute_route_time_series_base" title="gtfstk.routes.compute_route_time_series_base"><code class="xref py py-func docutils literal"><span class="pre">routes.compute_route_time_series_base()</span></code></a></p>
 </li>
-<li><p class="first">If all dates lie outside the feed’s date range, then return an
+<li><p class="first">If all dates lie outside the Feed’s date range, then return an
 empty DataFrame</p>
 </li>
 <li><p class="first">Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
@@ -3451,9 +3486,10 @@ headway stats</li>
 <li><code class="docutils literal"><span class="pre">'date'</span></code></li>
 <li>the columns listed in :func:<code class="docutils literal"><span class="pre">compute_route_stats_base</span></code></li>
 </ul>
-<p>Ignore dates outside the date range of the Feed.
-If there are no stats for the given dates, then return an empty
-DataFrame.</p>
+<p>Dates with no trip activity will have null stats.
+Exclude dates that lie outside of the Feed’s date range.
+If all the dates given lie outside of the Feed’s date range,
+then return an empty DataFrame.</p>
 </p>
 </td>
 </tr>
@@ -3501,7 +3537,8 @@ max frequency is one minute (‘Min’)</li>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Same format as output by <code class="xref py py-func docutils literal"><span class="pre">compute_route_time_series_base()</span></code>
 but with multiple dates</p>
-<p>If all dates lie outside the feed’s date range, then return an
+<p>Exclude dates that lie outside of the Feed’s date range.
+If all dates lie outside the Feed’s date range, then return an
 empty DataFrame.</p>
 </p>
 </td>
@@ -3704,6 +3741,10 @@ on the date</li>
 <li><code class="docutils literal"><span class="pre">'end_time'</span></code>: latest departure time of a trip from this stop on
 the date</li>
 </ul>
+<p>Dates with no trip activity will have null stats.
+Exclude dates that lie outside of the Feed’s date range.
+If all the dates given lie outside of the Feed’s date range,
+then return an empty DataFrame.</p>
 </p>
 </td>
 </tr>
@@ -3713,19 +3754,14 @@ the date</li>
 </tbody>
 </table>
 <p class="rubric">Notes</p>
-<ul class="simple">
-<li>If there are no stats for the given dates, then return an empty
-DataFrame</li>
-<li><dl class="first docutils">
+<dl class="docutils">
 <dt>Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</dt>
-<dd><ul class="first last">
+<dd><ul class="first last simple">
 <li><code class="docutils literal"><span class="pre">feed.stop_times</span></code></li>
 <li>Those used in <a class="reference internal" href="#gtfstk.trips.get_trips" title="gtfstk.trips.get_trips"><code class="xref py py-func docutils literal"><span class="pre">trips.get_trips()</span></code></a></li>
 </ul>
 </dd>
 </dl>
-</li>
-</ul>
 </dd></dl>
 
 <dl class="method">
@@ -3755,6 +3791,9 @@ sampled at the given frequency.
 The maximum allowable frequency is 1 minute.</p>
 <p>The columns are the same as in
 <code class="xref py py-func docutils literal"><span class="pre">compute_stop_time_series_base()</span></code>.</p>
+<p>Exclude dates that lie outside of the Feed’s date range.
+If all dates lie outside the Feed’s date range, then return an
+empty DataFrame</p>
 </p>
 </td>
 </tr>
@@ -3766,9 +3805,6 @@ The maximum allowable frequency is 1 minute.</p>
 <p class="rubric">Notes</p>
 <ul>
 <li><p class="first">See the notes for <code class="xref py py-func docutils literal"><span class="pre">compute_stop_time_series_base()</span></code></p>
-</li>
-<li><p class="first">If all dates lie outside the feed’s date range, then return an
-empty DataFrame</p>
 </li>
 <li><p class="first">Assume the following feed attributes are not <code class="docutils literal"><span class="pre">None</span></code>:</p>
 <blockquote>
@@ -4623,7 +4659,7 @@ All distances will be the distance units <code class="docutils literal"><span cl
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 9.0.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 9.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
