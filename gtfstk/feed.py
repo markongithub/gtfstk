@@ -28,7 +28,6 @@ import pandas as pd
 from . import constants as cs
 from . import helpers as hp
 from . import cleaners as cn
-from . import calendar as cd
 
 
 class Feed(object):
