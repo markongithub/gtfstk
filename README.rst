@@ -38,6 +38,11 @@ Authors
 History
 =========
 
+9.0.2, 2017-07-12
+-------------------
+- Bugfixed the ``get_dates()`` function. It was throwing an error when the calendar or calendar_dates table was empty.
+
+
 9.0.1, 2017-07-06
 -------------------
 - Bugfixed the stats and time series functions. They were throwing errors in the edge case where all the given dates had no active trips.

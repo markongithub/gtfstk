@@ -14,6 +14,15 @@ def test_get_dates():
         assert dates[0] == d1
         assert dates[-1] == d2
 
+        # Should work on empty calendar files too
+        feed1 = feed.copy()
+        c = feed1.calendar_dates
+        feed1.calendar_dates = c[:0]
+        c = feed1.calendar
+        feed1.calendar = c[:0]
+        dates = get_dates(feed1, as_date_obj)
+        assert not dates
+
 def test_get_first_week():
     feed = cairns.copy()
     for as_date_obj in [True, False]:

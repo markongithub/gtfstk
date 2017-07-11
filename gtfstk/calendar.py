@@ -25,12 +25,12 @@ def get_dates(feed, as_date_obj=False):
 
     """
     dates = []
-    if feed.calendar is not None:
+    if feed.calendar is not None and not feed.calendar.empty:
         if 'start_date' in feed.calendar.columns:
             dates.append(feed.calendar['start_date'].min())
         if 'end_date' in feed.calendar.columns:
             dates.append(feed.calendar['end_date'].max())
-    if feed.calendar_dates is not None:
+    if feed.calendar_dates is not None and not feed.calendar_dates.empty:
         if 'date' in feed.calendar_dates.columns:
             start = feed.calendar_dates['date'].min()
             end = feed.calendar_dates['date'].max()
