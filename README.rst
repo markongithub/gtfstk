@@ -38,9 +38,8 @@ Authors
 Changes
 =========
 
-9.0.3, 2018-03-??
+9.0.3, 2018-03-21
 ------------------
-- Switched to Pipenv
 - Stopped ``drop_zombies`` from dropping stops with location type 1 or 2
 - Changed ``CRS_WGS84`` to ``WGS84`` and removed the ``no_defs`` key to agree with GeoPandas's WGS84 CRS
 - Replaced some ``None`` outputs with empty dictionary outputs where appropriate, e.g. in ``build_shape_by_geometry``
