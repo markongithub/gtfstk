@@ -11,6 +11,7 @@ jupyter = "*"
 pytest = "*"
 plotnine = "*"
 twine = "*"
+sphinx = "*"
 
 
 [packages]
