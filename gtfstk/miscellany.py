@@ -468,7 +468,8 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
       'service_duration',
       'service_speed',
     ]
-    f = pd.concat([rts[col].sum(axis=1) for col in cols], axis=1, keys=cols)
+    f = pd.concat([rts[col].sum(axis=1, min_count=1) for col in cols],
+      axis=1, keys=cols)
     f['service_speed'] = f['service_distance']/f['service_duration']
 
     return f.sort_index(axis=1)

@@ -144,4 +144,4 @@ FEED_ATTRS_2 = [
 FEED_ATTRS = FEED_ATTRS_1 + FEED_ATTRS_2
 
 #:
-CRS_WGS84 = {'init': 'epsg:4326', 'no_defs': True}
+WGS84 = {'init': 'epsg:4326'}

@@ -533,7 +533,7 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 def build_null_route_time_series(feed, date_label='20010101', split_directions=False,
   freq='5Min'):
     """
-    Return a stop time series with the same index and hierarchical columns
+    Return a route time series with the same index and hierarchical columns
     as output by :func:`compute_route_time_series_base`,
     but fill it full of null values.
     """
@@ -606,7 +606,7 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
     ts = trip_stats.copy()
 
     # Collect stats for each date, memoizing stats by trip ID sequence
-    # to avoid unnecessary recomputations.
+    # to avoid unnecessary re-computations.
     # Store in dictionary of the form
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]

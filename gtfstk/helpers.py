@@ -357,7 +357,7 @@ def downsample(time_series, freq):
             return group['num_trips'].iloc[-1]\
               + group['num_trip_ends'].iloc[:-1].sum()
 
-        num_trips = f.groupby(pd.TimeGrouper(freq)).apply(agg_num_trips)
+        num_trips = f.groupby(pd.Grouper(freq=freq)).apply(agg_num_trips)
         frames.append(num_trips)
 
         # Resample the rest of the indicators via summing

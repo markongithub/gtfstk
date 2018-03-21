@@ -26,10 +26,13 @@ def drop_zombies(feed):
     """
     feed = feed.copy()
 
-    # Drop stops with no stop times
+    # Drop stops of location type 0 that lack stop times
     ids = feed.stop_times['stop_id'].unique()
     f = feed.stops
-    feed.stops = f[f['stop_id'].isin(ids)]
+    cond = f['stop_id'].isin(ids)
+    if 'location_type' in f.columns:
+        cond |= f['location_type'] != 0
+    feed.stops = f[cond].copy()
 
     # Drop trips with no stop times
     ids = feed.stop_times['trip_id'].unique()

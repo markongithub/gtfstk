@@ -758,7 +758,7 @@ def check_frequencies(feed, as_df=False, include_warnings=False):
     for col in time_cols:
         f[col] = f[col].map(hp.timestr_to_seconds)
 
-    # start_time should be earlier than end_time
+    # Start_time should be earlier than end_time
     cond = f['start_time'] >= f['end_time']
     problems = check_table(problems, table, f, cond,
       'start_time not earlier than end_time')
