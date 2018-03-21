@@ -205,7 +205,7 @@ def geometrize_shapes(shapes, use_utm=False):
         return pd.Series(d)
 
     g = f.groupby('shape_id').apply(my_agg).reset_index()
-    g = gpd.GeoDataFrame(g, crs=cs.CRS_WGS84)
+    g = gpd.GeoDataFrame(g, crs=cs.WGS84)
 
     if use_utm:
         lat, lon = f.ix[0][['shape_pt_lat', 'shape_pt_lon']].values
@@ -228,7 +228,7 @@ def ungeometrize_shapes(geo_shapes):
     then convert thoes UTM coordinates back to WGS84 coordinates,
     which is the standard for a GTFS shapes table.
     """
-    geo_shapes = geo_shapes.to_crs(cs.CRS_WGS84)
+    geo_shapes = geo_shapes.to_crs(cs.WGS84)
 
     F = []
     for index, row in geo_shapes.iterrows():

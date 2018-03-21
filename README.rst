@@ -3,13 +3,13 @@ GTFSTK
 .. image:: https://travis-ci.org/araichev/gtfstk.svg?branch=master
     :target: https://travis-ci.org/araichev/gtfstk
 
-GTFSTK is a Python 3.4+ tool kit for analyzing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
+GTFSTK is a Python 3.5+ tool kit for analyzing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
 It uses Pandas and Shapely to do the heavy lifting.
 
 
 Installation
 =============
-Create a Python 3.4+ virtual environment and ``pip install gtfstk``.
+Using Pipenv, do ``pipenv install gtfstk``.
 
 
 Examples
@@ -35,8 +35,16 @@ Authors
 - Alex Raichev (2014-05)
 
 
-History
+Changes
 =========
+
+9.0.3, 2018-03-??
+------------------
+- Switched to Pipenv
+- Stopped ``drop_zombies`` from dropping stops with location type 1 or 2
+- Changed ``CRS_WGS84`` to ``WGS84`` and removed the ``no_defs`` key to agree with GeoPandas's WGS84 CRS
+- Replaced some ``None`` outputs with empty dictionary outputs where appropriate, e.g. in ``build_shape_by_geometry``
+
 
 9.0.2, 2017-07-12
 -------------------

@@ -277,7 +277,7 @@ def test_check_frequencies():
 
     for col in ['start_time', 'end_time']:
         feed = sample.copy()
-        feed.frequencies[col] = 'oingo'
+        feed.frequencies[col] = '07:00:00'
         assert check_frequencies(feed)
 
     feed = sample.copy()

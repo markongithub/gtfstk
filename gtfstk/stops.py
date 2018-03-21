@@ -714,7 +714,7 @@ def geometrize_stops(stops, use_utm=False):
       stops[['stop_lon', 'stop_lat']].values])
     f['geometry'] = s
     g = f.drop(['stop_lon', 'stop_lat'], axis=1)
-    g = gpd.GeoDataFrame(g, crs=cs.CRS_WGS84)
+    g = gpd.GeoDataFrame(g, crs=cs.WGS84)
 
     if use_utm:
         lat, lon = f.ix[0][['stop_lat', 'stop_lon']].values
@@ -743,7 +743,7 @@ def ungeometrize_stops(geo_stops):
         reference system of the given GeoDataFrame.
 
     """
-    f = geo_stops.copy().to_crs(cs.CRS_WGS84)
+    f = geo_stops.copy().to_crs(cs.WGS84)
     f['stop_lon'], f['stop_lat'] = zip(*f['geometry'].map(
       lambda p: [p.x, p.y]))
     del f['geometry']
