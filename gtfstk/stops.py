@@ -12,8 +12,9 @@ from . import constants as cs
 from . import helpers as hp
 
 
-def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
-  headway_start_time='07:00:00', headway_end_time='19:00:00'):
+def compute_stop_stats_base(stop_times, trip_subset,
+  headway_start_time='07:00:00', headway_end_time='19:00:00',
+  *, split_directions=False):
     """
     Given a stop times DataFrame and a subset of a trips DataFrame,
     return a DataFrame that provides summary stats about the stops
@@ -110,8 +111,8 @@ def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
 
     return result
 
-def compute_stop_time_series_base(stop_times, trip_subset,
-  split_directions=False, freq='5Min', date_label='20010101'):
+def compute_stop_time_series_base(stop_times, trip_subset, freq='5Min',
+     date_label='20010101', *, split_directions=False):
     """
     Given a stop times DataFrame and a subset of a trips DataFrame,
     return a DataFrame that provides a summary time series about the
@@ -208,7 +209,8 @@ def compute_stop_time_series_base(stop_times, trip_subset,
       split_directions=split_directions)
     return hp.downsample(g, freq=freq)
 
-def get_stops(feed, date=None, trip_id=None, route_id=None, in_stations=False):
+def get_stops(feed, date=None, trip_id=None, route_id=None,
+  *, in_stations=False):
     """
     Return a section of ``feed.stops``.
 
@@ -260,7 +262,7 @@ def get_stops(feed, date=None, trip_id=None, route_id=None, in_stations=False):
 
     return s
 
-def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
+def build_geometry_by_stop(feed, stop_ids=None, *, use_utm=False):
     """
     Return a dictionary with the structure
     stop_id -> Shapely Point with coordinates of the stop.
@@ -356,8 +358,9 @@ def compute_stop_activity(feed, dates):
             f = f.merge(g[date].max().reset_index())
     return f
 
-def compute_stop_stats(feed, dates, split_directions=False,
-  headway_start_time='07:00:00', headway_end_time='19:00:00'):
+def compute_stop_stats(feed, dates,
+  headway_start_time='07:00:00', headway_end_time='19:00:00',
+  *, split_directions=False):
     """
     Compute stats for all stops for the given dates.
 
@@ -471,8 +474,8 @@ def compute_stop_stats(feed, dates, split_directions=False,
 
     return f
 
-def build_null_stop_time_series(feed, date_label='20010101', split_directions=False,
-  freq='5Min'):
+def build_null_stop_time_series(feed, date_label='20010101', freq='5Min',
+  *, split_directions=False):
     """
     Return a stop time series with the same index and hierarchical columns
     as output by :func:`compute_stop_time_series_base`,
@@ -495,7 +498,8 @@ def build_null_stop_time_series(feed, date_label='20010101', split_directions=Fa
     return pd.DataFrame([], index=rng, columns=cols).sort_index(
       axis=1, sort_remaining=True)
 
-def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
+def compute_stop_time_series(feed, dates, freq='5Min',
+  *, split_directions=False):
     """
     Compute time series for the given stops on the given dates at the
     given frequency and return the result as a DataFrame of the same
@@ -682,7 +686,7 @@ def get_stops_in_polygon(feed, polygon, geo_stops=None):
     f = f[f['hit']][cols]
     return ungeometrize_stops(f)
 
-def geometrize_stops(stops, use_utm=False):
+def geometrize_stops(stops, *, use_utm=False):
     """
     Given a stops DataFrame, convert it to a GeoPandas GeoDataFrame
     and return the result.

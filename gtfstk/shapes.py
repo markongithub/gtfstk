@@ -10,7 +10,7 @@ from . import constants as cs
 from . import helpers as hp
 
 
-def build_geometry_by_shape(feed, use_utm=False, shape_ids=None):
+def build_geometry_by_shape(feed, shape_ids=None, *, use_utm=False):
     """
     Return a dictionary with structure shape_id -> Shapely LineString
     of shape.
@@ -18,12 +18,12 @@ def build_geometry_by_shape(feed, use_utm=False, shape_ids=None):
     Parameters
     ----------
     feed : Feed
-    use_utm : boolean
-        If ``True``, then use local UTM coordinates; otherwise, use
-        WGS84 coordinates
     shape_ids : list
         IDs of shapes in ``feed.shapes`` to restrict output to; return
         all shapes if ``None``.
+    use_utm : boolean
+        If ``True``, then use local UTM coordinates; otherwise, use
+        WGS84 coordinates
 
     Returns
     -------
@@ -62,16 +62,19 @@ def build_geometry_by_shape(feed, use_utm=False, shape_ids=None):
             d[shape] = sg.LineString(lonlats)
     return d
 
-def shapes_to_geojson(feed):
+def shapes_to_geojson(feed, shape_ids=None):
     """
     Return a (decoded) GeoJSON FeatureCollection of LineString features
     representing ``feed.shapes``.
     Each feature will have a ``shape_id`` property.
     The coordinates reference system is the default one for GeoJSON,
     namely WGS84.
+
+    If a list of shape IDs is given, then return only the LineString
+    features corresponding to those shape IDS.
     Return the empty dictionary if ``feed.shapes is None``
     """
-    geometry_by_shape = feed.build_geometry_by_shape(use_utm=False)
+    geometry_by_shape = feed.build_geometry_by_shape(shape_ids=shape_ids)
     if geometry_by_shape:
         fc = {
             'type': 'FeatureCollection',
@@ -85,7 +88,7 @@ def shapes_to_geojson(feed):
         fc = {}
     return fc
 
-def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None,
+def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None, *,
   geometrized=False):
     """
     Return the slice of ``feed.shapes`` that contains all shapes that
@@ -181,7 +184,7 @@ def append_dist_to_shapes(feed):
     feed.shapes = g
     return feed
 
-def geometrize_shapes(shapes, use_utm=False):
+def geometrize_shapes(shapes, *, use_utm=False):
     """
     Given a GTFS shapes DataFrame, convert it to a GeoPandas
     GeoDataFrame and return the result.

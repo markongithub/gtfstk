@@ -30,8 +30,9 @@ def test_build_geometry_by_shape():
 
 def test_shapes_to_geojson():
     feed = cairns.copy()
-    collection = shapes_to_geojson(feed)
-    geometry_by_shape = build_geometry_by_shape(feed, use_utm=False)
+    shape_ids = feed.shapes.loc[:2, 'shape_id']
+    collection = shapes_to_geojson(feed, shape_ids)
+    geometry_by_shape = build_geometry_by_shape(feed, shape_ids=shape_ids)
     for f in collection['features']:
         shape = f['properties']['shape_id']
         geom = sg.shape(f['geometry'])

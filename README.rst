@@ -38,10 +38,12 @@ Authors
 Changes
 =========
 
-9.1,0,
+9.1.0,
 ------------------
 - Changed ``route_to_geojson`` to return LineStrings instead of a MultiLineString and added a date keyword argurment
+- Changed ``shapes_to_geojson`` to accept and optional list of shape IDs to restrict to
 - Added ``map_routes`` function to draw routes and their stops on a Folium map, if Folium is installed
+- Used * in function signatures to separate boolean keyword arguments. I guess it is debatable whether this a breaking change.  I'll say no.
 
 
 9.0.3, 2018-03-21

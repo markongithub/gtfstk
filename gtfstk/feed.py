@@ -82,7 +82,7 @@ class Feed(object):
         get_dates,
         get_first_week,
         restrict_dates,
-        )
+    )
     from .routes import (
         get_routes,
         compute_route_stats,
@@ -91,13 +91,13 @@ class Feed(object):
         build_route_timetable,
         route_to_geojson,
         map_routes,
-        )
+    )
     from .shapes import (
         build_geometry_by_shape,
         shapes_to_geojson,
         get_shapes_intersecting_geometry,
         append_dist_to_shapes,
-        )
+    )
     from .stops import (
         get_stops,
         build_geometry_by_stop,
@@ -107,12 +107,12 @@ class Feed(object):
         compute_stop_time_series,
         build_stop_timetable,
         get_stops_in_polygon,
-        )
+    )
     from .stop_times import (
         get_stop_times,
         append_dist_to_stop_times,
         get_start_and_end_times,
-        )
+    )
     from .trips import (
         is_active_trip,
         get_trips,
@@ -121,7 +121,7 @@ class Feed(object):
         compute_trip_stats,
         locate_trips,
         trip_to_geojson,
-        )
+    )
     from .miscellany import (
         summarize,
         describe,
@@ -135,7 +135,7 @@ class Feed(object):
         restrict_to_routes,
         restrict_to_polygon,
         compute_screen_line_counts,
-        )
+    )
     from .validators import (
         validate,
         check_agency,
@@ -151,7 +151,7 @@ class Feed(object):
         check_stop_times,
         check_transfers,
         check_trips,
-        )
+    )
     from .cleaners import (
         clean_ids,
         clean_times,
@@ -160,7 +160,7 @@ class Feed(object):
         aggregate_routes,
         clean,
         drop_invalid_columns,
-        )
+    )
 
 
     def __init__(self, dist_units, agency=None, stops=None, routes=None,
@@ -357,7 +357,7 @@ def read_gtfs(path, dist_units=None):
     The path should be a directory containing GTFS text files or a
     zip file that unzips as a collection of GTFS text files
     (and not as a directory containing GTFS text files).
-    The distance units must lie in :const:`constants.dist_units`
+    The distance units given must lie in :const:`constants.dist_units`
 
     Notes
     -----

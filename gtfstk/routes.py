@@ -13,8 +13,9 @@ from . import constants as cs
 from . import helpers as hp
 
 
-def compute_route_stats_base(trip_stats_subset, split_directions=False,
-  headway_start_time='07:00:00', headway_end_time='19:00:00'):
+def compute_route_stats_base(trip_stats_subset,
+  headway_start_time='07:00:00', headway_end_time='19:00:00', *,
+  split_directions=False):
     """
     Compute stats for the given subset of trips stats.
 
@@ -214,7 +215,7 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
     return g
 
 def compute_route_time_series_base(trip_stats_subset, date_label='20010101',
-  split_directions=False, freq='5Min'):
+  freq='5Min', *, split_directions=False):
     """
     Compute stats in a 24-hour time series form for the given subset of trips.
 
@@ -415,8 +416,9 @@ def get_routes(feed, date=None, time=None):
     R = trips['route_id'].unique()
     return feed.routes[feed.routes['route_id'].isin(R)]
 
-def compute_route_stats(feed, trip_stats, dates, split_directions=False,
-  headway_start_time='07:00:00', headway_end_time='19:00:00'):
+def compute_route_stats(feed, trip_stats, dates,
+  headway_start_time='07:00:00', headway_end_time='19:00:00',
+  *, split_directions=False):
     """
     Compute stats for all routes starting on the given dates.
 
@@ -532,8 +534,8 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 
     return f
 
-def build_null_route_time_series(feed, date_label='20010101', split_directions=False,
-  freq='5Min'):
+def build_null_route_time_series(feed, date_label='20010101',
+  freq='5Min', *, split_directions=False):
     """
     Return a route time series with the same index and hierarchical columns
     as output by :func:`compute_route_time_series_base`,
@@ -561,8 +563,8 @@ def build_null_route_time_series(feed, date_label='20010101', split_directions=F
     return pd.DataFrame([], index=rng, columns=cols).sort_index(
       axis=1, sort_remaining=True)
 
-def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
-  freq='5Min'):
+def compute_route_time_series(feed, trip_stats, dates, freq='5Min',
+  *, split_directions=False):
     """
     Compute stats in time series form for routes that start on the given
     dates.
@@ -886,4 +888,3 @@ def map_routes(feed, route_ids=None, route_short_names=None, date=None,
     my_map.fit_bounds(bounds2)
 
     return my_map
-

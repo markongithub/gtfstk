@@ -5,7 +5,7 @@ from gtfstk import *
 def test_get_dates():
     feed = cairns.copy()
     for as_date_obj in [True, False]:
-        dates = get_dates(feed, as_date_obj)
+        dates = get_dates(feed, as_date_obj=as_date_obj)
         d1 = '20140526'
         d2 = '20141228'
         if as_date_obj:
@@ -20,13 +20,13 @@ def test_get_dates():
         feed1.calendar_dates = c[:0]
         c = feed1.calendar
         feed1.calendar = c[:0]
-        dates = get_dates(feed1, as_date_obj)
+        dates = get_dates(feed1, as_date_obj=as_date_obj)
         assert not dates
 
 def test_get_first_week():
     feed = cairns.copy()
     for as_date_obj in [True, False]:
-        dates = get_first_week(feed, as_date_obj)
+        dates = get_first_week(feed, as_date_obj=as_date_obj)
         d1 = '20140526'
         d2 = '20140601'
         if as_date_obj:

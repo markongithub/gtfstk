@@ -185,7 +185,7 @@ def compute_busiest_date(feed, dates):
     s = [(f[c].sum(), c) for c in f.columns if c != 'trip_id']
     return max(s)[1]
 
-def compute_trip_stats(feed, compute_dist_from_shapes=False):
+def compute_trip_stats(feed, *, compute_dist_from_shapes=False):
     """
     Return a DataFrame with the following columns:
 
@@ -436,7 +436,7 @@ def locate_trips(feed, date, times):
 
     return h.groupby('shape_id').apply(get_lonlat)
 
-def trip_to_geojson(feed, trip_id, include_stops=False):
+def trip_to_geojson(feed, trip_id, *, include_stops=False):
     """
     Return a GeoJSON representation of the given trip, optionally with
     its stops.
