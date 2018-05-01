@@ -293,7 +293,7 @@ def test_map_routes():
     feed = cairns.copy()
     rids = feed.routes['route_id'].values[:2]
     date = cairns_dates[0]
-    map0 = map_routes(feed, route_ids=['bingo'], date=date)
-    map1 = map_routes(feed, route_ids=rids, date=date, include_stops=True)
+    map0 = map_routes(feed, ['bingo'], date=date)
+    map1 = map_routes(feed, rids, date=date, include_stops=True)
     for m in [map0, map1]:
         assert isinstance(m, Map)

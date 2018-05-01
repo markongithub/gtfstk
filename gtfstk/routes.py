@@ -420,7 +420,7 @@ def compute_route_stats(feed, trip_stats, dates,
   headway_start_time='07:00:00', headway_end_time='19:00:00',
   *, split_directions=False):
     """
-    Compute stats for all routes starting on the given dates.
+    Compute stats for all routes that lie starting on the given dates.
 
     Parameters
     ----------
@@ -786,7 +786,7 @@ def route_to_geojson(feed, route_id, date=None, *, include_stops=False):
 
     return {'type': 'FeatureCollection', 'features': features}
 
-def map_routes(feed, route_ids=None, route_short_names=None, date=None,
+def map_routes(feed, route_ids, date=None,
   color_palette=cs.COLORS_SET2, *, include_stops=True):
     """
     Return a Folium map showing the given routes and (optionally)
@@ -797,8 +797,6 @@ def map_routes(feed, route_ids=None, route_short_names=None, date=None,
     feed : Feed
     route_ids : list
         IDs of route in ``feed.routes``
-    route_short_names : list
-        Short names of routes in ``feed.routes``
     date : string
         YYYYMMDD date string restricting the output to trips active
         on the date
@@ -820,19 +818,17 @@ def map_routes(feed, route_ids=None, route_short_names=None, date=None,
     Notes
     ------
     - Requires Folium
-    - One of ``route_ids`` or ``route_short_names`` must be given
+
     """
     import folium as fl
 
-    if route_ids is not None:
-        cond = lambda x: x['route_id'].isin(route_ids)
-    elif route_short_names is not None:
-        cond = lambda x: x['route_short_name'].isin(route_short_names)
-    else:
-        raise ValueError("One of route_ids or route_short_names must be given")
-
-    # Get routes DataFrame slice and convert to dictionary
-    routes = feed.routes.loc[cond].fillna('n/a').to_dict(orient='records')
+    # Get routes slice and convert to dictionary
+    routes = (
+      feed.routes
+      .loc[lambda x: x['route_id'].isin(route_ids)]
+      .fillna('n/a')
+      .to_dict(orient='records')
+    )
 
     # Create route colors
     n = len(routes)
