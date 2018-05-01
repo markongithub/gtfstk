@@ -713,7 +713,7 @@ def build_route_timetable(feed, route_id, dates):
     return f.sort_values(['date', 'min_dt', 'stop_sequence']).drop(
       ['min_dt', 'dt'], axis=1)
 
-def route_to_geojson(feed, route_id, include_stops=False):
+def route_to_geojson(feed, route_id, date=None, *, include_stops=False):
     """
     Return a GeoJSON rendering of the route and, optionally, its stops.
 
@@ -722,6 +722,9 @@ def route_to_geojson(feed, route_id, include_stops=False):
     feed : Feed
     route_id : string
         ID of a route in ``feed.routes``
+    date : string
+        YYYYMMDD date string restricting the output to trips active
+        on the date
     include_stops : boolean
         If ``True``, then include stop features in the result
 
@@ -729,51 +732,52 @@ def route_to_geojson(feed, route_id, include_stops=False):
     -------
     dictionary
         A decoded GeoJSON feature collection comprising a
-        MultiLineString feature of distinct shapes of the trips on the
+        LineString features of the distinct shapes of the trips on the
         route.
         If ``include_stops``, then include one Point feature for
         each stop on the route.
 
-    Notes
-    -----
-    Assume the following feed attributes are not ``None``:
-
-    - ``feed.routes``
-    - ``feed.shapes``
-    - ``feed.trips``
-    - ``feed.stops``
-
     """
-    # Get the relevant shapes
-    t = feed.trips.copy()
-    A = t[t['route_id'] == route_id]['shape_id'].unique()
-    geometry_by_shape = feed.build_geometry_by_shape(use_utm=False,
-      shape_ids=A)
+    # Get set of unique trip shapes for route
+    shapes = (
+        feed.get_trips(date=date)
+        .loc[lambda x: x['route_id'] == route_id, 'shape_id']
+        .unique()
+    )
+    if not shapes.size:
+        return {'type': 'FeatureCollection', 'features': []}
 
-    if not geometry_by_shape:
-        return {}
+    geom_by_shape = feed.build_geometry_by_shape(shape_ids=shapes)
 
-    r = feed.routes.copy()
+    # Get route properties
+    route = (
+        feed.get_routes(date=date)
+        .loc[lambda x: x['route_id'] == route_id]
+        .fillna('n/a')
+        .to_dict(orient='records', into=OrderedDict)
+    )[0]
+
+    # Build route shape features
     features = [{
         'type': 'Feature',
-        'properties': json.loads(r[r['route_id'] == route_id].to_json(
-          orient='records'))[0],
-        'geometry': sg.mapping(sg.MultiLineString(
-          [linestring for linestring in geometry_by_shape.values()]))
-    }]
+        'properties': route,
+        'geometry': sg.mapping(sg.LineString(geom)),
+    } for geom in geom_by_shape.values() ]
 
+    # Build stop features if desired
     if include_stops:
-        # Get relevant stops and geometrys
-        s = feed.get_stops(route_id=route_id)
-        cols = set(s.columns) - set(['stop_lon', 'stop_lat'])
-        s = s[list(cols)].copy()
-        stop_ids = s['stop_id'].tolist()
-        geometry_by_stop = feed.build_geometry_by_stop(stop_ids=stop_ids)
+        stops = (
+            feed.get_stops(route_id=route_id)
+            .fillna('n/a')
+            .to_dict(orient='records', into=OrderedDict)
+        )
         features.extend([{
             'type': 'Feature',
-            'properties': json.loads(s[s['stop_id'] == stop_id].to_json(
-              orient='records'))[0],
-            'geometry': sg.mapping(geometry_by_stop[stop_id]),
-        } for stop_id in stop_ids])
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [stop['stop_lon'], stop['stop_lat']],
+              },
+            'properties': stop,
+        } for stop in stops])
 
     return {'type': 'FeatureCollection', 'features': features}

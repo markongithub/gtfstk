@@ -265,13 +265,22 @@ def test_build_route_timetable():
 def test_route_to_geojson():
     feed = cairns.copy()
     route_id = feed.routes['route_id'].values[0]
-    g0 = route_to_geojson(feed, route_id)
-    g1 = route_to_geojson(feed, route_id, include_stops=True)
-    for g in [g0, g1]:
+    date = cairns_dates[0]
+    g0 = route_to_geojson(feed, 'bingo', date)
+    g1 = route_to_geojson(feed, route_id, date)
+    g2 = route_to_geojson(feed, route_id, date, include_stops=True)
+    for g in [g0, g1, g2]:
         # Should be a dictionary
         assert isinstance(g, dict)
 
     # Should have the correct number of features
-    assert len(g0['features']) == 1
-    stop_ids = get_stops(feed, route_id=route_id)['stop_id'].values
-    assert len(g1['features']) == 1 + len(stop_ids)
+    n = (
+        feed.get_trips(date=date)
+        .loc[lambda x: x['route_id'] == route_id, 'shape_id']
+        .nunique()
+    )
+    k = get_stops(feed, route_id=route_id)['stop_id'].shape[0]
+
+    assert len(g0['features']) == 0
+    assert len(g1['features']) == n
+    assert len(g2['features']) == n + k

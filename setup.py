@@ -22,7 +22,7 @@ setup(
     license=license,
     install_requires=[
         'Shapely>=1.5.1',
-        'pandas>=0.18.1',
+        'pandas>=0.20.0',
         'utm>=0.3.1',
         'pycountry==17.1.8',
     ],

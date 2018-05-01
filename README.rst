@@ -38,6 +38,11 @@ Authors
 Changes
 =========
 
+9.1,0,
+------------------
+- Changed ``route_to_geojson`` to return LineStrings instead of a MultiLineString and added a date keyword argurment
+
+
 9.0.3, 2018-03-21
 ------------------
 - Stopped ``drop_zombies`` from dropping stops with location type 1 or 2
