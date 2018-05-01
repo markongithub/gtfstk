@@ -416,17 +416,18 @@ def get_routes(feed, date=None, time=None):
     R = trips['route_id'].unique()
     return feed.routes[feed.routes['route_id'].isin(R)]
 
-def compute_route_stats(feed, trip_stats, dates,
+def compute_route_stats(feed, trip_stats_subset, dates,
   headway_start_time='07:00:00', headway_end_time='19:00:00',
   *, split_directions=False):
     """
-    Compute stats for all routes that lie starting on the given dates.
+    Compute route stats for all the trips that lie in the given subset
+    of trip stats and that start on the given dates.
 
     Parameters
     ----------
     feed : Feed
-    trip_stats : DataFrame
-        Output of :func:`.trips.compute_trip_stats`
+    trip_stats_subset : DataFrame
+        Slice of the output of :func:`.trips.compute_trip_stats`
     dates : string or list
         A YYYYMMDD date string or list thereof indicating the date(s)
         for which to compute stats
@@ -467,7 +468,7 @@ def compute_route_stats(feed, trip_stats, dates,
     if not dates:
         return pd.DataFrame()
 
-    ts = trip_stats.copy()
+    ts = trip_stats_subset.copy()
     activity = feed.compute_trip_activity(dates)
 
     # Collect stats for each date, memoizing stats by trip ID sequence
@@ -563,17 +564,17 @@ def build_null_route_time_series(feed, date_label='20010101',
     return pd.DataFrame([], index=rng, columns=cols).sort_index(
       axis=1, sort_remaining=True)
 
-def compute_route_time_series(feed, trip_stats, dates, freq='5Min',
+def compute_route_time_series(feed, trip_stats_subset, dates, freq='5Min',
   *, split_directions=False):
     """
-    Compute stats in time series form for routes that start on the given
-    dates.
+    Compute route stats in time series form for the trips that lie in
+    the trip stats subset and that start on the given dates.
 
     Parameters
     ----------
     feed : Feed
-    trip_stats : DataFrame
-        Output of :func:`.trips.compute_trip_stats`
+    trip_stats_subset : DataFrame
+        Slice of the output of :func:`.trips.compute_trip_stats`
     dates : string or list
         A YYYYMMDD date string or list thereof indicating the date(s)
         for which to compute stats
@@ -607,7 +608,7 @@ def compute_route_time_series(feed, trip_stats, dates, freq='5Min',
         return pd.DataFrame()
 
     activity = feed.compute_trip_activity(dates)
-    ts = trip_stats.copy()
+    ts = trip_stats_subset.copy()
 
     # Collect stats for each date, memoizing stats by trip ID sequence
     # to avoid unnecessary re-computations.

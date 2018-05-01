@@ -45,6 +45,8 @@ Changes
 - Added ``map_routes`` function to draw routes and their stops on a Folium map, if Folium is installed
 - Inserted stars in function signatures to separate boolean keyword arguments. Is this a breaking change? I say no, but it's debatable.
 - Changed ``compute_trip_stats`` to accept an optional list of route IDs to restrict to
+- Clarified the doctstrings of ``compute_route_stats`` and ``compute_route_time_series`` to note that those functions can accept slices of trip stats
+
 
 9.0.3, 2018-03-21
 ------------------
