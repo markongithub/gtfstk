@@ -7,7 +7,9 @@ import json
 import pandas as pd
 import numpy as np
 import shapely.geometry as sg
+import shapely.ops as so
 
+from . import constants as cs
 from . import helpers as hp
 
 
@@ -781,3 +783,107 @@ def route_to_geojson(feed, route_id, date=None, *, include_stops=False):
         } for stop in stops])
 
     return {'type': 'FeatureCollection', 'features': features}
+
+def map_routes(feed, route_ids=None, route_short_names=None, date=None,
+  color_palette=cs.COLORS_SET2, *, include_stops=True):
+    """
+    Return a Folium map showing the given routes and (optionally)
+    their stops.
+
+    Parameters
+    ----------
+    feed : Feed
+    route_ids : list
+        IDs of route in ``feed.routes``
+    route_short_names : list
+        Short names of routes in ``feed.routes``
+    date : string
+        YYYYMMDD date string restricting the output to trips active
+        on the date
+    color_palette : list
+        Palette to use to color the routes. If more routes than colors,
+        then colors will be recycled.
+    include_stops : boolean
+        If ``True``, then include stops in the map
+
+    Returns
+    -------
+    dictionary
+        A decoded GeoJSON feature collection comprising a
+        LineString features of the distinct shapes of the trips on the
+        route.
+        If ``include_stops``, then include one Point feature for
+        each stop on the route.
+
+    Notes
+    ------
+    - Requires Folium
+    - One of ``route_ids`` or ``route_short_names`` must be given
+    """
+    import folium as fl
+
+    if route_ids is not None:
+        cond = lambda x: x['route_id'].isin(route_ids)
+    elif route_short_names is not None:
+        cond = lambda x: x['route_short_name'].isin(route_short_names)
+    else:
+        raise ValueError("One of route_ids or route_short_names must be given")
+
+    # Get routes DataFrame slice and convert to dictionary
+    routes = feed.routes.loc[cond].fillna('n/a').to_dict(orient='records')
+
+    # Create route colors
+    n = len(routes)
+    colors = [color_palette[i % len(color_palette)] for i in range(n)]
+
+    # Initialize map
+    my_map = fl.Map(tiles='cartodbpositron')
+
+    # Collect route bounding boxes to set map zoom later
+    bboxes = []
+
+    # Create a feature group for each route and add it to the map
+    for i, route in enumerate(routes):
+        collection = feed.route_to_geojson(
+          route_id=route['route_id'], date=date, include_stops=include_stops)
+        group = fl.FeatureGroup(name='Route ' + route['route_short_name'])
+        color = colors[i]
+
+        for f in collection['features']:
+            prop = f['properties']
+
+            # Add stop
+            if f['geometry']['type'] == 'Point':
+                lon, lat = f['geometry']['coordinates']
+                fl.CircleMarker(
+                    location=[lat, lon],
+                    radius=8,
+                    fill=True,
+                    color=color,
+                    weight=1,
+                    popup=fl.Popup(hp.make_html(prop))
+                ).add_to(group)
+
+            # Add path
+            else:
+                prop['color'] = color
+                path = fl.GeoJson(f,
+                    name=route,
+                    style_function=lambda x: {
+                      'color': x['properties']['color']},
+                )
+                path.add_child(fl.Popup(hp.make_html(prop)))
+                path.add_to(group)
+                bboxes.append(sg.box(*sg.shape(f['geometry']).bounds))
+
+        group.add_to(my_map)
+
+    fl.LayerControl().add_to(my_map)
+
+    # Fit map to bounds
+    bounds = so.unary_union(bboxes).bounds
+    bounds2 = [bounds[1::-1], bounds[3:1:-1]]  # Folium expects this ordering
+    my_map.fit_bounds(bounds2)
+
+    return my_map
+

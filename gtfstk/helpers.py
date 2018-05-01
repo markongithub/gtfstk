@@ -2,12 +2,12 @@
 Functions useful across modules.
 """
 import datetime as dt
-import dateutil.relativedelta as rd
 
 import pandas as pd
 import numpy as np
 from shapely.ops import transform
 import utm
+from json2html import json2html as jh
 
 from . import constants as cs
 
@@ -377,3 +377,11 @@ def downsample(time_series, freq):
     result = result.sort_index(axis=1, sort_remaining=True)
 
     return result
+
+def make_html(d):
+    """
+    Convert the given dictionary into an HTML table (string) with
+    two columns: keys of dictionary, values of dictionary.
+    """
+    return jh.convert(d,
+      table_attributes="class=\"table table-condensed table-hover\"")

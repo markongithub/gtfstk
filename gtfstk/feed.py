@@ -90,6 +90,7 @@ class Feed(object):
         compute_route_time_series,
         build_route_timetable,
         route_to_geojson,
+        map_routes,
         )
     from .shapes import (
         build_geometry_by_shape,

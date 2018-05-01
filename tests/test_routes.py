@@ -1,8 +1,11 @@
+import pytest
 import pandas as pd
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_dates, cairns_trip_stats
+from .context import gtfstk, slow, HAS_FOLIUM, cairns, cairns_dates, cairns_trip_stats
 from gtfstk import *
 
+if HAS_FOLIUM:
+    from folium import Map
 
 @slow
 def test_compute_route_stats_base():
@@ -284,3 +287,13 @@ def test_route_to_geojson():
     assert len(g0['features']) == 0
     assert len(g1['features']) == n
     assert len(g2['features']) == n + k
+
+@pytest.mark.skipif(not HAS_FOLIUM, reason="Requires Folium")
+def test_map_routes():
+    feed = cairns.copy()
+    rids = feed.routes['route_id'].values[:2]
+    date = cairns_dates[0]
+    map0 = map_routes(feed, route_ids=['bingo'], date=date)
+    map1 = map_routes(feed, route_ids=rids, date=date, include_stops=True)
+    for m in [map0, map1]:
+        assert isinstance(m, Map)

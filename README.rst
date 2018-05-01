@@ -41,6 +41,7 @@ Changes
 9.1,0,
 ------------------
 - Changed ``route_to_geojson`` to return LineStrings instead of a MultiLineString and added a date keyword argurment
+- Added ``map_routes`` function to draw routes and their stops on a Folium map, if Folium is installed
 
 
 9.0.3, 2018-03-21
