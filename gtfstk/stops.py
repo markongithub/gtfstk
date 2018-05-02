@@ -12,16 +12,17 @@ from . import constants as cs
 from . import helpers as hp
 
 
-def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
-  headway_start_time='07:00:00', headway_end_time='19:00:00'):
+def compute_stop_stats_base(stop_times_subset, trip_subset,
+  headway_start_time='07:00:00', headway_end_time='19:00:00',
+  *, split_directions=False):
     """
-    Given a stop times DataFrame and a subset of a trips DataFrame,
-    return a DataFrame that provides summary stats about the stops
-    in the (inner) join of the two DataFrames.
+    Given a subset of a stop times DataFrame and a subset of a trips
+    DataFrame, return a DataFrame that provides summary stats about the
+    stops in the inner join of the two DataFrames.
 
     Parameters
     ----------
-    stop_times : DataFrame
+    stop_times_subset : DataFrame
         A valid GTFS stop times table
     trip_subset : DataFrame
         A valid GTFS trips table
@@ -66,7 +67,7 @@ def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
     if trip_subset.empty:
         return pd.DataFrame()
 
-    f = pd.merge(stop_times, trip_subset)
+    f = pd.merge(stop_times_subset, trip_subset)
 
     # Convert departure times to seconds to ease headway calculations
     f['departure_time'] = f['departure_time'].map(hp.timestr_to_seconds)
@@ -110,16 +111,16 @@ def compute_stop_stats_base(stop_times, trip_subset, split_directions=False,
 
     return result
 
-def compute_stop_time_series_base(stop_times, trip_subset,
-  split_directions=False, freq='5Min', date_label='20010101'):
+def compute_stop_time_series_base(stop_times_subset, trip_subset, freq='5Min',
+     date_label='20010101', *, split_directions=False):
     """
-    Given a stop times DataFrame and a subset of a trips DataFrame,
-    return a DataFrame that provides a summary time series about the
-    stops in the (inner) join of the two DataFrames.
+    Given a subset of a stop times DataFrame and a subset of a trips
+    DataFrame, return a DataFrame that provides a summary time series
+    about the stops in the inner join of the two DataFrames.
 
     Parameters
     ----------
-    stop_times : DataFrame
+    stop_times_subset : DataFrame
         A valid GTFS stop times table
     trip_subset : DataFrame
         A valid GTFS trips table
@@ -169,7 +170,7 @@ def compute_stop_time_series_base(stop_times, trip_subset,
     if trip_subset.empty:
         return pd.DataFrame()
 
-    f = pd.merge(stop_times, trip_subset)
+    f = pd.merge(stop_times_subset, trip_subset)
 
     if split_directions:
         # Alter stop IDs to encode trip direction:
@@ -208,7 +209,8 @@ def compute_stop_time_series_base(stop_times, trip_subset,
       split_directions=split_directions)
     return hp.downsample(g, freq=freq)
 
-def get_stops(feed, date=None, trip_id=None, route_id=None, in_stations=False):
+def get_stops(feed, date=None, trip_id=None, route_id=None,
+  *, in_stations=False):
     """
     Return a section of ``feed.stops``.
 
@@ -260,7 +262,7 @@ def get_stops(feed, date=None, trip_id=None, route_id=None, in_stations=False):
 
     return s
 
-def build_geometry_by_stop(feed, use_utm=False, stop_ids=None):
+def build_geometry_by_stop(feed, stop_ids=None, *, use_utm=False):
     """
     Return a dictionary with the structure
     stop_id -> Shapely Point with coordinates of the stop.
@@ -356,10 +358,12 @@ def compute_stop_activity(feed, dates):
             f = f.merge(g[date].max().reset_index())
     return f
 
-def compute_stop_stats(feed, dates, split_directions=False,
-  headway_start_time='07:00:00', headway_end_time='19:00:00'):
+def compute_stop_stats(feed, dates, stop_ids=None,
+  headway_start_time='07:00:00', headway_end_time='19:00:00',
+  *, split_directions=False):
     """
     Compute stats for all stops for the given dates.
+    Optionally, restrict to the stop IDs given.
 
     Parameters
     ----------
@@ -367,16 +371,18 @@ def compute_stop_stats(feed, dates, split_directions=False,
     dates : string or list
         A YYYYMMDD date string or list thereof indicating the date(s)
         for which to compute stats
-    split_directions : boolean
-        If ``True``, then separate the stop stats by direction (0 or 1)
-        of the trips visiting the stops; otherwise aggregate trips
-        visiting from both directions
+    stop_ids : list
+        Optional list of stop IDs to restrict stats to
     headway_start_time : string
         HH:MM:SS time string indicating the start time for computing
         headway stats
     headway_end_time : string
         HH:MM:SS time string indicating the end time for computing
         headway stats
+    split_directions : boolean
+        If ``True``, then separate the stop stats by direction (0 or 1)
+        of the trips visiting the stops; otherwise aggregate trips
+        visiting from both directions
 
     Returns
     -------
@@ -418,6 +424,16 @@ def compute_stop_stats(feed, dates, split_directions=False,
     if not dates:
         return pd.DataFrame()
 
+    # Restrict stop times to stop IDs if specified
+    if stop_ids is not None:
+        stop_times_subset = (
+            feed.stop_times
+            .loc[lambda x: x['stop_id'].isin(stop_ids)]
+            .copy()
+        )
+    else:
+        stop_times_subset = feed.stop_times.copy()
+
     activity = feed.compute_trip_activity(dates)
 
     # Collect stats for each date, memoizing stats by trip ID sequence
@@ -451,7 +467,7 @@ def compute_stop_stats(feed, dates, split_directions=False,
             # Compute stats
             t = feed.trips
             trips = t[t['trip_id'].isin(ids)].copy()
-            stats = compute_stop_stats_base(feed.stop_times, trips,
+            stats = compute_stop_stats_base(stop_times_subset, trips,
               split_directions=split_directions,
               headway_start_time=headway_start_time,
               headway_end_time=headway_end_time)
@@ -471,8 +487,8 @@ def compute_stop_stats(feed, dates, split_directions=False,
 
     return f
 
-def build_null_stop_time_series(feed, date_label='20010101', split_directions=False,
-  freq='5Min'):
+def build_null_stop_time_series(feed, date_label='20010101', freq='5Min',
+  *, split_directions=False):
     """
     Return a stop time series with the same index and hierarchical columns
     as output by :func:`compute_stop_time_series_base`,
@@ -495,11 +511,13 @@ def build_null_stop_time_series(feed, date_label='20010101', split_directions=Fa
     return pd.DataFrame([], index=rng, columns=cols).sort_index(
       axis=1, sort_remaining=True)
 
-def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
+def compute_stop_time_series(feed, dates, stop_ids=None, freq='5Min',
+  *, split_directions=False):
     """
-    Compute time series for the given stops on the given dates at the
+    Compute time series for the stops on the given dates at the
     given frequency and return the result as a DataFrame of the same
     form as output by :func:`.stop_times.compute_stop_time_series_base`.
+    Optionally restrict to stops in the given list of stop IDs.
 
     Parameters
     ----------
@@ -507,6 +525,8 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
     dates : string or list
         A YYYYMMDD date string or list thereof indicating the date(s)
         for which to compute stats
+    stop_ids : list
+        Optional list of stop IDs to restrict to
     split_directions : boolean
         If ``True``, then separate the stop stats by direction (0 or 1)
         of the trips visiting the stops; otherwise aggregate trips
@@ -544,6 +564,16 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
 
     activity = feed.compute_trip_activity(dates)
 
+    # Restrict stop times to stop IDs if specified
+    if stop_ids is not None:
+        stop_times_subset = (
+            feed.stop_times
+            .loc[lambda x: x['stop_id'].isin(stop_ids)]
+            .copy()
+        )
+    else:
+        stop_times_subset = feed.stop_times.copy()
+
     # Collect stats for each date, memoizing stats by trip ID sequence
     # to avoid unnecessary recomputations.
     # Store in dictionary of the form
@@ -564,7 +594,7 @@ def compute_stop_time_series(feed, dates, split_directions=False, freq='5Min'):
             # Compute stats
             t = feed.trips
             trips = t[t['trip_id'].isin(ids)].copy()
-            stats = compute_stop_time_series_base(feed.stop_times, trips,
+            stats = compute_stop_time_series_base(stop_times_subset, trips,
               split_directions=split_directions, freq=freq, date_label=date)
 
             # Remember stats
@@ -682,7 +712,7 @@ def get_stops_in_polygon(feed, polygon, geo_stops=None):
     f = f[f['hit']][cols]
     return ungeometrize_stops(f)
 
-def geometrize_stops(stops, use_utm=False):
+def geometrize_stops(stops, *, use_utm=False):
     """
     Given a stops DataFrame, convert it to a GeoPandas GeoDataFrame
     and return the result.

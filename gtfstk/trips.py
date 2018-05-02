@@ -185,7 +185,7 @@ def compute_busiest_date(feed, dates):
     s = [(f[c].sum(), c) for c in f.columns if c != 'trip_id']
     return max(s)[1]
 
-def compute_trip_stats(feed, compute_dist_from_shapes=False):
+def compute_trip_stats(feed, route_ids=None, *, compute_dist_from_shapes=False):
     """
     Return a DataFrame with the following columns:
 
@@ -214,6 +214,8 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
     column using the shapes and Shapely.
     Otherwise, set the distances to NaN.
 
+    If route IDs are given, then restrict to trips on those routes.
+
     Notes
     -----
     - Assume the following feed attributes are not ``None``:
@@ -233,14 +235,23 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
       yields a difference of at most 0.83km from the original values.
 
     """
-    # Start with stop times and extra trip info.
+    f = feed.trips.copy()
+
+    # Restrict to given route IDs
+    if route_ids is not None:
+        f = f[f['route_id'].isin(route_ids)].copy()
+
+    # Merge with stop times and extra trip info.
     # Convert departure times to seconds past midnight to
-    # compute durations.
-    f = feed.trips[['route_id', 'trip_id', 'direction_id', 'shape_id']]
-    f = pd.merge(f,
-      feed.routes[['route_id', 'route_short_name', 'route_type']])
-    f = pd.merge(f, feed.stop_times).sort_values(['trip_id', 'stop_sequence'])
-    f['departure_time'] = f['departure_time'].map(hp.timestr_to_seconds)
+    # compute trip durations later.
+    f = (
+        f[['route_id', 'trip_id', 'direction_id', 'shape_id']]
+        .merge(feed.routes[['route_id', 'route_short_name', 'route_type']])
+        .merge(feed.stop_times)
+        .sort_values(['trip_id', 'stop_sequence'])
+        .assign(departure_time=lambda x: x['departure_time'].map(
+            hp.timestr_to_seconds))
+    )
 
     # Compute all trips stats except distance,
     # which is possibly more involved
@@ -284,8 +295,11 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
 
         def compute_dist(group):
             """
-            Return the distance traveled along the trip between the first and last stops.
-            If that distance is negative or if the trip's linestring  intersects itfeed, then return the length of the trip's linestring instead.
+            Return the distance traveled along the trip between the
+            first and last stops.
+            If that distance is negative or if the trip's linestring
+            intersects itfeed, then return the length of the trip's
+            linestring instead.
             """
             shape = group['shape_id'].iat[0]
             try:
@@ -333,8 +347,10 @@ def compute_trip_stats(feed, compute_dist_from_shapes=False):
     # Reset index and compute final stats
     h = h.reset_index()
     h['speed'] = h['distance']/h['duration']
-    h[['start_time', 'end_time']] = h[['start_time', 'end_time']
-      ].applymap(lambda x: hp.timestr_to_seconds(x, inverse=True))
+    h[['start_time', 'end_time']] = (
+      h[['start_time', 'end_time']].applymap(
+      lambda x: hp.timestr_to_seconds(x, inverse=True))
+    )
 
     return h.sort_values(['route_id', 'direction_id', 'start_time'])
 
@@ -436,7 +452,7 @@ def locate_trips(feed, date, times):
 
     return h.groupby('shape_id').apply(get_lonlat)
 
-def trip_to_geojson(feed, trip_id, include_stops=False):
+def trip_to_geojson(feed, trip_id, *, include_stops=False):
     """
     Return a GeoJSON representation of the given trip, optionally with
     its stops.

@@ -65,10 +65,10 @@ def test_check_table():
 
 def test_check_column():
     feed = sample.copy()
-    assert not check_column([], 'agency', feed.agency, 'agency_url', True,
+    assert not check_column([], 'agency', feed.agency, 'agency_url',
       valid_url)
     feed.agency['agency_url'].iat[0] = 'example.com'
-    assert check_column([], 'agency', feed.agency, 'agency_url', True,
+    assert check_column([], 'agency', feed.agency, 'agency_url',
       valid_url)
 
 def test_check_column_id():
@@ -80,16 +80,16 @@ def test_check_column_id():
 def test_check_column_linked_id():
     feed = sample.copy()
     assert not check_column_linked_id([], 'trips', feed.trips, 'route_id',
-      True, feed.routes)
+      feed.routes)
     feed.trips['route_id'].iat[0] = 'Hummus!'
     assert check_column_linked_id([], 'trips', feed.trips, 'route_id',
-      True, feed.routes)
+      feed.routes)
 
 def test_format_problems():
     problems = [('ba', 'da', 'boom', 'boom')]
-    assert problems == format_problems(problems, False)
+    assert problems == format_problems(problems, as_df=False)
 
-    e = format_problems(problems, True)
+    e = format_problems(problems, as_df=True)
     assert isinstance(e, pd.DataFrame)
     assert e.columns.tolist() == ['type', 'message', 'table', 'rows']
 

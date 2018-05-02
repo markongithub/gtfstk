@@ -474,7 +474,7 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
 
     return f.sort_index(axis=1)
 
-def create_shapes(feed, all_trips=False):
+def create_shapes(feed, *, all_trips=False):
     """
     Given a feed, create a shape for every trip that is missing a
     shape ID.

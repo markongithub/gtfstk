@@ -21,10 +21,11 @@ setup(
     long_description=readme,
     license=license,
     install_requires=[
-        'Shapely>=1.5.1',
-        'pandas>=0.18.1',
-        'utm>=0.3.1',
-        'pycountry==17.1.8',
+        'Shapely >= 1.5.1',
+        'pandas >= 0.20.0',
+        'utm >= 0.3.1',
+        'pycountry == 17.1.8',
+        'json2html => 1.2.1',
     ],
     packages=find_packages(exclude=('tests', 'docs'))
 )

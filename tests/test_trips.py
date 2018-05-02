@@ -59,14 +59,16 @@ def test_compute_busiest_date():
     # Busiest day should lie in first week
     assert date in dates
 
-@slow
 def test_compute_trip_stats():
     feed = cairns.copy()
-    trip_stats = compute_trip_stats(feed)
+    n = 3
+    rids = feed.routes.route_id.loc[:n]
+    trip_stats = compute_trip_stats(feed, route_ids=rids)
 
     # Should be a data frame with the correct number of rows
+    trip_subset = feed.trips.loc[lambda x: x['route_id'].isin(rids)].copy()
     assert isinstance(trip_stats, pd.core.frame.DataFrame)
-    assert trip_stats.shape[0] == feed.trips.shape[0]
+    assert trip_stats.shape[0] == trip_subset.shape[0]
 
     # Should contain the correct columns
     expect_cols = set([
@@ -90,13 +92,13 @@ def test_compute_trip_stats():
 
     # Shapeless feeds should have null entries for distance column
     feed2 = cairns_shapeless.copy()
-    trip_stats = compute_trip_stats(feed2)
+    trip_stats = compute_trip_stats(feed2, route_ids=rids)
     assert len(trip_stats['distance'].unique()) == 1
     assert np.isnan(trip_stats['distance'].unique()[0])
 
     # Should contain the correct trips
     get_trips = set(trip_stats['trip_id'].values)
-    expect_trips = set(feed.trips['trip_id'].values)
+    expect_trips = set(trip_subset['trip_id'].values)
     assert get_trips == expect_trips
 
 @slow
