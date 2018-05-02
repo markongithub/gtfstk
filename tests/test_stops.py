@@ -136,8 +136,10 @@ def test_compute_stop_activity():
 def test_compute_stop_stats():
     dates = cairns_dates + ['20010101']
     feed = cairns.copy()
+    n = 3
+    sids = feed.stops.stop_id.loc[:n]
     for split_directions in [True, False]:
-        f = compute_stop_stats(feed, dates,
+        f = compute_stop_stats(feed, dates, stop_ids=sids,
           split_directions=split_directions)
 
         # Should be a data frame
@@ -145,7 +147,8 @@ def test_compute_stop_stats():
 
         # Should contain the correct stops
         get = set(f['stop_id'].values)
-        g = get_stops(feed, dates[0])
+        g = get_stops(feed, dates[0]).loc[
+          lambda x: x['stop_id'].isin(sids)]
         expect = set(g['stop_id'].values)
         assert get == expect
 
@@ -179,7 +182,7 @@ def test_compute_stop_stats():
         c = feed1.calendar
         c['monday'] = 0
         feed1.calendar = c
-        f = compute_stop_stats(feed1, dates[0],
+        f = compute_stop_stats(feed1, dates[0], stop_ids=sids,
           split_directions=split_directions)
         assert set(f.columns) == expect_cols
         assert f.date.iat[0] == dates[0]
@@ -203,14 +206,16 @@ def test_build_null_stop_time_series():
         assert f.columns.names == expect_names
         assert pd.isnull(f.values).all()
 
-@slow
 def test_compute_stop_time_series():
     feed = cairns.copy()
     dates = cairns_dates + ['20010101']
+    n = 3
+    sids = feed.stops.stop_id.loc[:n]
+
     for split_directions in [True, False]:
-        s = compute_stop_stats(feed, dates,
+        s = compute_stop_stats(feed, dates, stop_ids=sids,
           split_directions=split_directions)
-        ts = compute_stop_time_series(feed, dates, freq='1H',
+        ts = compute_stop_time_series(feed, dates, stop_ids=sids, freq='1H',
           split_directions=split_directions)
 
         # Should be a data frame
@@ -247,7 +252,7 @@ def test_compute_stop_time_series():
         c = feed1.calendar
         c['monday'] = 0
         feed1.calendar = c
-        ts = compute_stop_time_series(feed1, dates[0],
+        ts = compute_stop_time_series(feed1, dates[0], stop_ids=sids,
           split_directions=split_directions)
         assert ts.columns.names == expect_names
         assert pd.isnull(ts.values).all()
