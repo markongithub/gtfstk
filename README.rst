@@ -38,6 +38,11 @@ Authors
 Changes
 =========
 
+9.2.2, 2018-05-24
+------------------
+- Added trip direction arrows to maps produced by ``map_trips``
+
+
 9.2.1, 2018-05-24
 ------------------
 - Fixed bug HTML-escaping apostrophes in ``make_html``

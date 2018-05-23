@@ -543,6 +543,7 @@ def map_trips(feed, trip_ids, color_palette=cs.COLORS_SET2, *,
 
     """
     import folium as fl
+    import folium.plugins as fp
 
     # Get routes slice and convert to dictionary
     trips = (
@@ -586,6 +587,7 @@ def map_trips(feed, trip_ids, color_palette=cs.COLORS_SET2, *,
 
             # Add path
             else:
+                # Path
                 prop['color'] = color
                 path = fl.GeoJson(f,
                     name=trip,
@@ -594,6 +596,17 @@ def map_trips(feed, trip_ids, color_palette=cs.COLORS_SET2, *,
                 )
                 path.add_child(fl.Popup(hp.make_html(prop)))
                 path.add_to(group)
+
+                # Direction arrows, assuming, as GTFS does, that
+                # trip direction equals LineString direction
+                fp.PolyLineTextPath(
+                    path,
+                    '        \u27A4        ',
+                    repeat=True,
+                    offset=5.5,
+                    attributes={'fill': color, 'font-size': '18'}
+                ).add_to(group)
+
                 bboxes.append(sg.box(*sg.shape(f['geometry']).bounds))
 
         group.add_to(my_map)
