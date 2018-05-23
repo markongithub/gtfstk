@@ -40,7 +40,7 @@ Changes
 
 9.2.1, 2018-05-24
 ------------------
-- Fixed bug escaping apostrophes in ``make_html``
+- Fixed bug HTML-escaping apostrophes in ``make_html``
 
 
 9.2.0, 2018-05-23
