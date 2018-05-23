@@ -2,6 +2,7 @@
 Functions useful across modules.
 """
 import datetime as dt
+import html
 
 import pandas as pd
 import numpy as np
@@ -383,5 +384,15 @@ def make_html(d):
     Convert the given dictionary into an HTML table (string) with
     two columns: keys of dictionary, values of dictionary.
     """
-    return jh.convert(d,
+    # Workaround to better HTML-escape some text, e.g. apostrophes;
+    # see https://github.com/softvar/json2html/issues/33
+    dd = {}
+    for k, v in d.items():
+        try:
+            vv = html.escape(v)
+        except AttributeError:
+            vv = v
+        dd[k] = vv
+
+    return jh.convert(dd,
       table_attributes="class=\"table table-condensed table-hover\"")

@@ -38,6 +38,11 @@ Authors
 Changes
 =========
 
+9.2.1, 2018-05-24
+------------------
+- Fixed bug escaping apostrophes in ``make_html``
+
+
 9.2.0, 2018-05-23
 ------------------
 - Added ``map_trips`` which works like ``map_routes``
