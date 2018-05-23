@@ -10,6 +10,7 @@ import numpy as np
 import gtfstk
 import pytest
 
+
 # Decorator to mark slow tests
 slow = pytest.mark.skipif(
     not pytest.config.getoption("--runslow"),
@@ -22,6 +23,13 @@ if loader is None:
     HAS_GEOPANDAS = False
 else:
     HAS_GEOPANDAS = True
+
+# Check if Folium is installed
+loader = importlib.find_loader('folium')
+if loader is None:
+    HAS_FOLIUM = False
+else:
+    HAS_FOLIUM = True
 
 # Load/create test feeds
 DATA_DIR = Path('data')

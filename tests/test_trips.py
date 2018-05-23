@@ -1,9 +1,15 @@
 import pandas as pd
 import numpy as np
+import pytest
 
-from .context import gtfstk, slow, DATA_DIR, cairns, cairns_shapeless, cairns_dates, cairns_trip_stats
+from .context import (
+  gtfstk, slow, DATA_DIR, cairns, cairns_shapeless, cairns_dates,
+  cairns_trip_stats, HAS_FOLIUM
+)
 from gtfstk import *
 
+if HAS_FOLIUM:
+    from folium import Map
 
 def test_is_active_trip():
     feed = cairns.copy()
@@ -59,14 +65,16 @@ def test_compute_busiest_date():
     # Busiest day should lie in first week
     assert date in dates
 
-@slow
 def test_compute_trip_stats():
     feed = cairns.copy()
-    trip_stats = compute_trip_stats(feed)
+    n = 3
+    rids = feed.routes.route_id.loc[:n]
+    trip_stats = compute_trip_stats(feed, route_ids=rids)
 
     # Should be a data frame with the correct number of rows
+    trip_subset = feed.trips.loc[lambda x: x['route_id'].isin(rids)].copy()
     assert isinstance(trip_stats, pd.core.frame.DataFrame)
-    assert trip_stats.shape[0] == feed.trips.shape[0]
+    assert trip_stats.shape[0] == trip_subset.shape[0]
 
     # Should contain the correct columns
     expect_cols = set([
@@ -90,13 +98,13 @@ def test_compute_trip_stats():
 
     # Shapeless feeds should have null entries for distance column
     feed2 = cairns_shapeless.copy()
-    trip_stats = compute_trip_stats(feed2)
+    trip_stats = compute_trip_stats(feed2, route_ids=rids)
     assert len(trip_stats['distance'].unique()) == 1
     assert np.isnan(trip_stats['distance'].unique()[0])
 
     # Should contain the correct trips
     get_trips = set(trip_stats['trip_id'].values)
-    expect_trips = set(feed.trips['trip_id'].values)
+    expect_trips = set(trip_subset['trip_id'].values)
     assert get_trips == expect_trips
 
 @slow
@@ -138,3 +146,12 @@ def test_trip_to_geojson():
     assert len(g0['features']) == 1
     stop_ids = get_stops(feed, trip_id=trip_id)['stop_id'].values
     assert len(g1['features']) == 1 + len(stop_ids)
+
+@pytest.mark.skipif(not HAS_FOLIUM, reason="Requires Folium")
+def test_map_trips():
+    feed = cairns.copy()
+    tids = feed.trips['trip_id'].values[:2]
+    map0 = map_trips(feed, ['bingo'])
+    map1 = map_trips(feed, tids, include_stops=True)
+    for m in [map0, map1]:
+        assert isinstance(m, Map)

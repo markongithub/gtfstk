@@ -1,0 +1,23 @@
+[[source]]
+verify_ssl = true
+name = "pypi"
+url = "https://pypi.python.org/simple"
+
+[dev-packages]
+jupyter = "*"
+pytest = "*"
+plotnine = "*"
+twine = "*"
+sphinx = "*"
+
+[packages]
+pandas = "*"
+shapely = "*"
+utm = "*"
+pycountry = "*"
+geopandas = "*"
+folium = "*"
+"json2html" = "*"
+
+[requires]
+python_version = "3.5"

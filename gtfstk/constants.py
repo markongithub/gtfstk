@@ -112,7 +112,7 @@ STR_COLS = GTFS_REF.loc[GTFS_REF['dtype'] == 'str', 'column'].values.tolist()
 
 DTYPE = {col: str for col in STR_COLS}
 
-#:
+#: Valid distance units
 DIST_UNITS = ['ft', 'mi', 'm', 'km']
 
 #: Primary feed attributes
@@ -143,5 +143,9 @@ FEED_ATTRS_2 = [
 #:
 FEED_ATTRS = FEED_ATTRS_1 + FEED_ATTRS_2
 
-#:
-CRS_WGS84 = {'init': 'epsg:4326', 'no_defs': True}
+#: WGS84 coordinate reference system for Geopandas
+WGS84 = {'init': 'epsg:4326'}
+
+#: Colorbrewer 8-class Set2 colors
+COLORS_SET2 = ['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3',
+  '#a6d854', '#ffd92f', '#e5c494', '#b3b3b3']

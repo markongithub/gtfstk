@@ -1,15 +1,15 @@
 GTFSTK
 ********
-.. image:: https://travis-ci.org/araichev/gtfstk.svg?branch=master
-    :target: https://travis-ci.org/araichev/gtfstk
+.. image:: https://travis-ci.org/mrcagney/gtfstk.svg?branch=master
+    :target: https://travis-ci.org/mrcagney/gtfstk
 
-GTFSTK is a Python 3.4+ tool kit for analyzing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
+GTFSTK is a Python 3.5+ tool kit for analyzing `General Transit Feed Specification (GTFS) <https://en.wikipedia.org/wiki/GTFS>`_ data in memory without a database.
 It uses Pandas and Shapely to do the heavy lifting.
 
 
 Installation
 =============
-Create a Python 3.4+ virtual environment and ``pip install gtfstk``.
+Using Pipenv, do ``pipenv install gtfstk``.
 
 
 Examples
@@ -35,8 +35,36 @@ Authors
 - Alex Raichev (2014-05)
 
 
-History
+Changes
 =========
+
+9.2.0, 2018-05-23
+------------------
+- Added ``map_trips`` which works like ``map_routes``
+
+
+9.1.0, 2018-05-02
+------------------
+- Changed ``route_to_geojson`` to return LineStrings instead of a MultiLineString and added a date keyword argurment
+- Changed ``shapes_to_geojson`` to accept an optional list of shape IDs to restrict to
+- Added ``map_routes`` function to draw routes and their stops on a Folium map, if Folium is installed
+- Inserted stars in function signatures to separate boolean keyword arguments. Is this a breaking change? I say no, but it's debatable.
+- Changed ``compute_trip_stats`` to accept an optional list of route IDs to restrict to
+- Clarified the doctstrings of ``compute_route_stats`` and ``compute_route_time_series`` to note that those functions can accept slices of trip stats
+- Changed ``compute_stop_stats`` and ``compute_stop_time_series`` to accept an optional list of stop IDs
+
+
+9.0.3, 2018-03-21
+------------------
+- Stopped ``drop_zombies`` from dropping stops with location type 1 or 2
+- Changed ``CRS_WGS84`` to ``WGS84`` and removed the ``no_defs`` key to agree with GeoPandas's WGS84 CRS
+- Replaced some ``None`` outputs with empty dictionary outputs where appropriate, e.g. in ``build_shape_by_geometry``
+
+
+9.0.2, 2017-07-12
+-------------------
+- Bugfixed the ``get_dates()`` function. It was throwing an error when the calendar or calendar_dates table was empty.
+
 
 9.0.1, 2017-07-06
 -------------------

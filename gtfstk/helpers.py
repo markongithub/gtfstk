@@ -2,17 +2,17 @@
 Functions useful across modules.
 """
 import datetime as dt
-import dateutil.relativedelta as rd
 
 import pandas as pd
 import numpy as np
 from shapely.ops import transform
 import utm
+from json2html import json2html as jh
 
 from . import constants as cs
 
 
-def datestr_to_date(x, format_str='%Y%m%d', inverse=False):
+def datestr_to_date(x, format_str='%Y%m%d', *, inverse=False):
     """
     Given a string object ``x`` representing a date in the given format,
     convert it to a Datetime Date object and return the result.
@@ -27,7 +27,7 @@ def datestr_to_date(x, format_str='%Y%m%d', inverse=False):
         result = x.strftime(format_str)
     return result
 
-def timestr_to_seconds(x, inverse=False, mod24=False):
+def timestr_to_seconds(x, *, inverse=False, mod24=False):
     """
     Given an HH:MM:SS time string ``x``, return the number of seconds
     past midnight that it represents.
@@ -71,7 +71,7 @@ def timestr_mod24(timestr):
         result = None
     return result
 
-def weekday_to_str(weekday, inverse=False):
+def weekday_to_str(weekday, *, inverse=False):
     """
     Given a weekday number (integer in the range 0, 1, ..., 6),
     return its corresponding weekday name as a lowercase string.
@@ -256,7 +256,7 @@ def count_active_trips(trip_times, time):
     t = trip_times
     return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
 
-def combine_time_series(time_series_dict, kind, split_directions=False):
+def combine_time_series(time_series_dict, kind, *, split_directions=False):
     """
     Combine the many time series DataFrames in the given dictionary
     into one time series DataFrame with hierarchical columns.
@@ -357,7 +357,7 @@ def downsample(time_series, freq):
             return group['num_trips'].iloc[-1]\
               + group['num_trip_ends'].iloc[:-1].sum()
 
-        num_trips = f.groupby(pd.TimeGrouper(freq)).apply(agg_num_trips)
+        num_trips = f.groupby(pd.Grouper(freq=freq)).apply(agg_num_trips)
         frames.append(num_trips)
 
         # Resample the rest of the indicators via summing
@@ -377,3 +377,11 @@ def downsample(time_series, freq):
     result = result.sort_index(axis=1, sort_remaining=True)
 
     return result
+
+def make_html(d):
+    """
+    Convert the given dictionary into an HTML table (string) with
+    two columns: keys of dictionary, values of dictionary.
+    """
+    return jh.convert(d,
+      table_attributes="class=\"table table-condensed table-hover\"")

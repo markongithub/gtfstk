@@ -5,6 +5,7 @@ flake8*
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
 
 # C extensions
 *.so
@@ -71,7 +72,7 @@ instance/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpoints
+ipynb/.ipynb_checkpoints
 
 # pyenv
 .python-version

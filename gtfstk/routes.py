@@ -7,12 +7,15 @@ import json
 import pandas as pd
 import numpy as np
 import shapely.geometry as sg
+import shapely.ops as so
 
+from . import constants as cs
 from . import helpers as hp
 
 
-def compute_route_stats_base(trip_stats_subset, split_directions=False,
-  headway_start_time='07:00:00', headway_end_time='19:00:00'):
+def compute_route_stats_base(trip_stats_subset,
+  headway_start_time='07:00:00', headway_end_time='19:00:00', *,
+  split_directions=False):
     """
     Compute stats for the given subset of trips stats.
 
@@ -212,7 +215,7 @@ def compute_route_stats_base(trip_stats_subset, split_directions=False,
     return g
 
 def compute_route_time_series_base(trip_stats_subset, date_label='20010101',
-  split_directions=False, freq='5Min'):
+  freq='5Min', *, split_directions=False):
     """
     Compute stats in a 24-hour time series form for the given subset of trips.
 
@@ -413,16 +416,18 @@ def get_routes(feed, date=None, time=None):
     R = trips['route_id'].unique()
     return feed.routes[feed.routes['route_id'].isin(R)]
 
-def compute_route_stats(feed, trip_stats, dates, split_directions=False,
-  headway_start_time='07:00:00', headway_end_time='19:00:00'):
+def compute_route_stats(feed, trip_stats_subset, dates,
+  headway_start_time='07:00:00', headway_end_time='19:00:00',
+  *, split_directions=False):
     """
-    Compute stats for all routes starting on the given dates.
+    Compute route stats for all the trips that lie in the given subset
+    of trip stats and that start on the given dates.
 
     Parameters
     ----------
     feed : Feed
-    trip_stats : DataFrame
-        Output of :func:`.trips.compute_trip_stats`
+    trip_stats_subset : DataFrame
+        Slice of the output of :func:`.trips.compute_trip_stats`
     dates : string or list
         A YYYYMMDD date string or list thereof indicating the date(s)
         for which to compute stats
@@ -463,7 +468,7 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
     if not dates:
         return pd.DataFrame()
 
-    ts = trip_stats.copy()
+    ts = trip_stats_subset.copy()
     activity = feed.compute_trip_activity(dates)
 
     # Collect stats for each date, memoizing stats by trip ID sequence
@@ -530,10 +535,10 @@ def compute_route_stats(feed, trip_stats, dates, split_directions=False,
 
     return f
 
-def build_null_route_time_series(feed, date_label='20010101', split_directions=False,
-  freq='5Min'):
+def build_null_route_time_series(feed, date_label='20010101',
+  freq='5Min', *, split_directions=False):
     """
-    Return a stop time series with the same index and hierarchical columns
+    Return a route time series with the same index and hierarchical columns
     as output by :func:`compute_route_time_series_base`,
     but fill it full of null values.
     """
@@ -559,17 +564,17 @@ def build_null_route_time_series(feed, date_label='20010101', split_directions=F
     return pd.DataFrame([], index=rng, columns=cols).sort_index(
       axis=1, sort_remaining=True)
 
-def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
-  freq='5Min'):
+def compute_route_time_series(feed, trip_stats_subset, dates, freq='5Min',
+  *, split_directions=False):
     """
-    Compute stats in time series form for routes that start on the given
-    dates.
+    Compute route stats in time series form for the trips that lie in
+    the trip stats subset and that start on the given dates.
 
     Parameters
     ----------
     feed : Feed
-    trip_stats : DataFrame
-        Output of :func:`.trips.compute_trip_stats`
+    trip_stats_subset : DataFrame
+        Slice of the output of :func:`.trips.compute_trip_stats`
     dates : string or list
         A YYYYMMDD date string or list thereof indicating the date(s)
         for which to compute stats
@@ -603,10 +608,10 @@ def compute_route_time_series(feed, trip_stats, dates, split_directions=False,
         return pd.DataFrame()
 
     activity = feed.compute_trip_activity(dates)
-    ts = trip_stats.copy()
+    ts = trip_stats_subset.copy()
 
     # Collect stats for each date, memoizing stats by trip ID sequence
-    # to avoid unnecessary recomputations.
+    # to avoid unnecessary re-computations.
     # Store in dictionary of the form
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
@@ -713,7 +718,7 @@ def build_route_timetable(feed, route_id, dates):
     return f.sort_values(['date', 'min_dt', 'stop_sequence']).drop(
       ['min_dt', 'dt'], axis=1)
 
-def route_to_geojson(feed, route_id, include_stops=False):
+def route_to_geojson(feed, route_id, date=None, *, include_stops=False):
     """
     Return a GeoJSON rendering of the route and, optionally, its stops.
 
@@ -722,6 +727,9 @@ def route_to_geojson(feed, route_id, include_stops=False):
     feed : Feed
     route_id : string
         ID of a route in ``feed.routes``
+    date : string
+        YYYYMMDD date string restricting the output to trips active
+        on the date
     include_stops : boolean
         If ``True``, then include stop features in the result
 
@@ -729,51 +737,149 @@ def route_to_geojson(feed, route_id, include_stops=False):
     -------
     dictionary
         A decoded GeoJSON feature collection comprising a
-        MultiLineString feature of distinct shapes of the trips on the
+        LineString features of the distinct shapes of the trips on the
         route.
         If ``include_stops``, then include one Point feature for
         each stop on the route.
 
-    Notes
-    -----
-    Assume the following feed attributes are not ``None``:
-
-    - ``feed.routes``
-    - ``feed.shapes``
-    - ``feed.trips``
-    - ``feed.stops``
-
     """
-    # Get the relevant shapes
-    t = feed.trips.copy()
-    A = t[t['route_id'] == route_id]['shape_id'].unique()
-    geometry_by_shape = feed.build_geometry_by_shape(use_utm=False,
-      shape_ids=A)
+    # Get set of unique trip shapes for route
+    shapes = (
+        feed.get_trips(date=date)
+        .loc[lambda x: x['route_id'] == route_id, 'shape_id']
+        .unique()
+    )
+    if not shapes.size:
+        return {'type': 'FeatureCollection', 'features': []}
 
-    if not geometry_by_shape:
-        return {}
+    geom_by_shape = feed.build_geometry_by_shape(shape_ids=shapes)
 
-    r = feed.routes.copy()
+    # Get route properties
+    route = (
+        feed.get_routes(date=date)
+        .loc[lambda x: x['route_id'] == route_id]
+        .fillna('n/a')
+        .to_dict(orient='records', into=OrderedDict)
+    )[0]
+
+    # Build route shape features
     features = [{
         'type': 'Feature',
-        'properties': json.loads(r[r['route_id'] == route_id].to_json(
-          orient='records'))[0],
-        'geometry': sg.mapping(sg.MultiLineString(
-          [linestring for linestring in geometry_by_shape.values()]))
-    }]
+        'properties': route,
+        'geometry': sg.mapping(sg.LineString(geom)),
+    } for geom in geom_by_shape.values() ]
 
+    # Build stop features if desired
     if include_stops:
-        # Get relevant stops and geometrys
-        s = feed.get_stops(route_id=route_id)
-        cols = set(s.columns) - set(['stop_lon', 'stop_lat'])
-        s = s[list(cols)].copy()
-        stop_ids = s['stop_id'].tolist()
-        geometry_by_stop = feed.build_geometry_by_stop(stop_ids=stop_ids)
+        stops = (
+            feed.get_stops(route_id=route_id)
+            .fillna('n/a')
+            .to_dict(orient='records', into=OrderedDict)
+        )
         features.extend([{
             'type': 'Feature',
-            'properties': json.loads(s[s['stop_id'] == stop_id].to_json(
-              orient='records'))[0],
-            'geometry': sg.mapping(geometry_by_stop[stop_id]),
-        } for stop_id in stop_ids])
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [stop['stop_lon'], stop['stop_lat']],
+              },
+            'properties': stop,
+        } for stop in stops])
 
     return {'type': 'FeatureCollection', 'features': features}
+
+def map_routes(feed, route_ids, date=None,
+  color_palette=cs.COLORS_SET2, *, include_stops=True):
+    """
+    Return a Folium map showing the given routes and (optionally)
+    their stops.
+
+    Parameters
+    ----------
+    feed : Feed
+    route_ids : list
+        IDs of routes in ``feed.routes``
+    date : string
+        YYYYMMDD date string restricting the output to trips active
+        on the date
+    color_palette : list
+        Palette to use to color the routes. If more routes than colors,
+        then colors will be recycled.
+    include_stops : boolean
+        If ``True``, then include stops in the map
+
+    Returns
+    -------
+    dictionary
+        A Folium Map depicting the distinct shapes of the trips on
+        each route.
+        If ``include_stops``, then include the stops for each route.
+
+    Notes
+    ------
+    - Requires Folium
+
+    """
+    import folium as fl
+
+    # Get routes slice and convert to dictionary
+    routes = (
+      feed.routes
+      .loc[lambda x: x['route_id'].isin(route_ids)]
+      .fillna('n/a')
+      .to_dict(orient='records')
+    )
+
+    # Create route colors
+    n = len(routes)
+    colors = [color_palette[i % len(color_palette)] for i in range(n)]
+
+    # Initialize map
+    my_map = fl.Map(tiles='cartodbpositron')
+
+    # Collect route bounding boxes to set map zoom later
+    bboxes = []
+
+    # Create a feature group for each route and add it to the map
+    for i, route in enumerate(routes):
+        collection = feed.route_to_geojson(
+          route_id=route['route_id'], date=date, include_stops=include_stops)
+        group = fl.FeatureGroup(name='Route ' + route['route_short_name'])
+        color = colors[i]
+
+        for f in collection['features']:
+            prop = f['properties']
+
+            # Add stop
+            if f['geometry']['type'] == 'Point':
+                lon, lat = f['geometry']['coordinates']
+                fl.CircleMarker(
+                    location=[lat, lon],
+                    radius=8,
+                    fill=True,
+                    color=color,
+                    weight=1,
+                    popup=fl.Popup(hp.make_html(prop))
+                ).add_to(group)
+
+            # Add path
+            else:
+                prop['color'] = color
+                path = fl.GeoJson(f,
+                    name=route,
+                    style_function=lambda x: {
+                      'color': x['properties']['color']},
+                )
+                path.add_child(fl.Popup(hp.make_html(prop)))
+                path.add_to(group)
+                bboxes.append(sg.box(*sg.shape(f['geometry']).bounds))
+
+        group.add_to(my_map)
+
+    fl.LayerControl().add_to(my_map)
+
+    # Fit map to bounds
+    bounds = so.unary_union(bboxes).bounds
+    bounds2 = [bounds[1::-1], bounds[3:1:-1]]  # Folium expects this ordering
+    my_map.fit_bounds(bounds2)
+
+    return my_map
