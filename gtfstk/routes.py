@@ -797,7 +797,7 @@ def map_routes(feed, route_ids, date=None,
     ----------
     feed : Feed
     route_ids : list
-        IDs of route in ``feed.routes``
+        IDs of routes in ``feed.routes``
     date : string
         YYYYMMDD date string restricting the output to trips active
         on the date
@@ -810,11 +810,9 @@ def map_routes(feed, route_ids, date=None,
     Returns
     -------
     dictionary
-        A decoded GeoJSON feature collection comprising a
-        LineString features of the distinct shapes of the trips on the
-        route.
-        If ``include_stops``, then include one Point feature for
-        each stop on the route.
+        A Folium Map depicting the distinct shapes of the trips on
+        each route.
+        If ``include_stops``, then include the stops for each route.
 
     Notes
     ------

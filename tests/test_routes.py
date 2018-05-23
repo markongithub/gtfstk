@@ -1,7 +1,10 @@
 import pytest
 import pandas as pd
 
-from .context import gtfstk, slow, HAS_FOLIUM, cairns, cairns_dates, cairns_trip_stats
+from .context import (
+  gtfstk, slow, HAS_FOLIUM, cairns, cairns_dates,
+  cairns_trip_stats
+)
 from gtfstk import *
 
 if HAS_FOLIUM:

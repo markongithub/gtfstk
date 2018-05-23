@@ -1,9 +1,15 @@
 import pandas as pd
 import numpy as np
+import pytest
 
-from .context import gtfstk, slow, DATA_DIR, cairns, cairns_shapeless, cairns_dates, cairns_trip_stats
+from .context import (
+  gtfstk, slow, DATA_DIR, cairns, cairns_shapeless, cairns_dates,
+  cairns_trip_stats, HAS_FOLIUM
+)
 from gtfstk import *
 
+if HAS_FOLIUM:
+    from folium import Map
 
 def test_is_active_trip():
     feed = cairns.copy()
@@ -140,3 +146,12 @@ def test_trip_to_geojson():
     assert len(g0['features']) == 1
     stop_ids = get_stops(feed, trip_id=trip_id)['stop_id'].values
     assert len(g1['features']) == 1 + len(stop_ids)
+
+@pytest.mark.skipif(not HAS_FOLIUM, reason="Requires Folium")
+def test_map_trips():
+    feed = cairns.copy()
+    tids = feed.trips['trip_id'].values[:2]
+    map0 = map_trips(feed, ['bingo'])
+    map1 = map_trips(feed, tids, include_stops=True)
+    for m in [map0, map1]:
+        assert isinstance(m, Map)

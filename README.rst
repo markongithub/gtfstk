@@ -38,6 +38,11 @@ Authors
 Changes
 =========
 
+9.2.0, 2018-05-23
+------------------
+- Added ``map_trips`` which works like ``map_routes``
+
+
 9.1.0, 2018-05-02
 ------------------
 - Changed ``route_to_geojson`` to return LineStrings instead of a MultiLineString and added a date keyword argurment

@@ -7,7 +7,9 @@ import json
 import pandas as pd
 import numpy as np
 import shapely.geometry as sg
+import shapely.ops as so
 
+from . import constants as cs
 from . import helpers as hp
 
 
@@ -511,3 +513,96 @@ def trip_to_geojson(feed, trip_id, *, include_stops=False):
         } for stop_id in stop_ids])
 
     return {'type': 'FeatureCollection', 'features': features}
+
+def map_trips(feed, trip_ids, color_palette=cs.COLORS_SET2, *,
+  include_stops=True):
+    """
+    Return a Folium map showing the given trips and (optionally)
+    their stops.
+
+    Parameters
+    ----------
+    feed : Feed
+    trip_ids : list
+        IDs of trips in ``feed.trips``
+    color_palette : list
+        Palette to use to color the routes. If more routes than colors,
+        then colors will be recycled.
+    include_stops : boolean
+        If ``True``, then include stops in the map
+
+    Returns
+    -------
+    dictionary
+        A Folium Map depicting the shapes of the trips.
+        If ``include_stops``, then include the stops for each trip.
+
+    Notes
+    ------
+    - Requires Folium
+
+    """
+    import folium as fl
+
+    # Get routes slice and convert to dictionary
+    trips = (
+      feed.trips
+      .loc[lambda x: x['trip_id'].isin(trip_ids)]
+      .fillna('n/a')
+      .to_dict(orient='records')
+    )
+
+    # Create colors
+    n = len(trips)
+    colors = [color_palette[i % len(color_palette)] for i in range(n)]
+
+    # Initialize map
+    my_map = fl.Map(tiles='cartodbpositron')
+
+    # Collect route bounding boxes to set map zoom later
+    bboxes = []
+
+    # Create a feature group for each route and add it to the map
+    for i, trip in enumerate(trips):
+        collection = feed.trip_to_geojson(
+          trip_id=trip['trip_id'], include_stops=include_stops)
+        group = fl.FeatureGroup(name='Trip ' + trip['trip_id'])
+        color = colors[i]
+
+        for f in collection['features']:
+            prop = f['properties']
+
+            # Add stop
+            if f['geometry']['type'] == 'Point':
+                lon, lat = f['geometry']['coordinates']
+                fl.CircleMarker(
+                    location=[lat, lon],
+                    radius=8,
+                    fill=True,
+                    color=color,
+                    weight=1,
+                    popup=fl.Popup(hp.make_html(prop))
+                ).add_to(group)
+
+            # Add path
+            else:
+                prop['color'] = color
+                path = fl.GeoJson(f,
+                    name=trip,
+                    style_function=lambda x: {
+                      'color': x['properties']['color']},
+                )
+                path.add_child(fl.Popup(hp.make_html(prop)))
+                path.add_to(group)
+                bboxes.append(sg.box(*sg.shape(f['geometry']).bounds))
+
+        group.add_to(my_map)
+
+    fl.LayerControl().add_to(my_map)
+
+    # Fit map to bounds
+    bounds = so.unary_union(bboxes).bounds
+    bounds2 = [bounds[1::-1], bounds[3:1:-1]]  # Folium expects this ordering
+    my_map.fit_bounds(bounds2)
+
+    return my_map

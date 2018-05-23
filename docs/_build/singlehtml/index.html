@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>GTFSTK 9.1.0 documentation</title>
+    <title>GTFSTK 9.2.0 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -19,7 +19,7 @@
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 9.1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 9.2.0 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -52,7 +52,7 @@
           <div class="body" role="main">
             
   <div class="section" id="gtfstk-version-documentation">
-<h1>GTFSTK 9.1.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>GTFSTK 9.2.0 Documentation<a class="headerlink" href="#gtfstk-version-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <span id="document-introduction"></span><p>GTFSTK is a Python 3.4+ tool kit that analyzes <a class="reference external" href="https://en.wikipedia.org/wiki/GTFS">General Transit Feed Specification (GTFS)</a> data in memory without a database.
 It uses Pandas and Shapely to do the heavy lifting.</p>
@@ -1385,7 +1385,7 @@ their stops.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>feed</strong> (<a class="reference internal" href="index.html#gtfstk.feed.Feed" title="gtfstk.feed.Feed"><em>Feed</em></a>) – </li>
-<li><strong>route_ids</strong> (<em>list</em>) – IDs of route in <code class="docutils literal notranslate"><span class="pre">feed.routes</span></code></li>
+<li><strong>route_ids</strong> (<em>list</em>) – IDs of routes in <code class="docutils literal notranslate"><span class="pre">feed.routes</span></code></li>
 <li><strong>date</strong> (<em>string</em>) – YYYYMMDD date string restricting the output to trips active
 on the date</li>
 <li><strong>color_palette</strong> (<em>list</em>) – Palette to use to color the routes. If more routes than colors,
@@ -1394,11 +1394,9 @@ then colors will be recycled.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A decoded GeoJSON feature collection comprising a
-LineString features of the distinct shapes of the trips on the
-route.
-If <code class="docutils literal notranslate"><span class="pre">include_stops</span></code>, then include one Point feature for
-each stop on the route.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A Folium Map depicting the distinct shapes of the trips on
+each route.
+If <code class="docutils literal notranslate"><span class="pre">include_stops</span></code>, then include the stops for each route.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dictionary</p>
@@ -2404,6 +2402,39 @@ the relative distance of the trip along its path</li>
 <li><code class="docutils literal notranslate"><span class="pre">feed.trips</span></code></li>
 <li>Those used in <a class="reference internal" href="#gtfstk.stop_times.get_stop_times" title="gtfstk.stop_times.get_stop_times"><code class="xref py py-func docutils literal notranslate"><span class="pre">stop_times.get_stop_times()</span></code></a></li>
 <li>Those used in <a class="reference internal" href="#gtfstk.shapes.build_geometry_by_shape" title="gtfstk.shapes.build_geometry_by_shape"><code class="xref py py-func docutils literal notranslate"><span class="pre">shapes.build_geometry_by_shape()</span></code></a></li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="gtfstk.trips.map_trips">
+<code class="descclassname">gtfstk.trips.</code><code class="descname">map_trips</code><span class="sig-paren">(</span><em>feed, trip_ids, color_palette=['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f', '#e5c494', '#b3b3b3'], *, include_stops=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.trips.map_trips" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Folium map showing the given trips and (optionally)
+their stops.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>feed</strong> (<a class="reference internal" href="index.html#gtfstk.feed.Feed" title="gtfstk.feed.Feed"><em>Feed</em></a>) – </li>
+<li><strong>trip_ids</strong> (<em>list</em>) – IDs of trips in <code class="docutils literal notranslate"><span class="pre">feed.trips</span></code></li>
+<li><strong>color_palette</strong> (<em>list</em>) – Palette to use to color the routes. If more routes than colors,
+then colors will be recycled.</li>
+<li><strong>include_stops</strong> (<em>boolean</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, then include stops in the map</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A Folium Map depicting the shapes of the trips.
+If <code class="docutils literal notranslate"><span class="pre">include_stops</span></code>, then include the stops for each trip.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dictionary</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li>Requires Folium</li>
 </ul>
 </dd></dl>
 
@@ -4432,7 +4463,7 @@ their stops.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>feed</strong> (<a class="reference internal" href="index.html#gtfstk.feed.Feed" title="gtfstk.feed.Feed"><em>Feed</em></a>) – </li>
-<li><strong>route_ids</strong> (<em>list</em>) – IDs of route in <code class="docutils literal notranslate"><span class="pre">feed.routes</span></code></li>
+<li><strong>route_ids</strong> (<em>list</em>) – IDs of routes in <code class="docutils literal notranslate"><span class="pre">feed.routes</span></code></li>
 <li><strong>date</strong> (<em>string</em>) – YYYYMMDD date string restricting the output to trips active
 on the date</li>
 <li><strong>color_palette</strong> (<em>list</em>) – Palette to use to color the routes. If more routes than colors,
@@ -4441,11 +4472,42 @@ then colors will be recycled.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A decoded GeoJSON feature collection comprising a
-LineString features of the distinct shapes of the trips on the
-route.
-If <code class="docutils literal notranslate"><span class="pre">include_stops</span></code>, then include one Point feature for
-each stop on the route.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A Folium Map depicting the distinct shapes of the trips on
+each route.
+If <code class="docutils literal notranslate"><span class="pre">include_stops</span></code>, then include the stops for each route.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dictionary</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li>Requires Folium</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="gtfstk.feed.Feed.map_trips">
+<code class="descname">map_trips</code><span class="sig-paren">(</span><em>trip_ids, color_palette=['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f', '#e5c494', '#b3b3b3'], *, include_stops=True</em><span class="sig-paren">)</span><a class="headerlink" href="#gtfstk.feed.Feed.map_trips" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Folium map showing the given trips and (optionally)
+their stops.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>feed</strong> (<a class="reference internal" href="index.html#gtfstk.feed.Feed" title="gtfstk.feed.Feed"><em>Feed</em></a>) – </li>
+<li><strong>trip_ids</strong> (<em>list</em>) – IDs of trips in <code class="docutils literal notranslate"><span class="pre">feed.trips</span></code></li>
+<li><strong>color_palette</strong> (<em>list</em>) – Palette to use to color the routes. If more routes than colors,
+then colors will be recycled.</li>
+<li><strong>include_stops</strong> (<em>boolean</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, then include stops in the map</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A Folium Map depicting the shapes of the trips.
+If <code class="docutils literal notranslate"><span class="pre">include_stops</span></code>, then include the stops for each trip.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dictionary</p>
@@ -4742,12 +4804,12 @@ All distances will be the distance units <code class="docutils literal notransla
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 9.1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html#document-index">GTFSTK 9.2.0 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright .
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>

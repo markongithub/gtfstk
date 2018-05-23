@@ -121,6 +121,7 @@ class Feed(object):
         compute_trip_stats,
         locate_trips,
         trip_to_geojson,
+        map_trips,
     )
     from .miscellany import (
         summarize,
