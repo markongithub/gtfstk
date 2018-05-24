@@ -18,6 +18,7 @@ pycountry = "*"
 geopandas = "*"
 folium = "*"
 "json2html" = "*"
+readme-renderer = "*"
 
 [requires]
 python_version = "3.5"

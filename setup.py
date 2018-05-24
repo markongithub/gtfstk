@@ -28,4 +28,3 @@ setup(
     ],
     packages=find_packages(exclude=('tests', 'docs'))
 )
-
