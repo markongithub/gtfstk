@@ -15,8 +15,7 @@ setup(
     version=__version__,
     author='Alex Raichev',
     url='https://github.com/araichev/gtfstk',
-    data_files = [('', ['LICENSE.txt'])],
-    description='A Python 3.5+ tool kit that analyzes General Transit'
+    description='A Python 3.5+ tool kit that analyzes General Transit '
       'Feed Specification (GTFS) data',
     long_description=readme,
     license=license,
