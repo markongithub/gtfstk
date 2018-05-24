@@ -7,9 +7,6 @@ exec(open('gtfstk/_version.py').read())
 with open('README.rst') as f:
     readme = f.read()
 
-with open('LICENSE.txt') as f:
-    license = f.read()
-
 setup(
     name='gtfstk',
     version=__version__,
@@ -18,7 +15,7 @@ setup(
     url='https://github.com/araichev/gtfstk',
     description='A Python 3.5+ tool kit that analyzes GTFS data',
     long_description=readme,
-    license=license,
+    license='MIT',
     install_requires=[
         'Shapely >= 1.5.1',
         'pandas >= 0.20.0',
