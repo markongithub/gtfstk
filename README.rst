@@ -38,6 +38,11 @@ Authors
 Changes
 =========
 
+9.2.3, 2018-05-25
+------------------
+- Bugfixed ``geometrize_stops`` which was putting some NaNs in the geometry column
+
+
 9.2.2, 2018-05-24
 ------------------
 - Added trip direction arrows to maps produced by ``map_trips``
