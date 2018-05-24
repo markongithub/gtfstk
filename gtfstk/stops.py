@@ -739,15 +739,16 @@ def geometrize_stops(stops, *, use_utm=False):
     """
     import geopandas as gpd
 
-    f = stops.copy()
-    s = gpd.GeoSeries([sg.Point(p) for p in
-      stops[['stop_lon', 'stop_lat']].values])
-    f['geometry'] = s
-    g = f.drop(['stop_lon', 'stop_lat'], axis=1)
-    g = gpd.GeoDataFrame(g, crs=cs.WGS84)
+    g = (
+        stops
+        .assign(geometry=lambda x:
+            [sg.Point(p) for p in x[['stop_lon', 'stop_lat']].values])
+        .drop(['stop_lon', 'stop_lat'], axis=1)
+        .pipe(lambda x: gpd.GeoDataFrame(x, crs=cs.WGS84))
+    )
 
     if use_utm:
-        lat, lon = f.ix[0][['stop_lat', 'stop_lon']].values
+        lat, lon = stops.ix[0][['stop_lat', 'stop_lon']].values
         crs = hp.get_utm_crs(lat, lon)
         g = g.to_crs(crs)
 
