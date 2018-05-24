@@ -16,8 +16,7 @@ setup(
     author='Alex Raichev',
     author_email='alex@raichev.net',
     url='https://github.com/araichev/gtfstk',
-    description='A Python 3.5+ tool kit that analyzes General Transit '
-      'Feed Specification (GTFS) data',
+    description='A Python 3.5+ tool kit that analyzes GTFS data',
     long_description=readme,
     license=license,
     install_requires=[
