@@ -3,6 +3,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from numpy.testing import assert_array_equal
+from pandas.testing import assert_series_equal
 import shapely.geometry as sg
 
 from .context import gtfstk, slow
@@ -86,3 +87,15 @@ def test_is_not_null():
 
     f = pd.DataFrame([[1, np.nan], [2, 2]], columns=['bar', c])
     assert is_not_null(f, c)
+
+def test_get_active_trips_df():
+    f = pd.DataFrame([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]], columns=['start_time', 'end_time'])
+    expect = pd.Series(index=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], data=[1, 2, 3, 4, 5, 4, 3, 2, 1, 0])
+    get = get_active_trips_df(f)
+    assert_series_equal(get, expect)
+
+    f = pd.DataFrame([[1, 2, 3, 4, 5], [2, 4, 6, 8, 10]], columns=['start_time', 'end_time'])
+    expect = pd.Series(index=[1, 2, 3, 4, 5, 6, 8, 10], data=[1, 1, 2, 2, 3, 2, 1, 0])
+    get = get_active_trips_df(f)
+    assert_series_equal(get, expect)
+
