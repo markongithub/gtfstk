@@ -131,8 +131,8 @@ def compute_route_stats_base(trip_stats_subset,
             d['mean_headway'] = np.nan
 
         # Compute peak num trips
-        times = np.unique(group[['start_time', 'end_time']].values)
-        counts = [hp.count_active_trips(group, t) for t in times]
+        active_trips = hp.get_active_trips_df(group[['start_time', 'end_time']])
+        times, counts = active_trips.index.values, active_trips.values
         start, end = hp.get_peak_indices(times, counts)
         d['peak_num_trips'] = counts[start]
         d['peak_start_time'] = times[start]
@@ -173,8 +173,8 @@ def compute_route_stats_base(trip_stats_subset,
             d['mean_headway'] = np.nan
 
         # Compute peak num trips
-        times = np.unique(group[['start_time', 'end_time']].values)
-        counts = [hp.count_active_trips(group, t) for t in times]
+        active_trips = hp.get_active_trips_df(group[['start_time', 'end_time']])
+        times, counts = active_trips.index.values, active_trips.values
         start, end = hp.get_peak_indices(times, counts)
         d['peak_num_trips'] = counts[start]
         d['peak_start_time'] = times[start]

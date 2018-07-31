@@ -257,6 +257,32 @@ def count_active_trips(trip_times, time):
     t = trip_times
     return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
 
+
+def get_active_trips_df(trip_times):
+    """
+    Count the number of trips in ``trip_times`` that are active
+    at any given time.
+
+    Parameters
+    ----------
+    trip_times : DataFrame
+        Contains columns
+
+        - start_time: start time of the trip in seconds past midnight
+        - end_time: end time of the trip in seconds past midnight
+
+    Returns
+    -------
+    Series
+        index is times from midnight when trips start and end, values are number of active trips for that time
+
+    """
+    active_trips = pd.concat([pd.Series(1, trip_times.start_time),  # departed add 1
+                              pd.Series(-1, trip_times.end_time)    # arrived subtract 1
+                              ]).groupby(level=0, sort=True).sum().cumsum().ffill()
+    return active_trips
+
+
 def combine_time_series(time_series_dict, kind, *, split_directions=False):
     """
     Combine the many time series DataFrames in the given dictionary
