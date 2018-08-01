@@ -9,6 +9,8 @@ pytest = "*"
 plotnine = "*"
 twine = "*"
 sphinx = "*"
+black = "*"
+pre-commit = "*"
 
 [packages]
 pandas = "*"
