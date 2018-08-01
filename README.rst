@@ -42,6 +42,7 @@ Changes
 9.2.4, 2018-08-01
 ------------------
 - Replaced ``count_active_trips`` with cjer's faster ``get_active_trips_df``, yielding a ~6x speed up on ``compute_route_stats``.
+- Autoformated code with Black.
 
 
 9.2.3, 2018-05-25
