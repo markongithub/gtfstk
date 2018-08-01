@@ -632,6 +632,87 @@ def compute_center(feed, num_busiest_stops=None):
     return lon, lat
 
 
+def restrict_to_dates(feed, dates):
+    """
+    Build a new feed by restricting this one to only the stops,
+    trips, shapes, etc. active on at least one of the given dates
+    (YYYYMMDD strings).
+    Return the resulting feed, which will have empty non-agency tables
+    if no trip is active on any of the given dates.
+    """
+    # Initialize the new feed as the old feed.
+    # Restrict its DataFrames below.
+    feed = feed.copy()
+
+    # Get every trip that is active on at least one of the dates
+    try:
+        trip_ids = feed.compute_trip_activity(dates).loc[
+            lambda x: x[[c for c in x.columns if c != "trip_id"]].sum(axis=1)
+            > 0,
+            "trip_id",
+        ]
+    except KeyError:
+        # No trips
+        trip_ids = []
+
+    # Slice trips
+    feed.trips = feed.trips.loc[lambda x: x.trip_id.isin(trip_ids)]
+
+    # Slice routes
+    feed.routes = feed.routes.loc[
+        lambda x: x.route_id.isin(feed.trips.route_id)
+    ]
+
+    # Slice stop times
+    feed.stop_times = feed.stop_times.loc[lambda x: x.trip_id.isin(trip_ids)]
+
+    # Slice stops
+    stop_ids = feed.stop_times.stop_id.unique()
+    feed.stops = feed.stops.loc[lambda x: x.stop_id.isin(stop_ids)]
+
+    # Slice calendar
+    service_ids = feed.trips.service_id
+    if feed.calendar is not None:
+        feed.calendar = feed.calendar.loc[
+            lambda x: x.service_id.isin(service_ids)
+        ]
+
+    # Get agency for trips
+    if "agency_id" in feed.routes.columns:
+        agency_ids = feed.routes.agency_id
+        if len(agency_ids):
+            feed.agency = feed.agency.loc[
+                lambda x: x.agency_id.isin(agency_ids)
+            ]
+
+    # Now for the optional files.
+    # Get calendar dates for trips.
+    if feed.calendar_dates is not None:
+        feed.calendar_dates = feed.calendar_dates.loc[
+            lambda x: x.service_id.isin(service_ids)
+        ]
+
+    # Get frequencies for trips
+    if feed.frequencies is not None:
+        feed.frequencies = feed.frequencies.loc[
+            lambda x: x.trip_id.isin(trip_ids)
+        ]
+
+    # Get shapes for trips
+    if feed.shapes is not None:
+        shape_ids = feed.trips.shape_id
+        feed.shapes = feed.shapes.loc[lambda x: x.shape_id.isin(shape_ids)]
+
+    # Get transfers for stops
+    if feed.transfers is not None:
+        feed.transfers = feed.transfers.loc[
+            lambda x: x.from_stop_id.isin(stop_ids)
+            | x.to_stop_id.isin(stop_ids)
+        ]
+
+    return feed
+
+
 def restrict_to_routes(feed, route_ids):
     """
     Build a new feed by restricting this one to only the stops,

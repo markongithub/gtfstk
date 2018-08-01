@@ -130,6 +130,7 @@ class Feed(object):
         create_shapes,
         compute_bounds,
         compute_center,
+        restrict_to_dates,
         restrict_to_routes,
         restrict_to_polygon,
         compute_screen_line_counts,

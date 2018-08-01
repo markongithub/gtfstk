@@ -3,27 +3,35 @@ import numpy as np
 import pytest
 
 from .context import (
-  gtfstk, slow, DATA_DIR, cairns, cairns_shapeless, cairns_dates,
-  cairns_trip_stats, HAS_FOLIUM
+    gtfstk,
+    slow,
+    DATA_DIR,
+    cairns,
+    cairns_shapeless,
+    cairns_dates,
+    cairns_trip_stats,
+    HAS_FOLIUM,
 )
 from gtfstk import *
 
 if HAS_FOLIUM:
     from folium import Map
 
+
 def test_is_active_trip():
     feed = cairns.copy()
-    trip_id = 'CNS2014-CNS_MUL-Weekday-00-4165878'
-    date1 = '20140526'
-    date2 = '20120322'
+    trip_id = "CNS2014-CNS_MUL-Weekday-00-4165878"
+    date1 = "20140526"
+    date2 = "20120322"
     assert is_active_trip(feed, trip_id, date1)
     assert not is_active_trip(feed, trip_id, date2)
 
-    trip_id = 'CNS2014-CNS_MUL-Sunday-00-4165971'
-    date1 = '20140601'
-    date2 = '20120602'
+    trip_id = "CNS2014-CNS_MUL-Sunday-00-4165971"
+    date1 = "20140601"
+    date2 = "20120602"
     assert is_active_trip(feed, trip_id, date1)
     assert not is_active_trip(feed, trip_id, date2)
+
 
 def test_get_trips():
     feed = cairns.copy()
@@ -46,6 +54,7 @@ def test_get_trips():
     # Should have correct columns
     assert set(trips2.columns) == set(feed.trips.columns)
 
+
 def test_compute_trip_activity():
     feed = cairns.copy()
     dates = get_first_week(feed)
@@ -58,12 +67,14 @@ def test_compute_trip_activity():
     # Date columns should contain only zeros and ones
     assert set(trips_activity[dates].values.flatten()) == {0, 1}
 
+
 def test_compute_busiest_date():
     feed = cairns.copy()
     dates = get_first_week(feed)[:1]
-    date = compute_busiest_date(feed, dates + ['999'])
+    date = compute_busiest_date(feed, dates + ["999"])
     # Busiest day should lie in first week
     assert date in dates
+
 
 def test_compute_trip_stats():
     feed = cairns.copy()
@@ -72,40 +83,43 @@ def test_compute_trip_stats():
     trip_stats = compute_trip_stats(feed, route_ids=rids)
 
     # Should be a data frame with the correct number of rows
-    trip_subset = feed.trips.loc[lambda x: x['route_id'].isin(rids)].copy()
+    trip_subset = feed.trips.loc[lambda x: x["route_id"].isin(rids)].copy()
     assert isinstance(trip_stats, pd.core.frame.DataFrame)
     assert trip_stats.shape[0] == trip_subset.shape[0]
 
     # Should contain the correct columns
-    expect_cols = set([
-      'trip_id',
-      'direction_id',
-      'route_id',
-      'route_short_name',
-      'route_type',
-      'shape_id',
-      'num_stops',
-      'start_time',
-      'end_time',
-      'start_stop_id',
-      'end_stop_id',
-      'distance',
-      'duration',
-      'speed',
-      'is_loop',
-      ])
+    expect_cols = set(
+        [
+            "trip_id",
+            "direction_id",
+            "route_id",
+            "route_short_name",
+            "route_type",
+            "shape_id",
+            "num_stops",
+            "start_time",
+            "end_time",
+            "start_stop_id",
+            "end_stop_id",
+            "distance",
+            "duration",
+            "speed",
+            "is_loop",
+        ]
+    )
     assert set(trip_stats.columns) == expect_cols
 
     # Shapeless feeds should have null entries for distance column
     feed2 = cairns_shapeless.copy()
     trip_stats = compute_trip_stats(feed2, route_ids=rids)
-    assert len(trip_stats['distance'].unique()) == 1
-    assert np.isnan(trip_stats['distance'].unique()[0])
+    assert len(trip_stats["distance"].unique()) == 1
+    assert np.isnan(trip_stats["distance"].unique()[0])
 
     # Should contain the correct trips
-    get_trips = set(trip_stats['trip_id'].values)
-    expect_trips = set(trip_subset['trip_id'].values)
+    get_trips = set(trip_stats["trip_id"].values)
+    expect_trips = set(trip_subset["trip_id"].values)
     assert get_trips == expect_trips
+
 
 @slow
 def test_locate_trips():
@@ -113,7 +127,7 @@ def test_locate_trips():
     trip_stats = cairns_trip_stats
     feed = append_dist_to_stop_times(feed, trip_stats)
     date = cairns_dates[0]
-    times = ['08:00:00']
+    times = ["08:00:00"]
     f = locate_trips(feed, date, times)
     g = get_trips(feed, date, times[0])
     # Should be a data frame
@@ -121,21 +135,24 @@ def test_locate_trips():
     # Should have the correct number of rows
     assert f.shape[0] == g.shape[0]
     # Should have the correct columns
-    expect_cols = set([
-      'route_id',
-      'trip_id',
-      'direction_id',
-      'shape_id',
-      'time',
-      'rel_dist',
-      'lon',
-      'lat',
-      ])
+    expect_cols = set(
+        [
+            "route_id",
+            "trip_id",
+            "direction_id",
+            "shape_id",
+            "time",
+            "rel_dist",
+            "lon",
+            "lat",
+        ]
+    )
     assert set(f.columns) == expect_cols
+
 
 def test_trip_to_geojson():
     feed = cairns.copy()
-    trip_id = feed.trips['trip_id'].values[0]
+    trip_id = feed.trips["trip_id"].values[0]
     g0 = trip_to_geojson(feed, trip_id)
     g1 = trip_to_geojson(feed, trip_id, include_stops=True)
     for g in [g0, g1]:
@@ -143,15 +160,16 @@ def test_trip_to_geojson():
         assert isinstance(g, dict)
 
     # Should have the correct number of features
-    assert len(g0['features']) == 1
-    stop_ids = get_stops(feed, trip_id=trip_id)['stop_id'].values
-    assert len(g1['features']) == 1 + len(stop_ids)
+    assert len(g0["features"]) == 1
+    stop_ids = get_stops(feed, trip_id=trip_id)["stop_id"].values
+    assert len(g1["features"]) == 1 + len(stop_ids)
+
 
 @pytest.mark.skipif(not HAS_FOLIUM, reason="Requires Folium")
 def test_map_trips():
     feed = cairns.copy()
-    tids = feed.trips['trip_id'].values[:2]
-    map0 = map_trips(feed, ['bingo'])
+    tids = feed.trips["trip_id"].values[:2]
+    map0 = map_trips(feed, ["bingo"])
     map1 = map_trips(feed, tids, include_stops=True)
     for m in [map0, map1]:
         assert isinstance(m, Map)
