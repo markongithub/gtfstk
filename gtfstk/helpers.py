@@ -229,33 +229,31 @@ def linestring_to_utm(linestring):
     proj = lambda x, y: utm.from_latlon(y, x)[:2]
     return transform(proj, linestring)
 
-def count_active_trips(trip_times, time):
+
+def get_active_trips_df(trip_times):
     """
     Count the number of trips in ``trip_times`` that are active
-    at the given time.
+    at any given time.
 
     Parameters
     ----------
     trip_times : DataFrame
-        Contains the columns
+        Contains columns
 
-        - trip_id
         - start_time: start time of the trip in seconds past midnight
         - end_time: end time of the trip in seconds past midnight
 
-    time : integer
-        Number of seconds past midnight
-
     Returns
     -------
-    integer
-        Number of trips in ``trip_times`` that are active at ``time``.
-        A trip is a considered active at time t if and only if
-        start_time <= t < end_time.
+    Series
+        index is times from midnight when trips start and end, values are number of active trips for that time
 
     """
-    t = trip_times
-    return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
+    active_trips = pd.concat([pd.Series(1, trip_times.start_time),  # departed add 1
+                              pd.Series(-1, trip_times.end_time)    # arrived subtract 1
+                              ]).groupby(level=0, sort=True).sum().cumsum().ffill()
+    return active_trips
+
 
 def combine_time_series(time_series_dict, kind, *, split_directions=False):
     """

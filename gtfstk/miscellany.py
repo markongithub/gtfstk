@@ -376,8 +376,8 @@ def compute_feed_stats(feed, trip_stats, dates):
               stats['service_distance']/stats['service_duration']
 
             # Compute peak stats, which is the slowest part
-            times = np.unique(f[['start_time', 'end_time']].values)
-            counts = [hp.count_active_trips(f, t) for t in times]
+            active_trips = hp.get_active_trips_df(f[['start_time', 'end_time']])
+            times, counts = active_trips.index.values, active_trips.values
             start, end = hp.get_peak_indices(times, counts)
             stats['peak_num_trips'] = counts[start]
             stats['peak_start_time'] = times[start]
