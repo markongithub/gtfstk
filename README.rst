@@ -33,10 +33,16 @@ Notes
 Authors
 =========
 - Alex Raichev (2014-05)
+- `cjer <https://github.com/cjer>`_ (2018-07)
 
 
 Changes
 =========
+
+9.2.4, 2018-08-01
+------------------
+- Replaced ``count_active_trips`` with cjer's faster ``get_active_trips_df``, yielding a ~6x speed up on ``compute_route_stats``.
+
 
 9.2.3, 2018-05-25
 ------------------
