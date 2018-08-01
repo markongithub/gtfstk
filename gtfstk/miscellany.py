@@ -50,7 +50,7 @@ def summarize(feed, table=None):
 
     if table is not None:
         if table not in gtfs_tables:
-            raise ValueError('{!s} is not a GTFS table'.format(table))
+            raise ValueError("{!s} is not a GTFS table".format(table))
         else:
             tables = [table]
     else:
@@ -64,20 +64,27 @@ def summarize(feed, table=None):
 
         def my_agg(col):
             d = {}
-            d['column'] = col.name
-            d['num_values'] = col.size
-            d['num_nonnull_values'] = col.count()
-            d['num_unique_values'] = col.nunique()
-            d['min_value'] = col.dropna().min()
-            d['max_value'] = col.dropna().max()
+            d["column"] = col.name
+            d["num_values"] = col.size
+            d["num_nonnull_values"] = col.count()
+            d["num_unique_values"] = col.nunique()
+            d["min_value"] = col.dropna().min()
+            d["max_value"] = col.dropna().max()
             return pd.Series(d)
 
         g = f.apply(my_agg).T.reset_index(drop=True)
-        g['table'] = table
+        g["table"] = table
         frames.append(g)
 
-    cols = ['table', 'column', 'num_values', 'num_nonnull_values',
-      'num_unique_values', 'min_value', 'max_value']
+    cols = [
+        "table",
+        "column",
+        "num_values",
+        "num_nonnull_values",
+        "num_unique_values",
+        "min_value",
+        "max_value",
+    ]
 
     if not frames:
         f = pd.DataFrame()
@@ -87,6 +94,7 @@ def summarize(feed, table=None):
         f = f[cols].copy()
 
     return f
+
 
 def describe(feed, sample_date=None):
     """
@@ -115,30 +123,31 @@ def describe(feed, sample_date=None):
 
     d = OrderedDict()
     dates = cl.get_dates(feed)
-    d['agencies'] = feed.agency['agency_name'].tolist()
-    d['timezone'] = feed.agency['agency_timezone'].iat[0]
-    d['start_date'] = dates[0]
-    d['end_date'] = dates[-1]
-    d['num_routes'] = feed.routes.shape[0]
-    d['num_trips'] = feed.trips.shape[0]
-    d['num_stops'] = feed.stops.shape[0]
+    d["agencies"] = feed.agency["agency_name"].tolist()
+    d["timezone"] = feed.agency["agency_timezone"].iat[0]
+    d["start_date"] = dates[0]
+    d["end_date"] = dates[-1]
+    d["num_routes"] = feed.routes.shape[0]
+    d["num_trips"] = feed.trips.shape[0]
+    d["num_stops"] = feed.stops.shape[0]
     if feed.shapes is not None:
-        d['num_shapes'] = feed.shapes['shape_id'].nunique()
+        d["num_shapes"] = feed.shapes["shape_id"].nunique()
     else:
-        d['num_shapes'] = 0
+        d["num_shapes"] = 0
 
     if sample_date is None or sample_date not in feed.get_dates():
         sample_date = cl.get_first_week(feed)[3]
-    d['sample_date'] = sample_date
-    d['num_routes_active_on_sample_date'] = feed.get_routes(
-      sample_date).shape[0]
+    d["sample_date"] = sample_date
+    d["num_routes_active_on_sample_date"] = feed.get_routes(sample_date).shape[
+        0
+    ]
     trips = feed.get_trips(sample_date)
-    d['num_trips_active_on_sample_date'] = trips.shape[0]
-    d['num_stops_active_on_sample_date'] = feed.get_stops(
-      sample_date).shape[0]
-    f = pd.DataFrame(list(d.items()), columns=['indicator', 'value'])
+    d["num_trips_active_on_sample_date"] = trips.shape[0]
+    d["num_stops_active_on_sample_date"] = feed.get_stops(sample_date).shape[0]
+    f = pd.DataFrame(list(d.items()), columns=["indicator", "value"])
 
     return f
+
 
 def assess_quality(feed):
     """
@@ -167,72 +176,77 @@ def assess_quality(feed):
 
     # Count duplicate route short names
     r = feed.routes
-    dup = r.duplicated(subset=['route_short_name'])
+    dup = r.duplicated(subset=["route_short_name"])
     n = dup[dup].count()
-    d['num_route_short_names_duplicated'] = n
-    d['frac_route_short_names_duplicated'] = n/r.shape[0]
+    d["num_route_short_names_duplicated"] = n
+    d["frac_route_short_names_duplicated"] = n / r.shape[0]
 
     # Count stop times missing shape_dist_traveled values
-    st = feed.stop_times.sort_values(['trip_id', 'stop_sequence'])
-    if 'shape_dist_traveled' in st.columns:
+    st = feed.stop_times.sort_values(["trip_id", "stop_sequence"])
+    if "shape_dist_traveled" in st.columns:
         # Count missing distances
-        n = st[st['shape_dist_traveled'].isnull()].shape[0]
-        d['num_stop_time_dists_missing'] = n
-        d['frac_stop_time_dists_missing'] = n/st.shape[0]
+        n = st[st["shape_dist_traveled"].isnull()].shape[0]
+        d["num_stop_time_dists_missing"] = n
+        d["frac_stop_time_dists_missing"] = n / st.shape[0]
     else:
-        d['num_stop_time_dists_missing'] = st.shape[0]
-        d['frac_stop_time_dists_missing'] = 1
+        d["num_stop_time_dists_missing"] = st.shape[0]
+        d["frac_stop_time_dists_missing"] = 1
 
     # Count direction_ids missing
     t = feed.trips
-    if 'direction_id' in t.columns:
-        n = t[t['direction_id'].isnull()].shape[0]
-        d['num_direction_ids_missing'] = n
-        d['frac_direction_ids_missing'] = n/t.shape[0]
+    if "direction_id" in t.columns:
+        n = t[t["direction_id"].isnull()].shape[0]
+        d["num_direction_ids_missing"] = n
+        d["frac_direction_ids_missing"] = n / t.shape[0]
     else:
-        d['num_direction_ids_missing'] = t.shape[0]
-        d['frac_direction_ids_missing'] = 1
+        d["num_direction_ids_missing"] = t.shape[0]
+        d["frac_direction_ids_missing"] = 1
 
     # Count trips missing shapes
     if feed.shapes is not None:
-        n = t[t['shape_id'].isnull()].shape[0]
+        n = t[t["shape_id"].isnull()].shape[0]
     else:
         n = t.shape[0]
-    d['num_trips_missing_shapes'] = n
-    d['frac_trips_missing_shapes'] = n/t.shape[0]
+    d["num_trips_missing_shapes"] = n
+    d["frac_trips_missing_shapes"] = n / t.shape[0]
 
     # Count missing departure times
-    n = st[st['departure_time'].isnull()].shape[0]
-    d['num_departure_times_missing'] = n
-    d['frac_departure_times_missing'] = n/st.shape[0]
+    n = st[st["departure_time"].isnull()].shape[0]
+    d["num_departure_times_missing"] = n
+    d["frac_departure_times_missing"] = n / st.shape[0]
 
     # Count missing first departure times missing
-    g = st.groupby('trip_id').first().reset_index()
-    n = g[g['departure_time'].isnull()].shape[0]
-    d['num_first_departure_times_missing'] = n
-    d['frac_first_departure_times_missing'] = n/st.shape[0]
+    g = st.groupby("trip_id").first().reset_index()
+    n = g[g["departure_time"].isnull()].shape[0]
+    d["num_first_departure_times_missing"] = n
+    d["frac_first_departure_times_missing"] = n / st.shape[0]
 
     # Count missing last departure times
-    g = st.groupby('trip_id').last().reset_index()
-    n = g[g['departure_time'].isnull()].shape[0]
-    d['num_last_departure_times_missing'] = n
-    d['frac_last_departure_times_missing'] = n/st.shape[0]
+    g = st.groupby("trip_id").last().reset_index()
+    n = g[g["departure_time"].isnull()].shape[0]
+    d["num_last_departure_times_missing"] = n
+    d["frac_last_departure_times_missing"] = n / st.shape[0]
 
     # Opine
-    if (d['frac_first_departure_times_missing'] >= 0.1) or\
-      (d['frac_last_departure_times_missing'] >= 0.1) or\
-      d['frac_trips_missing_shapes'] >= 0.8:
-        d['assessment'] = 'bad feed'
-    elif d['frac_direction_ids_missing'] or\
-      d['frac_stop_time_dists_missing'] or\
-      d['num_route_short_names_duplicated']:
-        d['assessment'] = 'probably a fixable feed'
+    if (
+        (d["frac_first_departure_times_missing"] >= 0.1)
+        or (d["frac_last_departure_times_missing"] >= 0.1)
+        or d["frac_trips_missing_shapes"] >= 0.8
+    ):
+        d["assessment"] = "bad feed"
+    elif (
+        d["frac_direction_ids_missing"]
+        or d["frac_stop_time_dists_missing"]
+        or d["num_route_short_names_duplicated"]
+    ):
+        d["assessment"] = "probably a fixable feed"
     else:
-        d['assessment'] = 'good feed'
+        d["assessment"] = "good feed"
 
-    f = pd.DataFrame(list(d.items()), columns=['indicator', 'value'])
+    f = pd.DataFrame(list(d.items()), columns=["indicator", "value"])
 
     return f
+
 
 def convert_dist(feed, new_dist_units):
     """
@@ -251,15 +265,18 @@ def convert_dist(feed, new_dist_units):
 
     converter = hp.get_convert_dist(old_dist_units, new_dist_units)
 
-    if hp.is_not_null(feed.stop_times, 'shape_dist_traveled'):
-        feed.stop_times['shape_dist_traveled'] =\
-          feed.stop_times['shape_dist_traveled'].map(converter)
+    if hp.is_not_null(feed.stop_times, "shape_dist_traveled"):
+        feed.stop_times["shape_dist_traveled"] = feed.stop_times[
+            "shape_dist_traveled"
+        ].map(converter)
 
-    if hp.is_not_null(feed.shapes, 'shape_dist_traveled'):
-        feed.shapes['shape_dist_traveled'] =\
-          feed.shapes['shape_dist_traveled'].map(converter)
+    if hp.is_not_null(feed.shapes, "shape_dist_traveled"):
+        feed.shapes["shape_dist_traveled"] = feed.shapes[
+            "shape_dist_traveled"
+        ].map(converter)
 
     return feed
+
 
 def compute_feed_stats(feed, trip_stats, dates):
     """
@@ -328,8 +345,9 @@ def compute_feed_stats(feed, trip_stats, dates):
     stop_times = feed.stop_times.copy()
 
     # Convert timestrings to seconds for quicker calculations
-    ts[['start_time', 'end_time']] =\
-      ts[['start_time', 'end_time']].applymap(hp.timestr_to_seconds)
+    ts[["start_time", "end_time"]] = ts[["start_time", "end_time"]].applymap(
+        hp.timestr_to_seconds
+    )
 
     # Collect stats for each date, memoizing stats by trip ID sequence
     # to avoid unnecessary recomputations.
@@ -338,22 +356,22 @@ def compute_feed_stats(feed, trip_stats, dates):
     # [stats dictionary, date list that stats apply]
     stats_and_dates_by_ids = {}
     cols = [
-      'num_stops',
-      'num_routes',
-      'num_trips',
-      'num_trip_starts',
-      'num_trip_ends',
-      'peak_num_trips',
-      'peak_start_time',
-      'peak_end_time',
-      'service_distance',
-      'service_duration',
-      'service_speed',
+        "num_stops",
+        "num_routes",
+        "num_trips",
+        "num_trip_starts",
+        "num_trip_ends",
+        "peak_num_trips",
+        "peak_start_time",
+        "peak_end_time",
+        "service_distance",
+        "service_duration",
+        "service_speed",
     ]
     null_stats = {c: np.nan for c in cols}
     for date in dates:
         stats = {}
-        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
@@ -362,26 +380,31 @@ def compute_feed_stats(feed, trip_stats, dates):
             stats_and_dates_by_ids[ids] = [null_stats, [date]]
         else:
             # Compute stats
-            f = ts[ts['trip_id'].isin(ids)].copy()
-            stats['num_stops'] = stop_times.loc[
-              stop_times['trip_id'].isin(ids), 'stop_id'].nunique()
-            stats['num_routes'] = f['route_id'].nunique()
-            stats['num_trips'] = f.shape[0]
-            stats['num_trip_starts'] = f['start_time'].count()
-            stats['num_trip_ends'] = f.loc[f['end_time'] < 24*3600,
-              'end_time'].count()
-            stats['service_distance'] = f['distance'].sum()
-            stats['service_duration'] = f['duration'].sum()
-            stats['service_speed'] =\
-              stats['service_distance']/stats['service_duration']
+            f = ts[ts["trip_id"].isin(ids)].copy()
+            stats["num_stops"] = stop_times.loc[
+                stop_times["trip_id"].isin(ids), "stop_id"
+            ].nunique()
+            stats["num_routes"] = f["route_id"].nunique()
+            stats["num_trips"] = f.shape[0]
+            stats["num_trip_starts"] = f["start_time"].count()
+            stats["num_trip_ends"] = f.loc[
+                f["end_time"] < 24 * 3600, "end_time"
+            ].count()
+            stats["service_distance"] = f["distance"].sum()
+            stats["service_duration"] = f["duration"].sum()
+            stats["service_speed"] = (
+                stats["service_distance"] / stats["service_duration"]
+            )
 
             # Compute peak stats, which is the slowest part
-            times = np.unique(f[['start_time', 'end_time']].values)
-            counts = [hp.count_active_trips(f, t) for t in times]
+            active_trips = hp.get_active_trips_df(
+                f[["start_time", "end_time"]]
+            )
+            times, counts = active_trips.index.values, active_trips.values
             start, end = hp.get_peak_indices(times, counts)
-            stats['peak_num_trips'] = counts[start]
-            stats['peak_start_time'] = times[start]
-            stats['peak_end_time'] = times[end]
+            stats["peak_num_trips"] = counts[start]
+            stats["peak_start_time"] = times[start]
+            stats["peak_end_time"] = times[end]
 
             # Record stats
             stats_and_dates_by_ids[ids] = [stats, [date]]
@@ -391,18 +414,20 @@ def compute_feed_stats(feed, trip_stats, dates):
     for stats, dates_ in stats_and_dates_by_ids.values():
         for date in dates_:
             s = copy.copy(stats)
-            s['date'] = date
+            s["date"] = date
             rows.append(s)
-    f = pd.DataFrame(rows).sort_values('date')
+    f = pd.DataFrame(rows).sort_values("date")
 
     # Convert seconds back to timestrings
-    times = ['peak_start_time', 'peak_end_time']
+    times = ["peak_start_time", "peak_end_time"]
     f[times] = f[times].applymap(
-      lambda t: hp.timestr_to_seconds(t, inverse=True))
+        lambda t: hp.timestr_to_seconds(t, inverse=True)
+    )
 
     return f
 
-def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
+
+def compute_feed_time_series(feed, trip_stats, dates, freq="5Min"):
     """
     Compute some feed stats in time series form for the given dates
     and trip stats.
@@ -461,18 +486,20 @@ def compute_feed_time_series(feed, trip_stats, dates, freq='5Min'):
         return pd.DataFrame()
 
     cols = [
-      'num_trip_starts',
-      'num_trip_ends',
-      'num_trips',
-      'service_distance',
-      'service_duration',
-      'service_speed',
+        "num_trip_starts",
+        "num_trip_ends",
+        "num_trips",
+        "service_distance",
+        "service_duration",
+        "service_speed",
     ]
-    f = pd.concat([rts[col].sum(axis=1, min_count=1) for col in cols],
-      axis=1, keys=cols)
-    f['service_speed'] = f['service_distance']/f['service_duration']
+    f = pd.concat(
+        [rts[col].sum(axis=1, min_count=1) for col in cols], axis=1, keys=cols
+    )
+    f["service_speed"] = f["service_distance"] / f["service_duration"]
 
     return f.sort_index(axis=1)
+
 
 def create_shapes(feed, *, all_trips=False):
     """
@@ -495,14 +522,15 @@ def create_shapes(feed, *, all_trips=False):
     feed = feed.copy()
 
     if all_trips:
-        trip_ids = feed.trips['trip_id']
+        trip_ids = feed.trips["trip_id"]
     else:
-        trip_ids = feed.trips[feed.trips['shape_id'].isnull()]['trip_id']
+        trip_ids = feed.trips[feed.trips["shape_id"].isnull()]["trip_id"]
 
     # Get stop times for given trips
-    f = feed.stop_times[feed.stop_times['trip_id'].isin(trip_ids)][
-      ['trip_id', 'stop_sequence', 'stop_id']]
-    f = f.sort_values(['trip_id', 'stop_sequence'])
+    f = feed.stop_times[feed.stop_times["trip_id"].isin(trip_ids)][
+        ["trip_id", "stop_sequence", "stop_id"]
+    ]
+    f = f.sort_values(["trip_id", "stop_sequence"])
 
     if f.empty:
         # Nothing to do
@@ -512,31 +540,42 @@ def create_shapes(feed, *, all_trips=False):
     # To do this, collect unique stop sequences,
     # sort them to impose a canonical order, and
     # assign shape IDs to them
-    stop_seqs = sorted(set(tuple(group['stop_id'].values)
-      for trip, group in f.groupby('trip_id')))
+    stop_seqs = sorted(
+        set(
+            tuple(group["stop_id"].values)
+            for trip, group in f.groupby("trip_id")
+        )
+    )
     d = int(math.log10(len(stop_seqs))) + 1  # Digits for padding shape IDs
-    shape_by_stop_seq = {seq: 'shape_{num:0{pad}d}'.format(num=i, pad=d)
-      for i, seq in enumerate(stop_seqs)}
+    shape_by_stop_seq = {
+        seq: "shape_{num:0{pad}d}".format(num=i, pad=d)
+        for i, seq in enumerate(stop_seqs)
+    }
 
     # Assign these new shape IDs to given trips
-    shape_by_trip = {trip: shape_by_stop_seq[tuple(group['stop_id'].values)]
-      for trip, group in f.groupby('trip_id')}
-    trip_cond = feed.trips['trip_id'].isin(trip_ids)
-    feed.trips.loc[trip_cond, 'shape_id'] = feed.trips.loc[trip_cond,
-      'trip_id'].map(lambda x: shape_by_trip[x])
+    shape_by_trip = {
+        trip: shape_by_stop_seq[tuple(group["stop_id"].values)]
+        for trip, group in f.groupby("trip_id")
+    }
+    trip_cond = feed.trips["trip_id"].isin(trip_ids)
+    feed.trips.loc[trip_cond, "shape_id"] = feed.trips.loc[
+        trip_cond, "trip_id"
+    ].map(lambda x: shape_by_trip[x])
 
     # Build new shapes for given trips
-    G = [[shape, i, stop] for stop_seq, shape in shape_by_stop_seq.items()
-      for i, stop in enumerate(stop_seq)]
-    g = pd.DataFrame(G, columns=['shape_id', 'shape_pt_sequence',
-      'stop_id'])
-    g = g.merge(feed.stops[['stop_id', 'stop_lon', 'stop_lat']]).sort_values(
-      ['shape_id', 'shape_pt_sequence'])
-    g = g.drop(['stop_id'], axis=1)
-    g = g.rename(columns={
-      'stop_lon': 'shape_pt_lon',
-      'stop_lat': 'shape_pt_lat',
-    })
+    G = [
+        [shape, i, stop]
+        for stop_seq, shape in shape_by_stop_seq.items()
+        for i, stop in enumerate(stop_seq)
+    ]
+    g = pd.DataFrame(G, columns=["shape_id", "shape_pt_sequence", "stop_id"])
+    g = g.merge(feed.stops[["stop_id", "stop_lon", "stop_lat"]]).sort_values(
+        ["shape_id", "shape_pt_sequence"]
+    )
+    g = g.drop(["stop_id"], axis=1)
+    g = g.rename(
+        columns={"stop_lon": "shape_pt_lon", "stop_lat": "shape_pt_lat"}
+    )
 
     if feed.shapes is not None and not all_trips:
         # Update feed shapes with new shapes
@@ -547,22 +586,25 @@ def create_shapes(feed, *, all_trips=False):
 
     return feed
 
+
 def compute_bounds(feed):
     """
     Return the tuple (min longitude, min latitude, max longitude,
     max latitude) where the longitudes and latitude vary across all
     the Feed's stop coordinates.
     """
-    lons, lats = feed.stops['stop_lon'], feed.stops['stop_lat']
+    lons, lats = feed.stops["stop_lon"], feed.stops["stop_lat"]
     return lons.min(), lats.min(), lons.max(), lats.max()
+
 
 def compute_convex_hull(feed):
     """
     Return a Shapely Polygon representing the convex hull formed by
     the stops of the given Feed.
     """
-    m = sg.MultiPoint(feed.stops[['stop_lon', 'stop_lat']].values)
+    m = sg.MultiPoint(feed.stops[["stop_lon", "stop_lat"]].values)
     return m.convex_hull
+
 
 def compute_center(feed, num_busiest_stops=None):
     """
@@ -581,12 +623,95 @@ def compute_center(feed, num_busiest_stops=None):
     else:
         date = feed.get_first_week()[0]
         ss = feed.compute_stop_stats([date]).sort_values(
-          'num_trips', ascending=False)
+            "num_trips", ascending=False
+        )
         f = ss.head(num_busiest_stops)
         f = s.merge(f)
-        lon = f['stop_lon'].mean()
-        lat = f['stop_lat'].mean()
+        lon = f["stop_lon"].mean()
+        lat = f["stop_lat"].mean()
     return lon, lat
+
+
+def restrict_to_dates(feed, dates):
+    """
+    Build a new feed by restricting this one to only the stops,
+    trips, shapes, etc. active on at least one of the given dates
+    (YYYYMMDD strings).
+    Return the resulting feed, which will have empty non-agency tables
+    if no trip is active on any of the given dates.
+    """
+    # Initialize the new feed as the old feed.
+    # Restrict its DataFrames below.
+    feed = feed.copy()
+
+    # Get every trip that is active on at least one of the dates
+    try:
+        trip_ids = feed.compute_trip_activity(dates).loc[
+            lambda x: x[[c for c in x.columns if c != "trip_id"]].sum(axis=1)
+            > 0,
+            "trip_id",
+        ]
+    except KeyError:
+        # No trips
+        trip_ids = []
+
+    # Slice trips
+    feed.trips = feed.trips.loc[lambda x: x.trip_id.isin(trip_ids)]
+
+    # Slice routes
+    feed.routes = feed.routes.loc[
+        lambda x: x.route_id.isin(feed.trips.route_id)
+    ]
+
+    # Slice stop times
+    feed.stop_times = feed.stop_times.loc[lambda x: x.trip_id.isin(trip_ids)]
+
+    # Slice stops
+    stop_ids = feed.stop_times.stop_id.unique()
+    feed.stops = feed.stops.loc[lambda x: x.stop_id.isin(stop_ids)]
+
+    # Slice calendar
+    service_ids = feed.trips.service_id
+    if feed.calendar is not None:
+        feed.calendar = feed.calendar.loc[
+            lambda x: x.service_id.isin(service_ids)
+        ]
+
+    # Get agency for trips
+    if "agency_id" in feed.routes.columns:
+        agency_ids = feed.routes.agency_id
+        if len(agency_ids):
+            feed.agency = feed.agency.loc[
+                lambda x: x.agency_id.isin(agency_ids)
+            ]
+
+    # Now for the optional files.
+    # Get calendar dates for trips.
+    if feed.calendar_dates is not None:
+        feed.calendar_dates = feed.calendar_dates.loc[
+            lambda x: x.service_id.isin(service_ids)
+        ]
+
+    # Get frequencies for trips
+    if feed.frequencies is not None:
+        feed.frequencies = feed.frequencies.loc[
+            lambda x: x.trip_id.isin(trip_ids)
+        ]
+
+    # Get shapes for trips
+    if feed.shapes is not None:
+        shape_ids = feed.trips.shape_id
+        feed.shapes = feed.shapes.loc[lambda x: x.shape_id.isin(shape_ids)]
+
+    # Get transfers for stops
+    if feed.transfers is not None:
+        feed.transfers = feed.transfers.loc[
+            lambda x: x.from_stop_id.isin(stop_ids)
+            | x.to_stop_id.isin(stop_ids)
+        ]
+
+    return feed
+
 
 def restrict_to_routes(feed, route_ids):
     """
@@ -600,58 +725,65 @@ def restrict_to_routes(feed, route_ids):
     feed = feed.copy()
 
     # Slice routes
-    feed.routes = feed.routes[feed.routes['route_id'].isin(
-      route_ids)].copy()
+    feed.routes = feed.routes[feed.routes["route_id"].isin(route_ids)].copy()
 
     # Slice trips
-    feed.trips = feed.trips[feed.trips['route_id'].isin(route_ids)].copy()
+    feed.trips = feed.trips[feed.trips["route_id"].isin(route_ids)].copy()
 
     # Slice stop times
-    trip_ids = feed.trips['trip_id']
+    trip_ids = feed.trips["trip_id"]
     feed.stop_times = feed.stop_times[
-      feed.stop_times['trip_id'].isin(trip_ids)].copy()
+        feed.stop_times["trip_id"].isin(trip_ids)
+    ].copy()
 
     # Slice stops
-    stop_ids = feed.stop_times['stop_id'].unique()
-    feed.stops = feed.stops[feed.stops['stop_id'].isin(stop_ids)].copy()
+    stop_ids = feed.stop_times["stop_id"].unique()
+    feed.stops = feed.stops[feed.stops["stop_id"].isin(stop_ids)].copy()
 
     # Slice calendar
-    service_ids = feed.trips['service_id']
+    service_ids = feed.trips["service_id"]
     if feed.calendar is not None:
         feed.calendar = feed.calendar[
-          feed.calendar['service_id'].isin(service_ids)].copy()
+            feed.calendar["service_id"].isin(service_ids)
+        ].copy()
 
     # Get agency for trips
-    if 'agency_id' in feed.routes.columns:
-        agency_ids = feed.routes['agency_id']
+    if "agency_id" in feed.routes.columns:
+        agency_ids = feed.routes["agency_id"]
         if len(agency_ids):
             feed.agency = feed.agency[
-              feed.agency['agency_id'].isin(agency_ids)].copy()
+                feed.agency["agency_id"].isin(agency_ids)
+            ].copy()
 
     # Now for the optional files.
     # Get calendar dates for trips.
     if feed.calendar_dates is not None:
         feed.calendar_dates = feed.calendar_dates[
-          feed.calendar_dates['service_id'].isin(service_ids)].copy()
+            feed.calendar_dates["service_id"].isin(service_ids)
+        ].copy()
 
     # Get frequencies for trips
     if feed.frequencies is not None:
         feed.frequencies = feed.frequencies[
-          feed.frequencies['trip_id'].isin(trip_ids)].copy()
+            feed.frequencies["trip_id"].isin(trip_ids)
+        ].copy()
 
     # Get shapes for trips
     if feed.shapes is not None:
-        shape_ids = feed.trips['shape_id']
+        shape_ids = feed.trips["shape_id"]
         feed.shapes = feed.shapes[
-          feed.shapes['shape_id'].isin(shape_ids)].copy()
+            feed.shapes["shape_id"].isin(shape_ids)
+        ].copy()
 
     # Get transfers for stops
     if feed.transfers is not None:
         feed.transfers = feed.transfers[
-          feed.transfers['from_stop_id'].isin(stop_ids) |
-          feed.transfers['to_stop_id'].isin(stop_ids)].copy()
+            feed.transfers["from_stop_id"].isin(stop_ids)
+            | feed.transfers["to_stop_id"].isin(stop_ids)
+        ].copy()
 
     return feed
+
 
 def restrict_to_polygon(feed, polygon):
     """
@@ -677,62 +809,67 @@ def restrict_to_polygon(feed, polygon):
     feed = feed.copy()
 
     # Get IDs of stops within the polygon
-    stop_ids = feed.get_stops_in_polygon(polygon)['stop_id']
+    stop_ids = feed.get_stops_in_polygon(polygon)["stop_id"]
 
     # Get all trips that stop at at least one of those stops
     st = feed.stop_times.copy()
-    trip_ids = st[st['stop_id'].isin(stop_ids)]['trip_id']
-    feed.trips = feed.trips[feed.trips['trip_id'].isin(trip_ids)].copy()
+    trip_ids = st[st["stop_id"].isin(stop_ids)]["trip_id"]
+    feed.trips = feed.trips[feed.trips["trip_id"].isin(trip_ids)].copy()
 
     # Get stop times for trips
-    feed.stop_times = st[st['trip_id'].isin(trip_ids)].copy()
+    feed.stop_times = st[st["trip_id"].isin(trip_ids)].copy()
 
     # Get stops for trips
-    stop_ids = feed.stop_times['stop_id']
-    feed.stops = feed.stops[feed.stops['stop_id'].isin(stop_ids)].copy()
+    stop_ids = feed.stop_times["stop_id"]
+    feed.stops = feed.stops[feed.stops["stop_id"].isin(stop_ids)].copy()
 
     # Get routes for trips
-    route_ids = feed.trips['route_id']
-    feed.routes = feed.routes[feed.routes['route_id'].isin(
-      route_ids)].copy()
+    route_ids = feed.trips["route_id"]
+    feed.routes = feed.routes[feed.routes["route_id"].isin(route_ids)].copy()
 
     # Get calendar for trips
-    service_ids = feed.trips['service_id']
+    service_ids = feed.trips["service_id"]
     if feed.calendar is not None:
         feed.calendar = feed.calendar[
-          feed.calendar['service_id'].isin(service_ids)].copy()
+            feed.calendar["service_id"].isin(service_ids)
+        ].copy()
 
     # Get agency for trips
-    if 'agency_id' in feed.routes.columns:
-        agency_ids = feed.routes['agency_id']
+    if "agency_id" in feed.routes.columns:
+        agency_ids = feed.routes["agency_id"]
         if len(agency_ids):
             feed.agency = feed.agency[
-              feed.agency['agency_id'].isin(agency_ids)].copy()
+                feed.agency["agency_id"].isin(agency_ids)
+            ].copy()
 
     # Now for the optional files.
     # Get calendar dates for trips.
     cd = feed.calendar_dates
     if cd is not None:
-        feed.calendar_dates = cd[cd['service_id'].isin(service_ids)].copy()
+        feed.calendar_dates = cd[cd["service_id"].isin(service_ids)].copy()
 
     # Get frequencies for trips
     if feed.frequencies is not None:
         feed.frequencies = feed.frequencies[
-          feed.frequencies['trip_id'].isin(trip_ids)].copy()
+            feed.frequencies["trip_id"].isin(trip_ids)
+        ].copy()
 
     # Get shapes for trips
     if feed.shapes is not None:
-        shape_ids = feed.trips['shape_id']
+        shape_ids = feed.trips["shape_id"]
         feed.shapes = feed.shapes[
-          feed.shapes['shape_id'].isin(shape_ids)].copy()
+            feed.shapes["shape_id"].isin(shape_ids)
+        ].copy()
 
     # Get transfers for stops
     if feed.transfers is not None:
         t = feed.transfers
-        feed.transfers = t[t['from_stop_id'].isin(stop_ids) |
-          t['to_stop_id'].isin(stop_ids)].copy()
+        feed.transfers = t[
+            t["from_stop_id"].isin(stop_ids) | t["to_stop_id"].isin(stop_ids)
+        ].copy()
 
     return feed
+
 
 def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
     """
@@ -799,11 +936,12 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
         return pd.DataFrame()
 
     # Get all shapes that intersect the screen line
-    shapes = feed.get_shapes_intersecting_geometry(linestring, geo_shapes,
-      geometrized=True)
+    shapes = feed.get_shapes_intersecting_geometry(
+        linestring, geo_shapes, geometrized=True
+    )
 
     # Convert shapes to UTM
-    lat, lon = feed.shapes.ix[0][['shape_pt_lat', 'shape_pt_lon']].values
+    lat, lon = feed.shapes.ix[0][["shape_pt_lat", "shape_pt_lon"]].values
     crs = hp.get_utm_crs(lat, lon)
     shapes = shapes.to_crs(crs)
 
@@ -811,7 +949,7 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
     linestring = hp.linestring_to_utm(linestring)
 
     # Get all intersection points of shapes and linestring
-    shapes['intersection'] = shapes.intersection(linestring)
+    shapes["intersection"] = shapes.intersection(linestring)
 
     # Make a vector in the direction of the screen line
     # to later calculate trip orientation.
@@ -827,7 +965,7 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
     # Assume here that trips travel in the same direction as their shapes.
     dv_by_shape = {}
     eps = 1
-    convert_dist = hp.get_convert_dist('m', feed.dist_units)
+    convert_dist = hp.get_convert_dist("m", feed.dist_units)
     for __, sid, geom, intersection in shapes.itertuples():
         # Get distances along shape of intersection points (in meters)
         distances = [geom.project(p) for p in intersection]
@@ -843,33 +981,34 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
 
     # Get trips with those shapes
     t = feed.trips
-    t = t[t['shape_id'].isin(dv_by_shape.keys())].copy()
+    t = t[t["shape_id"].isin(dv_by_shape.keys())].copy()
 
     # Merge in route short names and stop times
-    t = t.merge(feed.routes[['route_id', 'route_short_name']])\
-      .merge(feed.stop_times)
+    t = t.merge(feed.routes[["route_id", "route_short_name"]]).merge(
+        feed.stop_times
+    )
 
     # Drop NaN departure times and convert to seconds past midnight
-    t = t[t['departure_time'].notnull()].copy()
-    t['departure_time'] = t['departure_time'].map(hp.timestr_to_seconds)
+    t = t[t["departure_time"].notnull()].copy()
+    t["departure_time"] = t["departure_time"].map(hp.timestr_to_seconds)
 
     # Compile crossings by date
     a = feed.compute_trip_activity(dates)
     rows = []
     for date in dates:
         # Slice to trips active on date
-        ids = a.loc[a[date] == 1, 'trip_id']
-        f = t[t['trip_id'].isin(ids)].copy()
+        ids = a.loc[a[date] == 1, "trip_id"]
+        f = t[t["trip_id"].isin(ids)].copy()
 
         # For each shape find the trips that cross the screen line
         # and get crossing times and orientation
-        f = f.sort_values(['trip_id', 'stop_sequence'])
-        for tid, group in f.groupby('trip_id'):
-            sid = group['shape_id'].iat[0]
-            rid = group['route_id'].iat[0]
-            rsn = group['route_short_name'].iat[0]
-            stop_times = group['departure_time'].values
-            stop_distances = group['shape_dist_traveled'].values
+        f = f.sort_values(["trip_id", "stop_sequence"])
+        for tid, group in f.groupby("trip_id"):
+            sid = group["shape_id"].iat[0]
+            rid = group["route_id"].iat[0]
+            rsn = group["route_short_name"].iat[0]
+            stop_times = group["departure_time"].values
+            stop_distances = group["shape_dist_traveled"].values
             for d, v in dv_by_shape[sid]:
                 # Interpolate crossing time
                 time = np.interp(d, stop_distances, stop_times)
@@ -885,12 +1024,19 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
                 rows.append([date, tid, rid, rsn, time, orientation])
 
     # Create DataFrame
-    cols = ['date', 'trip_id', 'route_id', 'route_short_name',
-      'crossing_time', 'orientation']
-    g = pd.DataFrame(rows, columns=cols).sort_values(['date', 'crossing_time'])
+    cols = [
+        "date",
+        "trip_id",
+        "route_id",
+        "route_short_name",
+        "crossing_time",
+        "orientation",
+    ]
+    g = pd.DataFrame(rows, columns=cols).sort_values(["date", "crossing_time"])
 
     # Convert departure times back to time strings
-    g['crossing_time'] = g['crossing_time'].map(
-      lambda x: hp.timestr_to_seconds(x, inverse=True))
+    g["crossing_time"] = g["crossing_time"].map(
+        lambda x: hp.timestr_to_seconds(x, inverse=True)
+    )
 
     return g

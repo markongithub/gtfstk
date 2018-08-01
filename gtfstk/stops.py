@@ -12,9 +12,14 @@ from . import constants as cs
 from . import helpers as hp
 
 
-def compute_stop_stats_base(stop_times_subset, trip_subset,
-  headway_start_time='07:00:00', headway_end_time='19:00:00',
-  *, split_directions=False):
+def compute_stop_stats_base(
+    stop_times_subset,
+    trip_subset,
+    headway_start_time="07:00:00",
+    headway_end_time="19:00:00",
+    *,
+    split_directions=False,
+):
     """
     Given a subset of a stop times DataFrame and a subset of a trips
     DataFrame, return a DataFrame that provides summary stats about the
@@ -70,7 +75,7 @@ def compute_stop_stats_base(stop_times_subset, trip_subset,
     f = pd.merge(stop_times_subset, trip_subset)
 
     # Convert departure times to seconds to ease headway calculations
-    f['departure_time'] = f['departure_time'].map(hp.timestr_to_seconds)
+    f["departure_time"] = f["departure_time"].map(hp.timestr_to_seconds)
 
     headway_start = hp.timestr_to_seconds(headway_start_time)
     headway_end = hp.timestr_to_seconds(headway_end_time)
@@ -79,40 +84,54 @@ def compute_stop_stats_base(stop_times_subset, trip_subset,
     def compute_stop_stats(group):
         # Operate on the group of all stop times for an individual stop
         d = OrderedDict()
-        d['num_routes'] = group['route_id'].unique().size
-        d['num_trips'] = group.shape[0]
-        d['start_time'] = group['departure_time'].min()
-        d['end_time'] = group['departure_time'].max()
+        d["num_routes"] = group["route_id"].unique().size
+        d["num_trips"] = group.shape[0]
+        d["start_time"] = group["departure_time"].min()
+        d["end_time"] = group["departure_time"].max()
         headways = []
-        dtimes = sorted([dtime for dtime in group['departure_time'].values
-          if headway_start <= dtime <= headway_end])
-        headways.extend([dtimes[i + 1] - dtimes[i]
-          for i in range(len(dtimes) - 1)])
+        dtimes = sorted(
+            [
+                dtime
+                for dtime in group["departure_time"].values
+                if headway_start <= dtime <= headway_end
+            ]
+        )
+        headways.extend(
+            [dtimes[i + 1] - dtimes[i] for i in range(len(dtimes) - 1)]
+        )
         if headways:
-            d['max_headway'] = np.max(headways)/60  # minutes
-            d['min_headway'] = np.min(headways)/60  # minutes
-            d['mean_headway'] = np.mean(headways)/60  # minutes
+            d["max_headway"] = np.max(headways) / 60  # minutes
+            d["min_headway"] = np.min(headways) / 60  # minutes
+            d["mean_headway"] = np.mean(headways) / 60  # minutes
         else:
-            d['max_headway'] = np.nan
-            d['min_headway'] = np.nan
-            d['mean_headway'] = np.nan
+            d["max_headway"] = np.nan
+            d["min_headway"] = np.nan
+            d["mean_headway"] = np.nan
         return pd.Series(d)
 
     if split_directions:
-        g = f.groupby(['stop_id', 'direction_id'])
+        g = f.groupby(["stop_id", "direction_id"])
     else:
-        g = f.groupby('stop_id')
+        g = f.groupby("stop_id")
 
     result = g.apply(compute_stop_stats).reset_index()
 
     # Convert start and end times to time strings
-    result[['start_time', 'end_time']] = result[['start_time', 'end_time']
-      ].applymap(lambda x: hp.timestr_to_seconds(x, inverse=True))
+    result[["start_time", "end_time"]] = result[
+        ["start_time", "end_time"]
+    ].applymap(lambda x: hp.timestr_to_seconds(x, inverse=True))
 
     return result
 
-def compute_stop_time_series_base(stop_times_subset, trip_subset, freq='5Min',
-     date_label='20010101', *, split_directions=False):
+
+def compute_stop_time_series_base(
+    stop_times_subset,
+    trip_subset,
+    freq="5Min",
+    date_label="20010101",
+    *,
+    split_directions=False,
+):
     """
     Given a subset of a stop times DataFrame and a subset of a trips
     DataFrame, return a DataFrame that provides a summary time series
@@ -175,42 +194,45 @@ def compute_stop_time_series_base(stop_times_subset, trip_subset, freq='5Min',
     if split_directions:
         # Alter stop IDs to encode trip direction:
         # <stop ID>-0 and <stop ID>-1
-        f['stop_id'] = f['stop_id'] + '-' +\
-          f['direction_id'].map(str)
-    stops = f['stop_id'].unique()
+        f["stop_id"] = f["stop_id"] + "-" + f["direction_id"].map(str)
+    stops = f["stop_id"].unique()
 
     # Bin each stop departure time
-    bins = [i for i in range(24*60)]  # One bin for each minute
+    bins = [i for i in range(24 * 60)]  # One bin for each minute
     num_bins = len(bins)
 
     def F(x):
-        return (hp.timestr_to_seconds(x)//60) % (24*60)
+        return (hp.timestr_to_seconds(x) // 60) % (24 * 60)
 
-    f['departure_index'] = f['departure_time'].map(F)
+    f["departure_index"] = f["departure_time"].map(F)
 
     # Create one time series for each stop
-    series_by_stop = {stop: [0 for i in range(num_bins)]
-      for stop in stops}
+    series_by_stop = {stop: [0 for i in range(num_bins)] for stop in stops}
 
-    for stop, group in f.groupby('stop_id'):
-        counts = Counter((bin, 0) for bin in bins) +\
-          Counter(group['departure_index'].values)
+    for stop, group in f.groupby("stop_id"):
+        counts = Counter((bin, 0) for bin in bins) + Counter(
+            group["departure_index"].values
+        )
         series_by_stop[stop] = [counts[bin] for bin in bins]
 
     # Combine lists into dictionary of form indicator -> time series.
     # Only one indicator in this case, but could add more
     # in the future as was done with route time series.
-    rng = pd.date_range(date_label, periods=24*60, freq='Min')
-    series_by_indicator = {'num_trips':
-      pd.DataFrame(series_by_stop, index=rng).fillna(0)}
+    rng = pd.date_range(date_label, periods=24 * 60, freq="Min")
+    series_by_indicator = {
+        "num_trips": pd.DataFrame(series_by_stop, index=rng).fillna(0)
+    }
 
     # Combine all time series into one time series
-    g = hp.combine_time_series(series_by_indicator, kind='stop',
-      split_directions=split_directions)
+    g = hp.combine_time_series(
+        series_by_indicator, kind="stop", split_directions=split_directions
+    )
     return hp.downsample(g, freq=freq)
 
-def get_stops(feed, date=None, trip_id=None, route_id=None,
-  *, in_stations=False):
+
+def get_stops(
+    feed, date=None, trip_id=None, route_id=None, *, in_stations=False
+):
     """
     Return a section of ``feed.stops``.
 
@@ -245,22 +267,24 @@ def get_stops(feed, date=None, trip_id=None, route_id=None,
     """
     s = feed.stops.copy()
     if date is not None:
-        A = feed.get_stop_times(date)['stop_id']
-        s = s[s['stop_id'].isin(A)].copy()
+        A = feed.get_stop_times(date)["stop_id"]
+        s = s[s["stop_id"].isin(A)].copy()
     if trip_id is not None:
         st = feed.stop_times.copy()
-        B = st[st['trip_id'] == trip_id]['stop_id']
-        s = s[s['stop_id'].isin(B)].copy()
+        B = st[st["trip_id"] == trip_id]["stop_id"]
+        s = s[s["stop_id"].isin(B)].copy()
     elif route_id is not None:
-        A = feed.trips[feed.trips['route_id'] == route_id]['trip_id']
+        A = feed.trips[feed.trips["route_id"] == route_id]["trip_id"]
         st = feed.stop_times.copy()
-        B = st[st['trip_id'].isin(A)]['stop_id']
-        s = s[s['stop_id'].isin(B)].copy()
-    if in_stations and\
-      set(['location_type', 'parent_station']) <= set(s.columns):
-        s = s[(s['location_type'] != 1) & (s['parent_station'].notnull())]
+        B = st[st["trip_id"].isin(A)]["stop_id"]
+        s = s[s["stop_id"].isin(B)].copy()
+    if in_stations and set(["location_type", "parent_station"]) <= set(
+        s.columns
+    ):
+        s = s[(s["location_type"] != 1) & (s["parent_station"].notnull())]
 
     return s
+
 
 def build_geometry_by_stop(feed, stop_ids=None, *, use_utm=False):
     """
@@ -293,17 +317,18 @@ def build_geometry_by_stop(feed, stop_ids=None, *, use_utm=False):
     d = {}
     stops = feed.stops.copy()
     if stop_ids is not None:
-        stops = stops[stops['stop_id'].isin(stop_ids)]
+        stops = stops[stops["stop_id"].isin(stop_ids)]
 
     if use_utm:
-        for stop, group in stops.groupby('stop_id'):
-            lat, lon = group[['stop_lat', 'stop_lon']].values[0]
+        for stop, group in stops.groupby("stop_id"):
+            lat, lon = group[["stop_lat", "stop_lon"]].values[0]
             d[stop] = sg.Point(utm.from_latlon(lat, lon)[:2])
     else:
-        for stop, group in stops.groupby('stop_id'):
-            lat, lon = group[['stop_lat', 'stop_lon']].values[0]
+        for stop, group in stops.groupby("stop_id"):
+            lat, lon = group[["stop_lat", "stop_lon"]].values[0]
             d[stop] = sg.Point([lon, lat])
     return d
+
 
 def compute_stop_activity(feed, dates):
     """
@@ -347,7 +372,7 @@ def compute_stop_activity(feed, dates):
         return pd.DataFrame()
 
     trip_activity = feed.compute_trip_activity(dates)
-    g = pd.merge(trip_activity, feed.stop_times).groupby('stop_id')
+    g = pd.merge(trip_activity, feed.stop_times).groupby("stop_id")
     # Pandas won't allow me to simply return g[dates].max().reset_index().
     # I get ``TypeError: unorderable types: datetime.date() < str()``.
     # So here's a workaround.
@@ -358,9 +383,16 @@ def compute_stop_activity(feed, dates):
             f = f.merge(g[date].max().reset_index())
     return f
 
-def compute_stop_stats(feed, dates, stop_ids=None,
-  headway_start_time='07:00:00', headway_end_time='19:00:00',
-  *, split_directions=False):
+
+def compute_stop_stats(
+    feed,
+    dates,
+    stop_ids=None,
+    headway_start_time="07:00:00",
+    headway_end_time="19:00:00",
+    *,
+    split_directions=False,
+):
     """
     Compute stats for all stops for the given dates.
     Optionally, restrict to the stop IDs given.
@@ -426,11 +458,9 @@ def compute_stop_stats(feed, dates, stop_ids=None,
 
     # Restrict stop times to stop IDs if specified
     if stop_ids is not None:
-        stop_times_subset = (
-            feed.stop_times
-            .loc[lambda x: x['stop_id'].isin(stop_ids)]
-            .copy()
-        )
+        stop_times_subset = feed.stop_times.loc[
+            lambda x: x["stop_id"].isin(stop_ids)
+        ].copy()
     else:
         stop_times_subset = feed.stop_times.copy()
 
@@ -443,20 +473,20 @@ def compute_stop_stats(feed, dates, stop_ids=None,
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
     cols = [
-      'stop_id',
-      'num_routes',
-      'num_trips',
-      'max_headway',
-      'min_headway',
-      'mean_headway',
-      'start_time',
-      'end_time',
+        "stop_id",
+        "num_routes",
+        "num_trips",
+        "max_headway",
+        "min_headway",
+        "mean_headway",
+        "start_time",
+        "end_time",
     ]
     if split_directions:
-        cols.append('direction_id')
+        cols.append("direction_id")
     null_stats = pd.DataFrame({c: np.nan for c in cols}, index=[0])
     for date in dates:
-        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
@@ -466,11 +496,14 @@ def compute_stop_stats(feed, dates, stop_ids=None,
         else:
             # Compute stats
             t = feed.trips
-            trips = t[t['trip_id'].isin(ids)].copy()
-            stats = compute_stop_stats_base(stop_times_subset, trips,
-              split_directions=split_directions,
-              headway_start_time=headway_start_time,
-              headway_end_time=headway_end_time)
+            trips = t[t["trip_id"].isin(ids)].copy()
+            stats = compute_stop_stats_base(
+                stop_times_subset,
+                trips,
+                split_directions=split_directions,
+                headway_start_time=headway_start_time,
+                headway_end_time=headway_end_time,
+            )
 
             # Remember stats
             stats_and_dates_by_ids[ids] = [stats, [date]]
@@ -480,39 +513,45 @@ def compute_stop_stats(feed, dates, stop_ids=None,
     for stats, dates_ in stats_and_dates_by_ids.values():
         for date in dates_:
             f = stats.copy()
-            f['date'] = date
+            f["date"] = date
             frames.append(f)
-    f = pd.concat(frames).sort_values(['date', 'stop_id']).reset_index(
-      drop=True)
+    f = (
+        pd.concat(frames)
+        .sort_values(["date", "stop_id"])
+        .reset_index(drop=True)
+    )
 
     return f
 
-def build_null_stop_time_series(feed, date_label='20010101', freq='5Min',
-  *, split_directions=False):
+
+def build_null_stop_time_series(
+    feed, date_label="20010101", freq="5Min", *, split_directions=False
+):
     """
     Return a stop time series with the same index and hierarchical columns
     as output by :func:`compute_stop_time_series_base`,
     but fill it full of null values.
     """
     start = date_label
-    end = pd.to_datetime(date_label + ' 23:59:00')
+    end = pd.to_datetime(date_label + " 23:59:00")
     rng = pd.date_range(start, end, freq=freq)
-    inds = [
-      'num_trips',
-    ]
+    inds = ["num_trips"]
     sids = feed.stops.stop_id
     if split_directions:
         product = [inds, sids, [0, 1]]
-        names = ['indicator', 'stop_id', 'direction_id']
+        names = ["indicator", "stop_id", "direction_id"]
     else:
         product = [inds, sids]
-        names = ['indicator', 'stop_id']
+        names = ["indicator", "stop_id"]
     cols = pd.MultiIndex.from_product(product, names=names)
     return pd.DataFrame([], index=rng, columns=cols).sort_index(
-      axis=1, sort_remaining=True)
+        axis=1, sort_remaining=True
+    )
 
-def compute_stop_time_series(feed, dates, stop_ids=None, freq='5Min',
-  *, split_directions=False):
+
+def compute_stop_time_series(
+    feed, dates, stop_ids=None, freq="5Min", *, split_directions=False
+):
     """
     Compute time series for the stops on the given dates at the
     given frequency and return the result as a DataFrame of the same
@@ -566,11 +605,9 @@ def compute_stop_time_series(feed, dates, stop_ids=None, freq='5Min',
 
     # Restrict stop times to stop IDs if specified
     if stop_ids is not None:
-        stop_times_subset = (
-            feed.stop_times
-            .loc[lambda x: x['stop_id'].isin(stop_ids)]
-            .copy()
-        )
+        stop_times_subset = feed.stop_times.loc[
+            lambda x: x["stop_id"].isin(stop_ids)
+        ].copy()
     else:
         stop_times_subset = feed.stop_times.copy()
 
@@ -580,10 +617,11 @@ def compute_stop_time_series(feed, dates, stop_ids=None, freq='5Min',
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
-    null_stats = build_null_stop_time_series(feed,
-      split_directions=split_directions, freq=freq)
+    null_stats = build_null_stop_time_series(
+        feed, split_directions=split_directions, freq=freq
+    )
     for date in dates:
-        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
@@ -593,9 +631,14 @@ def compute_stop_time_series(feed, dates, stop_ids=None, freq='5Min',
         else:
             # Compute stats
             t = feed.trips
-            trips = t[t['trip_id'].isin(ids)].copy()
-            stats = compute_stop_time_series_base(stop_times_subset, trips,
-              split_directions=split_directions, freq=freq, date_label=date)
+            trips = t[t["trip_id"].isin(ids)].copy()
+            stats = compute_stop_time_series_base(
+                stop_times_subset,
+                trips,
+                split_directions=split_directions,
+                freq=freq,
+                date_label=date,
+            )
 
             # Remember stats
             stats_and_dates_by_ids[ids] = [stats, [date]]
@@ -607,15 +650,16 @@ def compute_stop_time_series(feed, dates, stop_ids=None, freq='5Min',
             f = stats.copy()
             # Replace date
             d = hp.datestr_to_date(date)
-            f.index = f.index.map(lambda t: t.replace(
-              year=d.year, month=d.month, day=d.day))
+            f.index = f.index.map(
+                lambda t: t.replace(year=d.year, month=d.month, day=d.day)
+            )
             frames.append(f)
 
     f = pd.concat(frames).sort_index().sort_index(axis=1, sort_remaining=True)
 
     if len(dates) > 1:
         # Insert missing dates and NaNs to complete series index
-        end_datetime = pd.to_datetime(dates[-1] + ' 23:59:59')
+        end_datetime = pd.to_datetime(dates[-1] + " 23:59:59")
         new_index = pd.date_range(f.index[0], end_datetime, freq=freq)
         f = f.reindex(new_index)
     else:
@@ -623,6 +667,7 @@ def compute_stop_time_series(feed, dates, stop_ids=None, freq='5Min',
         f.index.freq = pd.tseries.frequencies.to_offset(freq)
 
     return f
+
 
 def build_stop_timetable(feed, stop_id, dates):
     """
@@ -658,19 +703,20 @@ def build_stop_timetable(feed, stop_id, dates):
         return pd.DataFrame()
 
     t = pd.merge(feed.trips, feed.stop_times)
-    t = t[t['stop_id'] == stop_id].copy()
+    t = t[t["stop_id"] == stop_id].copy()
     a = feed.compute_trip_activity(dates)
 
     frames = []
     for date in dates:
         # Slice to stops active on date
-        ids = a.loc[a[date] == 1, 'trip_id']
-        f = t[t['trip_id'].isin(ids)].copy()
-        f['date'] = date
+        ids = a.loc[a[date] == 1, "trip_id"]
+        f = t[t["trip_id"].isin(ids)].copy()
+        f["date"] = date
         frames.append(f)
 
     f = pd.concat(frames)
-    return f.sort_values(['date', 'departure_time'])
+    return f.sort_values(["date", "departure_time"])
+
 
 def get_stops_in_polygon(feed, polygon, geo_stops=None):
     """
@@ -708,9 +754,10 @@ def get_stops_in_polygon(feed, polygon, geo_stops=None):
         f = geometrize_stops(feed.stops)
 
     cols = f.columns
-    f['hit'] = f['geometry'].within(polygon)
-    f = f[f['hit']][cols]
+    f["hit"] = f["geometry"].within(polygon)
+    f = f[f["hit"]][cols]
     return ungeometrize_stops(f)
+
 
 def geometrize_stops(stops, *, use_utm=False):
     """
@@ -740,19 +787,22 @@ def geometrize_stops(stops, *, use_utm=False):
     import geopandas as gpd
 
     g = (
-        stops
-        .assign(geometry=lambda x:
-            [sg.Point(p) for p in x[['stop_lon', 'stop_lat']].values])
-        .drop(['stop_lon', 'stop_lat'], axis=1)
+        stops.assign(
+            geometry=lambda x: [
+                sg.Point(p) for p in x[["stop_lon", "stop_lat"]].values
+            ]
+        )
+        .drop(["stop_lon", "stop_lat"], axis=1)
         .pipe(lambda x: gpd.GeoDataFrame(x, crs=cs.WGS84))
     )
 
     if use_utm:
-        lat, lon = stops.ix[0][['stop_lat', 'stop_lon']].values
+        lat, lon = stops.ix[0][["stop_lat", "stop_lon"]].values
         crs = hp.get_utm_crs(lat, lon)
         g = g.to_crs(crs)
 
     return g
+
 
 def ungeometrize_stops(geo_stops):
     """
@@ -775,7 +825,8 @@ def ungeometrize_stops(geo_stops):
 
     """
     f = geo_stops.copy().to_crs(cs.WGS84)
-    f['stop_lon'], f['stop_lat'] = zip(*f['geometry'].map(
-      lambda p: [p.x, p.y]))
-    del f['geometry']
+    f["stop_lon"], f["stop_lat"] = zip(
+        *f["geometry"].map(lambda p: [p.x, p.y])
+    )
+    del f["geometry"]
     return f

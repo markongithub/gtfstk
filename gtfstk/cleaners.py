@@ -17,6 +17,7 @@ def clean_column_names(df):
     f.columns = [col.strip() for col in f.columns]
     return f
 
+
 def drop_zombies(feed):
     """
     In the given Feed, drop stops with no stop times,
@@ -27,39 +28,40 @@ def drop_zombies(feed):
     feed = feed.copy()
 
     # Drop stops of location type 0 that lack stop times
-    ids = feed.stop_times['stop_id'].unique()
+    ids = feed.stop_times["stop_id"].unique()
     f = feed.stops
-    cond = f['stop_id'].isin(ids)
-    if 'location_type' in f.columns:
-        cond |= f['location_type'] != 0
+    cond = f["stop_id"].isin(ids)
+    if "location_type" in f.columns:
+        cond |= f["location_type"] != 0
     feed.stops = f[cond].copy()
 
     # Drop trips with no stop times
-    ids = feed.stop_times['trip_id'].unique()
+    ids = feed.stop_times["trip_id"].unique()
     f = feed.trips
-    feed.trips = f[f['trip_id'].isin(ids)]
+    feed.trips = f[f["trip_id"].isin(ids)]
 
     # Drop shapes with no trips
-    ids = feed.trips['shape_id'].unique()
+    ids = feed.trips["shape_id"].unique()
     f = feed.shapes
     if f is not None:
-        feed.shapes = f[f['shape_id'].isin(ids)]
+        feed.shapes = f[f["shape_id"].isin(ids)]
 
     # Drop routes with no trips
-    ids = feed.trips['route_id'].unique()
+    ids = feed.trips["route_id"].unique()
     f = feed.routes
-    feed.routes = f[f['route_id'].isin(ids)]
+    feed.routes = f[f["route_id"].isin(ids)]
 
     # Drop services with no trips
-    ids = feed.trips['service_id'].unique()
+    ids = feed.trips["service_id"].unique()
     if feed.calendar is not None:
         f = feed.calendar
-        feed.calendar = f[f['service_id'].isin(ids)]
+        feed.calendar = f[f["service_id"].isin(ids)]
     if feed.calendar_dates is not None:
         f = feed.calendar_dates
-        feed.calendar_dates = f[f['service_id'].isin(ids)]
+        feed.calendar_dates = f[f["service_id"].isin(ids)]
 
     return feed
+
 
 def clean_ids(feed):
     """
@@ -72,15 +74,14 @@ def clean_ids(feed):
     # will be automatically handled when creating the new feed.
     feed = feed.copy()
 
-    for table in cs.GTFS_REF['table'].unique():
+    for table in cs.GTFS_REF["table"].unique():
         f = getattr(feed, table)
         if f is None:
             continue
-        for column in cs.GTFS_REF.loc[cs.GTFS_REF['table'] == table, 'column']:
-            if column in f.columns and column.endswith('_id'):
+        for column in cs.GTFS_REF.loc[cs.GTFS_REF["table"] == table, "column"]:
+            if column in f.columns and column.endswith("_id"):
                 try:
-                    f[column] = f[column].str.strip().str.replace(
-                      r'\s+', '_')
+                    f[column] = f[column].str.strip().str.replace(r"\s+", "_")
                     setattr(feed, table, f)
                 except AttributeError:
                     # Column is not of string type
@@ -88,24 +89,26 @@ def clean_ids(feed):
 
     return feed
 
+
 def clean_times(feed):
     """
     In the given Feed, convert H:MM:SS time strings to HH:MM:SS time
     strings to make sorting by time work as expected.
     Return the resulting Feed.
     """
+
     def reformat(t):
         if pd.isnull(t):
             return t
         t = t.strip()
         if len(t) == 7:
-            t = '0' + t
+            t = "0" + t
         return t
 
     feed = feed.copy()
     tables_and_columns = [
-      ('stop_times', ['arrival_time', 'departure_time']),
-      ('frequencies', ['start_time', 'end_time']),
+        ("stop_times", ["arrival_time", "departure_time"]),
+        ("frequencies", ["start_time", "end_time"]),
     ]
     for table, columns in tables_and_columns:
         f = getattr(feed, table)
@@ -114,6 +117,7 @@ def clean_times(feed):
         setattr(feed, table, f)
 
     return feed
+
 
 def clean_route_short_names(feed):
     """
@@ -129,24 +133,24 @@ def clean_route_short_names(feed):
         return feed
 
     # Fill NaNs and strip whitespace
-    r['route_short_name'] = r['route_short_name'].fillna(
-      'n/a').str.strip()
+    r["route_short_name"] = r["route_short_name"].fillna("n/a").str.strip()
 
     # Disambiguate
     def disambiguate(row):
         rsn, rid = row
-        return rsn + '-' + rid
+        return rsn + "-" + rid
 
-    r['dup'] = r['route_short_name'].duplicated(keep=False)
-    r.loc[r['dup'], 'route_short_name'] = r.loc[
-      r['dup'], ['route_short_name', 'route_id']].apply(
-      disambiguate, axis=1)
-    del r['dup']
+    r["dup"] = r["route_short_name"].duplicated(keep=False)
+    r.loc[r["dup"], "route_short_name"] = r.loc[
+        r["dup"], ["route_short_name", "route_id"]
+    ].apply(disambiguate, axis=1)
+    del r["dup"]
 
     feed.routes = r
     return feed
 
-def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
+
+def aggregate_routes(feed, by="route_short_name", route_id_prefix="route_"):
     """
     Aggregate routes by route short name, say, and assign new route IDs.
 
@@ -173,8 +177,7 @@ def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
 
     """
     if by not in feed.routes.columns:
-        raise ValueError("Column {!s} not in feed.routes".format(
-          by))
+        raise ValueError("Column {!s} not in feed.routes".format(by))
 
     feed = feed.copy()
 
@@ -185,28 +188,30 @@ def aggregate_routes(feed, by='route_short_name', route_id_prefix='route_'):
     nrid_by_orid = dict()
     i = 1
     for col, group in routes.groupby(by):
-        nrid = 'route_{num:0{pad}d}'.format(num=i, pad=k)
-        d = {orid: nrid for orid in group['route_id'].values}
+        nrid = "route_{num:0{pad}d}".format(num=i, pad=k)
+        d = {orid: nrid for orid in group["route_id"].values}
         nrid_by_orid.update(d)
         i += 1
 
-    routes['route_id'] = routes['route_id'].map(lambda x: nrid_by_orid[x])
+    routes["route_id"] = routes["route_id"].map(lambda x: nrid_by_orid[x])
     routes = routes.groupby(by).first().reset_index()
     feed.routes = routes
 
     # Update route IDs of trips
     trips = feed.trips
-    trips['route_id'] = trips['route_id'].map(lambda x: nrid_by_orid[x])
+    trips["route_id"] = trips["route_id"].map(lambda x: nrid_by_orid[x])
     feed.trips = trips
 
     # Update route IDs of transfers
     if feed.transfers is not None:
         transfers = feed.transfers
-        transfers['route_id'] = transfers['route_id'].map(
-          lambda x: nrid_by_orid[x])
+        transfers["route_id"] = transfers["route_id"].map(
+            lambda x: nrid_by_orid[x]
+        )
         feed.transfers = transfers
 
     return feed
+
 
 def clean(feed):
     """
@@ -222,15 +227,16 @@ def clean(feed):
     """
     feed = feed.copy()
     ops = [
-      'clean_ids',
-      'clean_times',
-      'clean_route_short_names',
-      'drop_zombies',
+        "clean_ids",
+        "clean_times",
+        "clean_route_short_names",
+        "drop_zombies",
     ]
     for op in ops:
         feed = globals()[op](feed)
 
     return feed
+
 
 def drop_invalid_columns(feed):
     """
@@ -239,14 +245,14 @@ def drop_invalid_columns(feed):
     Return the resulting new Feed.
     """
     feed = feed.copy()
-    for table, group in cs.GTFS_REF.groupby('table'):
+    for table, group in cs.GTFS_REF.groupby("table"):
         f = getattr(feed, table)
         if f is None:
             continue
-        valid_columns = group['column'].values
+        valid_columns = group["column"].values
         for col in f.columns:
             if col not in valid_columns:
-                print('{!s}: dropping invalid column {!s}'.format(table, col))
+                print("{!s}: dropping invalid column {!s}".format(table, col))
                 del f[col]
         setattr(feed, table, f)
 

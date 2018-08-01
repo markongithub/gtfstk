@@ -11,50 +11,55 @@ def test_clean_column_names():
     assert_frame_equal(f, g)
 
     f = sample.routes.copy()
-    f[' route_id  '] = f['route_id'].copy()
-    del f['route_id']
+    f[" route_id  "] = f["route_id"].copy()
+    del f["route_id"]
     g = clean_column_names(f)
-    assert 'route_id' in g.columns
-    assert ' route_id  ' not in g.columns
+    assert "route_id" in g.columns
+    assert " route_id  " not in g.columns
+
 
 def test_clean_ids():
     f1 = sample.copy()
-    f1.routes.ix[0, 'route_id'] = '  ho   ho ho '
+    f1.routes.ix[0, "route_id"] = "  ho   ho ho "
     f2 = clean_ids(f1)
-    expect_rid = 'ho_ho_ho'
-    f2.routes.ix[0, 'route_id'] == expect_rid
+    expect_rid = "ho_ho_ho"
+    f2.routes.ix[0, "route_id"] == expect_rid
 
     f3 = clean_ids(f2)
     f3 == f2
 
+
 def test_clean_times():
     f1 = sample.copy()
-    f1.stop_times['departure_time'].iat[0] = '7:00:00'
-    f1.frequencies['start_time'].iat[0] = '7:00:00'
+    f1.stop_times["departure_time"].iat[0] = "7:00:00"
+    f1.frequencies["start_time"].iat[0] = "7:00:00"
     f2 = clean_times(f1)
-    assert f2.stop_times['departure_time'].iat[0] == '07:00:00'
-    assert f2.frequencies['start_time'].iat[0] == '07:00:00'
+    assert f2.stop_times["departure_time"].iat[0] == "07:00:00"
+    assert f2.frequencies["start_time"].iat[0] == "07:00:00"
+
 
 def test_clean_route_short_names():
-    f1  = sample.copy()
+    f1 = sample.copy()
 
     # Should have no effect on a fine feed
     f2 = clean_route_short_names(f1)
-    assert_series_equal(f2.routes['route_short_name'],
-      f1.routes['route_short_name'])
+    assert_series_equal(
+        f2.routes["route_short_name"], f1.routes["route_short_name"]
+    )
 
     # Make route short name duplicates
-    f1.routes.loc[1:5, 'route_short_name'] = np.nan
-    f1.routes.loc[6:, 'route_short_name'] = '  he llo  '
+    f1.routes.loc[1:5, "route_short_name"] = np.nan
+    f1.routes.loc[6:, "route_short_name"] = "  he llo  "
     f2 = clean_route_short_names(f1)
     # Should have unique route short names
-    assert f2.routes['route_short_name'].nunique() == f2.routes.shape[0]
+    assert f2.routes["route_short_name"].nunique() == f2.routes.shape[0]
     # NaNs should be replaced by n/a and route IDs
-    expect_rsns = ('n/a-' + sample.routes.ix[1:5]['route_id']).tolist()
-    assert f2.routes.ix[1:5]['route_short_name'].values.tolist() == expect_rsns
+    expect_rsns = ("n/a-" + sample.routes.ix[1:5]["route_id"]).tolist()
+    assert f2.routes.ix[1:5]["route_short_name"].values.tolist() == expect_rsns
     # Should have names without leading or trailing whitespace
-    assert not f2.routes['route_short_name'].str.startswith(' ').any()
-    assert not f2.routes['route_short_name'].str.endswith(' ').any()
+    assert not f2.routes["route_short_name"].str.startswith(" ").any()
+    assert not f2.routes["route_short_name"].str.endswith(" ").any()
+
 
 def test_drop_zombies():
     # Should have no effect on sample feed
@@ -63,19 +68,20 @@ def test_drop_zombies():
     assert_frame_equal(f2.routes, f1.routes)
 
     # Create all zombie trips for one route
-    rid = f1.routes['route_id'].iat[0]
-    cond = f1.trips['route_id'] == rid
-    f1.trips.loc[cond, 'trip_id'] = 'hoopla'
+    rid = f1.routes["route_id"].iat[0]
+    cond = f1.trips["route_id"] == rid
+    f1.trips.loc[cond, "trip_id"] = "hoopla"
     f2 = drop_zombies(f1)
     # Trips should be gone
-    assert 'hoopla' not in f2.trips['trip_id']
+    assert "hoopla" not in f2.trips["trip_id"]
     # Route should be gone
-    assert rid not in f2.routes['route_id']
+    assert rid not in f2.routes["route_id"]
+
 
 def test_aggregate_routes():
     feed1 = sample.copy()
     # Equalize all route short names
-    feed1.routes['route_short_name'] = 'bingo'
+    feed1.routes["route_short_name"] = "bingo"
     feed2 = aggregate_routes(feed1)
 
     # feed2 should have only one route ID
@@ -83,7 +89,7 @@ def test_aggregate_routes():
 
     # Feeds should have same trip data frames excluding
     # route IDs
-    feed1.trips['route_id'] = feed2.trips['route_id']
+    feed1.trips["route_id"] = feed2.trips["route_id"]
     assert almost_equal(feed1.trips, feed2.trips)
 
     # Feeds should have equal attributes excluding
@@ -92,17 +98,19 @@ def test_aggregate_routes():
     feed2.trips = feed1.trips
     assert feed1 == feed2
 
+
 def test_clean():
     f1 = sample.copy()
-    rid = f1.routes.ix[0, 'route_id']
-    f1.routes.ix[0, 'route_id'] = ' ' + rid + '   '
+    rid = f1.routes.ix[0, "route_id"]
+    f1.routes.ix[0, "route_id"] = " " + rid + "   "
     f2 = clean(f1)
-    assert f2.routes.ix[0, 'route_id'] == rid
+    assert f2.routes.ix[0, "route_id"] == rid
     assert_frame_equal(f2.trips, sample.trips)
+
 
 def test_drop_invalid_columns():
     f1 = sample.copy()
-    f1.routes['bingo'] = 'bongo'
-    f1.trips['wingo'] = 'wongo'
+    f1.routes["bingo"] = "bongo"
+    f1.trips["wingo"] = "wongo"
     f2 = drop_invalid_columns(f1)
     assert f2 == sample

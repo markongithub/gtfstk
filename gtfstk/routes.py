@@ -13,9 +13,13 @@ from . import constants as cs
 from . import helpers as hp
 
 
-def compute_route_stats_base(trip_stats_subset,
-  headway_start_time='07:00:00', headway_end_time='19:00:00', *,
-  split_directions=False):
+def compute_route_stats_base(
+    trip_stats_subset,
+    headway_start_time="07:00:00",
+    headway_end_time="19:00:00",
+    *,
+    split_directions=False,
+):
     """
     Compute stats for the given subset of trips stats.
 
@@ -96,8 +100,9 @@ def compute_route_stats_base(trip_stats_subset,
 
     # Convert trip start and end times to seconds to ease calculations below
     f = trip_stats_subset.copy()
-    f[['start_time', 'end_time']] = f[['start_time', 'end_time']
-      ].applymap(hp.timestr_to_seconds)
+    f[["start_time", "end_time"]] = f[["start_time", "end_time"]].applymap(
+        hp.timestr_to_seconds
+    )
 
     headway_start = hp.timestr_to_seconds(headway_start_time)
     headway_end = hp.timestr_to_seconds(headway_end_time)
@@ -106,116 +111,142 @@ def compute_route_stats_base(trip_stats_subset,
         # Take this group of all trips stats for a single route
         # and compute route-level stats.
         d = OrderedDict()
-        d['route_short_name'] = group['route_short_name'].iat[0]
-        d['route_type'] = group['route_type'].iat[0]
-        d['num_trips'] = group.shape[0]
-        d['num_trip_starts'] = group['start_time'].count()
-        d['num_trip_ends'] = group.loc[
-          group['end_time'] < 24*3600, 'end_time'].count()
-        d['is_loop'] = int(group['is_loop'].any())
-        d['start_time'] = group['start_time'].min()
-        d['end_time'] = group['end_time'].max()
+        d["route_short_name"] = group["route_short_name"].iat[0]
+        d["route_type"] = group["route_type"].iat[0]
+        d["num_trips"] = group.shape[0]
+        d["num_trip_starts"] = group["start_time"].count()
+        d["num_trip_ends"] = group.loc[
+            group["end_time"] < 24 * 3600, "end_time"
+        ].count()
+        d["is_loop"] = int(group["is_loop"].any())
+        d["start_time"] = group["start_time"].min()
+        d["end_time"] = group["end_time"].max()
 
         # Compute max and mean headway
-        stimes = group['start_time'].values
-        stimes = sorted([stime for stime in stimes
-          if headway_start <= stime <= headway_end])
+        stimes = group["start_time"].values
+        stimes = sorted(
+            [
+                stime
+                for stime in stimes
+                if headway_start <= stime <= headway_end
+            ]
+        )
         headways = np.diff(stimes)
         if headways.size:
-            d['max_headway'] = np.max(headways)/60  # minutes
-            d['min_headway'] = np.min(headways)/60  # minutes
-            d['mean_headway'] = np.mean(headways)/60  # minutes
+            d["max_headway"] = np.max(headways) / 60  # minutes
+            d["min_headway"] = np.min(headways) / 60  # minutes
+            d["mean_headway"] = np.mean(headways) / 60  # minutes
         else:
-            d['max_headway'] = np.nan
-            d['min_headway'] = np.nan
-            d['mean_headway'] = np.nan
+            d["max_headway"] = np.nan
+            d["min_headway"] = np.nan
+            d["mean_headway"] = np.nan
 
         # Compute peak num trips
-        times = np.unique(group[['start_time', 'end_time']].values)
-        counts = [hp.count_active_trips(group, t) for t in times]
+        active_trips = hp.get_active_trips_df(
+            group[["start_time", "end_time"]]
+        )
+        times, counts = active_trips.index.values, active_trips.values
         start, end = hp.get_peak_indices(times, counts)
-        d['peak_num_trips'] = counts[start]
-        d['peak_start_time'] = times[start]
-        d['peak_end_time'] = times[end]
+        d["peak_num_trips"] = counts[start]
+        d["peak_start_time"] = times[start]
+        d["peak_end_time"] = times[end]
 
-        d['service_distance'] = group['distance'].sum()
-        d['service_duration'] = group['duration'].sum()
+        d["service_distance"] = group["distance"].sum()
+        d["service_duration"] = group["duration"].sum()
         return pd.Series(d)
 
     def compute_route_stats(group):
         d = OrderedDict()
-        d['route_short_name'] = group['route_short_name'].iat[0]
-        d['route_type'] = group['route_type'].iat[0]
-        d['num_trips'] = group.shape[0]
-        d['num_trip_starts'] = group['start_time'].count()
-        d['num_trip_ends'] = group.loc[
-          group['end_time'] < 24*3600, 'end_time'].count()
-        d['is_loop'] = int(group['is_loop'].any())
-        d['is_bidirectional'] = int(group['direction_id'].unique().size > 1)
-        d['start_time'] = group['start_time'].min()
-        d['end_time'] = group['end_time'].max()
+        d["route_short_name"] = group["route_short_name"].iat[0]
+        d["route_type"] = group["route_type"].iat[0]
+        d["num_trips"] = group.shape[0]
+        d["num_trip_starts"] = group["start_time"].count()
+        d["num_trip_ends"] = group.loc[
+            group["end_time"] < 24 * 3600, "end_time"
+        ].count()
+        d["is_loop"] = int(group["is_loop"].any())
+        d["is_bidirectional"] = int(group["direction_id"].unique().size > 1)
+        d["start_time"] = group["start_time"].min()
+        d["end_time"] = group["end_time"].max()
 
         # Compute headway stats
         headways = np.array([])
         for direction in [0, 1]:
-            stimes = group[group['direction_id'] == direction][
-              'start_time'].values
-            stimes = sorted([stime for stime in stimes
-              if headway_start <= stime <= headway_end])
+            stimes = group[group["direction_id"] == direction][
+                "start_time"
+            ].values
+            stimes = sorted(
+                [
+                    stime
+                    for stime in stimes
+                    if headway_start <= stime <= headway_end
+                ]
+            )
             headways = np.concatenate([headways, np.diff(stimes)])
         if headways.size:
-            d['max_headway'] = np.max(headways)/60  # minutes
-            d['min_headway'] = np.min(headways)/60  # minutes
-            d['mean_headway'] = np.mean(headways)/60  # minutes
+            d["max_headway"] = np.max(headways) / 60  # minutes
+            d["min_headway"] = np.min(headways) / 60  # minutes
+            d["mean_headway"] = np.mean(headways) / 60  # minutes
         else:
-            d['max_headway'] = np.nan
-            d['min_headway'] = np.nan
-            d['mean_headway'] = np.nan
+            d["max_headway"] = np.nan
+            d["min_headway"] = np.nan
+            d["mean_headway"] = np.nan
 
         # Compute peak num trips
-        times = np.unique(group[['start_time', 'end_time']].values)
-        counts = [hp.count_active_trips(group, t) for t in times]
+        active_trips = hp.get_active_trips_df(
+            group[["start_time", "end_time"]]
+        )
+        times, counts = active_trips.index.values, active_trips.values
         start, end = hp.get_peak_indices(times, counts)
-        d['peak_num_trips'] = counts[start]
-        d['peak_start_time'] = times[start]
-        d['peak_end_time'] = times[end]
+        d["peak_num_trips"] = counts[start]
+        d["peak_start_time"] = times[start]
+        d["peak_end_time"] = times[end]
 
-        d['service_distance'] = group['distance'].sum()
-        d['service_duration'] = group['duration'].sum()
+        d["service_distance"] = group["distance"].sum()
+        d["service_duration"] = group["duration"].sum()
 
         return pd.Series(d)
 
     if split_directions:
-        g = f.groupby(['route_id', 'direction_id']).apply(
-          compute_route_stats_split_directions).reset_index()
+        g = (
+            f.groupby(["route_id", "direction_id"])
+            .apply(compute_route_stats_split_directions)
+            .reset_index()
+        )
 
         # Add the is_bidirectional column
         def is_bidirectional(group):
             d = {}
-            d['is_bidirectional'] = int(
-              group['direction_id'].unique().size > 1)
+            d["is_bidirectional"] = int(
+                group["direction_id"].unique().size > 1
+            )
             return pd.Series(d)
 
-        gg = g.groupby('route_id').apply(is_bidirectional).reset_index()
+        gg = g.groupby("route_id").apply(is_bidirectional).reset_index()
         g = g.merge(gg)
     else:
-        g = f.groupby('route_id').apply(
-          compute_route_stats).reset_index()
+        g = f.groupby("route_id").apply(compute_route_stats).reset_index()
 
     # Compute a few more stats
-    g['service_speed'] = g['service_distance']/g['service_duration']
-    g['mean_trip_distance'] = g['service_distance']/g['num_trips']
-    g['mean_trip_duration'] = g['service_duration']/g['num_trips']
+    g["service_speed"] = g["service_distance"] / g["service_duration"]
+    g["mean_trip_distance"] = g["service_distance"] / g["num_trips"]
+    g["mean_trip_duration"] = g["service_duration"] / g["num_trips"]
 
     # Convert route times to time strings
-    g[['start_time', 'end_time', 'peak_start_time', 'peak_end_time']] =\
-      g[['start_time', 'end_time', 'peak_start_time', 'peak_end_time']].\
-      applymap(lambda x: hp.timestr_to_seconds(x, inverse=True))
+    g[["start_time", "end_time", "peak_start_time", "peak_end_time"]] = g[
+        ["start_time", "end_time", "peak_start_time", "peak_end_time"]
+    ].applymap(lambda x: hp.timestr_to_seconds(x, inverse=True))
 
     return g
 
-def compute_route_time_series_base(trip_stats_subset, date_label='20010101',
-  freq='5Min', *, split_directions=False):
+
+def compute_route_time_series_base(
+    trip_stats_subset,
+    date_label="20010101",
+    freq="5Min",
+    *,
+    split_directions=False,
+):
     """
     Compute stats in a 24-hour time series form for the given subset of trips.
 
@@ -302,45 +333,46 @@ def compute_route_time_series_base(trip_stats_subset, date_label='20010101',
     if split_directions:
         # Alter route IDs to encode direction:
         # <route ID>-0 and <route ID>-1
-        tss['route_id'] = tss['route_id'] + '-' +\
-          tss['direction_id'].map(str)
+        tss["route_id"] = tss["route_id"] + "-" + tss["direction_id"].map(str)
 
-    routes = tss['route_id'].unique()
+    routes = tss["route_id"].unique()
     # Build a dictionary of time series and then merge them all
     # at the end.
     # Assign a uniform generic date for the index
     date_str = date_label
-    day_start = pd.to_datetime(date_str + ' 00:00:00')
-    day_end = pd.to_datetime(date_str + ' 23:59:00')
-    rng = pd.period_range(day_start, day_end, freq='Min')
+    day_start = pd.to_datetime(date_str + " 00:00:00")
+    day_end = pd.to_datetime(date_str + " 23:59:00")
+    rng = pd.period_range(day_start, day_end, freq="Min")
     indicators = [
-      'num_trip_starts',
-      'num_trip_ends',
-      'num_trips',
-      'service_duration',
-      'service_distance',
+        "num_trip_starts",
+        "num_trip_ends",
+        "num_trips",
+        "service_duration",
+        "service_distance",
     ]
 
-    bins = [i for i in range(24*60)]  # One bin for each minute
+    bins = [i for i in range(24 * 60)]  # One bin for each minute
     num_bins = len(bins)
 
     # Bin start and end times
     def F(x):
-        return (hp.timestr_to_seconds(x)//60) % (24*60)
+        return (hp.timestr_to_seconds(x) // 60) % (24 * 60)
 
-    tss[['start_index', 'end_index']] = tss[['start_time', 'end_time']
-      ].applymap(F)
-    routes = sorted(set(tss['route_id'].values))
+    tss[["start_index", "end_index"]] = tss[
+        ["start_time", "end_time"]
+    ].applymap(F)
+    routes = sorted(set(tss["route_id"].values))
 
     # Bin each trip according to its start and end time and weight
-    series_by_route_by_indicator = {indicator:
-      {route: [0 for i in range(num_bins)] for route in routes}
-      for indicator in indicators}
+    series_by_route_by_indicator = {
+        indicator: {route: [0 for i in range(num_bins)] for route in routes}
+        for indicator in indicators
+    }
     for index, row in tss.iterrows():
-        route = row['route_id']
-        start = row['start_index']
-        end = row['end_index']
-        distance = row['distance']
+        route = row["route_id"]
+        start = row["start_index"]
+        end = row["end_index"]
+        distance = row["distance"]
 
         if start is None or np.isnan(start) or start == end:
             continue
@@ -353,34 +385,38 @@ def compute_route_time_series_base(trip_stats_subset, date_label='20010101',
 
         # Bin trip
         # Do num trip starts
-        series_by_route_by_indicator['num_trip_starts'][route][start] += 1
+        series_by_route_by_indicator["num_trip_starts"][route][start] += 1
         # Don't mark trip ends for trips that run past midnight;
         # allows for easy resampling of num_trips later
         if start <= end:
-            series_by_route_by_indicator['num_trip_ends'][route][end] += 1
+            series_by_route_by_indicator["num_trip_ends"][route][end] += 1
         # Do rest of indicators
         for indicator in indicators[2:]:
-            if indicator == 'num_trips':
+            if indicator == "num_trips":
                 weight = 1
-            elif indicator == 'service_duration':
-                weight = 1/60
+            elif indicator == "service_duration":
+                weight = 1 / 60
             else:
-                weight = distance/len(bins_to_fill)
+                weight = distance / len(bins_to_fill)
             for bin in bins_to_fill:
                 series_by_route_by_indicator[indicator][route][bin] += weight
 
     # Create one time series per indicator
-    rng = pd.date_range(date_str, periods=24*60, freq='Min')
-    series_by_indicator = {indicator:
-      pd.DataFrame(series_by_route_by_indicator[indicator],
-        index=rng).fillna(0)
-      for indicator in indicators}
+    rng = pd.date_range(date_str, periods=24 * 60, freq="Min")
+    series_by_indicator = {
+        indicator: pd.DataFrame(
+            series_by_route_by_indicator[indicator], index=rng
+        ).fillna(0)
+        for indicator in indicators
+    }
 
     # Combine all time series into one time series
-    g = hp.combine_time_series(series_by_indicator, kind='route',
-      split_directions=split_directions)
+    g = hp.combine_time_series(
+        series_by_indicator, kind="route", split_directions=split_directions
+    )
 
     return hp.downsample(g, freq=freq)
+
 
 def get_routes(feed, date=None, time=None):
     """
@@ -413,12 +449,19 @@ def get_routes(feed, date=None, time=None):
         return feed.routes.copy()
 
     trips = feed.get_trips(date, time)
-    R = trips['route_id'].unique()
-    return feed.routes[feed.routes['route_id'].isin(R)]
+    R = trips["route_id"].unique()
+    return feed.routes[feed.routes["route_id"].isin(R)]
 
-def compute_route_stats(feed, trip_stats_subset, dates,
-  headway_start_time='07:00:00', headway_end_time='19:00:00',
-  *, split_directions=False):
+
+def compute_route_stats(
+    feed,
+    trip_stats_subset,
+    dates,
+    headway_start_time="07:00:00",
+    headway_end_time="19:00:00",
+    *,
+    split_directions=False,
+):
     """
     Compute route stats for all the trips that lie in the given subset
     of trip stats and that start on the given dates.
@@ -478,34 +521,35 @@ def compute_route_stats(feed, trip_stats_subset, dates,
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
     cols = [
-      'route_id',
-      'route_short_name',
-      'route_type',
-      'num_trips',
-      'num_trip_ends',
-      'num_trip_starts',
-      'is_bidirectional',
-      'is_loop',
-      'start_time',
-      'end_time',
-      'max_headway',
-      'min_headway',
-      'mean_headway',
-      'peak_num_trips',
-      'peak_start_time',
-      'peak_end_time',
-      'service_duration',
-      'service_distance',
-      'service_speed',
-      'mean_trip_distance',
-      'mean_trip_duration',
+        "route_id",
+        "route_short_name",
+        "route_type",
+        "num_trips",
+        "num_trip_ends",
+        "num_trip_starts",
+        "is_bidirectional",
+        "is_loop",
+        "start_time",
+        "end_time",
+        "max_headway",
+        "min_headway",
+        "mean_headway",
+        "peak_num_trips",
+        "peak_start_time",
+        "peak_end_time",
+        "service_duration",
+        "service_distance",
+        "service_speed",
+        "mean_trip_distance",
+        "mean_trip_duration",
     ]
     if split_directions:
-        cols.append('direction_id')
+        cols.append("direction_id")
     null_stats = pd.DataFrame(
-      OrderedDict([(c, np.nan) for c in cols]), index=[0])
+        OrderedDict([(c, np.nan) for c in cols]), index=[0]
+    )
     for date in dates:
-        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
@@ -514,11 +558,13 @@ def compute_route_stats(feed, trip_stats_subset, dates,
             stats_and_dates_by_ids[ids] = [null_stats, [date]]
         else:
             # Compute stats
-            t = ts[ts['trip_id'].isin(ids)].copy()
-            stats = compute_route_stats_base(t,
-              split_directions=split_directions,
-              headway_start_time=headway_start_time,
-              headway_end_time=headway_end_time)
+            t = ts[ts["trip_id"].isin(ids)].copy()
+            stats = compute_route_stats_base(
+                t,
+                split_directions=split_directions,
+                headway_start_time=headway_start_time,
+                headway_end_time=headway_end_time,
+            )
 
             # Remember stats
             stats_and_dates_by_ids[ids] = [stats, [date]]
@@ -528,44 +574,52 @@ def compute_route_stats(feed, trip_stats_subset, dates,
     for stats, dates_ in stats_and_dates_by_ids.values():
         for date in dates_:
             f = stats.copy()
-            f['date'] = date
+            f["date"] = date
             frames.append(f)
-    f = pd.concat(frames).sort_values(['date', 'route_id']).reset_index(
-      drop=True)
+    f = (
+        pd.concat(frames)
+        .sort_values(["date", "route_id"])
+        .reset_index(drop=True)
+    )
 
     return f
 
-def build_null_route_time_series(feed, date_label='20010101',
-  freq='5Min', *, split_directions=False):
+
+def build_null_route_time_series(
+    feed, date_label="20010101", freq="5Min", *, split_directions=False
+):
     """
     Return a route time series with the same index and hierarchical columns
     as output by :func:`compute_route_time_series_base`,
     but fill it full of null values.
     """
     start = date_label
-    end = pd.to_datetime(date_label + ' 23:59:00')
+    end = pd.to_datetime(date_label + " 23:59:00")
     rng = pd.date_range(start, end, freq=freq)
     inds = [
-      'num_trip_starts',
-      'num_trip_ends',
-      'num_trips',
-      'service_duration',
-      'service_distance',
-      'service_speed',
+        "num_trip_starts",
+        "num_trip_ends",
+        "num_trips",
+        "service_duration",
+        "service_distance",
+        "service_speed",
     ]
     rids = feed.routes.route_id
     if split_directions:
         product = [inds, rids, [0, 1]]
-        names = ['indicator', 'route_id', 'direction_id']
+        names = ["indicator", "route_id", "direction_id"]
     else:
         product = [inds, rids]
-        names = ['indicator', 'route_id']
+        names = ["indicator", "route_id"]
     cols = pd.MultiIndex.from_product(product, names=names)
     return pd.DataFrame([], index=rng, columns=cols).sort_index(
-      axis=1, sort_remaining=True)
+        axis=1, sort_remaining=True
+    )
 
-def compute_route_time_series(feed, trip_stats_subset, dates, freq='5Min',
-  *, split_directions=False):
+
+def compute_route_time_series(
+    feed, trip_stats_subset, dates, freq="5Min", *, split_directions=False
+):
     """
     Compute route stats in time series form for the trips that lie in
     the trip stats subset and that start on the given dates.
@@ -616,10 +670,11 @@ def compute_route_time_series(feed, trip_stats_subset, dates, freq='5Min',
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
-    null_stats = build_null_route_time_series(feed,
-      split_directions=split_directions, freq=freq)
+    null_stats = build_null_route_time_series(
+        feed, split_directions=split_directions, freq=freq
+    )
     for date in dates:
-        ids = tuple(activity.loc[activity[date] > 0, 'trip_id'])
+        ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
@@ -628,9 +683,13 @@ def compute_route_time_series(feed, trip_stats_subset, dates, freq='5Min',
             stats_and_dates_by_ids[ids] = [null_stats, [date]]
         else:
             # Compute stats
-            t = ts[ts['trip_id'].isin(ids)].copy()
-            stats = compute_route_time_series_base(t,
-              split_directions=split_directions, freq=freq, date_label=date)
+            t = ts[ts["trip_id"].isin(ids)].copy()
+            stats = compute_route_time_series_base(
+                t,
+                split_directions=split_directions,
+                freq=freq,
+                date_label=date,
+            )
 
             # Remember stats
             stats_and_dates_by_ids[ids] = [stats, [date]]
@@ -642,15 +701,16 @@ def compute_route_time_series(feed, trip_stats_subset, dates, freq='5Min',
             f = stats.copy()
             # Replace date
             d = hp.datestr_to_date(date)
-            f.index = f.index.map(lambda t: t.replace(
-              year=d.year, month=d.month, day=d.day))
+            f.index = f.index.map(
+                lambda t: t.replace(year=d.year, month=d.month, day=d.day)
+            )
             frames.append(f)
 
     f = pd.concat(frames).sort_index().sort_index(axis=1, sort_remaining=True)
 
     if len(dates) > 1:
         # Insert missing dates and NaNs to complete series index
-        end_datetime = pd.to_datetime(dates[-1] + ' 23:59:59')
+        end_datetime = pd.to_datetime(dates[-1] + " 23:59:59")
         new_index = pd.date_range(dates[0], end_datetime, freq=freq)
         f = f.reindex(new_index)
     else:
@@ -658,6 +718,7 @@ def compute_route_time_series(feed, trip_stats_subset, dates, freq='5Min',
         f.index.freq = pd.tseries.frequencies.to_offset(freq)
 
     return f
+
 
 def build_route_timetable(feed, route_id, dates):
     """
@@ -698,25 +759,27 @@ def build_route_timetable(feed, route_id, dates):
         return pd.DataFrame()
 
     t = pd.merge(feed.trips, feed.stop_times)
-    t = t[t['route_id'] == route_id].copy()
+    t = t[t["route_id"] == route_id].copy()
     a = feed.compute_trip_activity(dates)
 
     frames = []
     for date in dates:
         # Slice to trips active on date
-        ids = a.loc[a[date] == 1, 'trip_id']
-        f = t[t['trip_id'].isin(ids)].copy()
-        f['date'] = date
+        ids = a.loc[a[date] == 1, "trip_id"]
+        f = t[t["trip_id"].isin(ids)].copy()
+        f["date"] = date
         # Groupby trip ID and sort groups by their minimum departure time.
         # For some reason NaN departure times mess up the transform below.
         # So temporarily fill NaN departure times as a workaround.
-        f['dt'] = f['departure_time'].fillna(method='ffill')
-        f['min_dt'] = f.groupby('trip_id')['dt'].transform(min)
+        f["dt"] = f["departure_time"].fillna(method="ffill")
+        f["min_dt"] = f.groupby("trip_id")["dt"].transform(min)
         frames.append(f)
 
     f = pd.concat(frames)
-    return f.sort_values(['date', 'min_dt', 'stop_sequence']).drop(
-      ['min_dt', 'dt'], axis=1)
+    return f.sort_values(["date", "min_dt", "stop_sequence"]).drop(
+        ["min_dt", "dt"], axis=1
+    )
+
 
 def route_to_geojson(feed, route_id, date=None, *, include_stops=False):
     """
@@ -746,49 +809,64 @@ def route_to_geojson(feed, route_id, date=None, *, include_stops=False):
     # Get set of unique trip shapes for route
     shapes = (
         feed.get_trips(date=date)
-        .loc[lambda x: x['route_id'] == route_id, 'shape_id']
+        .loc[lambda x: x["route_id"] == route_id, "shape_id"]
         .unique()
     )
     if not shapes.size:
-        return {'type': 'FeatureCollection', 'features': []}
+        return {"type": "FeatureCollection", "features": []}
 
     geom_by_shape = feed.build_geometry_by_shape(shape_ids=shapes)
 
     # Get route properties
     route = (
         feed.get_routes(date=date)
-        .loc[lambda x: x['route_id'] == route_id]
-        .fillna('n/a')
-        .to_dict(orient='records', into=OrderedDict)
+        .loc[lambda x: x["route_id"] == route_id]
+        .fillna("n/a")
+        .to_dict(orient="records", into=OrderedDict)
     )[0]
 
     # Build route shape features
-    features = [{
-        'type': 'Feature',
-        'properties': route,
-        'geometry': sg.mapping(sg.LineString(geom)),
-    } for geom in geom_by_shape.values() ]
+    features = [
+        {
+            "type": "Feature",
+            "properties": route,
+            "geometry": sg.mapping(sg.LineString(geom)),
+        }
+        for geom in geom_by_shape.values()
+    ]
 
     # Build stop features if desired
     if include_stops:
         stops = (
             feed.get_stops(route_id=route_id)
-            .fillna('n/a')
-            .to_dict(orient='records', into=OrderedDict)
+            .fillna("n/a")
+            .to_dict(orient="records", into=OrderedDict)
         )
-        features.extend([{
-            'type': 'Feature',
-            'geometry': {
-                'type': 'Point',
-                'coordinates': [stop['stop_lon'], stop['stop_lat']],
-              },
-            'properties': stop,
-        } for stop in stops])
+        features.extend(
+            [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [stop["stop_lon"], stop["stop_lat"]],
+                    },
+                    "properties": stop,
+                }
+                for stop in stops
+            ]
+        )
 
-    return {'type': 'FeatureCollection', 'features': features}
+    return {"type": "FeatureCollection", "features": features}
 
-def map_routes(feed, route_ids, date=None,
-  color_palette=cs.COLORS_SET2, *, include_stops=True):
+
+def map_routes(
+    feed,
+    route_ids,
+    date=None,
+    color_palette=cs.COLORS_SET2,
+    *,
+    include_stops=True,
+):
     """
     Return a Folium map showing the given routes and (optionally)
     their stops.
@@ -823,10 +901,9 @@ def map_routes(feed, route_ids, date=None,
 
     # Get routes slice and convert to dictionary
     routes = (
-      feed.routes
-      .loc[lambda x: x['route_id'].isin(route_ids)]
-      .fillna('n/a')
-      .to_dict(orient='records')
+        feed.routes.loc[lambda x: x["route_id"].isin(route_ids)]
+        .fillna("n/a")
+        .to_dict(orient="records")
     )
 
     # Create route colors
@@ -834,7 +911,7 @@ def map_routes(feed, route_ids, date=None,
     colors = [color_palette[i % len(color_palette)] for i in range(n)]
 
     # Initialize map
-    my_map = fl.Map(tiles='cartodbpositron')
+    my_map = fl.Map(tiles="cartodbpositron")
 
     # Collect route bounding boxes to set map zoom later
     bboxes = []
@@ -842,36 +919,39 @@ def map_routes(feed, route_ids, date=None,
     # Create a feature group for each route and add it to the map
     for i, route in enumerate(routes):
         collection = feed.route_to_geojson(
-          route_id=route['route_id'], date=date, include_stops=include_stops)
-        group = fl.FeatureGroup(name='Route ' + route['route_short_name'])
+            route_id=route["route_id"], date=date, include_stops=include_stops
+        )
+        group = fl.FeatureGroup(name="Route " + route["route_short_name"])
         color = colors[i]
 
-        for f in collection['features']:
-            prop = f['properties']
+        for f in collection["features"]:
+            prop = f["properties"]
 
             # Add stop
-            if f['geometry']['type'] == 'Point':
-                lon, lat = f['geometry']['coordinates']
+            if f["geometry"]["type"] == "Point":
+                lon, lat = f["geometry"]["coordinates"]
                 fl.CircleMarker(
                     location=[lat, lon],
                     radius=8,
                     fill=True,
                     color=color,
                     weight=1,
-                    popup=fl.Popup(hp.make_html(prop))
+                    popup=fl.Popup(hp.make_html(prop)),
                 ).add_to(group)
 
             # Add path
             else:
-                prop['color'] = color
-                path = fl.GeoJson(f,
+                prop["color"] = color
+                path = fl.GeoJson(
+                    f,
                     name=route,
                     style_function=lambda x: {
-                      'color': x['properties']['color']},
+                        "color": x["properties"]["color"]
+                    },
                 )
                 path.add_child(fl.Popup(hp.make_html(prop)))
                 path.add_to(group)
-                bboxes.append(sg.box(*sg.shape(f['geometry']).bounds))
+                bboxes.append(sg.box(*sg.shape(f["geometry"]).bounds))
 
         group.add_to(my_map)
 

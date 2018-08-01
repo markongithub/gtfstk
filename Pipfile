@@ -9,6 +9,8 @@ pytest = "*"
 plotnine = "*"
 twine = "*"
 sphinx = "*"
+black = "*"
+pre-commit = "*"
 
 [packages]
 pandas = "*"
@@ -21,4 +23,4 @@ folium = "*"
 readme-renderer = "*"
 
 [requires]
-python_version = "3.5"
+python_version = "3.6"

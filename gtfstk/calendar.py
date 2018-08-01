@@ -26,14 +26,14 @@ def get_dates(feed, *, as_date_obj=False):
     """
     dates = []
     if feed.calendar is not None and not feed.calendar.empty:
-        if 'start_date' in feed.calendar.columns:
-            dates.append(feed.calendar['start_date'].min())
-        if 'end_date' in feed.calendar.columns:
-            dates.append(feed.calendar['end_date'].max())
+        if "start_date" in feed.calendar.columns:
+            dates.append(feed.calendar["start_date"].min())
+        if "end_date" in feed.calendar.columns:
+            dates.append(feed.calendar["end_date"].max())
     if feed.calendar_dates is not None and not feed.calendar_dates.empty:
-        if 'date' in feed.calendar_dates.columns:
-            start = feed.calendar_dates['date'].min()
-            end = feed.calendar_dates['date'].max()
+        if "date" in feed.calendar_dates.columns:
+            start = feed.calendar_dates["date"].min()
+            end = feed.calendar_dates["date"].max()
             dates.extend([start, end])
     if not dates:
         return []
@@ -41,15 +41,16 @@ def get_dates(feed, *, as_date_obj=False):
     start_date, end_date = min(dates), max(dates)
     start_date, end_date = map(hp.datestr_to_date, [start_date, end_date])
     num_days = (end_date - start_date).days
-    result = [start_date + rd.relativedelta(days=+d)
-      for d in range(num_days + 1)]
+    result = [
+        start_date + rd.relativedelta(days=+d) for d in range(num_days + 1)
+    ]
 
     # Convert dates back to strings if required
     if not as_date_obj:
-        result = [hp.datestr_to_date(x, inverse=True)
-          for x in result]
+        result = [hp.datestr_to_date(x, inverse=True) for x in result]
 
     return result
+
 
 def get_first_week(feed, *, as_date_obj=False):
     """
@@ -94,10 +95,10 @@ def get_first_week(feed, *, as_date_obj=False):
 
     # Convert to date strings if requested
     if not as_date_obj:
-        result = [hp.datestr_to_date(x, inverse=True)
-          for x in result]
+        result = [hp.datestr_to_date(x, inverse=True) for x in result]
 
     return result
+
 
 def restrict_dates(feed, dates):
     """

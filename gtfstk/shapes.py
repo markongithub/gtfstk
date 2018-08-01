@@ -45,22 +45,24 @@ def build_geometry_by_shape(feed, shape_ids=None, *, use_utm=False):
     d = {}
     shapes = feed.shapes.copy()
     if shape_ids is not None:
-        shapes = shapes[shapes['shape_id'].isin(shape_ids)]
+        shapes = shapes[shapes["shape_id"].isin(shape_ids)]
 
     if use_utm:
-        for shape, group in shapes.groupby('shape_id'):
-            lons = group['shape_pt_lon'].values
-            lats = group['shape_pt_lat'].values
-            xys = [utm.from_latlon(lat, lon)[:2]
-              for lat, lon in zip(lats, lons)]
+        for shape, group in shapes.groupby("shape_id"):
+            lons = group["shape_pt_lon"].values
+            lats = group["shape_pt_lat"].values
+            xys = [
+                utm.from_latlon(lat, lon)[:2] for lat, lon in zip(lats, lons)
+            ]
             d[shape] = sg.LineString(xys)
     else:
-        for shape, group in shapes.groupby('shape_id'):
-            lons = group['shape_pt_lon'].values
-            lats = group['shape_pt_lat'].values
+        for shape, group in shapes.groupby("shape_id"):
+            lons = group["shape_pt_lon"].values
+            lats = group["shape_pt_lat"].values
             lonlats = zip(lons, lats)
             d[shape] = sg.LineString(lonlats)
     return d
+
 
 def shapes_to_geojson(feed, shape_ids=None):
     """
@@ -77,19 +79,24 @@ def shapes_to_geojson(feed, shape_ids=None):
     geometry_by_shape = feed.build_geometry_by_shape(shape_ids=shape_ids)
     if geometry_by_shape:
         fc = {
-            'type': 'FeatureCollection',
-            'features': [{
-                'properties': {'shape_id': shape},
-                'type': 'Feature',
-                'geometry': sg.mapping(linestring),
-            } for shape, linestring in geometry_by_shape.items()]
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "properties": {"shape_id": shape},
+                    "type": "Feature",
+                    "geometry": sg.mapping(linestring),
+                }
+                for shape, linestring in geometry_by_shape.items()
+            ],
         }
     else:
         fc = {}
     return fc
 
-def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None, *,
-  geometrized=False):
+
+def get_shapes_intersecting_geometry(
+    feed, geometry, geo_shapes=None, *, geometrized=False
+):
     """
     Return the slice of ``feed.shapes`` that contains all shapes that
     intersect the given Shapely geometry, e.g. a Polygon or LineString.
@@ -125,13 +132,14 @@ def get_shapes_intersecting_geometry(feed, geometry, geo_shapes=None, *,
         f = geometrize_shapes(feed.shapes)
 
     cols = f.columns
-    f['hit'] = f['geometry'].intersects(geometry)
-    f = f[f['hit']][cols]
+    f["hit"] = f["geometry"].intersects(geometry)
+    f = f[f["hit"]][cols]
 
     if geometrized:
         return f
     else:
         return ungeometrize_shapes(f)
+
 
 def append_dist_to_shapes(feed):
     """
@@ -152,21 +160,24 @@ def append_dist_to_shapes(feed):
     """
     if feed.shapes is None:
         raise ValueError(
-          "This function requires the feed to have a shapes.txt file")
+            "This function requires the feed to have a shapes.txt file"
+        )
 
     feed = feed.copy()
     f = feed.shapes
-    m_to_dist = hp.get_convert_dist('m', feed.dist_units)
+    m_to_dist = hp.get_convert_dist("m", feed.dist_units)
 
     def compute_dist(group):
         # Compute the distances of the stops along this trip
-        group = group.sort_values('shape_pt_sequence')
-        shape = group['shape_id'].iat[0]
+        group = group.sort_values("shape_pt_sequence")
+        shape = group["shape_id"].iat[0]
         if not isinstance(shape, str):
-            group['shape_dist_traveled'] = np.nan
+            group["shape_dist_traveled"] = np.nan
             return group
-        points = [sg.Point(utm.from_latlon(lat, lon)[:2])
-          for lon, lat in group[['shape_pt_lon', 'shape_pt_lat']].values]
+        points = [
+            sg.Point(utm.from_latlon(lat, lon)[:2])
+            for lon, lat in group[["shape_pt_lon", "shape_pt_lat"]].values
+        ]
         p_prev = points[0]
         d = 0
         distances = [0]
@@ -174,15 +185,16 @@ def append_dist_to_shapes(feed):
             d += p.distance(p_prev)
             distances.append(d)
             p_prev = p
-        group['shape_dist_traveled'] = distances
+        group["shape_dist_traveled"] = distances
         return group
 
-    g = f.groupby('shape_id', group_keys=False).apply(compute_dist)
+    g = f.groupby("shape_id", group_keys=False).apply(compute_dist)
     # Convert from meters
-    g['shape_dist_traveled'] = g['shape_dist_traveled'].map(m_to_dist)
+    g["shape_dist_traveled"] = g["shape_dist_traveled"].map(m_to_dist)
 
     feed.shapes = g
     return feed
+
 
 def geometrize_shapes(shapes, *, use_utm=False):
     """
@@ -199,23 +211,25 @@ def geometrize_shapes(shapes, *, use_utm=False):
     """
     import geopandas as gpd
 
-    f = shapes.copy().sort_values(['shape_id', 'shape_pt_sequence'])
+    f = shapes.copy().sort_values(["shape_id", "shape_pt_sequence"])
 
     def my_agg(group):
         d = {}
-        d['geometry'] = sg.LineString(group[['shape_pt_lon', 'shape_pt_lat']
-          ].values)
+        d["geometry"] = sg.LineString(
+            group[["shape_pt_lon", "shape_pt_lat"]].values
+        )
         return pd.Series(d)
 
-    g = f.groupby('shape_id').apply(my_agg).reset_index()
+    g = f.groupby("shape_id").apply(my_agg).reset_index()
     g = gpd.GeoDataFrame(g, crs=cs.WGS84)
 
     if use_utm:
-        lat, lon = f.ix[0][['shape_pt_lat', 'shape_pt_lon']].values
+        lat, lon = f.ix[0][["shape_pt_lat", "shape_pt_lon"]].values
         crs = hp.get_utm_crs(lat, lon)
         g = g.to_crs(crs)
 
     return g
+
 
 def ungeometrize_shapes(geo_shapes):
     """
@@ -235,9 +249,19 @@ def ungeometrize_shapes(geo_shapes):
 
     F = []
     for index, row in geo_shapes.iterrows():
-        F.extend([[row['shape_id'], i, x, y] for
-        i, (x, y) in enumerate(row['geometry'].coords)])
+        F.extend(
+            [
+                [row["shape_id"], i, x, y]
+                for i, (x, y) in enumerate(row["geometry"].coords)
+            ]
+        )
 
-    return pd.DataFrame(F,
-      columns=['shape_id', 'shape_pt_sequence', 'shape_pt_lon',
-        'shape_pt_lat'])
+    return pd.DataFrame(
+        F,
+        columns=[
+            "shape_id",
+            "shape_pt_sequence",
+            "shape_pt_lon",
+            "shape_pt_lat",
+        ],
+    )
