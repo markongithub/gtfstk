@@ -75,14 +75,11 @@ class Feed(object):
     the new ``trips`` attribute, but the second way does not.
 
     """
+
     # Import heaps of methods from modules split by functionality;
     # i learned this trick from
     # https://groups.google.com/d/msg/comp.lang.python/goLBrqcozNY/DPgyaZ6gAwAJ
-    from .calendar import (
-        get_dates,
-        get_first_week,
-        restrict_dates,
-    )
+    from .calendar import get_dates, get_first_week, restrict_dates
     from .routes import (
         get_routes,
         compute_route_stats,
@@ -163,11 +160,23 @@ class Feed(object):
         drop_invalid_columns,
     )
 
-
-    def __init__(self, dist_units, agency=None, stops=None, routes=None,
-      trips=None, stop_times=None, calendar=None, calendar_dates=None,
-      fare_attributes=None, fare_rules=None, shapes=None,
-      frequencies=None, transfers=None, feed_info=None):
+    def __init__(
+        self,
+        dist_units,
+        agency=None,
+        stops=None,
+        routes=None,
+        trips=None,
+        stop_times=None,
+        calendar=None,
+        calendar_dates=None,
+        fare_attributes=None,
+        fare_rules=None,
+        shapes=None,
+        frequencies=None,
+        transfers=None,
+        feed_info=None,
+    ):
         """
         Assume that every non-None input is a Pandas DataFrame,
         except for ``dist_units`` which should be a string in
@@ -194,8 +203,10 @@ class Feed(object):
     @dist_units.setter
     def dist_units(self, val):
         if val not in cs.DIST_UNITS:
-            raise ValueError('Distance units are required and '
-              'must lie in {!s}'.format(cs.DIST_UNITS))
+            raise ValueError(
+                "Distance units are required and "
+                "must lie in {!s}".format(cs.DIST_UNITS)
+            )
         else:
             self._dist_units = val
 
@@ -213,7 +224,7 @@ class Feed(object):
         """
         self._trips = val
         if val is not None and not val.empty:
-            self._trips_i = self._trips.set_index('trip_id')
+            self._trips_i = self._trips.set_index("trip_id")
         else:
             self._trips_i = None
 
@@ -231,7 +242,7 @@ class Feed(object):
         """
         self._calendar = val
         if val is not None and not val.empty:
-            self._calendar_i = self._calendar.set_index('service_id')
+            self._calendar_i = self._calendar.set_index("service_id")
         else:
             self._calendar_i = None
 
@@ -251,7 +262,8 @@ class Feed(object):
         self._calendar_dates = val
         if val is not None and not val.empty:
             self._calendar_dates_g = self._calendar_dates.groupby(
-              ['service_id', 'date'])
+                ["service_id", "date"]
+            )
         else:
             self._calendar_dates_g = None
 
@@ -260,15 +272,19 @@ class Feed(object):
         Print the first five rows of each GTFS table.
         """
         d = OrderedDict()
-        for table in cs.GTFS_REF['table'].unique():
+        for table in cs.GTFS_REF["table"].unique():
             try:
                 d[table] = getattr(self, table).head(5)
             except:
                 d[table] = None
-        d['dist_units'] = self.dist_units
+        d["dist_units"] = self.dist_units
 
-        return '\n'.join(['* {!s} --------------------\n\t{!s}'.format(
-          k, v) for k, v in d.items()])
+        return "\n".join(
+            [
+                "* {!s} --------------------\n\t{!s}".format(k, v)
+                for k, v in d.items()
+            ]
+        )
 
     def __eq__(self, other):
         """
@@ -285,8 +301,9 @@ class Feed(object):
             y = getattr(other, key)
             # DataFrame case
             if isinstance(x, pd.DataFrame):
-                if not isinstance(y, pd.DataFrame) or\
-                  not hp.almost_equal(x, y):
+                if not isinstance(y, pd.DataFrame) or not hp.almost_equal(
+                    x, y
+                ):
                     return False
             # Other case
             else:
@@ -301,7 +318,7 @@ class Feed(object):
         attributes.
         """
         other = Feed(dist_units=self.dist_units)
-        for key in set(cs.FEED_ATTRS) - set(['dist_units']):
+        for key in set(cs.FEED_ATTRS) - set(["dist_units"]):
             value = getattr(self, key)
             if isinstance(value, pd.DataFrame):
                 # Pandas copy DataFrame
@@ -337,20 +354,22 @@ def list_gtfs(path):
         # Zip file
         with zipfile.ZipFile(str(path)) as src:
             for x in src.infolist():
-                if x.filename == './': continue
+                if x.filename == "./":
+                    continue
                 d = {}
-                d['file_name'] = x.filename
-                d['file_size'] = x.file_size
+                d["file_name"] = x.filename
+                d["file_size"] = x.file_size
                 rows.append(d)
     else:
         # Directory
         for x in path.iterdir():
             d = {}
-            d['file_name'] = x.name
-            d['file_size'] = x.stat().st_size
+            d["file_name"] = x.name
+            d["file_size"] = x.stat().st_size
             rows.append(d)
 
     return pd.DataFrame(rows)
+
 
 def read_gtfs(path, dist_units=None):
     """
@@ -374,22 +393,22 @@ def read_gtfs(path, dist_units=None):
         zipped = True
         tmp_dir = tempfile.TemporaryDirectory()
         src_path = Path(tmp_dir.name)
-        shutil.unpack_archive(str(path), tmp_dir.name, 'zip')
+        shutil.unpack_archive(str(path), tmp_dir.name, "zip")
     else:
         zipped = False
         src_path = path
 
     # Read files into feed dictionary of DataFrames
-    feed_dict = {table: None for table in cs.GTFS_REF['table']}
+    feed_dict = {table: None for table in cs.GTFS_REF["table"]}
     for p in src_path.iterdir():
         table = p.stem
         if p.is_file() and table in feed_dict:
             # utf-8-sig gets rid of the byte order mark (BOM);
             # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string
-            df = pd.read_csv(p, dtype=cs.DTYPE, encoding='utf-8-sig')
+            df = pd.read_csv(p, dtype=cs.DTYPE, encoding="utf-8-sig")
             feed_dict[table] = cn.clean_column_names(df)
 
-    feed_dict['dist_units'] = dist_units
+    feed_dict["dist_units"] = dist_units
 
     # Delete temporary directory
     if zipped:
@@ -397,6 +416,7 @@ def read_gtfs(path, dist_units=None):
 
     # Create feed
     return Feed(**feed_dict)
+
 
 def write_gtfs(feed, path, ndigits=6):
     """
@@ -410,7 +430,7 @@ def write_gtfs(feed, path, ndigits=6):
     """
     path = Path(path)
 
-    if path.suffix == '.zip':
+    if path.suffix == ".zip":
         # Write to temporary directory before zipping
         zipped = True
         tmp_dir = tempfile.TemporaryDirectory()
@@ -421,7 +441,7 @@ def write_gtfs(feed, path, ndigits=6):
             path.mkdir()
         new_path = path
 
-    for table in cs.GTFS_REF['table'].unique():
+    for table in cs.GTFS_REF["table"].unique():
         f = getattr(feed, table)
         if f is None:
             continue
@@ -432,13 +452,12 @@ def write_gtfs(feed, path, ndigits=6):
         # then Pandas will format the column as float, which we don't want.
         f_int_cols = set(cs.INT_COLS) & set(f.columns)
         for s in f_int_cols:
-            f[s] = f[s].fillna(-1).astype(int).astype(str).\
-              replace('-1', '')
-        p = new_path/(table + '.txt')
-        f.to_csv(str(p), index=False, float_format='%.{!s}f'.format(ndigits))
+            f[s] = f[s].fillna(-1).astype(int).astype(str).replace("-1", "")
+        p = new_path / (table + ".txt")
+        f.to_csv(str(p), index=False, float_format="%.{!s}f".format(ndigits))
 
     # Zip directory
     if zipped:
-        basename = str(path.parent/path.stem)
-        shutil.make_archive(basename, format='zip', root_dir=tmp_dir.name)
+        basename = str(path.parent / path.stem)
+        shutil.make_archive(basename, format="zip", root_dir=tmp_dir.name)
         tmp_dir.cleanup()

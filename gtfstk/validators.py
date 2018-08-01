@@ -13,24 +13,28 @@ from . import constants as cs
 from . import helpers as hp
 
 
-TIME_PATTERN1 = re.compile(r'^[0,1,2,3]\d:\d\d:\d\d$')
-TIME_PATTERN2 = re.compile(r'^\d:\d\d:\d\d$')
-DATE_FORMAT = '%Y%m%d'
+TIME_PATTERN1 = re.compile(r"^[0,1,2,3]\d:\d\d:\d\d$")
+TIME_PATTERN2 = re.compile(r"^\d:\d\d:\d\d$")
+DATE_FORMAT = "%Y%m%d"
 TIMEZONES = set(pytz.all_timezones)
 # ISO639-1 language codes, both lower and upper case
-LANGS = set([lang.alpha_2 for lang in pycountry.languages
-  if hasattr(lang, 'alpha_2')])
+LANGS = set(
+    [lang.alpha_2 for lang in pycountry.languages if hasattr(lang, "alpha_2")]
+)
 LANGS |= set(x.upper() for x in LANGS)
-CURRENCIES = set([c.alpha_3 for c in pycountry.currencies if hasattr(c, 'alpha_3')])
+CURRENCIES = set(
+    [c.alpha_3 for c in pycountry.currencies if hasattr(c, "alpha_3")]
+)
 URL_PATTERN = re.compile(
-  r'^(?:http)s?://'  # http:// or https://
-  r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'   # domain...
-  r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-  r'(?::\d+)?'  # optional port
-  r'(?:/?|[/?]\S+)$',
-  re.IGNORECASE)
-EMAIL_PATTERN = re.compile(r'[^@]+@[^@]+\.[^@]+')
-COLOR_PATTERN = re.compile(r'(?:[0-9a-fA-F]{2}){3}$')
+    r"^(?:http)s?://"  # http:// or https://
+    r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
+    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
+    r"(?::\d+)?"  # optional port
+    r"(?:/?|[/?]\S+)$",
+    re.IGNORECASE,
+)
+EMAIL_PATTERN = re.compile(r"[^@]+@[^@]+\.[^@]+")
+COLOR_PATTERN = re.compile(r"(?:[0-9a-fA-F]{2}){3}$")
 
 
 def valid_str(x):
@@ -43,16 +47,19 @@ def valid_str(x):
     else:
         return False
 
+
 def valid_time(x):
     """
     Return ``True`` if ``x`` is a valid H:MM:SS or HH:MM:SS time;
     otherwise return ``False``.
     """
-    if isinstance(x, str) and\
-      (re.match(TIME_PATTERN1, x) or re.match(TIME_PATTERN2, x)):
+    if isinstance(x, str) and (
+        re.match(TIME_PATTERN1, x) or re.match(TIME_PATTERN2, x)
+    ):
         return True
     else:
         return False
+
 
 def valid_date(x):
     """
@@ -66,12 +73,14 @@ def valid_date(x):
     except ValueError:
         return False
 
+
 def valid_timezone(x):
     """
     Retrun ``True`` if ``x`` is a valid human-readable timezone string,
     e.g. 'Africa/Abidjan'; otherwise return ``False``.
     """
     return x in TIMEZONES
+
 
 def valid_lang(x):
     """
@@ -80,12 +89,14 @@ def valid_lang(x):
     """
     return x in LANGS
 
+
 def valid_currency(x):
     """
     Return ``True`` if ``x`` is a valid three-letter ISO 4217 currency
     code, e.g. 'AED'; otherwise return ``False``.
     """
     return x in CURRENCIES
+
 
 def valid_url(x):
     """
@@ -95,6 +106,7 @@ def valid_url(x):
         return True
     else:
         return False
+
 
 def valid_email(x):
     """
@@ -106,6 +118,7 @@ def valid_email(x):
     else:
         return False
 
+
 def valid_color(x):
     """
     Return ``True`` if ``x`` a valid hexadecimal color string without
@@ -115,6 +128,7 @@ def valid_color(x):
         return True
     else:
         return False
+
 
 def check_for_required_columns(problems, table, df):
     """
@@ -150,13 +164,17 @@ def check_for_required_columns(problems, table, df):
 
     """
     r = cs.GTFS_REF
-    req_columns = r.loc[(r['table'] == table) & r['column_required'],
-      'column'].values
+    req_columns = r.loc[
+        (r["table"] == table) & r["column_required"], "column"
+    ].values
     for col in req_columns:
         if col not in df.columns:
-            problems.append(['error', 'Missing column {!s}'.format(col), table, []])
+            problems.append(
+                ["error", "Missing column {!s}".format(col), table, []]
+            )
 
     return problems
+
 
 def check_for_invalid_columns(problems, table, df):
     """
@@ -192,16 +210,17 @@ def check_for_invalid_columns(problems, table, df):
 
     """
     r = cs.GTFS_REF
-    valid_columns = r.loc[r['table'] == table, 'column'].values
+    valid_columns = r.loc[r["table"] == table, "column"].values
     for col in df.columns:
         if col not in valid_columns:
-            problems.append(['warning',
-              'Unrecognized column {!s}'.format(col),
-              table, []])
+            problems.append(
+                ["warning", "Unrecognized column {!s}".format(col), table, []]
+            )
 
     return problems
 
-def check_table(problems, table, df, condition, message, type_='error'):
+
+def check_table(problems, table, df, condition, message, type_="error"):
     """
     Check the given GTFS table for the given problem condition.
 
@@ -248,8 +267,17 @@ def check_table(problems, table, df, condition, message, type_='error'):
 
     return problems
 
-def check_column(problems, table, df, column, checker,
-  type_='error', *, column_required=True):
+
+def check_column(
+    problems,
+    table,
+    df,
+    column,
+    checker,
+    type_="error",
+    *,
+    column_required=True,
+):
     """
     Check the given column of the given GTFS with the given problem
     checker.
@@ -305,10 +333,17 @@ def check_column(problems, table, df, column, checker,
         f = f.dropna(subset=[column])
 
     cond = ~f[column].map(checker)
-    problems = check_table(problems, table, f, cond,
-      'Invalid {!s}; maybe has extra space characters'.format(column), type_)
+    problems = check_table(
+        problems,
+        table,
+        f,
+        cond,
+        "Invalid {!s}; maybe has extra space characters".format(column),
+        type_,
+    )
 
     return problems
+
 
 def check_column_id(problems, table, df, column, *, column_required=True):
     """
@@ -360,17 +395,32 @@ def check_column_id(problems, table, df, column, *, column_required=True):
         f = f.dropna(subset=[column])
 
     cond = ~f[column].map(valid_str)
-    problems = check_table(problems, table, f, cond,
-      'Invalid {!s}; maybe has extra space characters'.format(column))
+    problems = check_table(
+        problems,
+        table,
+        f,
+        cond,
+        "Invalid {!s}; maybe has extra space characters".format(column),
+    )
 
     cond = f[column].duplicated()
-    problems = check_table(problems, table, f, cond,
-      'Repeated {!s}'.format(column))
+    problems = check_table(
+        problems, table, f, cond, "Repeated {!s}".format(column)
+    )
 
     return problems
 
-def check_column_linked_id(problems, table, df, column, target_df,
-  target_column=None, *, column_required=True):
+
+def check_column_linked_id(
+    problems,
+    table,
+    df,
+    column,
+    target_df,
+    target_column=None,
+    *,
+    column_required=True,
+):
     """
     A modified version of :func:`check_column_id`.
 
@@ -439,10 +489,12 @@ def check_column_linked_id(problems, table, df, column, target_df,
         g = g.dropna(subset=[target_column])
 
     cond = ~f[column].isin(g[target_column])
-    problems = check_table(problems, table, f, cond,
-      'Undefined {!s}'.format(column))
+    problems = check_table(
+        problems, table, f, cond, "Undefined {!s}".format(column)
+    )
 
     return problems
+
 
 def format_problems(problems, *, as_df=False):
     """
@@ -474,9 +526,11 @@ def format_problems(problems, *, as_df=False):
 
     """
     if as_df:
-        problems = pd.DataFrame(problems, columns=['type', 'message',
-          'table', 'rows']).sort_values(['type', 'table'])
+        problems = pd.DataFrame(
+            problems, columns=["type", "message", "table", "rows"]
+        ).sort_values(["type", "table"])
     return problems
+
 
 def check_agency(feed, *, as_df=False, include_warnings=False):
     """
@@ -485,12 +539,12 @@ def check_agency(feed, *, as_df=False, include_warnings=False):
     :func:`check_table`;
     the list will be empty if no problems are found.
     """
-    table = 'agency'
+    table = "agency"
     problems = []
 
     # Preliminary checks
     if feed.agency is None:
-        problems.append(['error', 'Missing table', table, []])
+        problems.append(["error", "Missing table", table, []])
     else:
         f = feed.agency.copy()
         problems = check_for_required_columns(problems, table, f)
@@ -501,42 +555,49 @@ def check_agency(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check service_id
-    problems = check_column_id(problems, table, f, 'agency_id',
-      column_required=False)
+    problems = check_column_id(
+        problems, table, f, "agency_id", column_required=False
+    )
 
     # Check agency_name
-    problems = check_column(problems, table, f, 'agency_name', valid_str)
+    problems = check_column(problems, table, f, "agency_name", valid_str)
 
     # Check agency_url
-    problems = check_column(problems, table, f, 'agency_url', valid_url)
+    problems = check_column(problems, table, f, "agency_url", valid_url)
 
     # Check agency_timezone
-    problems = check_column(problems, table, f, 'agency_timezone',
-      valid_timezone)
+    problems = check_column(
+        problems, table, f, "agency_timezone", valid_timezone
+    )
 
     # Check agency_fare_url
-    problems = check_column(problems, table, f, 'agency_fare_url', valid_url,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "agency_fare_url", valid_url, column_required=False
+    )
 
     # Check agency_lang
-    problems = check_column(problems, table, f, 'agency_lang', valid_lang,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "agency_lang", valid_lang, column_required=False
+    )
 
     # Check agency_phone
-    problems = check_column(problems, table, f, 'agency_phone', valid_str,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "agency_phone", valid_str, column_required=False
+    )
 
     # Check agency_email
-    problems = check_column(problems, table, f, 'agency_email', valid_email,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "agency_email", valid_email, column_required=False
+    )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_calendar(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.calendar``.
     """
-    table = 'calendar'
+    table = "calendar"
     problems = []
 
     # Preliminary checks
@@ -552,34 +613,42 @@ def check_calendar(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check service_id
-    problems = check_column_id(problems, table, f, 'service_id')
+    problems = check_column_id(problems, table, f, "service_id")
 
     # Check weekday columns
     v = lambda x: x in range(2)
-    for col in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday',
-      'saturday', 'sunday']:
+    for col in [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    ]:
         problems = check_column(problems, table, f, col, v)
 
     # Check start_date and end_date
-    for col in ['start_date', 'end_date']:
+    for col in ["start_date", "end_date"]:
         problems = check_column(problems, table, f, col, valid_date)
 
     if include_warnings:
         # Check if feed has expired
-        d = f['end_date'].max()
+        d = f["end_date"].max()
         if feed.calendar_dates is not None and not feed.calendar_dates.empty:
-            table += '/calendar_dates'
-            d = max(d, feed.calendar_dates['date'].max())
+            table += "/calendar_dates"
+            d = max(d, feed.calendar_dates["date"].max())
         if d < dt.datetime.today().strftime(DATE_FORMAT):
-            problems.append(['warning', 'Feed expired', table, []])
+            problems.append(["warning", "Feed expired", table, []])
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_calendar_dates(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.calendar_dates``.
     """
-    table = 'calendar_dates'
+    table = "calendar_dates"
     problems = []
 
     # Preliminary checks
@@ -595,27 +664,29 @@ def check_calendar_dates(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check service_id
-    problems = check_column(problems, table, f, 'service_id', valid_str)
+    problems = check_column(problems, table, f, "service_id", valid_str)
 
     # Check date
-    problems = check_column(problems, table, f, 'date', valid_date)
+    problems = check_column(problems, table, f, "date", valid_date)
 
     # No duplicate (service_id, date) pairs allowed
-    cond = f[['service_id', 'date']].duplicated()
-    problems = check_table(problems, table, f, cond,
-      'Repeated pair (service_id, date)')
+    cond = f[["service_id", "date"]].duplicated()
+    problems = check_table(
+        problems, table, f, cond, "Repeated pair (service_id, date)"
+    )
 
     # Check exception_type
     v = lambda x: x in [1, 2]
-    problems = check_column(problems, table, f, 'exception_type', v)
+    problems = check_column(problems, table, f, "exception_type", v)
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_fare_attributes(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.calendar_dates``.
     """
-    table = 'fare_attributes'
+    table = "fare_attributes"
     problems = []
 
     # Preliminary checks
@@ -631,32 +702,35 @@ def check_fare_attributes(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check fare_id
-    problems = check_column_id(problems, table, f, 'fare_id')
+    problems = check_column_id(problems, table, f, "fare_id")
 
     # Check currency_type
-    problems = check_column(problems, table, f, 'currency_type',
-      valid_currency)
+    problems = check_column(
+        problems, table, f, "currency_type", valid_currency
+    )
 
     # Check payment_method
     v = lambda x: x in range(2)
-    problems = check_column(problems, table, f, 'payment_method', v)
+    problems = check_column(problems, table, f, "payment_method", v)
 
     # Check transfers
     v = lambda x: pd.isnull(x) or x in range(3)
-    problems = check_column(problems, table, f, 'transfers', v)
+    problems = check_column(problems, table, f, "transfers", v)
 
     # Check transfer_duration
     v = lambda x: x >= 0
-    problems = check_column(problems, table, f, 'transfer_duration', v,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "transfer_duration", v, column_required=False
+    )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_fare_rules(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.calendar_dates``.
     """
-    table = 'fare_rules'
+    table = "fare_rules"
     problems = []
 
     # Preliminary checks
@@ -672,25 +746,35 @@ def check_fare_rules(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check fare_id
-    problems = check_column_linked_id(problems, table, f, 'fare_id',
-      feed.fare_attributes)
+    problems = check_column_linked_id(
+        problems, table, f, "fare_id", feed.fare_attributes
+    )
 
     # Check route_id
-    problems = check_column_linked_id(problems, table, f, 'route_id',
-      feed.routes, column_required=False)
+    problems = check_column_linked_id(
+        problems, table, f, "route_id", feed.routes, column_required=False
+    )
 
     # Check origin_id, destination_id, contains_id
-    for col in ['origin_id', 'destination_id', 'contains_id']:
-        problems = check_column_linked_id(problems, table, f, col,
-          feed.stops, 'zone_id', column_required=False)
+    for col in ["origin_id", "destination_id", "contains_id"]:
+        problems = check_column_linked_id(
+            problems,
+            table,
+            f,
+            col,
+            feed.stops,
+            "zone_id",
+            column_required=False,
+        )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_feed_info(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.feed_info``.
     """
-    table = 'feed_info'
+    table = "feed_info"
     problems = []
 
     # Preliminary checks
@@ -706,39 +790,50 @@ def check_feed_info(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check feed_publisher_name
-    problems = check_column(problems, table, f, 'feed_publisher_name',
-      valid_str)
+    problems = check_column(
+        problems, table, f, "feed_publisher_name", valid_str
+    )
 
     # Check feed_publisher_url
-    problems = check_column(problems, table, f, 'feed_publisher_url',
-      valid_url)
+    problems = check_column(
+        problems, table, f, "feed_publisher_url", valid_url
+    )
 
     # Check feed_lang
-    problems = check_column(problems, table, f, 'feed_lang', valid_lang)
+    problems = check_column(problems, table, f, "feed_lang", valid_lang)
 
     # Check feed_start_date and feed_end_date
-    cols = ['feed_start_date', 'feed_end_date']
+    cols = ["feed_start_date", "feed_end_date"]
     for col in cols:
-        problems = check_column(problems, table, f, col, valid_date,
-          column_required=False)
+        problems = check_column(
+            problems, table, f, col, valid_date, column_required=False
+        )
 
     if set(cols) <= set(f.columns):
-        d1, d2 = f[['feed_start_date', 'feed_end_date']].ix[0].values
+        d1, d2 = f[["feed_start_date", "feed_end_date"]].ix[0].values
         if pd.notnull(d1) and pd.notnull(d2) and d1 > d1:
-            problems.append(['error', 'feed_start_date later than feed_end_date',
-              table, [0]])
+            problems.append(
+                [
+                    "error",
+                    "feed_start_date later than feed_end_date",
+                    table,
+                    [0],
+                ]
+            )
 
     # Check feed_version
-    problems = check_column(problems, table, f, 'feed_version', valid_str,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "feed_version", valid_str, column_required=False
+    )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_frequencies(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.frequencies``.
     """
-    table = 'frequencies'
+    table = "frequencies"
     problems = []
 
     # Preliminary checks
@@ -754,11 +849,12 @@ def check_frequencies(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check trip_id
-    problems = check_column_linked_id(problems, table, f, 'trip_id',
-      feed.trips)
+    problems = check_column_linked_id(
+        problems, table, f, "trip_id", feed.trips
+    )
 
     # Check start_time and end_time
-    time_cols = ['start_time', 'end_time']
+    time_cols = ["start_time", "end_time"]
     for col in time_cols:
         problems = check_column(problems, table, f, col, valid_time)
 
@@ -766,41 +862,50 @@ def check_frequencies(feed, *, as_df=False, include_warnings=False):
         f[col] = f[col].map(hp.timestr_to_seconds)
 
     # Start_time should be earlier than end_time
-    cond = f['start_time'] >= f['end_time']
-    problems = check_table(problems, table, f, cond,
-      'start_time not earlier than end_time')
+    cond = f["start_time"] >= f["end_time"]
+    problems = check_table(
+        problems, table, f, cond, "start_time not earlier than end_time"
+    )
 
     # Headway periods should not overlap
-    f = f.sort_values(['trip_id', 'start_time'])
-    for __, group in f.groupby('trip_id'):
-        a = group['start_time'].values
-        b = group['end_time'].values
+    f = f.sort_values(["trip_id", "start_time"])
+    for __, group in f.groupby("trip_id"):
+        a = group["start_time"].values
+        b = group["end_time"].values
         indices = np.flatnonzero(a[1:] < b[:-1]).tolist()
         if indices:
-            problems.append(['error',
-              'Headway periods for the same trip overlap', table, indices])
+            problems.append(
+                [
+                    "error",
+                    "Headway periods for the same trip overlap",
+                    table,
+                    indices,
+                ]
+            )
 
     # Check headway_secs
     v = lambda x: x >= 0
-    problems = check_column(problems, table, f, 'headway_secs', v)
+    problems = check_column(problems, table, f, "headway_secs", v)
 
     # Check exact_times
     v = lambda x: x in range(2)
-    problems = check_column(problems, table, f, 'exact_times', v,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "exact_times", v, column_required=False
+    )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_routes(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.routes``.
     """
-    table = 'routes'
+    table = "routes"
     problems = []
 
     # Preliminary checks
     if feed.routes is None:
-        problems.append(['error', 'Missing table', table, []])
+        problems.append(["error", "Missing table", table, []])
     else:
         f = feed.routes.copy()
         problems = check_for_required_columns(problems, table, f)
@@ -811,61 +916,83 @@ def check_routes(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check route_id
-    problems = check_column_id(problems, table, f, 'route_id')
+    problems = check_column_id(problems, table, f, "route_id")
 
     # Check agency_id
-    if 'agency_id' in f:
-        if 'agency_id' not in feed.agency.columns:
-            problems.append(['error',
-              'agency_id column present in routes but not in agency', table,
-              []])
+    if "agency_id" in f:
+        if "agency_id" not in feed.agency.columns:
+            problems.append(
+                [
+                    "error",
+                    "agency_id column present in routes but not in agency",
+                    table,
+                    [],
+                ]
+            )
         else:
-            g = f.dropna(subset=['agency_id'])
-            cond = ~g['agency_id'].isin(feed.agency['agency_id'])
-            problems = check_table(problems, table, g, cond,
-              'Undefined agency_id')
+            g = f.dropna(subset=["agency_id"])
+            cond = ~g["agency_id"].isin(feed.agency["agency_id"])
+            problems = check_table(
+                problems, table, g, cond, "Undefined agency_id"
+            )
 
     # Check route_short_name and route_long_name
-    for column in ['route_short_name', 'route_long_name']:
-        problems = check_column(problems, table, f, column, valid_str,
-          column_required=False)
+    for column in ["route_short_name", "route_long_name"]:
+        problems = check_column(
+            problems, table, f, column, valid_str, column_required=False
+        )
 
-    cond = ~(f['route_short_name'].notnull() | f['route_long_name'].notnull())
-    problems = check_table(problems, table, f, cond,
-      'route_short_name and route_long_name both empty')
+    cond = ~(f["route_short_name"].notnull() | f["route_long_name"].notnull())
+    problems = check_table(
+        problems,
+        table,
+        f,
+        cond,
+        "route_short_name and route_long_name both empty",
+    )
 
     # Check route_type
     v = lambda x: x in range(8)
-    problems = check_column(problems, table, f, 'route_type', v)
+    problems = check_column(problems, table, f, "route_type", v)
 
     # Check route_url
-    problems = check_column(problems, table, f, 'route_url', valid_url,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "route_url", valid_url, column_required=False
+    )
 
     # Check route_color and route_text_color
-    for col in ['route_color', 'route_text_color']:
-        problems = check_column(problems, table, f, col, valid_color,
-          column_required=False)
+    for col in ["route_color", "route_text_color"]:
+        problems = check_column(
+            problems, table, f, col, valid_color, column_required=False
+        )
 
     if include_warnings:
         # Check for duplicated (route_short_name, route_long_name) pairs
-        cond = f[['route_short_name', 'route_long_name']].duplicated()
-        problems = check_table(problems, table, f, cond,
-          'Repeated pair (route_short_name, route_long_name)', 'warning')
+        cond = f[["route_short_name", "route_long_name"]].duplicated()
+        problems = check_table(
+            problems,
+            table,
+            f,
+            cond,
+            "Repeated pair (route_short_name, route_long_name)",
+            "warning",
+        )
 
         # Check for routes without trips
-        s = feed.trips['route_id']
-        cond = ~f['route_id'].isin(s)
-        problems = check_table(problems, table, f, cond,
-          'Route has no trips', 'warning')
+        s = feed.trips["route_id"]
+        cond = ~f["route_id"].isin(s)
+        problems = check_table(
+            problems, table, f, cond, "Route has no trips", "warning"
+        )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_shapes(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.shapes``.
     """
-    table = 'shapes'
+    table = "shapes"
     problems = []
 
     # Preliminary checks
@@ -881,27 +1008,33 @@ def check_shapes(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check shape_id
-    problems = check_column(problems, table, f, 'shape_id', valid_str)
+    problems = check_column(problems, table, f, "shape_id", valid_str)
 
     # Check shape_pt_lon and shape_pt_lat
-    for column, bound in [('shape_pt_lon', 180), ('shape_pt_lat', 90)]:
+    for column, bound in [("shape_pt_lon", 180), ("shape_pt_lat", 90)]:
         v = lambda x: pd.notnull(x) and -bound <= x <= bound
         cond = ~f[column].map(v)
-        problems = check_table(problems, table, f, cond,
-          '{!s} out of bounds {!s}'.format(column, [-bound, bound]))
+        problems = check_table(
+            problems,
+            table,
+            f,
+            cond,
+            "{!s} out of bounds {!s}".format(column, [-bound, bound]),
+        )
 
     # Check for duplicated (shape_id, shape_pt_sequence) pairs
-    cond = f[['shape_id', 'shape_pt_sequence']].duplicated()
-    problems = check_table(problems, table, f, cond,
-      'Repeated pair (shape_id, shape_pt_sequence)')
+    cond = f[["shape_id", "shape_pt_sequence"]].duplicated()
+    problems = check_table(
+        problems, table, f, cond, "Repeated pair (shape_id, shape_pt_sequence)"
+    )
 
     # Check if shape_dist_traveled does decreases on a trip
-    if 'shape_dist_traveled' in f.columns:
-        g = f.dropna(subset=['shape_dist_traveled'])
+    if "shape_dist_traveled" in f.columns:
+        g = f.dropna(subset=["shape_dist_traveled"])
         indices = []
         prev_sid = None
         prev_dist = -1
-        cols = ['shape_id', 'shape_dist_traveled']
+        cols = ["shape_id", "shape_dist_traveled"]
         for i, sid, dist in g[cols].itertuples():
             if sid == prev_sid and dist < prev_dist:
                 indices.append(i)
@@ -910,21 +1043,28 @@ def check_shapes(feed, *, as_df=False, include_warnings=False):
             prev_dist = dist
 
         if indices:
-            problems.append(['error',
-              'shape_dist_traveled decreases on a trip', table, indices])
+            problems.append(
+                [
+                    "error",
+                    "shape_dist_traveled decreases on a trip",
+                    table,
+                    indices,
+                ]
+            )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_stops(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.stops``.
     """
-    table = 'stops'
+    table = "stops"
     problems = []
 
     # Preliminary checks
     if feed.stops is None:
-        problems.append(['error', 'Missing table', table, []])
+        problems.append(["error", "Missing table", table, []])
     else:
         f = feed.stops.copy()
         problems = check_for_required_columns(problems, table, f)
@@ -935,81 +1075,110 @@ def check_stops(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check stop_id
-    problems = check_column_id(problems, table, f, 'stop_id')
+    problems = check_column_id(problems, table, f, "stop_id")
 
     # Check stop_code, stop_desc, zone_id, parent_station
-    for column in ['stop_code', 'stop_desc', 'zone_id', 'parent_station']:
-        problems = check_column(problems, table, f, column, valid_str,
-          column_required=False)
+    for column in ["stop_code", "stop_desc", "zone_id", "parent_station"]:
+        problems = check_column(
+            problems, table, f, column, valid_str, column_required=False
+        )
 
     # Check stop_name
-    problems = check_column(problems, table, f, 'stop_name', valid_str)
+    problems = check_column(problems, table, f, "stop_name", valid_str)
 
     # Check stop_lon and stop_lat
-    for column, bound in [('stop_lon', 180), ('stop_lat', 90)]:
+    for column, bound in [("stop_lon", 180), ("stop_lat", 90)]:
         v = lambda x: pd.notnull(x) and -bound <= x <= bound
         cond = ~f[column].map(v)
-        problems = check_table(problems, table, f, cond,
-          '{!s} out of bounds {!s}'.format(column, [-bound, bound]))
+        problems = check_table(
+            problems,
+            table,
+            f,
+            cond,
+            "{!s} out of bounds {!s}".format(column, [-bound, bound]),
+        )
 
     # Check stop_url
-    problems = check_column(problems, table, f, 'stop_url', valid_url,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "stop_url", valid_url, column_required=False
+    )
 
     # Check location_type
     v = lambda x: x in range(2)
-    problems = check_column(problems, table, f, 'location_type', v,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "location_type", v, column_required=False
+    )
 
     # Check stop_timezone
-    problems = check_column(problems, table, f, 'stop_timezone',
-      valid_timezone, column_required=False)
+    problems = check_column(
+        problems,
+        table,
+        f,
+        "stop_timezone",
+        valid_timezone,
+        column_required=False,
+    )
 
     # Check wheelchair_boarding
     v = lambda x: x in range(3)
-    problems = check_column(problems, table, f, 'wheelchair_boarding', v,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "wheelchair_boarding", v, column_required=False
+    )
 
     # Check further location_type and parent_station
-    if 'parent_station' in f.columns:
-        if 'location_type' not in f.columns:
-            problems.append(['error',
-              'parent_station column present but location_type column missing',
-              table, []])
+    if "parent_station" in f.columns:
+        if "location_type" not in f.columns:
+            problems.append(
+                [
+                    "error",
+                    "parent_station column present but location_type column missing",
+                    table,
+                    [],
+                ]
+            )
         else:
             # Stations must have location type 1
-            station_ids = f.loc[f['parent_station'].notnull(),
-              'parent_station']
-            cond = f['stop_id'].isin(station_ids) & (f['location_type'] != 1)
-            problems = check_table(problems, table, f, cond,
-              'A station must have location_type 1')
+            station_ids = f.loc[
+                f["parent_station"].notnull(), "parent_station"
+            ]
+            cond = f["stop_id"].isin(station_ids) & (f["location_type"] != 1)
+            problems = check_table(
+                problems, table, f, cond, "A station must have location_type 1"
+            )
 
             # Stations must not lie in stations
-            cond = (f['location_type'] == 1) & f['parent_station'].notnull()
-            problems = check_table(problems, table, f, cond,
-              'A station must not lie in another station')
+            cond = (f["location_type"] == 1) & f["parent_station"].notnull()
+            problems = check_table(
+                problems,
+                table,
+                f,
+                cond,
+                "A station must not lie in another station",
+            )
 
     if include_warnings:
         # Check for stops without trips
-        s = feed.stop_times['stop_id']
-        cond = ~feed.stops['stop_id'].isin(s)
-        problems = check_table(problems, table, f, cond,
-          'Stop has no stop times', 'warning')
+        s = feed.stop_times["stop_id"]
+        cond = ~feed.stops["stop_id"].isin(s)
+        problems = check_table(
+            problems, table, f, cond, "Stop has no stop times", "warning"
+        )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_stop_times(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.stop_times``.
     """
-    table = 'stop_times'
+    table = "stop_times"
     problems = []
 
     # Preliminary checks
     if feed.stop_times is None:
-        problems.append(['error', 'Missing table', table, []])
+        problems.append(["error", "Missing table", table, []])
     else:
-        f = feed.stop_times.copy().sort_values(['trip_id', 'stop_sequence'])
+        f = feed.stop_times.copy().sort_values(["trip_id", "stop_sequence"])
         problems = check_for_required_columns(problems, table, f)
     if problems:
         return format_problems(problems, as_df=as_df)
@@ -1018,27 +1187,29 @@ def check_stop_times(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check trip_id
-    problems = check_column_linked_id(problems, table, f, 'trip_id',
-      feed.trips)
+    problems = check_column_linked_id(
+        problems, table, f, "trip_id", feed.trips
+    )
 
     # Check arrival_time and departure_time
     v = lambda x: pd.isnull(x) or valid_time(x)
-    for col in ['arrival_time', 'departure_time']:
+    for col in ["arrival_time", "departure_time"]:
         problems = check_column(problems, table, f, col, v)
 
     # Check that arrival and departure times exist for the first and last
     # stop of each trip and for each timepoint.
     # For feeds with many trips, iterating through the stop time rows is
     # faster than uisg groupby.
-    if 'timepoint' not in f.columns:
-        f['timepoint'] = np.nan  # This will not mess up later timepoint check
+    if "timepoint" not in f.columns:
+        f["timepoint"] = np.nan  # This will not mess up later timepoint check
 
     indices = []
     prev_tid = None
     prev_atime = 1
     prev_dtime = 1
-    for i, tid, atime, dtime, tp in f[['trip_id', 'arrival_time',
-      'departure_time', 'timepoint']].itertuples():
+    for i, tid, atime, dtime, tp in f[
+        ["trip_id", "arrival_time", "departure_time", "timepoint"]
+    ].itertuples():
         if tid != prev_tid:
             # Check last stop of previous trip
             if pd.isnull(prev_atime) or pd.isnull(prev_dtime):
@@ -1055,36 +1226,45 @@ def check_stop_times(feed, *, as_df=False, include_warnings=False):
         prev_dtime = dtime
 
     if indices:
-        problems.append(['error',
-          'First/last/time point arrival/departure time missing',
-          table, indices])
+        problems.append(
+            [
+                "error",
+                "First/last/time point arrival/departure time missing",
+                table,
+                indices,
+            ]
+        )
 
     # Check stop_id
-    problems = check_column_linked_id(problems, table, f, 'stop_id',
-      feed.stops)
+    problems = check_column_linked_id(
+        problems, table, f, "stop_id", feed.stops
+    )
 
     # Check for duplicated (trip_id, stop_sequence) pairs
-    cond = f[['trip_id', 'stop_sequence']].dropna().duplicated()
-    problems = check_table(problems, table, f, cond,
-      'Repeated pair (trip_id, stop_sequence)')
+    cond = f[["trip_id", "stop_sequence"]].dropna().duplicated()
+    problems = check_table(
+        problems, table, f, cond, "Repeated pair (trip_id, stop_sequence)"
+    )
 
     # Check stop_headsign
-    problems = check_column(problems, table, f, 'stop_headsign',
-      valid_str, column_required=False)
+    problems = check_column(
+        problems, table, f, "stop_headsign", valid_str, column_required=False
+    )
 
     # Check pickup_type and drop_off_type
-    for col in ['pickup_type', 'drop_off_type']:
+    for col in ["pickup_type", "drop_off_type"]:
         v = lambda x: x in range(4)
-        problems = check_column(problems, table, f, col, v,
-          column_required=False)
+        problems = check_column(
+            problems, table, f, col, v, column_required=False
+        )
 
     # Check if shape_dist_traveled decreases on a trip
-    if 'shape_dist_traveled' in f.columns:
-        g = f.dropna(subset=['shape_dist_traveled'])
+    if "shape_dist_traveled" in f.columns:
+        g = f.dropna(subset=["shape_dist_traveled"])
         indices = []
         prev_tid = None
         prev_dist = -1
-        for i, tid, dist in g[['trip_id', 'shape_dist_traveled']].itertuples():
+        for i, tid, dist in g[["trip_id", "shape_dist_traveled"]].itertuples():
             if tid == prev_tid and dist < prev_dist:
                 indices.append(i)
 
@@ -1092,27 +1272,41 @@ def check_stop_times(feed, *, as_df=False, include_warnings=False):
             prev_dist = dist
 
         if indices:
-            problems.append(['error',
-              'shape_dist_traveled decreases on a trip', table, indices])
+            problems.append(
+                [
+                    "error",
+                    "shape_dist_traveled decreases on a trip",
+                    table,
+                    indices,
+                ]
+            )
 
     # Check timepoint
     v = lambda x: x in range(2)
-    problems = check_column(problems, table, f, 'timepoint', v,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "timepoint", v, column_required=False
+    )
 
     if include_warnings:
         # Check for duplicated (trip_id, departure_time) pairs
-        cond = f[['trip_id', 'departure_time']].duplicated()
-        problems = check_table(problems, table, f, cond,
-          'Repeated pair (trip_id, departure_time)', 'warning')
+        cond = f[["trip_id", "departure_time"]].duplicated()
+        problems = check_table(
+            problems,
+            table,
+            f,
+            cond,
+            "Repeated pair (trip_id, departure_time)",
+            "warning",
+        )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_transfers(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.transfers``.
     """
-    table = 'transfers'
+    table = "transfers"
     problems = []
 
     # Preliminary checks
@@ -1128,32 +1322,36 @@ def check_transfers(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check from_stop_id and to_stop_id
-    for col in ['from_stop_id', 'to_stop_id']:
-        problems = check_column_linked_id(problems, table, f, col,
-          feed.stops, 'stop_id')
+    for col in ["from_stop_id", "to_stop_id"]:
+        problems = check_column_linked_id(
+            problems, table, f, col, feed.stops, "stop_id"
+        )
 
     # Check transfer_type
     v = lambda x: pd.isnull(x) or x in range(5)
-    problems = check_column(problems, table, f, 'transfer_type', v,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "transfer_type", v, column_required=False
+    )
 
     # Check min_transfer_time
     v = lambda x: x >= 0
-    problems = check_column(problems, table, f, 'min_transfer_time', v,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "min_transfer_time", v, column_required=False
+    )
 
     return format_problems(problems, as_df=as_df)
+
 
 def check_trips(feed, *, as_df=False, include_warnings=False):
     """
     Analog of :func:`check_agency` for ``feed.trips``.
     """
-    table = 'trips'
+    table = "trips"
     problems = []
 
     # Preliminary checks
     if feed.trips is None:
-        problems.append(['error', 'Missing table', table, []])
+        problems.append(["error", "Missing table", table, []])
     else:
         f = feed.trips.copy()
         problems = check_for_required_columns(problems, table, f)
@@ -1164,11 +1362,12 @@ def check_trips(feed, *, as_df=False, include_warnings=False):
         problems = check_for_invalid_columns(problems, table, f)
 
     # Check trip_id
-    problems = check_column_id(problems, table, f, 'trip_id')
+    problems = check_column_id(problems, table, f, "trip_id")
 
     # Check route_id
-    problems = check_column_linked_id(problems, table, f, 'route_id',
-      feed.routes)
+    problems = check_column_linked_id(
+        problems, table, f, "route_id", feed.routes
+    )
 
     # Check service_id
     g = pd.DataFrame()
@@ -1176,41 +1375,46 @@ def check_trips(feed, *, as_df=False, include_warnings=False):
         g = pd.concat([g, feed.calendar])
     if feed.calendar_dates is not None:
         g = pd.concat([g, feed.calendar_dates])
-    problems = check_column_linked_id(problems, table, f, 'service_id', g)
+    problems = check_column_linked_id(problems, table, f, "service_id", g)
 
     # Check direction_id
     v = lambda x: x in range(2)
-    problems = check_column(problems, table, f, 'direction_id', v,
-      column_required=False)
+    problems = check_column(
+        problems, table, f, "direction_id", v, column_required=False
+    )
 
     # Check block_id
-    if 'block_id' in f.columns:
+    if "block_id" in f.columns:
         v = lambda x: pd.isnull(x) or valid_str(x)
-        cond = ~f['block_id'].map(v)
-        problems = check_table(problems, table, f, cond, 'Blank block_id')
+        cond = ~f["block_id"].map(v)
+        problems = check_table(problems, table, f, cond, "Blank block_id")
 
-        g = f.dropna(subset=['block_id'])
-        cond = ~g['block_id'].duplicated(keep=False)
-        problems = check_table(problems, table, g, cond, 'Unrepeated block_id')
+        g = f.dropna(subset=["block_id"])
+        cond = ~g["block_id"].duplicated(keep=False)
+        problems = check_table(problems, table, g, cond, "Unrepeated block_id")
 
     # Check shape_id
-    problems = check_column_linked_id(problems, table, f, 'shape_id',
-      feed.shapes, column_required=False)
+    problems = check_column_linked_id(
+        problems, table, f, "shape_id", feed.shapes, column_required=False
+    )
 
     # Check wheelchair_accessible and bikes_allowed
     v = lambda x: x in range(3)
-    for column in ['wheelchair_accessible', 'bikes_allowed']:
-        problems = check_column(problems, table, f, column, v,
-          column_required=False)
+    for column in ["wheelchair_accessible", "bikes_allowed"]:
+        problems = check_column(
+            problems, table, f, column, v, column_required=False
+        )
 
     # Check for trips with no stop times
     if include_warnings:
-        s = feed.stop_times['trip_id']
-        cond = ~f['trip_id'].isin(s)
-        problems = check_table(problems, table, f, cond,
-          'Trip has no stop times', 'warning')
+        s = feed.stop_times["trip_id"]
+        cond = ~f["trip_id"].isin(s)
+        problems = check_table(
+            problems, table, f, cond, "Trip has no stop times", "warning"
+        )
 
     return format_problems(problems, as_df=as_df)
+
 
 def validate(feed, *, as_df=True, include_warnings=True):
     """
@@ -1264,26 +1468,29 @@ def validate(feed, *, as_df=True, include_warnings=True):
 
     # Check for invalid columns and check the required tables
     checkers = [
-      'check_agency',
-      'check_calendar',
-      'check_calendar_dates',
-      'check_fare_attributes',
-      'check_fare_rules',
-      'check_feed_info',
-      'check_frequencies',
-      'check_routes',
-      'check_shapes',
-      'check_stops',
-      'check_stop_times',
-      'check_transfers',
-      'check_trips',
+        "check_agency",
+        "check_calendar",
+        "check_calendar_dates",
+        "check_fare_attributes",
+        "check_fare_rules",
+        "check_feed_info",
+        "check_frequencies",
+        "check_routes",
+        "check_shapes",
+        "check_stops",
+        "check_stop_times",
+        "check_transfers",
+        "check_trips",
     ]
     for checker in checkers:
-        problems.extend(globals()[checker](feed, include_warnings=include_warnings))
+        problems.extend(
+            globals()[checker](feed, include_warnings=include_warnings)
+        )
 
     # Check calendar/calendar_dates combo
     if feed.calendar is None and feed.calendar_dates is None:
-        problems.append(['error', 'Missing both tables',
-          'calendar & calendar_dates', []])
+        problems.append(
+            ["error", "Missing both tables", "calendar & calendar_dates", []]
+        )
 
     return format_problems(problems, as_df=as_df)
