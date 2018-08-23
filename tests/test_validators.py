@@ -639,10 +639,6 @@ def test_check_trips():
     assert check_trips(feed)
 
     feed = sample.copy()
-    feed.trips["block_id"].iat[0] = "Bam"
-    assert check_trips(feed)
-
-    feed = sample.copy()
     feed.trips["shape_id"].iat[0] = "Hello"
     assert check_trips(feed)
 
