@@ -19,6 +19,7 @@ geopandas = "*"
 folium = "*"
 "json2html" = "*"
 readme-renderer = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.5"
