@@ -1,7 +1,16 @@
 import pandas as pd
 import numpy as np
 
-from .context import gtfstk, slow, HAS_GEOPANDAS, DATA_DIR, sample, cairns, cairns_dates, cairns_trip_stats
+from .context import (
+    gtfstk,
+    slow,
+    HAS_GEOPANDAS,
+    DATA_DIR,
+    sample,
+    cairns,
+    cairns_dates,
+    cairns_trip_stats,
+)
 from gtfstk import *
 
 
@@ -16,6 +25,7 @@ def test_get_stop_times():
     # Should have correct columns
     assert set(f.columns) == set(feed.stop_times.columns)
 
+
 def test_get_start_and_end_times():
     feed = cairns.copy()
     date = cairns_dates[0]
@@ -25,15 +35,16 @@ def test_get_start_and_end_times():
     for t in times:
         assert isinstance(t, str)
         # Should lie in stop times
-        assert t in st[['departure_time', 'arrival_time']].values.flatten()
+        assert t in st[["departure_time", "arrival_time"]].values.flatten()
 
     # Should get null times in some cases
-    times = get_start_and_end_times(feed, '19690711')
+    times = get_start_and_end_times(feed, "19690711")
     for t in times:
         assert pd.isnull(t)
-    feed.stop_times['departure_time'] = np.nan
+    feed.stop_times["departure_time"] = np.nan
     times = get_start_and_end_times(feed)
     assert pd.isnull(times[0])
+
 
 @slow
 def test_append_dist_to_stop_times():
@@ -45,13 +56,13 @@ def test_append_dist_to_stop_times():
 
     # Check that colums of st2 equal the columns of st1 plus
     # a shape_dist_traveled column
-    cols1 = list(st1.columns.values) + ['shape_dist_traveled']
+    cols1 = list(st1.columns.values) + ["shape_dist_traveled"]
     cols2 = list(st2.columns.values)
     assert set(cols1) == set(cols2)
 
     # Check that within each trip the shape_dist_traveled column
     # is monotonically increasing
-    for trip, group in st2.groupby('trip_id'):
-        group = group.sort_values('stop_sequence')
-        sdt = list(group['shape_dist_traveled'].values)
+    for trip, group in st2.groupby("trip_id"):
+        group = group.sort_values("stop_sequence")
+        sdt = list(group["shape_dist_traveled"].values)
         assert sdt == sorted(sdt)
