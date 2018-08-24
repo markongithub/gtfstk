@@ -1104,7 +1104,7 @@ def check_stops(feed, *, as_df=False, include_warnings=False):
     )
 
     # Check location_type
-    v = lambda x: x in range(2)
+    v = lambda x: x in range(3)
     problems = check_column(
         problems, table, f, "location_type", v, column_required=False
     )
@@ -1388,10 +1388,6 @@ def check_trips(feed, *, as_df=False, include_warnings=False):
         v = lambda x: pd.isnull(x) or valid_str(x)
         cond = ~f["block_id"].map(v)
         problems = check_table(problems, table, f, cond, "Blank block_id")
-
-        g = f.dropna(subset=["block_id"])
-        cond = ~g["block_id"].duplicated(keep=False)
-        problems = check_table(problems, table, g, cond, "Unrepeated block_id")
 
     # Check shape_id
     problems = check_column_linked_id(
