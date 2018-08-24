@@ -13,7 +13,7 @@ from json2html import json2html as jh
 from . import constants as cs
 
 
-def datestr_to_date(x, format_str='%Y%m%d', *, inverse=False):
+def datestr_to_date(x, format_str="%Y%m%d", *, inverse=False):
     """
     Given a string object ``x`` representing a date in the given format,
     convert it to a Datetime Date object and return the result.
@@ -28,6 +28,7 @@ def datestr_to_date(x, format_str='%Y%m%d', *, inverse=False):
         result = x.strftime(format_str)
     return result
 
+
 def timestr_to_seconds(x, *, inverse=False, mod24=False):
     """
     Given an HH:MM:SS time string ``x``, return the number of seconds
@@ -41,23 +42,24 @@ def timestr_to_seconds(x, *, inverse=False, mod24=False):
     """
     if not inverse:
         try:
-            hours, mins, seconds = x.split(':')
-            result = int(hours)*3600 + int(mins)*60 + int(seconds)
+            hours, mins, seconds = x.split(":")
+            result = int(hours) * 3600 + int(mins) * 60 + int(seconds)
             if mod24:
-                result %= 24*3600
+                result %= 24 * 3600
         except:
             result = np.nan
     else:
         try:
             seconds = int(x)
             if mod24:
-                seconds %= 24*3600
+                seconds %= 24 * 3600
             hours, remainder = divmod(seconds, 3600)
             mins, secs = divmod(remainder, 60)
-            result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+            result = "{:02d}:{:02d}:{:02d}".format(hours, mins, secs)
         except:
             result = np.nan
     return result
+
 
 def timestr_mod24(timestr):
     """
@@ -65,12 +67,13 @@ def timestr_mod24(timestr):
     format but with the hours taken modulo 24.
     """
     try:
-        hours, mins, seconds = [int(x) for x in timestr.split(':')]
+        hours, mins, seconds = [int(x) for x in timestr.split(":")]
         hours %= 24
-        result = '{:02d}:{:02d}:{:02d}'.format(hours, mins, seconds)
+        result = "{:02d}:{:02d}:{:02d}".format(hours, mins, seconds)
     except:
         result = None
     return result
+
 
 def weekday_to_str(weekday, *, inverse=False):
     """
@@ -79,8 +82,15 @@ def weekday_to_str(weekday, *, inverse=False):
     Here 0 -> 'monday', 1 -> 'tuesday', and so on.
     If ``inverse``, then perform the inverse operation.
     """
-    s = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday',
-      'saturday', 'sunday']
+    s = [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    ]
     if not inverse:
         try:
             return s[weekday]
@@ -91,6 +101,7 @@ def weekday_to_str(weekday, *, inverse=False):
             return s.index(weekday)
         except:
             return
+
 
 def get_segment_length(linestring, p, q=None):
     """
@@ -110,6 +121,7 @@ def get_segment_length(linestring, p, q=None):
         d = d_p
     return d
 
+
 def get_max_runs(x):
     """
     Given a list of numbers, return a NumPy array of pairs
@@ -128,7 +140,7 @@ def get_max_runs(x):
     # Get 0-1 array where 1 marks the max values of x
     x = np.array(x)
     m = np.max(x)
-    y = (x == m)*1
+    y = (x == m) * 1
     # Bound y by zeros to detect runs properly
     bounded = np.hstack(([0], y, [0]))
     # Get 1 at run starts and -1 at run ends
@@ -139,6 +151,7 @@ def get_max_runs(x):
     # # Get lengths of runs and find index of longest
     # idx = np.argmax(run_ends - run_starts)
     # return run_starts[idx], run_ends[idx]
+
 
 def get_peak_indices(times, counts):
     """
@@ -157,6 +170,7 @@ def get_peak_indices(times, counts):
     index = np.argmax(np.apply_along_axis(get_duration, 1, max_runs))
     return max_runs[index]
 
+
 def get_convert_dist(dist_units_in, dist_units_out):
     """
     Return a function of the form
@@ -169,16 +183,16 @@ def get_convert_dist(dist_units_in, dist_units_out):
     di, do = dist_units_in, dist_units_out
     DU = cs.DIST_UNITS
     if not (di in DU and do in DU):
-        raise ValueError(
-          'Distance units must lie in {!s}'.format(DU))
+        raise ValueError("Distance units must lie in {!s}".format(DU))
 
     d = {
-      'ft': {'ft': 1, 'm': 0.3048, 'mi': 1/5280, 'km': 0.0003048},
-      'm': {'ft': 1/0.3048, 'm': 1, 'mi': 1/1609.344, 'km': 1/1000},
-      'mi': {'ft': 5280, 'm': 1609.344, 'mi': 1, 'km': 1.609344},
-      'km': {'ft': 1/0.0003048, 'm': 1000, 'mi': 1/1.609344, 'km': 1},
+        "ft": {"ft": 1, "m": 0.3048, "mi": 1 / 5280, "km": 0.0003048},
+        "m": {"ft": 1 / 0.3048, "m": 1, "mi": 1 / 1609.344, "km": 1 / 1000},
+        "mi": {"ft": 5280, "m": 1609.344, "mi": 1, "km": 1.609344},
+        "km": {"ft": 1 / 0.0003048, "m": 1000, "mi": 1 / 1.609344, "km": 1},
     }
-    return lambda x: d[di][do]*x
+    return lambda x: d[di][do] * x
+
 
 def almost_equal(f, g):
     """
@@ -190,11 +204,18 @@ def almost_equal(f, g):
         return f.equals(g)
     else:
         # Put in canonical order
-        F = f.sort_index(axis=1).sort_values(list(f.columns)).reset_index(
-          drop=True)
-        G = g.sort_index(axis=1).sort_values(list(g.columns)).reset_index(
-          drop=True)
+        F = (
+            f.sort_index(axis=1)
+            .sort_values(list(f.columns))
+            .reset_index(drop=True)
+        )
+        G = (
+            g.sort_index(axis=1)
+            .sort_values(list(g.columns))
+            .reset_index(drop=True)
+        )
         return F.equals(G)
+
 
 def is_not_null(data_frame, column_name):
     """
@@ -209,6 +230,7 @@ def is_not_null(data_frame, column_name):
     else:
         return False
 
+
 def get_utm_crs(lat, lon):
     """
     Return a GeoPandas coordinate reference system (CRS) dictionary
@@ -217,8 +239,16 @@ def get_utm_crs(lat, lon):
     """
     zone = utm.from_latlon(lat, lon)[2]
     south = lat < 0
-    return {'proj': 'utm', 'zone': zone, 'south': south,
-      'ellps': 'WGS84', 'datum': 'WGS84', 'units': 'm', 'no_defs': True}
+    return {
+        "proj": "utm",
+        "zone": zone,
+        "south": south,
+        "ellps": "WGS84",
+        "datum": "WGS84",
+        "units": "m",
+        "no_defs": True,
+    }
+
 
 def linestring_to_utm(linestring):
     """
@@ -229,33 +259,41 @@ def linestring_to_utm(linestring):
     proj = lambda x, y: utm.from_latlon(y, x)[:2]
     return transform(proj, linestring)
 
-def count_active_trips(trip_times, time):
+
+def get_active_trips_df(trip_times):
     """
     Count the number of trips in ``trip_times`` that are active
-    at the given time.
+    at any given time.
 
     Parameters
     ----------
     trip_times : DataFrame
-        Contains the columns
+        Contains columns
 
-        - trip_id
         - start_time: start time of the trip in seconds past midnight
         - end_time: end time of the trip in seconds past midnight
 
-    time : integer
-        Number of seconds past midnight
-
     Returns
     -------
-    integer
-        Number of trips in ``trip_times`` that are active at ``time``.
-        A trip is a considered active at time t if and only if
-        start_time <= t < end_time.
+    Series
+        index is times from midnight when trips start and end,
+        values are number of active trips for that time
 
     """
-    t = trip_times
-    return t[(t['start_time'] <= time) & (t['end_time'] > time)].shape[0]
+    active_trips = (
+        pd.concat(
+            [
+                pd.Series(1, trip_times.start_time),  # departed add 1
+                pd.Series(-1, trip_times.end_time),  # arrived subtract 1
+            ]
+        )
+        .groupby(level=0, sort=True)
+        .sum()
+        .cumsum()
+        .ffill()
+    )
+    return active_trips
+
 
 def combine_time_series(time_series_dict, kind, *, split_directions=False):
     """
@@ -288,21 +326,20 @@ def combine_time_series(time_series_dict, kind, *, split_directions=False):
         column.
 
     """
-    if kind not in ['stop', 'route']:
-        raise ValueError(
-          "kind must be 'stop' or 'route'")
+    if kind not in ["stop", "route"]:
+        raise ValueError("kind must be 'stop' or 'route'")
 
-    names = ['indicator']
-    if kind == 'stop':
-        names.append('stop_id')
+    names = ["indicator"]
+    if kind == "stop":
+        names.append("stop_id")
     else:
-        names.append('route_id')
+        names.append("route_id")
 
     if split_directions:
-        names.append('direction_id')
+        names.append("direction_id")
 
     def process_index(k):
-        t = k.rsplit('-', 1)
+        t = k.rsplit("-", 1)
         return t[0], int(t[1])
 
     frames = list(time_series_dict.values())
@@ -310,15 +347,18 @@ def combine_time_series(time_series_dict, kind, *, split_directions=False):
     if split_directions:
         for f in frames:
             ft = f.T
-            ft.index = pd.MultiIndex.from_tuples([process_index(k)
-              for (k, __) in ft.iterrows()])
+            ft.index = pd.MultiIndex.from_tuples(
+                [process_index(k) for (k, __) in ft.iterrows()]
+            )
             new_frames.append(ft.T)
     else:
         new_frames = frames
-    result = pd.concat(new_frames, axis=1, keys=list(time_series_dict.keys()),
-      names=names)
+    result = pd.concat(
+        new_frames, axis=1, keys=list(time_series_dict.keys()), names=names
+    )
 
     return result
+
 
 def downsample(time_series, freq):
     """
@@ -338,38 +378,39 @@ def downsample(time_series, freq):
         return f
 
     result = None
-    if 'stop_id' in time_series.columns.names:
+    if "stop_id" in time_series.columns.names:
         # It's a stops time series
         result = f.resample(freq).sum()
     else:
         # It's a route or feed time series.
         inds = [
-          'num_trips',
-          'num_trip_starts',
-          'num_trip_ends',
-          'service_distance',
-          'service_duration',
-          ]
+            "num_trips",
+            "num_trip_starts",
+            "num_trip_ends",
+            "service_distance",
+            "service_duration",
+        ]
         frames = []
 
         # Resample num_trips in a custom way that depends on
         # num_trips and num_trip_ends
         def agg_num_trips(group):
-            return group['num_trips'].iloc[-1]\
-              + group['num_trip_ends'].iloc[:-1].sum()
+            return (
+                group["num_trips"].iloc[-1]
+                + group["num_trip_ends"].iloc[:-1].sum()
+            )
 
         num_trips = f.groupby(pd.Grouper(freq=freq)).apply(agg_num_trips)
         frames.append(num_trips)
 
         # Resample the rest of the indicators via summing
-        frames.extend(
-          [f[ind].resample(freq).agg('sum') for ind in inds[1:]])
+        frames.extend([f[ind].resample(freq).agg("sum") for ind in inds[1:]])
 
         g = pd.concat(frames, axis=1, keys=inds)
 
         # Calculate speed and add it to f. Can't resample it.
-        speed = g['service_distance']/g['service_duration']
-        speed = pd.concat({'service_speed': speed}, axis=1)
+        speed = g["service_distance"] / g["service_duration"]
+        speed = pd.concat({"service_speed": speed}, axis=1)
         result = pd.concat([g, speed], axis=1)
 
     # Reset column names and sort the hierarchical columns to allow slicing;
@@ -378,6 +419,7 @@ def downsample(time_series, freq):
     result = result.sort_index(axis=1, sort_remaining=True)
 
     return result
+
 
 def make_html(d):
     """
@@ -394,5 +436,6 @@ def make_html(d):
             vv = v
         dd[k] = vv
 
-    return jh.convert(dd,
-      table_attributes="class=\"table table-condensed table-hover\"")
+    return jh.convert(
+        dd, table_attributes='class="table table-condensed table-hover"'
+    )
