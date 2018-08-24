@@ -34,7 +34,7 @@ Authors
 =========
 - Alex Raichev, 2014-05
 - `cjer <https://github.com/cjer>`_, 2018-07
-- `Paul Swartz <https://github.com/paulswartz>`, 2018-08
+- `Paul Swartz <https://github.com/paulswartz>`_, 2018-08
 
 
 Changes
