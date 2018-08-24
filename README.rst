@@ -32,19 +32,25 @@ Notes
 
 Authors
 =========
-- Alex Raichev (2014-05)
-- `cjer <https://github.com/cjer>`_ (2018-07)
+- Alex Raichev, 2014-05
+- `cjer <https://github.com/cjer>`_, 2018-07
+- `Paul Swartz <https://github.com/paulswartz>`, 2018-08
 
 
 Changes
 =========
+
+9.3.1, 2018-08-24
+-----------------
+- Bugfixed validators with `pull request 9 <https://github.com/mrcagney/gtfstk/pull/9>`_
+
 
 9.3.0, 2018-08-01
 ------------------
 - Replaced ``count_active_trips`` with cjer's faster ``get_active_trips_df``, yielding a ~6x speed up on ``compute_route_stats``.
 - Autoformated code with Black.
 - Added ``restrict_to_dates``.
-- Just supporting Python 3.6 now.
+- Dropped support for Python < 3.6.
 
 
 9.2.3, 2018-05-25
