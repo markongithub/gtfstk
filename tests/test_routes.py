@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+import itertools
 
 from .context import (
     gtfstk,
@@ -18,10 +19,21 @@ if HAS_FOLIUM:
 @slow
 def test_compute_route_stats_base():
     feed = cairns.copy()
-    trip_stats = cairns_trip_stats
-    for split_directions in [True, False]:
+    ts1 = cairns_trip_stats.copy()
+    ts2 = cairns_trip_stats.copy()
+    ts2.direction_id = np.nan
+
+    for ts, split_directions in itertools.product(
+        [ts1, ts2], [True, False]
+    ):
+        if split_directions and ts.direction_id.isnull().all():
+            # Should raise an error
+            with pytest.raises(ValueError):
+                compute_route_stats_base(ts, split_directions=split_directions)
+            continue
+
         rs = compute_route_stats_base(
-            trip_stats, split_directions=split_directions
+            ts, split_directions=split_directions
         )
 
         # Should be a data frame of the correct shape
@@ -67,6 +79,8 @@ def test_compute_route_stats_base():
         pd.DataFrame(), split_directions=split_directions
     )
     assert rs.empty
+
+
 
 
 @slow

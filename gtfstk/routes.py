@@ -153,6 +153,7 @@ def compute_route_stats_base(
 
         d["service_distance"] = group["distance"].sum()
         d["service_duration"] = group["duration"].sum()
+
         return pd.Series(d)
 
     def compute_route_stats(group):
@@ -208,6 +209,12 @@ def compute_route_stats_base(
         return pd.Series(d)
 
     if split_directions:
+        if f.direction_id.isnull().all():
+            raise ValueError(
+                "At least one trip stats direction ID value "
+                "must be non-NaN."
+            )
+
         g = (
             f.groupby(["route_id", "direction_id"])
             .apply(compute_route_stats_split_directions)
