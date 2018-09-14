@@ -19,14 +19,14 @@ slow = pytest.mark.skipif(
 )
 
 # Check if GeoPandas is installed
-loader = importlib.find_loader("geopandas")
+loader = importlib.util.find_spec("geopandas")
 if loader is None:
     HAS_GEOPANDAS = False
 else:
     HAS_GEOPANDAS = True
 
 # Check if Folium is installed
-loader = importlib.find_loader("folium")
+loader = importlib.util.find_spec("folium")
 if loader is None:
     HAS_FOLIUM = False
 else:

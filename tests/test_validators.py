@@ -125,7 +125,7 @@ def test_check_agency():
     assert check_agency(feed, include_warnings=True)
 
     feed = sample.copy()
-    feed.agency = feed.agency.append(feed.agency.ix[0])
+    feed.agency = feed.agency.append(feed.agency.iloc[0])
     assert check_agency(feed)
 
     feed = sample.copy()
@@ -199,7 +199,9 @@ def test_check_calendar_dates():
     assert check_calendar_dates(feed, include_warnings=True)
 
     feed = sample.copy()
-    feed.calendar_dates = feed.calendar_dates.append(feed.calendar_dates.ix[0])
+    feed.calendar_dates = feed.calendar_dates.append(
+        feed.calendar_dates.iloc[0]
+    )
     assert check_calendar_dates(feed)
 
     for col in ["date", "exception_type"]:
@@ -226,7 +228,7 @@ def test_check_fare_attributes():
 
     feed = sample.copy()
     feed.fare_attributes = feed.fare_attributes.append(
-        feed.fare_attributes.ix[0]
+        feed.fare_attributes.iloc[0]
     )
     assert check_fare_attributes(feed)
 
@@ -330,7 +332,7 @@ def test_check_frequencies():
         assert check_frequencies(feed)
 
     feed = sample.copy()
-    feed.frequencies = feed.frequencies.append(feed.frequencies.ix[0])
+    feed.frequencies = feed.frequencies.append(feed.frequencies.iloc[0])
     assert check_frequencies(feed)
 
     for col in ["headway_secs", "exact_times"]:

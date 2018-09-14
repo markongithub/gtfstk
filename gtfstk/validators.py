@@ -810,7 +810,7 @@ def check_feed_info(feed, *, as_df=False, include_warnings=False):
         )
 
     if set(cols) <= set(f.columns):
-        d1, d2 = f[["feed_start_date", "feed_end_date"]].ix[0].values
+        d1, d2 = f.loc[0, ["feed_start_date", "feed_end_date"]].values
         if pd.notnull(d1) and pd.notnull(d2) and d1 > d1:
             problems.append(
                 [

@@ -20,10 +20,10 @@ def test_clean_column_names():
 
 def test_clean_ids():
     f1 = sample.copy()
-    f1.routes.ix[0, "route_id"] = "  ho   ho ho "
+    f1.routes.loc[0, "route_id"] = "  ho   ho ho "
     f2 = clean_ids(f1)
     expect_rid = "ho_ho_ho"
-    f2.routes.ix[0, "route_id"] == expect_rid
+    f2.routes.loc[0, "route_id"] == expect_rid
 
     f3 = clean_ids(f2)
     f3 == f2

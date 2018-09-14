@@ -110,8 +110,8 @@ def test_compute_trip_stats():
     assert set(trip_stats.columns) == expect_cols
 
     # Shapeless feeds should have null entries for distance column
-    feed2 = cairns_shapeless.copy()
-    trip_stats = compute_trip_stats(feed2, route_ids=rids)
+    feed = cairns_shapeless.copy()
+    trip_stats = compute_trip_stats(feed, route_ids=rids)
     assert len(trip_stats["distance"].unique()) == 1
     assert np.isnan(trip_stats["distance"].unique()[0])
 
@@ -119,6 +119,22 @@ def test_compute_trip_stats():
     get_trips = set(trip_stats["trip_id"].values)
     expect_trips = set(trip_subset["trip_id"].values)
     assert get_trips == expect_trips
+
+    # Missing the optional ``direction_id`` column in ``feed.trips``
+    # should give ``direction_id`` column in stats with all NaNs
+    feed = cairns.copy()
+    del feed.trips["direction_id"]
+    trip_stats = compute_trip_stats(feed, route_ids=rids)
+    assert set(trip_stats.columns) == expect_cols
+    assert trip_stats.direction_id.isnull().all()
+
+    # Missing the optional ``shape_id`` column in ``feed.trips``
+    # should give ``shape_id`` column in stats with all NaNs
+    feed = cairns.copy()
+    del feed.trips["shape_id"]
+    trip_stats = compute_trip_stats(feed, route_ids=rids)
+    assert set(trip_stats.columns) == expect_cols
+    assert trip_stats.shape_id.isnull().all()
 
 
 @slow
@@ -148,6 +164,12 @@ def test_locate_trips():
         ]
     )
     assert set(f.columns) == expect_cols
+
+    # Missing feed.trips.shape_id should raise an error
+    feed = cairns_shapeless.copy()
+    del feed.trips["shape_id"]
+    with pytest.raises(ValueError):
+        locate_trips(feed, date, times)
 
 
 def test_trip_to_geojson():

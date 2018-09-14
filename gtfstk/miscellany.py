@@ -941,7 +941,7 @@ def compute_screen_line_counts(feed, linestring, dates, geo_shapes=None):
     )
 
     # Convert shapes to UTM
-    lat, lon = feed.shapes.ix[0][["shape_pt_lat", "shape_pt_lon"]].values
+    lat, lon = feed.shapes.loc[0, ["shape_pt_lat", "shape_pt_lon"]].values
     crs = hp.get_utm_crs(lat, lon)
     shapes = shapes.to_crs(crs)
 

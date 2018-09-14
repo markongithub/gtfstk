@@ -1,4 +1,5 @@
 import pytest
+import itertools
 
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
@@ -21,8 +22,23 @@ if HAS_GEOPANDAS:
 
 
 def test_compute_stop_stats_base():
-    feed = cairns.copy()
-    for split_directions in [True, False]:
+    feed1 = cairns.copy()
+    feed2 = cairns.copy()
+    feed2.trips.direction_id = np.nan
+
+    for feed, split_directions in itertools.product(
+        [feed1, feed2], [True, False]
+    ):
+        if split_directions and feed.trips.direction_id.isnull().all():
+            # Should raise an error
+            with pytest.raises(ValueError):
+                compute_stop_stats_base(
+                    feed.stop_times,
+                    feed.trips,
+                    split_directions=split_directions,
+                )
+            continue
+
         stops_stats = compute_stop_stats_base(
             feed.stop_times, feed.trips, split_directions=split_directions
         )
@@ -56,8 +72,23 @@ def test_compute_stop_stats_base():
 
 @slow
 def test_compute_stop_time_series_base():
-    feed = cairns.copy()
-    for split_directions in [True, False]:
+    feed1 = cairns.copy()
+    feed2 = cairns.copy()
+    feed2.trips.direction_id = np.nan
+
+    for feed, split_directions in itertools.product(
+        [feed1, feed2], [True, False]
+    ):
+        if split_directions and feed.trips.direction_id.isnull().all():
+            # Should raise an error
+            with pytest.raises(ValueError):
+                compute_stop_time_series_base(
+                    feed.stop_times,
+                    feed.trips,
+                    split_directions=split_directions,
+                )
+            continue
+
         ss = compute_stop_stats_base(
             feed.stop_times, feed.trips, split_directions=split_directions
         )

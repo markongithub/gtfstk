@@ -66,7 +66,9 @@ def compute_stop_stats_base(
 
     Notes
     -----
-    If ``trip_subset`` is empty, then return an empty DataFrame.
+    - If ``trip_subset`` is empty, then return an empty DataFrame.
+    - Raise a ValueError if ``split_directions`` and no non-NaN
+      direction ID values present.
 
     """
     if trip_subset.empty:
@@ -110,6 +112,15 @@ def compute_stop_stats_base(
         return pd.Series(d)
 
     if split_directions:
+        if "direction_id" not in f.columns:
+            f["direction_id"] = np.nan
+        f = f.loc[lambda x: x.direction_id.notnull()].assign(
+            direction_id=lambda x: x.direction_id.astype(int)
+        )
+        if f.empty:
+            raise ValueError(
+                "At least one trip direction ID value " "must be non-NaN."
+            )
         g = f.groupby(["stop_id", "direction_id"])
     else:
         g = f.groupby("stop_id")
@@ -184,6 +195,8 @@ def compute_stop_time_series_base(
       their stats wrap around to the early morning of the time series.
     - 'num_trips' should be resampled with ``how=np.sum``
     - If ``trip_subset`` is empty, then return an empty DataFrame
+    - Raise a ValueError if ``split_directions`` and no non-NaN
+      direction ID values present
 
     """
     if trip_subset.empty:
@@ -192,6 +205,16 @@ def compute_stop_time_series_base(
     f = pd.merge(stop_times_subset, trip_subset)
 
     if split_directions:
+        if "direction_id" not in f.columns:
+            f["direction_id"] = np.nan
+        f = f.loc[lambda x: x.direction_id.notnull()].assign(
+            direction_id=lambda x: x.direction_id.astype(int)
+        )
+        if f.empty:
+            raise ValueError(
+                "At least one trip direction ID value " "must be non-NaN."
+            )
+
         # Alter stop IDs to encode trip direction:
         # <stop ID>-0 and <stop ID>-1
         f["stop_id"] = f["stop_id"] + "-" + f["direction_id"].map(str)
@@ -447,9 +470,11 @@ def compute_stop_stats(
 
     Notes
     -----
-    Assume the following feed attributes are not ``None``:
+    - Assume the following feed attributes are not ``None``:
         * ``feed.stop_times``
         * Those used in :func:`.trips.get_trips`
+    - Raise a ValueError if ``split_directions`` and no non-NaN
+      direction ID values present
 
     """
     dates = feed.restrict_dates(dates)
@@ -595,6 +620,9 @@ def compute_stop_time_series(
 
         * ``feed.stop_times``
         * Those used in :func:`.trips.get_trips`
+
+    - Raise a ValueError if ``split_directions`` and no non-NaN
+      direction ID values present
 
     """
     dates = feed.restrict_dates(dates)
@@ -797,7 +825,7 @@ def geometrize_stops(stops, *, use_utm=False):
     )
 
     if use_utm:
-        lat, lon = stops.ix[0][["stop_lat", "stop_lon"]].values
+        lat, lon = stops.loc[0, ["stop_lat", "stop_lon"]].values
         crs = hp.get_utm_crs(lat, lon)
         g = g.to_crs(crs)
 
