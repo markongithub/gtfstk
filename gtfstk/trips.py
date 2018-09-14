@@ -206,8 +206,8 @@ def compute_trip_stats(
     - ``'route_id'``
     - ``'route_short_name'``
     - ``'route_type'``
-    - ``'direction_id'``
-    - ``'shape_id'``
+    - ``'direction_id'``: NaN if missing from feed
+    - ``'shape_id'``: NaN if missing from feed
     - ``'num_stops'``: number of stops on trip
     - ``'start_time'``: first departure time of the trip
     - ``'end_time'``: last departure time of the trip
@@ -257,6 +257,11 @@ def compute_trip_stats(
     # Merge with stop times and extra trip info.
     # Convert departure times to seconds past midnight to
     # compute trip durations later.
+    if "direction_id" not in f.columns:
+            f["direction_id"] = np.nan
+    if "shape_id" not in f.columns:
+            f["shape_id"] = np.nan
+
     f = (
         f[["route_id", "trip_id", "direction_id", "shape_id"]]
         .merge(feed.routes[["route_id", "route_short_name", "route_type"]])
@@ -394,10 +399,11 @@ def locate_trips(feed, date, times):
 
         - ``'trip_id'``
         - ``'route_id'``
-        - ``'direction_id'``
+        - ``'direction_id'``: all NaNs if ``feed.trips.direction_id`` is
+          missing
         - ``'time'``
-        - ``'rel_dist'``: number between 0 (start) and 1 (end) indicating
-          the relative distance of the trip along its path
+        - ``'rel_dist'``: number between 0 (start) and 1 (end)
+          indicating the relative distance of the trip along its path
         - ``'lon'``: longitude of trip at given time
         - ``'lat'``: latitude of trip at given time
 
@@ -419,6 +425,9 @@ def locate_trips(feed, date, times):
             "column. You can create it, possibly with some inaccuracies, "
             "via feed2 = feed.append_dist_to_stop_times()."
         )
+
+    if "shape_id" not in feed.trips.columns:
+        raise ValueError("feed.trips.shape_id must exist.")
 
     # Start with stop times active on date
     f = feed.get_stop_times(date)
@@ -452,8 +461,12 @@ def locate_trips(feed, date, times):
 
     # Merge in more trip info and
     # compute longitude and latitude of trip from relative distance
+    t = feed.trips.copy()
+    if "direction_id" not in t.columns:
+        t["direction_id"] = np.nan
+
     h = pd.merge(
-        g, feed.trips[["trip_id", "route_id", "direction_id", "shape_id"]]
+        g, t[["trip_id", "route_id", "direction_id", "shape_id"]]
     )
     if not h.shape[0]:
         # Return a DataFrame with the promised headers but no data.

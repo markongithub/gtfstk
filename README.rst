@@ -40,9 +40,15 @@ Authors
 Changes
 =========
 
+9.3.2, 2018-09-14
+------------------
+- Fixed `Issue 10 <https://github.com/mrcagney/gtfstk/issues/10>`_
+- Fixed some deprecation warnings
+
+
 9.3.1, 2018-08-24
 -----------------
-- Bugfixed validators with `this pull request <https://github.com/mrcagney/gtfstk/pull/8>`_.
+- Bugfixed validators with `Pull Request 8 <https://github.com/mrcagney/gtfstk/pull/8>`_.
 
 
 9.3.0, 2018-08-01

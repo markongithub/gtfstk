@@ -224,7 +224,7 @@ def geometrize_shapes(shapes, *, use_utm=False):
     g = gpd.GeoDataFrame(g, crs=cs.WGS84)
 
     if use_utm:
-        lat, lon = f.ix[0][["shape_pt_lat", "shape_pt_lon"]].values
+        lat, lon = f.loc[0, ["shape_pt_lat", "shape_pt_lon"]].values
         crs = hp.get_utm_crs(lat, lon)
         g = g.to_crs(crs)
 

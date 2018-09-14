@@ -339,8 +339,8 @@ def combine_time_series(time_series_dict, kind, *, split_directions=False):
         names.append("direction_id")
 
     def process_index(k):
-        t = k.rsplit("-", 1)
-        return t[0], int(t[1])
+        a, b = k.rsplit("-", 1)
+        return a, int(b)
 
     frames = list(time_series_dict.values())
     new_frames = []

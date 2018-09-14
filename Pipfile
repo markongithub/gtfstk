@@ -3,16 +3,12 @@ verify_ssl = true
 name = "pypi"
 url = "https://pypi.python.org/simple"
 
-[dev-packages]
+[packages]
 jupyter = "*"
 pytest = "*"
 plotnine = "*"
 twine = "*"
 sphinx = "*"
-black = "*"
-pre-commit = "*"
-
-[packages]
 pandas = "*"
 shapely = "*"
 utm = "*"
@@ -20,8 +16,8 @@ pycountry = "*"
 geopandas = "*"
 folium = "*"
 "json2html" = "*"
-readme-renderer = "*"
-pylint = "*"
+black = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3.6"
