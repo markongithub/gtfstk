@@ -83,17 +83,19 @@ def compute_route_stats_base(
         - ``'mean_trip_distance'``: service_distance/num_trips
         - ``'mean_trip_duration'``: service_duration/num_trips
 
-        If not ``split_directions``, then remove the
-        direction_id column and compute each route's stats,
-        except for headways, using
-        its trips running in both directions.
-        In this case, (1) compute max headway by taking the max of the
-        max headways in both directions; (2) compute mean headway by
-        taking the weighted mean of the mean headways in both
-        directions.
+    If not ``split_directions``, then remove the
+    direction_id column and compute each route's stats,
+    except for headways, using
+    its trips running in both directions.
+    In this case, (1) compute max headway by taking the max of the
+    max headways in both directions; (2) compute mean headway by
+    taking the weighted mean of the mean headways in both
+    directions.
 
-        If ``trip_stats_subset`` is empty, return an empty DataFrame.
+    If ``trip_stats_subset`` is empty, return an empty DataFrame.
 
+    Raise a ValueError if ``split_directions`` and no non-NaN
+    direction ID values present
     """
     if trip_stats_subset.empty:
         return pd.DataFrame()
@@ -209,9 +211,8 @@ def compute_route_stats_base(
         return pd.Series(d)
 
     if split_directions:
-        f = (
-            f.loc[lambda x: x.direction_id.notnull()]
-            .assign(direction_id=lambda x: x.direction_id.astype(int))
+        f = f.loc[lambda x: x.direction_id.notnull()].assign(
+            direction_id=lambda x: x.direction_id.astype(int)
         )
         if f.empty:
             raise ValueError(
@@ -335,6 +336,8 @@ def compute_route_time_series_base(
       track of only one extra count, ``num_trip_ends``, and can avoid
       recording individual trip IDs.
     - All other indicators are downsampled by summing.
+    - Raise a ValueError if ``split_directions`` and no non-NaN
+      direction ID values present
 
     """
     if trip_stats_subset.empty:
@@ -342,9 +345,8 @@ def compute_route_time_series_base(
 
     tss = trip_stats_subset.copy()
     if split_directions:
-        tss = (
-            tss.loc[lambda x: x.direction_id.notnull()]
-            .assign(direction_id=lambda x: x.direction_id.astype(int))
+        tss = tss.loc[lambda x: x.direction_id.notnull()].assign(
+            direction_id=lambda x: x.direction_id.astype(int)
         )
         if tss.empty:
             raise ValueError(
@@ -355,8 +357,9 @@ def compute_route_time_series_base(
         # Alter route IDs to encode direction:
         # <route ID>-0 and <route ID>-1 or <route ID>-NA
         tss["route_id"] = (
-            tss["route_id"] + "-" + tss["direction_id"].map(
-                lambda x: str(int(x)))
+            tss["route_id"]
+            + "-"
+            + tss["direction_id"].map(lambda x: str(int(x)))
         )
 
     routes = tss["route_id"].unique()
@@ -530,6 +533,9 @@ def compute_route_stats(
 
         * Those used in :func:`.helpers.compute_route_stats_base`
 
+    - Raise a ValueError if ``split_directions`` and no non-NaN
+      direction ID values present
+
     """
     dates = feed.restrict_dates(dates)
     if not dates:
@@ -679,6 +685,9 @@ def compute_route_time_series(
     - Assume the following feed attributes are not ``None``:
 
         * Those used in :func:`.trips.get_trips`
+
+    - Raise a ValueError if ``split_directions`` and no non-NaN
+      direction ID values present
 
     """
     dates = feed.restrict_dates(dates)
