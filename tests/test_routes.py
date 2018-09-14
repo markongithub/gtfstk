@@ -81,17 +81,26 @@ def test_compute_route_stats_base():
     assert rs.empty
 
 
-
-
 @slow
 def test_compute_route_time_series_base():
-    trip_stats = cairns_trip_stats
-    for split_directions in [True, False]:
+    feed = cairns.copy()
+    ts1 = cairns_trip_stats.copy()
+    ts2 = cairns_trip_stats.copy()
+    ts2.direction_id = np.nan
+    for ts, split_directions in itertools.product(
+        [ts1, ts2], [True, False]
+    ):
+        if split_directions and ts.direction_id.isnull().all():
+            # Should raise an error
+            with pytest.raises(ValueError):
+                compute_route_stats_base(ts, split_directions=split_directions)
+            continue
+
         rs = compute_route_stats_base(
-            trip_stats, split_directions=split_directions
+            ts, split_directions=split_directions
         )
         rts = compute_route_time_series_base(
-            trip_stats, split_directions=split_directions, freq="H"
+            ts, split_directions=split_directions, freq="H"
         )
 
         # Should be a data frame of the correct shape
@@ -107,9 +116,9 @@ def test_compute_route_time_series_base():
         assert rts.columns.names == expect
 
         # Each route have a correct service distance total
-        if split_directions == False:
-            g = trip_stats.groupby("route_id")
-            for route in trip_stats["route_id"].values:
+        if not split_directions:
+            g = ts.groupby("route_id")
+            for route in ts["route_id"].values:
                 get = rts["service_distance"][route].sum()
                 expect = g.get_group(route)["distance"].sum()
                 assert abs((get - expect) / expect) < 0.001

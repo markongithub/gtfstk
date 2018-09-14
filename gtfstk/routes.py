@@ -209,7 +209,11 @@ def compute_route_stats_base(
         return pd.Series(d)
 
     if split_directions:
-        if f.direction_id.isnull().all():
+        f = (
+            f.loc[lambda x: x.direction_id.notnull()]
+            .assign(direction_id=lambda x: x.direction_id.astype(int))
+        )
+        if f.empty:
             raise ValueError(
                 "At least one trip stats direction ID value "
                 "must be non-NaN."
@@ -338,9 +342,22 @@ def compute_route_time_series_base(
 
     tss = trip_stats_subset.copy()
     if split_directions:
+        tss = (
+            tss.loc[lambda x: x.direction_id.notnull()]
+            .assign(direction_id=lambda x: x.direction_id.astype(int))
+        )
+        if tss.empty:
+            raise ValueError(
+                "At least one trip stats direction ID value "
+                "must be non-NaN."
+            )
+
         # Alter route IDs to encode direction:
-        # <route ID>-0 and <route ID>-1
-        tss["route_id"] = tss["route_id"] + "-" + tss["direction_id"].map(str)
+        # <route ID>-0 and <route ID>-1 or <route ID>-NA
+        tss["route_id"] = (
+            tss["route_id"] + "-" + tss["direction_id"].map(
+                lambda x: str(int(x)))
+        )
 
     routes = tss["route_id"].unique()
     # Build a dictionary of time series and then merge them all
