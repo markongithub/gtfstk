@@ -16,8 +16,10 @@ pycountry = "*"
 geopandas = "*"
 folium = "*"
 "json2html" = "*"
-black = "*"
 pre-commit = "*"
+black = "*"
 
 [requires]
 python_version = "3.6"
+
+[dev-packages]
