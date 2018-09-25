@@ -403,11 +403,13 @@ def read_gtfs(path, dist_units=None):
     feed_dict = {table: None for table in cs.GTFS_REF["table"]}
     for p in src_path.iterdir():
         table = p.stem
-        if p.is_file() and table in feed_dict:
+        # Skip empty files, irrelevant files, and files with no data
+        if p.is_file() and p.stat().st_size and table in feed_dict:
             # utf-8-sig gets rid of the byte order mark (BOM);
             # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string
             df = pd.read_csv(p, dtype=cs.DTYPE, encoding="utf-8-sig")
-            feed_dict[table] = cn.clean_column_names(df)
+            if not df.empty:
+                feed_dict[table] = cn.clean_column_names(df)
 
     feed_dict["dist_units"] = dist_units
 

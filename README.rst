@@ -40,10 +40,15 @@ Authors
 Changes
 =========
 
+9.3.3, 2018-09-25
+------------------
+- Stopped reading GTFS tables with no data.
+
+
 9.3.2, 2018-09-14
 ------------------
-- Fixed `Issue 10 <https://github.com/mrcagney/gtfstk/issues/10>`_
-- Fixed some deprecation warnings
+- Fixed `Issue 10 <https://github.com/mrcagney/gtfstk/issues/10>`_.
+- Fixed some deprecation warnings.
 
 
 9.3.1, 2018-08-24
