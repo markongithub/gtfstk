@@ -84,7 +84,7 @@ def test_list_gtfs():
         f = list_gtfs(path)
         assert isinstance(f, pd.DataFrame)
         assert set(f.columns) == {"file_name", "file_size"}
-        assert f.shape[0] == 11
+        assert f.shape[0] == 12
 
 
 def test_read_gtfs():
@@ -105,6 +105,9 @@ def test_read_gtfs():
 
     # Success
     feed = read_gtfs(DATA_DIR / "sample_gtfs", dist_units="m")
+
+    # Feed should have None feed_info table
+    assert feed.feed_info is None
 
 
 def test_write_gtfs():
