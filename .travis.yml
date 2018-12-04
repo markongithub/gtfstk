@@ -11,10 +11,9 @@ language: python
 python:
   - "3.6"
 # command to install dependencies
+before_install:
+- pip install poetry
 install:
-  - pip install pip -U
-  - python get-poetry.py --preview -y
-  - source $HOME/.poetry/env
-  - poetry install -v
+- poetry install -v
 # command to run tests
 script: pytest --runslow
