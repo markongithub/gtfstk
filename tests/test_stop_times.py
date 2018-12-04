@@ -1,9 +1,9 @@
+import pytest
 import pandas as pd
 import numpy as np
 
 from .context import (
     gtfstk,
-    slow,
     HAS_GEOPANDAS,
     DATA_DIR,
     sample,
@@ -46,7 +46,7 @@ def test_get_start_and_end_times():
     assert pd.isnull(times[0])
 
 
-@slow
+@pytest.mark.slow
 def test_append_dist_to_stop_times():
     feed1 = cairns.copy()
     st1 = feed1.stop_times

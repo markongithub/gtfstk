@@ -1,7 +1,7 @@
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
 
-from .context import gtfstk, slow, sample
+from .context import gtfstk, sample
 from gtfstk import *
 
 
@@ -54,8 +54,10 @@ def test_clean_route_short_names():
     # Should have unique route short names
     assert f2.routes["route_short_name"].nunique() == f2.routes.shape[0]
     # NaNs should be replaced by n/a and route IDs
-    expect_rsns = ("n/a-" + sample.routes.ix[1:5]["route_id"]).tolist()
-    assert f2.routes.ix[1:5]["route_short_name"].values.tolist() == expect_rsns
+    expect_rsns = ("n/a-" + sample.routes.iloc[1:5]["route_id"]).tolist()
+    assert (
+        f2.routes.iloc[1:5]["route_short_name"].values.tolist() == expect_rsns
+    )
     # Should have names without leading or trailing whitespace
     assert not f2.routes["route_short_name"].str.startswith(" ").any()
     assert not f2.routes["route_short_name"].str.endswith(" ").any()
@@ -101,10 +103,10 @@ def test_aggregate_routes():
 
 def test_clean():
     f1 = sample.copy()
-    rid = f1.routes.ix[0, "route_id"]
-    f1.routes.ix[0, "route_id"] = " " + rid + "   "
+    rid = f1.routes["route_id"].iat[0]
+    f1.routes["route_id"].iat[0] = " " + rid + "   "
     f2 = clean(f1)
-    assert f2.routes.ix[0, "route_id"] == rid
+    assert f2.routes["route_id"].iat[0] == rid
     assert_frame_equal(f2.trips, sample.trips)
 
 

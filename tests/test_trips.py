@@ -4,7 +4,6 @@ import pytest
 
 from .context import (
     gtfstk,
-    slow,
     DATA_DIR,
     cairns,
     cairns_shapeless,
@@ -137,7 +136,7 @@ def test_compute_trip_stats():
     assert trip_stats.shape_id.isnull().all()
 
 
-@slow
+@pytest.mark.slow
 def test_locate_trips():
     feed = cairns.copy()
     trip_stats = cairns_trip_stats

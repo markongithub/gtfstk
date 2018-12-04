@@ -1,4 +1,4 @@
-from .context import gtfstk, slow, sample, cairns
+from .context import gtfstk, sample, cairns
 from gtfstk import *
 
 

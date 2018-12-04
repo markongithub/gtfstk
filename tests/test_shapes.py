@@ -2,14 +2,7 @@ import pytest
 
 from pandas.util.testing import assert_frame_equal
 
-from .context import (
-    gtfstk,
-    slow,
-    HAS_GEOPANDAS,
-    DATA_DIR,
-    cairns,
-    cairns_shapeless,
-)
+from .context import gtfstk, HAS_GEOPANDAS, DATA_DIR, cairns, cairns_shapeless
 from gtfstk import *
 
 if HAS_GEOPANDAS:

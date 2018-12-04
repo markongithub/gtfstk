@@ -4,7 +4,6 @@ import itertools
 
 from .context import (
     gtfstk,
-    slow,
     HAS_FOLIUM,
     cairns,
     cairns_dates,
@@ -16,25 +15,21 @@ if HAS_FOLIUM:
     from folium import Map
 
 
-@slow
+@pytest.mark.slow
 def test_compute_route_stats_base():
     feed = cairns.copy()
     ts1 = cairns_trip_stats.copy()
     ts2 = cairns_trip_stats.copy()
     ts2.direction_id = np.nan
 
-    for ts, split_directions in itertools.product(
-        [ts1, ts2], [True, False]
-    ):
+    for ts, split_directions in itertools.product([ts1, ts2], [True, False]):
         if split_directions and ts.direction_id.isnull().all():
             # Should raise an error
             with pytest.raises(ValueError):
                 compute_route_stats_base(ts, split_directions=split_directions)
             continue
 
-        rs = compute_route_stats_base(
-            ts, split_directions=split_directions
-        )
+        rs = compute_route_stats_base(ts, split_directions=split_directions)
 
         # Should be a data frame of the correct shape
         assert isinstance(rs, pd.core.frame.DataFrame)
@@ -81,24 +76,20 @@ def test_compute_route_stats_base():
     assert rs.empty
 
 
-@slow
+@pytest.mark.slow
 def test_compute_route_time_series_base():
     feed = cairns.copy()
     ts1 = cairns_trip_stats.copy()
     ts2 = cairns_trip_stats.copy()
     ts2.direction_id = np.nan
-    for ts, split_directions in itertools.product(
-        [ts1, ts2], [True, False]
-    ):
+    for ts, split_directions in itertools.product([ts1, ts2], [True, False]):
         if split_directions and ts.direction_id.isnull().all():
             # Should raise an error
             with pytest.raises(ValueError):
                 compute_route_stats_base(ts, split_directions=split_directions)
             continue
 
-        rs = compute_route_stats_base(
-            ts, split_directions=split_directions
-        )
+        rs = compute_route_stats_base(ts, split_directions=split_directions)
         rts = compute_route_time_series_base(
             ts, split_directions=split_directions, freq="H"
         )

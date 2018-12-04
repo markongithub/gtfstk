@@ -12,12 +12,6 @@ import gtfstk
 import pytest
 
 
-# Decorator to mark slow tests
-slow = pytest.mark.skipif(
-    not pytest.config.getoption("--runslow"),
-    reason="need --runslow option to run",
-)
-
 # Check if GeoPandas is installed
 loader = importlib.util.find_spec("geopandas")
 if loader is None:
