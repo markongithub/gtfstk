@@ -6,7 +6,7 @@ from numpy.testing import assert_array_equal
 from pandas.testing import assert_series_equal
 import shapely.geometry as sg
 
-from .context import gtfstk, slow
+from .context import gtfstk
 from gtfstk import *
 
 

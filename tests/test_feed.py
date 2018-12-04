@@ -5,7 +5,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal
 import numpy as np
 
-from .context import gtfstk, slow, DATA_DIR
+from .context import gtfstk, DATA_DIR
 from gtfstk import *
 
 

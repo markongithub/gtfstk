@@ -9,7 +9,7 @@ It uses Pandas and Shapely to do the heavy lifting.
 
 Installation
 =============
-Using Pipenv, do ``pipenv install gtfstk``.
+``pip install gtfstk``.
 
 
 Examples
@@ -17,9 +17,16 @@ Examples
 You can play with ``ipynb/examples.ipynb`` in a Jupyter notebook
 
 
+Authors
+=========
+- Alex Raichev, 2014-05
+- `cjer <https://github.com/cjer>`_, 2018-07
+- `Paul Swartz <https://github.com/paulswartz>`_, 2018-08
+
+
 Documentation
 =============
-Documentation is in ``docs/`` and also on RawGit `here <https://rawgit.com/araichev/gtfstk/master/docs/_build/singlehtml/index.html>`_.
+On Github Pages `here <https://mrcagney.github.io/gtfstk_docs>`_.
 
 
 Notes
@@ -30,15 +37,13 @@ Notes
 - Constructive feedback and code contributions welcome
 
 
-Authors
-=========
-- Alex Raichev, 2014-05
-- `cjer <https://github.com/cjer>`_, 2018-07
-- `Paul Swartz <https://github.com/paulswartz>`_, 2018-08
-
-
 Changes
 =========
+
+9.3.4, 2018-12-05
+------------------
+- Switched from Pipenv to Poetry.
+
 
 9.3.3, 2018-09-25
 ------------------

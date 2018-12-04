@@ -12,8 +12,9 @@ python:
   - "3.6"
 # command to install dependencies
 install:
-  - pip install pipenv
-  - travis_retry travis_wait pipenv install --skip-lock
-
+  - pip install pip -U
+  - python get-poetry.py --preview -y
+  - source $HOME/.poetry/env
+  - poetry install -v
 # command to run tests
 script: pytest --runslow

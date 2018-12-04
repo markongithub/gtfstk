@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .context import gtfstk, slow, sample
+from .context import gtfstk, sample
 from gtfstk import *
 
 

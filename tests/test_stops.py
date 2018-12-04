@@ -7,7 +7,6 @@ import shapely.geometry as sg
 
 from .context import (
     gtfstk,
-    slow,
     HAS_GEOPANDAS,
     DATA_DIR,
     sample,
@@ -70,7 +69,7 @@ def test_compute_stop_stats_base():
     assert stats.empty
 
 
-@slow
+@pytest.mark.slow
 def test_compute_stop_time_series_base():
     feed1 = cairns.copy()
     feed2 = cairns.copy()
