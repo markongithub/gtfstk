@@ -195,6 +195,14 @@ def test_compute_center():
         assert bounds[0] < lon < bounds[2]
         assert bounds[1] < lat < bounds[3]
 
+    # Test edge case of no stop stats on the sample date
+    feed.calendar = None
+    feed.calendar_dates = None
+    center = compute_center(feed)
+    # Center should be in the ball park
+    assert bounds[0] < center[0] < bounds[2]
+    assert bounds[1] < center[1] < bounds[3]
+
 
 def test_restrict_to_dates():
     feed1 = cairns.copy()

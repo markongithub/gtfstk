@@ -40,6 +40,11 @@ Notes
 Changes
 =========
 
+9.3.5, 2019-02-26
+------------------
+- Handled the edge case of no stop stats in ``miscellany.compute_center``.
+
+
 9.3.4, 2018-12-05
 ------------------
 - Switched from Pipenv to Poetry.

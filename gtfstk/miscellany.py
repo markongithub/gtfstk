@@ -625,10 +625,17 @@ def compute_center(feed, num_busiest_stops=None):
         ss = feed.compute_stop_stats([date]).sort_values(
             "num_trips", ascending=False
         )
-        f = ss.head(num_busiest_stops)
-        f = s.merge(f)
-        lon = f["stop_lon"].mean()
-        lat = f["stop_lat"].mean()
+        if ss.stop_id.isnull().all():
+            # No stats, which could happen with a crappy feed.
+            # Fall back to all stops.
+            hull = compute_convex_hull(feed)
+            lon, lat = list(hull.centroid.coords)[0]
+        else:
+            f = ss.head(num_busiest_stops)
+            f = s.merge(f)
+            lon = f["stop_lon"].mean()
+            lat = f["stop_lat"].mean()
+
     return lon, lat
 
 
