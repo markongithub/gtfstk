@@ -1087,9 +1087,13 @@ def check_stops(feed, *, as_df=False, include_warnings=False):
     problems = check_column(problems, table, f, "stop_name", valid_str)
 
     # Check stop_lon and stop_lat
+    if "location_type" in f.columns:
+        requires_location = f["location_type"].isin([0, 1, 2])
+    else:
+        requires_location = True
     for column, bound in [("stop_lon", 180), ("stop_lat", 90)]:
         v = lambda x: pd.notnull(x) and -bound <= x <= bound
-        cond = ~f[column].map(v)
+        cond = requires_location & ~f[column].map(v)
         problems = check_table(
             problems,
             table,
@@ -1104,7 +1108,7 @@ def check_stops(feed, *, as_df=False, include_warnings=False):
     )
 
     # Check location_type
-    v = lambda x: x in range(3)
+    v = lambda x: x in range(5)
     problems = check_column(
         problems, table, f, "location_type", v, column_required=False
     )
@@ -1154,6 +1158,19 @@ def check_stops(feed, *, as_df=False, include_warnings=False):
                 f,
                 cond,
                 "A station must not lie in another station",
+            )
+
+            # Entrances (type 2), generic nodes (type 3) and boarding areas (type 4) need to be part of a parent
+            cond = (
+                f["location_type"].isin([2, 3, 4])
+                & f["parent_station"].isnull()
+            )
+            problems = check_table(
+                problems,
+                table,
+                f,
+                cond,
+                "Entrances, nodes, and boarding areas must be part of a parent station",
             )
 
     if include_warnings:
@@ -1372,9 +1389,9 @@ def check_trips(feed, *, as_df=False, include_warnings=False):
     # Check service_id
     g = pd.DataFrame()
     if feed.calendar is not None:
-        g = pd.concat([g, feed.calendar])
+        g = pd.concat([g, feed.calendar], sort=False)
     if feed.calendar_dates is not None:
-        g = pd.concat([g, feed.calendar_dates])
+        g = pd.concat([g, feed.calendar_dates], sort=False)
     problems = check_column_linked_id(problems, table, f, "service_id", g)
 
     # Check direction_id
