@@ -153,3 +153,12 @@ COLORS_SET2 = [
     "#e5c494",
     "#b3b3b3",
 ]
+
+#: Folium CircleMarker parameters for mapping stops
+STOP_STYLE = {
+    "radius": 8,
+    "fill": True,
+    "color": COLORS_SET2[1],
+    "weight": 1,
+    "fill_opacity": 0.75,
+}

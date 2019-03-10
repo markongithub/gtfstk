@@ -104,6 +104,7 @@ class Feed(object):
         compute_stop_time_series,
         build_stop_timetable,
         get_stops_in_polygon,
+        map_stops,
     )
     from .stop_times import (
         get_stop_times,

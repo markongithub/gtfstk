@@ -7,8 +7,9 @@ import shapely.geometry as sg
 
 from .context import (
     gtfstk,
-    HAS_GEOPANDAS,
     DATA_DIR,
+    HAS_GEOPANDAS,
+    HAS_FOLIUM,
     sample,
     cairns,
     cairns_dates,
@@ -17,7 +18,10 @@ from .context import (
 from gtfstk import *
 
 if HAS_GEOPANDAS:
-    from geopandas import GeoDataFrame
+    import geopandas as gpd
+
+if HAS_FOLIUM:
+    import folium as fl
 
 
 def test_compute_stop_stats_base():
@@ -362,7 +366,7 @@ def test_geometrize_stops():
     stops = cairns.stops.copy()
     geo_stops = geometrize_stops(stops, use_utm=True)
     # Should be a GeoDataFrame
-    assert isinstance(geo_stops, GeoDataFrame)
+    assert isinstance(geo_stops, gpd.GeoDataFrame)
     # Should have the correct shape
     assert geo_stops.shape[0] == stops.shape[0]
     assert geo_stops.shape[1] == stops.shape[1] - 1
@@ -383,3 +387,10 @@ def test_ungeometrize_stops():
     # Data frames should be equal after sorting columns
     cols = sorted(stops.columns)
     assert_frame_equal(stops2[cols], stops[cols])
+
+
+@pytest.mark.skipif(not HAS_FOLIUM, reason="Requires Folium")
+def test_map_stops():
+    feed = cairns.copy()
+    m = map_trips(feed, feed.stops.stop_id.iloc[:5])
+    assert isinstance(m, fl.Map)

@@ -858,3 +858,69 @@ def ungeometrize_stops(geo_stops):
     )
     del f["geometry"]
     return f
+
+
+STOP_STYLE = {
+    "radius": 8,
+    "fill": True,
+    "color": cs.COLORS_SET2[1],
+    "weight": 1,
+    "fill_opacity": 0.75,
+}
+
+
+def map_stops(feed, stop_ids, stop_style=STOP_STYLE):
+    """
+    Return a Folium map showing the given stops.
+
+    Parameters
+    ----------
+    feed : Feed
+    stop_ids : list
+        IDs of trips in ``feed.stops``
+    stop_style: dictionary
+        Folium CircleMarker parameters to use for styling stops.
+
+    Returns
+    -------
+    dictionary
+        A Folium Map depicting the stops as CircleMarkers.
+
+    Notes
+    ------
+    - Requires Folium
+
+    """
+    import folium as fl
+
+    # Initialize map
+    my_map = fl.Map(tiles="cartodbpositron")
+
+    # Create a feature group for the stops and add it to the map
+    group = fl.FeatureGroup(name="Stops")
+
+    # Add stops to feature group
+    stops = feed.stops.loc[lambda x: x.stop_id.isin(stop_ids)].fillna("n/a")
+    for prop in stops.to_dict(orient="records"):
+        # Add stop
+        lon = prop["stop_lon"]
+        lat = prop["stop_lat"]
+        fl.CircleMarker(
+            location=[lat, lon],
+            popup=fl.Popup(hp.make_html(prop)),
+            **STOP_STYLE,
+        ).add_to(group)
+
+    group.add_to(my_map)
+
+    # Add layer control
+    fl.LayerControl().add_to(my_map)
+
+    # Fit map to stop bounds
+    bounds = [
+        (stops.stop_lat.min(), stops.stop_lon.min()),
+        (stops.stop_lat.max(), stops.stop_lon.max()),
+    ]
+    my_map.fit_bounds(bounds, padding=[1, 1])
+
+    return my_map

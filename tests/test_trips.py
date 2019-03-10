@@ -5,16 +5,16 @@ import pytest
 from .context import (
     gtfstk,
     DATA_DIR,
+    HAS_FOLIUM,
     cairns,
     cairns_shapeless,
     cairns_dates,
     cairns_trip_stats,
-    HAS_FOLIUM,
 )
 from gtfstk import *
 
 if HAS_FOLIUM:
-    from folium import Map
+    import folium as fl
 
 
 def test_is_active_trip():
@@ -193,4 +193,4 @@ def test_map_trips():
     map0 = map_trips(feed, ["bingo"])
     map1 = map_trips(feed, tids, include_stops=True)
     for m in [map0, map1]:
-        assert isinstance(m, Map)
+        assert isinstance(m, fl.Map)
