@@ -40,8 +40,14 @@ Notes
 Changes
 =========
 
+9.4.0, 2019-??-??
+-----------------
+- Added ``stops.map_stops``.
+- Replaced library ``json2html`` with ``json2table``
+
+
 9.3.5, 2019-02-26
-------------------
+-----------------
 - Handled the edge case of no stop stats in ``miscellany.compute_center``.
 
 

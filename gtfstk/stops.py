@@ -12,6 +12,16 @@ from . import constants as cs
 from . import helpers as hp
 
 
+#: Folium CircleMarker parameters for mapping stops
+STOP_STYLE = {
+    "radius": 8,
+    "fill": True,
+    "color": cs.COLORS_SET2[1],
+    "weight": 1,
+    "fill_opacity": 0.75,
+}
+
+
 def compute_stop_stats_base(
     stop_times_subset,
     trip_subset,
@@ -860,15 +870,6 @@ def ungeometrize_stops(geo_stops):
     return f
 
 
-STOP_STYLE = {
-    "radius": 8,
-    "fill": True,
-    "color": cs.COLORS_SET2[1],
-    "weight": 1,
-    "fill_opacity": 0.75,
-}
-
-
 def map_stops(feed, stop_ids, stop_style=STOP_STYLE):
     """
     Return a Folium map showing the given stops.
@@ -908,7 +909,7 @@ def map_stops(feed, stop_ids, stop_style=STOP_STYLE):
         fl.CircleMarker(
             location=[lat, lon],
             popup=fl.Popup(hp.make_html(prop)),
-            **STOP_STYLE,
+            **stop_style,
         ).add_to(group)
 
     group.add_to(my_map)

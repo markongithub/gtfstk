@@ -414,11 +414,11 @@ MarkupSafe = ">=0.23"
 
 [[package]]
 category = "main"
-description = "JSON to HTML Table Representation"
-name = "json2html"
+description = "Convert JSON to an HTML table"
+name = "json2table"
 optional = false
 python-versions = "*"
-version = "1.2.1"
+version = "1.1.5"
 
 [[package]]
 category = "dev"
@@ -1157,7 +1157,7 @@ version = "3.4.2"
 notebook = ">=4.4.1"
 
 [metadata]
-content-hash = "8f41585271a0af80e16bbcc2141303ed08820970c3cd54fd89ca828e4a9da2d7"
+content-hash = "fd5f30a442e1ebc7ac0d2ad7624407827678d2d1e5cdc5853ff46e8599c11c09"
 python-versions = "^3.6"
 
 [metadata.hashes]
@@ -1201,7 +1201,7 @@ ipython-genutils = ["72dd37233799e619666c9f639a9da83c34013a73e8bbc79a7a6348d93c6
 ipywidgets = ["0f2b5cde9f272cb49d52f3f0889fdd1a7ae1e74f37b48dac35a83152780d2b7b", "a3e224f430163f767047ab9a042fc55adbcab0c24bbe6cf9f306c4f89fdf0ba3"]
 jedi = ["0191c447165f798e6a730285f2eee783fff81b0d3df261945ecb80983b5c3ca7", "b7493f73a2febe0dc33d51c99b474547f7f6c0b2c8fb2b21f453eef204c12148"]
 jinja2 = ["74c935a1b8bb9a3947c50a54766a969d4846290e1e788ea44c1392163723c3bd", "f84be1bb0040caca4cea721fcbbbbd61f9be9464ca236387158b0feea01914a4"]
-json2html = ["a6c9cdb4ae09db1fe37e895eb706cb8cafcbf30a168e806d9ce105f3839f0d70"]
+json2table = ["838e4c052276252fec7b0dbd10668258ce0997605888a250307bd6b124ae6d0a", "d84eac9471f404f17c9ec1ca5935d7088917f669b3ba5cc5a027f865e7896356"]
 jsonschema = ["000e68abd33c972a5248544925a0cae7d1125f9bf6c58280d37546b946769a08", "6ff5f3180870836cae40f06fa10419f557208175f13ad7bc26caa77beb1f6e02"]
 jupyter = ["3e1f86076bbb7c8c207829390305a2b1fe836d471ed54be66a3b8c41e7f46cc7", "5b290f93b98ffbc21c0c7e749f054b3267782166d72fa5e3ed1ed4eaf34a2b78", "d9dc4b3318f310e34c82951ea5d6683f67bed7def4b259fafbfe4f1beb1d8e5f"]
 jupyter-client = ["27befcf0446b01e29853014d6a902dd101ad7d7f94e2252b1adca17c3466b761", "59e6d791e22a8002ad0e80b78c6fd6deecab4f9e1b1aa1a22f4213de271b29ea"]

@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from shapely.ops import transform
 import utm
-from json2html import json2html as jh
+import json2table as j2t
 
 from . import constants as cs
 
@@ -426,16 +426,6 @@ def make_html(d):
     Convert the given dictionary into an HTML table (string) with
     two columns: keys of dictionary, values of dictionary.
     """
-    # Workaround to better HTML-escape some text, e.g. apostrophes;
-    # see https://github.com/softvar/json2html/issues/33
-    dd = {}
-    for k, v in d.items():
-        try:
-            vv = html.escape(v)
-        except AttributeError:
-            vv = v
-        dd[k] = vv
-
-    return jh.convert(
-        dd, table_attributes='class="table table-condensed table-hover"'
+    return j2t.convert(
+        d, table_attributes={"class": "table table-condensed table-hover"}
     )
