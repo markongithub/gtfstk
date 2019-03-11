@@ -2,12 +2,12 @@
 Functions useful across modules.
 """
 import datetime as dt
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
-from shape.geometry import LineString, Point
+from shapely.geometry import LineString, Point
 from shapely.ops import transform
 import utm
 import json2table as j2t
@@ -16,7 +16,10 @@ from . import constants as cs
 
 
 def datestr_to_date(
-    x: str, format_str: str = "%Y%m%d", *, inverse: bool = False
+    x: Union[dt.Date, str],
+    format_str: str = "%Y%m%d",
+    *,
+    inverse: bool = False,
 ):
     """
     Given a string ``x`` representing a date in the given format,
@@ -33,7 +36,9 @@ def datestr_to_date(
     return result
 
 
-def timestr_to_seconds(x: str, *, inverse: bool = False, mod24: bool = False):
+def timestr_to_seconds(
+    x: Union[dt.Date, str], *, inverse: bool = False, mod24: bool = False
+):
     """
     Given an HH:MM:SS time string ``x``, return the number of seconds
     past midnight that it represents.
@@ -79,7 +84,7 @@ def timestr_mod24(timestr: str):
     return result
 
 
-def weekday_to_str(weekday: str, *, inverse: bool = False):
+def weekday_to_str(weekday: Union[int, str], *, inverse: bool = False):
     """
     Given a weekday number (integer in the range 0, 1, ..., 6),
     return its corresponding weekday name as a lowercase string.
