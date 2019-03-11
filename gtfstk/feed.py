@@ -22,8 +22,10 @@ import shutil
 from copy import deepcopy
 from collections import OrderedDict
 import zipfile
+from typing import Optional
 
 import pandas as pd
+from pandas.core.frame import DataFrame
 
 from . import constants as cs
 from . import helpers as hp
@@ -164,20 +166,20 @@ class Feed(object):
 
     def __init__(
         self,
-        dist_units,
-        agency=None,
-        stops=None,
-        routes=None,
-        trips=None,
-        stop_times=None,
-        calendar=None,
-        calendar_dates=None,
-        fare_attributes=None,
-        fare_rules=None,
-        shapes=None,
-        frequencies=None,
-        transfers=None,
-        feed_info=None,
+        dist_units: str,
+        agency: Optional[DataFrame] = None,
+        stops: Optional[DataFrame] = None,
+        routes: Optional[DataFrame] = None,
+        trips: Optional[DataFrame] = None,
+        stop_times: Optional[DataFrame] = None,
+        calendar: Optional[DataFrame] = None,
+        calendar_dates: Optional[DataFrame] = None,
+        fare_attributes: Optional[DataFrame] = None,
+        fare_rules: Optional[DataFrame] = None,
+        shapes: Optional[DataFrame] = None,
+        frequencies: Optional[DataFrame] = None,
+        transfers: Optional[DataFrame] = None,
+        feed_info: Optional[DataFrame] = None,
     ):
         """
         Assume that every non-None input is a Pandas DataFrame,
@@ -334,7 +336,7 @@ class Feed(object):
 # -------------------------------------
 # Functions about input and output
 # -------------------------------------
-def list_gtfs(path):
+def list_gtfs(path: Path):
     """
     Given a path (string or Path object) to a GTFS zip file or
     directory, record the file names and file sizes of the contents,
@@ -370,7 +372,7 @@ def list_gtfs(path):
     return pd.DataFrame(rows)
 
 
-def read_gtfs(path, dist_units=None):
+def read_gtfs(path: Path, dist_units: str):
     """
     Create a Feed instance from the given path and given distance units.
     The path should be a directory containing GTFS text files or a
@@ -419,7 +421,7 @@ def read_gtfs(path, dist_units=None):
     return Feed(**feed_dict)
 
 
-def write_gtfs(feed, path, ndigits=6):
+def write_gtfs(feed: "Feed", path: Path, ndigits: int = 6):
     """
     Export the given feed to the given path.
     If the path end in '.zip', then write the feed as a zip archive.

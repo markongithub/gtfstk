@@ -4,11 +4,12 @@ Functions about cleaning feeds.
 import math
 
 import pandas as pd
+from pandas import DataFrame
 
 from . import constants as cs
 
 
-def clean_column_names(df):
+def clean_column_names(df: DataFrame):
     """
     Strip the whitespace from all column names in the given DataFrame
     and return the result.
@@ -18,7 +19,7 @@ def clean_column_names(df):
     return f
 
 
-def drop_zombies(feed):
+def drop_zombies(feed: "Feed"):
     """
     In the given Feed, drop stops with no stop times,
     trips with no stop times, shapes with no trips,
@@ -63,7 +64,7 @@ def drop_zombies(feed):
     return feed
 
 
-def clean_ids(feed):
+def clean_ids(feed: "Feed"):
     """
     In the given Feed, strip whitespace from all string IDs and
     then replace every remaining whitespace chunk with an underscore.
@@ -90,7 +91,7 @@ def clean_ids(feed):
     return feed
 
 
-def clean_times(feed):
+def clean_times(feed: "Feed"):
     """
     In the given Feed, convert H:MM:SS time strings to HH:MM:SS time
     strings to make sorting by time work as expected.
@@ -119,7 +120,7 @@ def clean_times(feed):
     return feed
 
 
-def clean_route_short_names(feed):
+def clean_route_short_names(feed: "Feed"):
     """
     In ``feed.routes``, assign 'n/a' to missing route short names and
     strip whitespace from route short names.
@@ -150,7 +151,9 @@ def clean_route_short_names(feed):
     return feed
 
 
-def aggregate_routes(feed, by="route_short_name", route_id_prefix="route_"):
+def aggregate_routes(
+    feed: "Feed", by: str = "route_short_name", route_id_prefix: str = "route_"
+):
     """
     Aggregate routes by route short name, say, and assign new route IDs.
 
@@ -213,7 +216,7 @@ def aggregate_routes(feed, by="route_short_name", route_id_prefix="route_"):
     return feed
 
 
-def clean(feed):
+def clean(feed: "Feed"):
     """
     Apply
 
@@ -238,7 +241,7 @@ def clean(feed):
     return feed
 
 
-def drop_invalid_columns(feed):
+def drop_invalid_columns(feed: "Feed"):
     """
     Drop all DataFrame columns of the given Feed that are not
     listed in the GTFS.

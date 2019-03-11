@@ -1,5 +1,5 @@
 data/other_feeds
-flake8*
+monkeytype.sqlite
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -3,6 +3,7 @@ Functions about trips.
 """
 from collections import OrderedDict
 import json
+from typing import Optional, List
 
 import pandas as pd
 import numpy as np
@@ -13,7 +14,7 @@ from . import constants as cs
 from . import helpers as hp
 
 
-def is_active_trip(feed, trip_id, date):
+def is_active_trip(feed: "Feed", trip_id: str, date: str):
     """
     Return ``True`` if the ``feed.calendar`` or ``feed.calendar_dates``
     says that the trip runs on the given date; return ``False``
@@ -77,7 +78,9 @@ def is_active_trip(feed, trip_id, date):
     return False
 
 
-def get_trips(feed, date=None, time=None):
+def get_trips(
+    feed: "Feed", date: Optional[str] = None, time: Optional[str] = None
+):
     """
     Return a subset of ``feed.trips``.
 
@@ -130,7 +133,7 @@ def get_trips(feed, date=None, time=None):
     return f
 
 
-def compute_trip_activity(feed, dates):
+def compute_trip_activity(feed: "Feed", dates: List[str]):
     """
     Mark trip as active or inactive on the given dates as computed
     by :func:`is_active_trip`.
@@ -179,7 +182,7 @@ def compute_trip_activity(feed, dates):
     return f[["trip_id"] + list(dates)]
 
 
-def compute_busiest_date(feed, dates):
+def compute_busiest_date(feed: "Feed", dates: List[str]):
     """
     Given a list of dates, return the first date that has the
     maximum number of active trips.
@@ -197,7 +200,10 @@ def compute_busiest_date(feed, dates):
 
 
 def compute_trip_stats(
-    feed, route_ids=None, *, compute_dist_from_shapes=False
+    feed: "Feed",
+    route_ids: Optional[List[str]] = None,
+    *,
+    compute_dist_from_shapes: bool = False,
 ):
     """
     Return a DataFrame with the following columns:
@@ -258,9 +264,9 @@ def compute_trip_stats(
     # Convert departure times to seconds past midnight to
     # compute trip durations later.
     if "direction_id" not in f.columns:
-            f["direction_id"] = np.nan
+        f["direction_id"] = np.nan
     if "shape_id" not in f.columns:
-            f["shape_id"] = np.nan
+        f["shape_id"] = np.nan
 
     f = (
         f[["route_id", "trip_id", "direction_id", "shape_id"]]
@@ -379,7 +385,7 @@ def compute_trip_stats(
     return h.sort_values(["route_id", "direction_id", "start_time"])
 
 
-def locate_trips(feed, date, times):
+def locate_trips(feed: "Feed", date: str, times: List[str]):
     """
     Return the positions of all trips active on the
     given date and times
@@ -465,9 +471,7 @@ def locate_trips(feed, date, times):
     if "direction_id" not in t.columns:
         t["direction_id"] = np.nan
 
-    h = pd.merge(
-        g, t[["trip_id", "route_id", "direction_id", "shape_id"]]
-    )
+    h = pd.merge(g, t[["trip_id", "route_id", "direction_id", "shape_id"]])
     if not h.shape[0]:
         # Return a DataFrame with the promised headers but no data.
         # Without this check, result below could be an empty DataFrame.
@@ -488,7 +492,9 @@ def locate_trips(feed, date, times):
     return h.groupby("shape_id").apply(get_lonlat)
 
 
-def trip_to_geojson(feed, trip_id, *, include_stops=False):
+def trip_to_geojson(
+    feed: "Feed", trip_id: str, *, include_stops: bool = False
+):
     """
     Return a GeoJSON representation of the given trip, optionally with
     its stops.
@@ -559,7 +565,11 @@ def trip_to_geojson(feed, trip_id, *, include_stops=False):
 
 
 def map_trips(
-    feed, trip_ids, color_palette=cs.COLORS_SET2, *, include_stops=True
+    feed: "Feed",
+    trip_ids: List[str],
+    color_palette: List[str] = cs.COLORS_SET2,
+    *,
+    include_stops: bool = True,
 ):
     """
     Return a Folium map showing the given trips and (optionally)

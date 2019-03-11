@@ -4,10 +4,12 @@ Functions about validation.
 import re
 import pytz
 import datetime as dt
+from typing import Optional, List
 
 import pycountry
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 
 from . import constants as cs
 from . import helpers as hp
@@ -37,7 +39,7 @@ EMAIL_PATTERN = re.compile(r"[^@]+@[^@]+\.[^@]+")
 COLOR_PATTERN = re.compile(r"(?:[0-9a-fA-F]{2}){3}$")
 
 
-def valid_str(x):
+def valid_str(x: str):
     """
     Return ``True`` if ``x`` is a non-blank string;
     otherwise return ``False``.
@@ -48,7 +50,7 @@ def valid_str(x):
         return False
 
 
-def valid_time(x):
+def valid_time(x: str):
     """
     Return ``True`` if ``x`` is a valid H:MM:SS or HH:MM:SS time;
     otherwise return ``False``.
@@ -61,7 +63,7 @@ def valid_time(x):
         return False
 
 
-def valid_date(x):
+def valid_date(x: str):
     """
     Retrun ``True`` if ``x`` is a valid YYYYMMDD date;
     otherwise return ``False``.
@@ -74,7 +76,7 @@ def valid_date(x):
         return False
 
 
-def valid_timezone(x):
+def valid_timezone(x: str):
     """
     Retrun ``True`` if ``x`` is a valid human-readable timezone string,
     e.g. 'Africa/Abidjan'; otherwise return ``False``.
@@ -82,7 +84,7 @@ def valid_timezone(x):
     return x in TIMEZONES
 
 
-def valid_lang(x):
+def valid_lang(x: str):
     """
     Return ``True`` if ``x`` is a valid two-letter ISO 639 language
     code, e.g. 'aa'; otherwise return ``False``.
@@ -90,7 +92,7 @@ def valid_lang(x):
     return x in LANGS
 
 
-def valid_currency(x):
+def valid_currency(x: str):
     """
     Return ``True`` if ``x`` is a valid three-letter ISO 4217 currency
     code, e.g. 'AED'; otherwise return ``False``.
@@ -98,7 +100,7 @@ def valid_currency(x):
     return x in CURRENCIES
 
 
-def valid_url(x):
+def valid_url(x: str):
     """
     Return ``True`` if ``x`` is a valid URL; otherwise return ``False``.
     """
@@ -108,7 +110,7 @@ def valid_url(x):
         return False
 
 
-def valid_email(x):
+def valid_email(x: str):
     """
     Return ``True`` if ``x`` is a valid email address; otherwise return
     ``False``.
@@ -119,7 +121,7 @@ def valid_email(x):
         return False
 
 
-def valid_color(x):
+def valid_color(x: str):
     """
     Return ``True`` if ``x`` a valid hexadecimal color string without
     the leading hash; otherwise return ``False``.
@@ -130,7 +132,7 @@ def valid_color(x):
         return False
 
 
-def check_for_required_columns(problems, table, df):
+def check_for_required_columns(problems: List, table: str, df: DataFrame):
     """
     Check that the given GTFS table has the required columns.
 
@@ -174,7 +176,7 @@ def check_for_required_columns(problems, table, df):
     return problems
 
 
-def check_for_invalid_columns(problems, table, df):
+def check_for_invalid_columns(problems: List, table: str, df: DataFrame):
     """
     Check for invalid columns in the given GTFS DataFrame.
 
@@ -218,7 +220,14 @@ def check_for_invalid_columns(problems, table, df):
     return problems
 
 
-def check_table(problems, table, df, condition, message, type_="error"):
+def check_table(
+    problems: List,
+    table: str,
+    df: DataFrame,
+    condition,
+    message: str,
+    type_: str = "error",
+):
     """
     Check the given GTFS table for the given problem condition.
 
@@ -267,14 +276,14 @@ def check_table(problems, table, df, condition, message, type_="error"):
 
 
 def check_column(
-    problems,
-    table,
-    df,
-    column,
+    problems: List,
+    table: str,
+    df: DataFrame,
+    column: str,
     checker,
-    type_="error",
+    type_: str = "error",
     *,
-    column_required=True,
+    column_required: bool = True,
 ):
     """
     Check the given column of the given GTFS with the given problem
@@ -343,7 +352,14 @@ def check_column(
     return problems
 
 
-def check_column_id(problems, table, df, column, *, column_required=True):
+def check_column_id(
+    problems: List,
+    table: str,
+    df: DataFrame,
+    column: str,
+    *,
+    column_required: bool = True,
+):
     """
     A specialization of :func:`check_column`.
 
@@ -408,14 +424,14 @@ def check_column_id(problems, table, df, column, *, column_required=True):
 
 
 def check_column_linked_id(
-    problems,
-    table,
-    df,
-    column,
-    target_df,
-    target_column=None,
+    problems: List,
+    table: str,
+    df: DataFrame,
+    column: str,
+    target_df: DataFrame,
+    target_column: Optional[str] = None,
     *,
-    column_required=True,
+    column_required: bool = True,
 ):
     """
     A modified version of :func:`check_column_id`.
@@ -490,7 +506,7 @@ def check_column_linked_id(
     return problems
 
 
-def format_problems(problems, *, as_df=False):
+def format_problems(problems: List, *, as_df: bool = False):
     """
     Format the given problems list as a DataFrame.
 
@@ -526,7 +542,9 @@ def format_problems(problems, *, as_df=False):
     return problems
 
 
-def check_agency(feed, *, as_df=False, include_warnings=False):
+def check_agency(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Check that ``feed.agency`` follows the GTFS.
     Return a list of problems of the form described in
@@ -587,7 +605,9 @@ def check_agency(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_calendar(feed, *, as_df=False, include_warnings=False):
+def check_calendar(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.calendar``.
     """
@@ -638,7 +658,9 @@ def check_calendar(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_calendar_dates(feed, *, as_df=False, include_warnings=False):
+def check_calendar_dates(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.calendar_dates``.
     """
@@ -676,7 +698,9 @@ def check_calendar_dates(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_fare_attributes(feed, *, as_df=False, include_warnings=False):
+def check_fare_attributes(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.calendar_dates``.
     """
@@ -720,7 +744,9 @@ def check_fare_attributes(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_fare_rules(feed, *, as_df=False, include_warnings=False):
+def check_fare_rules(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.calendar_dates``.
     """
@@ -764,7 +790,9 @@ def check_fare_rules(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_feed_info(feed, *, as_df=False, include_warnings=False):
+def check_feed_info(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.feed_info``.
     """
@@ -823,7 +851,9 @@ def check_feed_info(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_frequencies(feed, *, as_df=False, include_warnings=False):
+def check_frequencies(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.frequencies``.
     """
@@ -890,7 +920,9 @@ def check_frequencies(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_routes(feed, *, as_df=False, include_warnings=False):
+def check_routes(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.routes``.
     """
@@ -982,7 +1014,9 @@ def check_routes(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_shapes(feed, *, as_df=False, include_warnings=False):
+def check_shapes(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.shapes``.
     """
@@ -1049,7 +1083,9 @@ def check_shapes(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_stops(feed, *, as_df=False, include_warnings=False):
+def check_stops(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.stops``.
     """
@@ -1161,7 +1197,9 @@ def check_stops(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_stop_times(feed, *, as_df=False, include_warnings=False):
+def check_stop_times(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.stop_times``.
     """
@@ -1296,7 +1334,9 @@ def check_stop_times(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_transfers(feed, *, as_df=False, include_warnings=False):
+def check_transfers(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.transfers``.
     """
@@ -1336,7 +1376,9 @@ def check_transfers(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def check_trips(feed, *, as_df=False, include_warnings=False):
+def check_trips(
+    feed: "Feed", *, as_df: bool = False, include_warnings: bool = False
+):
     """
     Analog of :func:`check_agency` for ``feed.trips``.
     """
@@ -1406,7 +1448,9 @@ def check_trips(feed, *, as_df=False, include_warnings=False):
     return format_problems(problems, as_df=as_df)
 
 
-def validate(feed, *, as_df=True, include_warnings=True):
+def validate(
+    feed: "Feed", *, as_df: bool = True, include_warnings: bool = True
+):
     """
     Check whether the given feed satisfies the GTFS.
 
