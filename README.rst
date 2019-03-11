@@ -43,7 +43,8 @@ Changes
 9.4.0, 2019-??-??
 -----------------
 - Added ``stops.map_stops``.
-- Replaced library ``json2html`` with ``json2table``
+- Replaced library ``json2html`` with ``json2table``.
+- Switched to using f-strings.
 
 
 9.3.5, 2019-02-26
