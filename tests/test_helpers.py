@@ -10,7 +10,7 @@ from .context import gtfstk
 from gtfstk import *
 
 
-def test_time_to_seconds():
+def test_timestr_to_seconds():
     timestr1 = "01:01:01"
     seconds1 = 3600 + 60 + 1
     timestr2 = "25:01:01"
@@ -25,7 +25,7 @@ def test_time_to_seconds():
     assert np.isnan(timestr_to_seconds(timestr1, inverse=True))
 
 
-def test_time_mod24():
+def test_timestr_mod24():
     timestr1 = "01:01:01"
     assert timestr_mod24(timestr1) == timestr1
     timestr2 = "25:01:01"

@@ -50,7 +50,7 @@ def summarize(feed, table=None):
 
     if table is not None:
         if table not in gtfs_tables:
-            raise ValueError("{!s} is not a GTFS table".format(table))
+            raise ValueError(f"{table} is not a GTFS table")
         else:
             tables = [table]
     else:
@@ -546,10 +546,9 @@ def create_shapes(feed, *, all_trips=False):
             for trip, group in f.groupby("trip_id")
         )
     )
-    d = int(math.log10(len(stop_seqs))) + 1  # Digits for padding shape IDs
+    k = int(math.log10(len(stop_seqs))) + 1  # Digits for padding shape IDs
     shape_by_stop_seq = {
-        seq: "shape_{num:0{pad}d}".format(num=i, pad=d)
-        for i, seq in enumerate(stop_seqs)
+        seq: f"shape_{i:0{k}d}" for i, seq in enumerate(stop_seqs)
     }
 
     # Assign these new shape IDs to given trips

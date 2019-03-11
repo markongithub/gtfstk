@@ -55,7 +55,7 @@ def timestr_to_seconds(x, *, inverse=False, mod24=False):
                 seconds %= 24 * 3600
             hours, remainder = divmod(seconds, 3600)
             mins, secs = divmod(remainder, 60)
-            result = "{:02d}:{:02d}:{:02d}".format(hours, mins, secs)
+            result = f"{hours:02d}:{mins:02d}:{secs:02d}"
         except:
             result = np.nan
     return result
@@ -67,9 +67,9 @@ def timestr_mod24(timestr):
     format but with the hours taken modulo 24.
     """
     try:
-        hours, mins, seconds = [int(x) for x in timestr.split(":")]
+        hours, mins, secs = [int(x) for x in timestr.split(":")]
         hours %= 24
-        result = "{:02d}:{:02d}:{:02d}".format(hours, mins, seconds)
+        result = f"{hours:02d}:{mins:02d}:{secs:02d}"
     except:
         result = None
     return result
@@ -183,7 +183,7 @@ def get_convert_dist(dist_units_in, dist_units_out):
     di, do = dist_units_in, dist_units_out
     DU = cs.DIST_UNITS
     if not (di in DU and do in DU):
-        raise ValueError("Distance units must lie in {!s}".format(DU))
+        raise ValueError(f"Distance units must lie in {DU}")
 
     d = {
         "ft": {"ft": 1, "m": 0.3048, "mi": 1 / 5280, "km": 0.0003048},

@@ -169,9 +169,7 @@ def check_for_required_columns(problems, table, df):
     ].values
     for col in req_columns:
         if col not in df.columns:
-            problems.append(
-                ["error", "Missing column {!s}".format(col), table, []]
-            )
+            problems.append(["error", f"Missing column {col}", table, []])
 
     return problems
 
@@ -214,7 +212,7 @@ def check_for_invalid_columns(problems, table, df):
     for col in df.columns:
         if col not in valid_columns:
             problems.append(
-                ["warning", "Unrecognized column {!s}".format(col), table, []]
+                ["warning", f"Unrecognized column {col}", table, []]
             )
 
     return problems
@@ -338,7 +336,7 @@ def check_column(
         table,
         f,
         cond,
-        "Invalid {!s}; maybe has extra space characters".format(column),
+        f"Invalid {column}; maybe has extra space characters",
         type_,
     )
 
@@ -400,13 +398,11 @@ def check_column_id(problems, table, df, column, *, column_required=True):
         table,
         f,
         cond,
-        "Invalid {!s}; maybe has extra space characters".format(column),
+        f"Invalid {column}; maybe has extra space characters",
     )
 
     cond = f[column].duplicated()
-    problems = check_table(
-        problems, table, f, cond, "Repeated {!s}".format(column)
-    )
+    problems = check_table(problems, table, f, cond, f"Repeated {column}")
 
     return problems
 
@@ -489,9 +485,7 @@ def check_column_linked_id(
         g = g.dropna(subset=[target_column])
 
     cond = ~f[column].isin(g[target_column])
-    problems = check_table(
-        problems, table, f, cond, "Undefined {!s}".format(column)
-    )
+    problems = check_table(problems, table, f, cond, f"Undefined {column}")
 
     return problems
 
@@ -1019,7 +1013,7 @@ def check_shapes(feed, *, as_df=False, include_warnings=False):
             table,
             f,
             cond,
-            "{!s} out of bounds {!s}".format(column, [-bound, bound]),
+            f"{column} out of bounds {[-bound, bound]}",
         )
 
     # Check for duplicated (shape_id, shape_pt_sequence) pairs
@@ -1095,7 +1089,7 @@ def check_stops(feed, *, as_df=False, include_warnings=False):
             table,
             f,
             cond,
-            "{!s} out of bounds {!s}".format(column, [-bound, bound]),
+            f"{column} out of bounds {[-bound, bound]}",
         )
 
     # Check stop_url

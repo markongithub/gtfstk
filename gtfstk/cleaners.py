@@ -177,7 +177,7 @@ def aggregate_routes(feed, by="route_short_name", route_id_prefix="route_"):
 
     """
     if by not in feed.routes.columns:
-        raise ValueError("Column {!s} not in feed.routes".format(by))
+        raise ValueError(f"Column {by} not in feed.routes")
 
     feed = feed.copy()
 
@@ -188,7 +188,7 @@ def aggregate_routes(feed, by="route_short_name", route_id_prefix="route_"):
     nrid_by_orid = dict()
     i = 1
     for col, group in routes.groupby(by):
-        nrid = "route_{num:0{pad}d}".format(num=i, pad=k)
+        nrid = f"route_{i:0{k}d}"
         d = {orid: nrid for orid in group["route_id"].values}
         nrid_by_orid.update(d)
         i += 1
@@ -252,7 +252,7 @@ def drop_invalid_columns(feed):
         valid_columns = group["column"].values
         for col in f.columns:
             if col not in valid_columns:
-                print("{!s}: dropping invalid column {!s}".format(table, col))
+                print(f"{table}: dropping invalid column {col}")
                 del f[col]
         setattr(feed, table, f)
 

@@ -206,8 +206,8 @@ class Feed(object):
     def dist_units(self, val):
         if val not in cs.DIST_UNITS:
             raise ValueError(
-                "Distance units are required and "
-                "must lie in {!s}".format(cs.DIST_UNITS)
+                f"Distance units are required and "
+                f"must lie in {cs.DIST_UNITS}"
             )
         else:
             self._dist_units = val
@@ -282,10 +282,7 @@ class Feed(object):
         d["dist_units"] = self.dist_units
 
         return "\n".join(
-            [
-                "* {!s} --------------------\n\t{!s}".format(k, v)
-                for k, v in d.items()
-            ]
+            ["* {k} --------------------\n\t{v}" for k, v in d.items()]
         )
 
     def __eq__(self, other):
@@ -348,7 +345,7 @@ def list_gtfs(path):
     """
     path = Path(path)
     if not path.exists():
-        raise ValueError("Path {!s} does not exist".format(path))
+        raise ValueError(f"Path {path} does not exist")
 
     # Collect rows of DataFrame
     rows = []
@@ -388,7 +385,7 @@ def read_gtfs(path, dist_units=None):
     """
     path = Path(path)
     if not path.exists():
-        raise ValueError("Path {!s} does not exist".format(path))
+        raise ValueError(f"Path {path} does not exist")
 
     # Unzip path to temporary directory if necessary
     if path.is_file():
@@ -458,7 +455,7 @@ def write_gtfs(feed, path, ndigits=6):
         for s in f_int_cols:
             f[s] = f[s].fillna(-1).astype(int).astype(str).replace("-1", "")
         p = new_path / (table + ".txt")
-        f.to_csv(str(p), index=False, float_format="%.{!s}f".format(ndigits))
+        f.to_csv(str(p), index=False, float_format=f"%.{ndigits}f")
 
     # Zip directory
     if zipped:

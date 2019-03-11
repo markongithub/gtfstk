@@ -2,7 +2,6 @@
 Functions about routes.
 """
 from collections import OrderedDict
-import json
 
 import pandas as pd
 import numpy as np
