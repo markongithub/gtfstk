@@ -2,14 +2,21 @@
 Functions about stops.
 """
 from collections import Counter, OrderedDict
+from typing import Optional, List, Dict, TYPE_CHECKING
 
 import pandas as pd
+from pandas import DataFrame
 import numpy as np
 import utm
 import shapely.geometry as sg
+from shapely.geometry import Polygon
 
 from . import constants as cs
 from . import helpers as hp
+
+# Help mypy but avoid circular imports
+if TYPE_CHECKING:
+    from .feed import Feed
 
 
 #: Folium CircleMarker parameters for mapping stops
@@ -23,13 +30,13 @@ STOP_STYLE = {
 
 
 def compute_stop_stats_base(
-    stop_times_subset,
-    trip_subset,
-    headway_start_time="07:00:00",
-    headway_end_time="19:00:00",
+    stop_times_subset: DataFrame,
+    trip_subset: DataFrame,
+    headway_start_time: str = "07:00:00",
+    headway_end_time: str = "19:00:00",
     *,
-    split_directions=False,
-):
+    split_directions: bool = False,
+) -> DataFrame:
     """
     Given a subset of a stop times DataFrame and a subset of a trips
     DataFrame, return a DataFrame that provides summary stats about the
@@ -146,13 +153,13 @@ def compute_stop_stats_base(
 
 
 def compute_stop_time_series_base(
-    stop_times_subset,
-    trip_subset,
-    freq="5Min",
-    date_label="20010101",
+    stop_times_subset: DataFrame,
+    trip_subset: DataFrame,
+    freq: str = "5Min",
+    date_label: str = "20010101",
     *,
-    split_directions=False,
-):
+    split_directions: bool = False,
+) -> DataFrame:
     """
     Given a subset of a stop times DataFrame and a subset of a trips
     DataFrame, return a DataFrame that provides a summary time series
@@ -264,8 +271,13 @@ def compute_stop_time_series_base(
 
 
 def get_stops(
-    feed, date=None, trip_id=None, route_id=None, *, in_stations=False
-):
+    feed: "Feed",
+    date: Optional[str] = None,
+    trip_id: Optional[str] = None,
+    route_id: Optional[str] = None,
+    *,
+    in_stations: bool = False,
+) -> DataFrame:
     """
     Return a section of ``feed.stops``.
 
@@ -319,7 +331,12 @@ def get_stops(
     return s
 
 
-def build_geometry_by_stop(feed, stop_ids=None, *, use_utm=False):
+def build_geometry_by_stop(
+    feed: "Feed",
+    stop_ids: Optional[List[str]] = None,
+    *,
+    use_utm: bool = False,
+) -> Dict:
     """
     Return a dictionary with the structure
     stop_id -> Shapely Point with coordinates of the stop.
@@ -363,7 +380,7 @@ def build_geometry_by_stop(feed, stop_ids=None, *, use_utm=False):
     return d
 
 
-def compute_stop_activity(feed, dates):
+def compute_stop_activity(feed: "Feed", dates: List[str]) -> DataFrame:
     """
     Mark stops as active or inactive on the given dates.
     A stop is *active* on a given date if some trips that starts on the
@@ -418,14 +435,14 @@ def compute_stop_activity(feed, dates):
 
 
 def compute_stop_stats(
-    feed,
-    dates,
-    stop_ids=None,
-    headway_start_time="07:00:00",
-    headway_end_time="19:00:00",
+    feed: "Feed",
+    dates: List[str],
+    stop_ids: Optional[List[str]] = None,
+    headway_start_time: str = "07:00:00",
+    headway_end_time: str = "19:00:00",
     *,
-    split_directions=False,
-):
+    split_directions: bool = False,
+) -> DataFrame:
     """
     Compute stats for all stops for the given dates.
     Optionally, restrict to the stop IDs given.
@@ -560,8 +577,12 @@ def compute_stop_stats(
 
 
 def build_null_stop_time_series(
-    feed, date_label="20010101", freq="5Min", *, split_directions=False
-):
+    feed: "Feed",
+    date_label: str = "20010101",
+    freq: str = "5Min",
+    *,
+    split_directions: bool = False,
+) -> DataFrame:
     """
     Return a stop time series with the same index and hierarchical columns
     as output by :func:`compute_stop_time_series_base`,
@@ -585,8 +606,13 @@ def build_null_stop_time_series(
 
 
 def compute_stop_time_series(
-    feed, dates, stop_ids=None, freq="5Min", *, split_directions=False
-):
+    feed: "Feed",
+    dates: List[str],
+    stop_ids: Optional[List[str]] = None,
+    freq: str = "5Min",
+    *,
+    split_directions: bool = False,
+) -> DataFrame:
     """
     Compute time series for the stops on the given dates at the
     given frequency and return the result as a DataFrame of the same
@@ -707,7 +733,9 @@ def compute_stop_time_series(
     return f
 
 
-def build_stop_timetable(feed, stop_id, dates):
+def build_stop_timetable(
+    feed: "Feed", stop_id: str, dates: List[str]
+) -> DataFrame:
     """
     Return a DataFrame containing the timetable for the given stop ID
     and dates.
@@ -756,7 +784,9 @@ def build_stop_timetable(feed, stop_id, dates):
     return f.sort_values(["date", "departure_time"])
 
 
-def get_stops_in_polygon(feed, polygon, geo_stops=None):
+def get_stops_in_polygon(
+    feed: "Feed", polygon: Polygon, geo_stops=None
+) -> DataFrame:
     """
     Return the slice of ``feed.stops`` that contains all stops that lie
     within the given Shapely Polygon object that is specified in
@@ -797,7 +827,7 @@ def get_stops_in_polygon(feed, polygon, geo_stops=None):
     return ungeometrize_stops(f)
 
 
-def geometrize_stops(stops, *, use_utm=False):
+def geometrize_stops(stops: List[str], *, use_utm: bool = False) -> DataFrame:
     """
     Given a stops DataFrame, convert it to a GeoPandas GeoDataFrame
     and return the result.
@@ -842,7 +872,7 @@ def geometrize_stops(stops, *, use_utm=False):
     return g
 
 
-def ungeometrize_stops(geo_stops):
+def ungeometrize_stops(geo_stops: DataFrame) -> DataFrame:
     """
     The inverse of :func:`geometrize_stops`.
 
@@ -870,7 +900,9 @@ def ungeometrize_stops(geo_stops):
     return f
 
 
-def map_stops(feed, stop_ids, stop_style=STOP_STYLE):
+def map_stops(
+    feed: "Feed", stop_ids: List[str], stop_style: Dict = STOP_STYLE
+):
     """
     Return a Folium map showing the given stops.
 
