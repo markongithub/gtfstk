@@ -2,7 +2,7 @@
 Functions about routes.
 """
 from collections import OrderedDict
-from typing import Optional, List
+from typing import Optional, List, Dict, TYPE_CHECKING
 
 import pandas as pd
 from pandas import DataFrame
@@ -13,6 +13,10 @@ import shapely.ops as so
 from . import constants as cs
 from . import helpers as hp
 
+# Help mypy but avoid circular imports
+if TYPE_CHECKING:
+    from .feed import Feed
+
 
 def compute_route_stats_base(
     trip_stats_subset: DataFrame,
@@ -20,7 +24,7 @@ def compute_route_stats_base(
     headway_end_time: str = "19:00:00",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Compute stats for the given subset of trips stats.
 
@@ -259,7 +263,7 @@ def compute_route_time_series_base(
     freq: str = "5Min",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Compute stats in a 24-hour time series form for the given subset of trips.
 
@@ -448,7 +452,7 @@ def compute_route_time_series_base(
 
 def get_routes(
     feed: "Feed", date: Optional[str] = None, time: Optional[str] = None
-):
+) -> DataFrame:
     """
     Return a subset of ``feed.routes``
 
@@ -491,7 +495,7 @@ def compute_route_stats(
     headway_end_time: str = "19:00:00",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Compute route stats for all the trips that lie in the given subset
     of trip stats and that start on the given dates.
@@ -624,7 +628,7 @@ def build_null_route_time_series(
     freq: str = "5Min",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Return a route time series with the same index and hierarchical columns
     as output by :func:`compute_route_time_series_base`,
@@ -661,7 +665,7 @@ def compute_route_time_series(
     freq: str = "5Min",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Compute route stats in time series form for the trips that lie in
     the trip stats subset and that start on the given dates.
@@ -765,7 +769,9 @@ def compute_route_time_series(
     return f
 
 
-def build_route_timetable(feed: "Feed", route_id: str, dates: List[str]):
+def build_route_timetable(
+    feed: "Feed", route_id: str, dates: List[str]
+) -> DataFrame:
     """
     Return a timetable for the given route and dates.
 
@@ -832,7 +838,7 @@ def route_to_geojson(
     date: Optional[str] = None,
     *,
     include_stops: bool = False,
-):
+) -> Dict:
     """
     Return a GeoJSON rendering of the route and, optionally, its stops.
 

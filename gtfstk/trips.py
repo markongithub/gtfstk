@@ -3,9 +3,10 @@ Functions about trips.
 """
 from collections import OrderedDict
 import json
-from typing import Optional, List
+from typing import Optional, List, Dict, TYPE_CHECKING
 
 import pandas as pd
+from pandas import DataFrame
 import numpy as np
 import shapely.geometry as sg
 import shapely.ops as so
@@ -13,8 +14,12 @@ import shapely.ops as so
 from . import constants as cs
 from . import helpers as hp
 
+# Help mypy but avoid circular imports
+if TYPE_CHECKING:
+    from .feed import Feed
 
-def is_active_trip(feed: "Feed", trip_id: str, date: str):
+
+def is_active_trip(feed: "Feed", trip_id: str, date: str) -> bool:
     """
     Return ``True`` if the ``feed.calendar`` or ``feed.calendar_dates``
     says that the trip runs on the given date; return ``False``
@@ -80,7 +85,7 @@ def is_active_trip(feed: "Feed", trip_id: str, date: str):
 
 def get_trips(
     feed: "Feed", date: Optional[str] = None, time: Optional[str] = None
-):
+) -> DataFrame:
     """
     Return a subset of ``feed.trips``.
 
@@ -133,7 +138,7 @@ def get_trips(
     return f
 
 
-def compute_trip_activity(feed: "Feed", dates: List[str]):
+def compute_trip_activity(feed: "Feed", dates: List[str]) -> DataFrame:
     """
     Mark trip as active or inactive on the given dates as computed
     by :func:`is_active_trip`.
@@ -182,7 +187,7 @@ def compute_trip_activity(feed: "Feed", dates: List[str]):
     return f[["trip_id"] + list(dates)]
 
 
-def compute_busiest_date(feed: "Feed", dates: List[str]):
+def compute_busiest_date(feed: "Feed", dates: List[str]) -> str:
     """
     Given a list of dates, return the first date that has the
     maximum number of active trips.
@@ -204,7 +209,7 @@ def compute_trip_stats(
     route_ids: Optional[List[str]] = None,
     *,
     compute_dist_from_shapes: bool = False,
-):
+) -> DataFrame:
     """
     Return a DataFrame with the following columns:
 
@@ -385,7 +390,7 @@ def compute_trip_stats(
     return h.sort_values(["route_id", "direction_id", "start_time"])
 
 
-def locate_trips(feed: "Feed", date: str, times: List[str]):
+def locate_trips(feed: "Feed", date: str, times: List[str]) -> DataFrame:
     """
     Return the positions of all trips active on the
     given date and times
@@ -494,7 +499,7 @@ def locate_trips(feed: "Feed", date: str, times: List[str]):
 
 def trip_to_geojson(
     feed: "Feed", trip_id: str, *, include_stops: bool = False
-):
+) -> Dict:
     """
     Return a GeoJSON representation of the given trip, optionally with
     its stops.

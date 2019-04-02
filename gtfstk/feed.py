@@ -313,7 +313,7 @@ class Feed(object):
         # No failures
         return True
 
-    def copy(self):
+    def copy(self) -> "Feed":
         """
         Return a copy of this feed, that is, a feed with all the same
         attributes.
@@ -336,7 +336,7 @@ class Feed(object):
 # -------------------------------------
 # Functions about input and output
 # -------------------------------------
-def list_gtfs(path: Path):
+def list_gtfs(path: Path) -> DataFrame:
     """
     Given a path (string or Path object) to a GTFS zip file or
     directory, record the file names and file sizes of the contents,
@@ -372,7 +372,7 @@ def list_gtfs(path: Path):
     return pd.DataFrame(rows)
 
 
-def read_gtfs(path: Path, dist_units: str):
+def read_gtfs(path: Path, dist_units: str) -> "Feed":
     """
     Create a Feed instance from the given path and given distance units.
     The path should be a directory containing GTFS text files or a
@@ -421,7 +421,7 @@ def read_gtfs(path: Path, dist_units: str):
     return Feed(**feed_dict)
 
 
-def write_gtfs(feed: "Feed", path: Path, ndigits: int = 6):
+def write_gtfs(feed: "Feed", path: Path, ndigits: int = 6) -> None:
     """
     Export the given feed to the given path.
     If the path end in '.zip', then write the feed as a zip archive.

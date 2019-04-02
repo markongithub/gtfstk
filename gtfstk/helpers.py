@@ -2,7 +2,7 @@
 Functions useful across modules.
 """
 import datetime as dt
-from typing import Optional, Dict, List, Union
+from typing import Optional, Dict, List, Union, Callable
 
 import pandas as pd
 from pandas import DataFrame
@@ -16,11 +16,11 @@ from . import constants as cs
 
 
 def datestr_to_date(
-    x: Union[dt.Date, str],
+    x: Union[dt.date, str],
     format_str: str = "%Y%m%d",
     *,
     inverse: bool = False,
-):
+) -> Union[str, dt.date]:
     """
     Given a string ``x`` representing a date in the given format,
     convert it to a Datetime Date object and return the result.
@@ -37,8 +37,8 @@ def datestr_to_date(
 
 
 def timestr_to_seconds(
-    x: Union[dt.Date, str], *, inverse: bool = False, mod24: bool = False
-):
+    x: Union[dt.date, str], *, inverse: bool = False, mod24: bool = False
+) -> int:
     """
     Given an HH:MM:SS time string ``x``, return the number of seconds
     past midnight that it represents.
@@ -70,7 +70,7 @@ def timestr_to_seconds(
     return result
 
 
-def timestr_mod24(timestr: str):
+def timestr_mod24(timestr: str) -> int:
     """
     Given a GTFS HH:MM:SS time string, return a timestring in the same
     format but with the hours taken modulo 24.
@@ -84,7 +84,9 @@ def timestr_mod24(timestr: str):
     return result
 
 
-def weekday_to_str(weekday: Union[int, str], *, inverse: bool = False):
+def weekday_to_str(
+    weekday: Union[int, str], *, inverse: bool = False
+) -> Union[int, str]:
     """
     Given a weekday number (integer in the range 0, 1, ..., 6),
     return its corresponding weekday name as a lowercase string.
@@ -114,7 +116,7 @@ def weekday_to_str(weekday: Union[int, str], *, inverse: bool = False):
 
 def get_segment_length(
     linestring: LineString, p: Point, q: Optional[Point] = None
-):
+) -> float:
     """
     Given a Shapely linestring and two Shapely points,
     project the points onto the linestring, and return the distance
@@ -133,7 +135,7 @@ def get_segment_length(
     return d
 
 
-def get_max_runs(x):
+def get_max_runs(x) -> np.array:
     """
     Given a list of numbers, return a NumPy array of pairs
     (start index, end index + 1) of the runs of max value.
@@ -164,7 +166,7 @@ def get_max_runs(x):
     # return run_starts[idx], run_ends[idx]
 
 
-def get_peak_indices(times: List, counts: List):
+def get_peak_indices(times: List, counts: List) -> np.array:
     """
     Given an increasing list of times as seconds past midnight and a
     list of trip counts at those respective times,
@@ -182,7 +184,9 @@ def get_peak_indices(times: List, counts: List):
     return max_runs[index]
 
 
-def get_convert_dist(dist_units_in: str, dist_units_out: str):
+def get_convert_dist(
+    dist_units_in: str, dist_units_out: str
+) -> Callable[[float], float]:
     """
     Return a function of the form
 
@@ -205,7 +209,7 @@ def get_convert_dist(dist_units_in: str, dist_units_out: str):
     return lambda x: d[di][do] * x
 
 
-def almost_equal(f: DataFrame, g: DataFrame):
+def almost_equal(f: DataFrame, g: DataFrame) -> bool:
     """
     Return ``True`` if and only if the given DataFrames are equal after
     sorting their columns names, sorting their values, and
@@ -228,7 +232,7 @@ def almost_equal(f: DataFrame, g: DataFrame):
         return F.equals(G)
 
 
-def is_not_null(df: DataFrame, col_name: str):
+def is_not_null(df: DataFrame, col_name: str) -> bool:
     """
     Return ``True`` if the given DataFrame has a column of the given
     name (string), and there exists at least one non-NaN value in that
@@ -244,7 +248,7 @@ def is_not_null(df: DataFrame, col_name: str):
         return False
 
 
-def get_utm_crs(lat: float, lon: float):
+def get_utm_crs(lat: float, lon: float) -> Dict:
     """
     Return a GeoPandas coordinate reference system (CRS) dictionary
     corresponding to the UTM projection appropriate to the given WGS84
@@ -263,7 +267,7 @@ def get_utm_crs(lat: float, lon: float):
     }
 
 
-def linestring_to_utm(linestring: LineString):
+def linestring_to_utm(linestring: LineString) -> LineString:
     """
     Given a Shapely LineString in WGS84 coordinates,
     convert it to the appropriate UTM coordinates.
@@ -273,7 +277,7 @@ def linestring_to_utm(linestring: LineString):
     return transform(proj, linestring)
 
 
-def get_active_trips_df(trip_times: DataFrame):
+def get_active_trips_df(trip_times: DataFrame) -> DataFrame:
     """
     Count the number of trips in ``trip_times`` that are active
     at any given time.
@@ -310,7 +314,7 @@ def get_active_trips_df(trip_times: DataFrame):
 
 def combine_time_series(
     time_series_dict: Dict, kind: str, *, split_directions: bool = False
-):
+) -> DataFrame:
     """
     Combine the many time series DataFrames in the given dictionary
     into one time series DataFrame with hierarchical columns.
@@ -375,7 +379,7 @@ def combine_time_series(
     return result
 
 
-def downsample(time_series: DataFrame, freq: str):
+def downsample(time_series: DataFrame, freq: str) -> DataFrame:
     """
     Downsample the given route, stop, or feed time series,
     (outputs of :func:`.routes.compute_route_time_series`,
@@ -436,7 +440,7 @@ def downsample(time_series: DataFrame, freq: str):
     return result
 
 
-def make_html(d: Dict):
+def make_html(d: Dict) -> str:
     """
     Convert the given dictionary into an HTML table (string) with
     two columns: keys of dictionary, values of dictionary.

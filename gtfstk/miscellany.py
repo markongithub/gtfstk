@@ -4,7 +4,7 @@ Functions about miscellany.
 from collections import OrderedDict
 import math
 import copy
-from typing import List, Optional
+from typing import List, Optional, Tuple, TYPE_CHECKING
 
 import pandas as pd
 from pandas import DataFrame
@@ -15,8 +15,12 @@ from shapely.geometry import Polygon, LineString
 from . import helpers as hp
 from . import constants as cs
 
+# Help mypy but avoid circular imports
+if TYPE_CHECKING:
+    from .feed import Feed
 
-def summarize(feed: "Feed", table: str = None):
+
+def summarize(feed: "Feed", table: str = None) -> DataFrame:
     """
     Return a DataFrame summarizing all GTFS tables in the given feed
     or in the given table if specified.
@@ -99,7 +103,7 @@ def summarize(feed: "Feed", table: str = None):
     return f
 
 
-def describe(feed: "Feed", sample_date: Optional[str] = None):
+def describe(feed: "Feed", sample_date: Optional[str] = None) -> DataFrame:
     """
     Return a DataFrame of various feed indicators and values,
     e.g. number of routes.
@@ -152,7 +156,7 @@ def describe(feed: "Feed", sample_date: Optional[str] = None):
     return f
 
 
-def assess_quality(feed: "Feed"):
+def assess_quality(feed: "Feed") -> DataFrame:
     """
     Return a DataFrame of various feed indicators and values,
     e.g. number of trips missing shapes.
@@ -251,11 +255,12 @@ def assess_quality(feed: "Feed"):
     return f
 
 
-def convert_dist(feed: "Feed", new_dist_units: str):
+def convert_dist(feed: "Feed", new_dist_units: str) -> "Feed":
     """
     Convert the distances recorded in the ``shape_dist_traveled``
     columns of the given Feed to the given distance units.
     New distance units must lie in :const:`.constants.DIST_UNITS`.
+    Return the resulting feed.
     """
     feed = feed.copy()
 
@@ -281,7 +286,9 @@ def convert_dist(feed: "Feed", new_dist_units: str):
     return feed
 
 
-def compute_feed_stats(feed: "Feed", trip_stats: DataFrame, dates: List[str]):
+def compute_feed_stats(
+    feed: "Feed", trip_stats: DataFrame, dates: List[str]
+) -> DataFrame:
     """
     Compute some feed stats for the given dates and trip stats.
 
@@ -432,7 +439,7 @@ def compute_feed_stats(feed: "Feed", trip_stats: DataFrame, dates: List[str]):
 
 def compute_feed_time_series(
     feed: "Feed", trip_stats: DataFrame, dates: List[str], freq: str = "5Min"
-):
+) -> DataFrame:
     """
     Compute some feed stats in time series form for the given dates
     and trip stats.
@@ -506,7 +513,7 @@ def compute_feed_time_series(
     return f.sort_index(axis=1)
 
 
-def create_shapes(feed: "Feed", *, all_trips: bool = False):
+def create_shapes(feed: "Feed", *, all_trips: bool = False) -> "Feed":
     """
     Given a feed, create a shape for every trip that is missing a
     shape ID.
@@ -591,7 +598,7 @@ def create_shapes(feed: "Feed", *, all_trips: bool = False):
     return feed
 
 
-def compute_bounds(feed: "Feed"):
+def compute_bounds(feed: "Feed") -> Tuple:
     """
     Return the tuple (min longitude, min latitude, max longitude,
     max latitude) where the longitudes and latitude vary across all
@@ -601,7 +608,7 @@ def compute_bounds(feed: "Feed"):
     return lons.min(), lats.min(), lons.max(), lats.max()
 
 
-def compute_convex_hull(feed: "Feed"):
+def compute_convex_hull(feed: "Feed") -> Polygon:
     """
     Return a Shapely Polygon representing the convex hull formed by
     the stops of the given Feed.
@@ -610,7 +617,9 @@ def compute_convex_hull(feed: "Feed"):
     return m.convex_hull
 
 
-def compute_center(feed: "Feed", num_busiest_stops: Optional[int] = None):
+def compute_center(
+    feed: "Feed", num_busiest_stops: Optional[int] = None
+) -> Tuple:
     """
     Return the centroid (WGS84 longitude-latitude pair) of the convex
     hull of the stops of the given Feed.
@@ -643,7 +652,7 @@ def compute_center(feed: "Feed", num_busiest_stops: Optional[int] = None):
     return lon, lat
 
 
-def restrict_to_dates(feed: "Feed", dates: List[str]):
+def restrict_to_dates(feed: "Feed", dates: List[str]) -> "Feed":
     """
     Build a new feed by restricting this one to only the stops,
     trips, shapes, etc. active on at least one of the given dates
@@ -724,7 +733,7 @@ def restrict_to_dates(feed: "Feed", dates: List[str]):
     return feed
 
 
-def restrict_to_routes(feed: "Feed", route_ids: List[str]):
+def restrict_to_routes(feed: "Feed", route_ids: List[str]) -> "Feed":
     """
     Build a new feed by restricting this one to only the stops,
     trips, shapes, etc. used by the routes with the given list of
@@ -796,7 +805,7 @@ def restrict_to_routes(feed: "Feed", route_ids: List[str]):
     return feed
 
 
-def restrict_to_polygon(feed: "Feed", polygon: Polygon):
+def restrict_to_polygon(feed: "Feed", polygon: Polygon) -> "Feed":
     """
     Build a new feed by restricting this one to only the trips
     that have at least one stop intersecting the given Shapely polygon,
@@ -884,7 +893,7 @@ def restrict_to_polygon(feed: "Feed", polygon: Polygon):
 
 def compute_screen_line_counts(
     feed: "Feed", linestring: LineString, dates: List[str], geo_shapes=None
-):
+) -> DataFrame:
     """
     Find all the Feed trips active on the given dates
     that intersect the given Shapely LineString (with WGS84

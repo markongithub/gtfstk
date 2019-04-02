@@ -2,7 +2,7 @@
 Functions about stops.
 """
 from collections import Counter, OrderedDict
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, TYPE_CHECKING
 
 import pandas as pd
 from pandas import DataFrame
@@ -13,6 +13,10 @@ from shapely.geometry import Polygon
 
 from . import constants as cs
 from . import helpers as hp
+
+# Help mypy but avoid circular imports
+if TYPE_CHECKING:
+    from .feed import Feed
 
 
 #: Folium CircleMarker parameters for mapping stops
@@ -32,7 +36,7 @@ def compute_stop_stats_base(
     headway_end_time: str = "19:00:00",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Given a subset of a stop times DataFrame and a subset of a trips
     DataFrame, return a DataFrame that provides summary stats about the
@@ -155,7 +159,7 @@ def compute_stop_time_series_base(
     date_label: str = "20010101",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Given a subset of a stop times DataFrame and a subset of a trips
     DataFrame, return a DataFrame that provides a summary time series
@@ -273,7 +277,7 @@ def get_stops(
     route_id: Optional[str] = None,
     *,
     in_stations: bool = False,
-):
+) -> DataFrame:
     """
     Return a section of ``feed.stops``.
 
@@ -332,7 +336,7 @@ def build_geometry_by_stop(
     stop_ids: Optional[List[str]] = None,
     *,
     use_utm: bool = False,
-):
+) -> Dict:
     """
     Return a dictionary with the structure
     stop_id -> Shapely Point with coordinates of the stop.
@@ -376,7 +380,7 @@ def build_geometry_by_stop(
     return d
 
 
-def compute_stop_activity(feed: "Feed", dates: List[str]):
+def compute_stop_activity(feed: "Feed", dates: List[str]) -> DataFrame:
     """
     Mark stops as active or inactive on the given dates.
     A stop is *active* on a given date if some trips that starts on the
@@ -438,7 +442,7 @@ def compute_stop_stats(
     headway_end_time: str = "19:00:00",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Compute stats for all stops for the given dates.
     Optionally, restrict to the stop IDs given.
@@ -578,7 +582,7 @@ def build_null_stop_time_series(
     freq: str = "5Min",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Return a stop time series with the same index and hierarchical columns
     as output by :func:`compute_stop_time_series_base`,
@@ -608,7 +612,7 @@ def compute_stop_time_series(
     freq: str = "5Min",
     *,
     split_directions: bool = False,
-):
+) -> DataFrame:
     """
     Compute time series for the stops on the given dates at the
     given frequency and return the result as a DataFrame of the same
@@ -729,7 +733,9 @@ def compute_stop_time_series(
     return f
 
 
-def build_stop_timetable(feed: "Feed", stop_id: str, dates: List[str]):
+def build_stop_timetable(
+    feed: "Feed", stop_id: str, dates: List[str]
+) -> DataFrame:
     """
     Return a DataFrame containing the timetable for the given stop ID
     and dates.
@@ -778,7 +784,9 @@ def build_stop_timetable(feed: "Feed", stop_id: str, dates: List[str]):
     return f.sort_values(["date", "departure_time"])
 
 
-def get_stops_in_polygon(feed: "Feed", polygon: Polygon, geo_stops=None):
+def get_stops_in_polygon(
+    feed: "Feed", polygon: Polygon, geo_stops=None
+) -> DataFrame:
     """
     Return the slice of ``feed.stops`` that contains all stops that lie
     within the given Shapely Polygon object that is specified in
@@ -819,7 +827,7 @@ def get_stops_in_polygon(feed: "Feed", polygon: Polygon, geo_stops=None):
     return ungeometrize_stops(f)
 
 
-def geometrize_stops(stops: List[str], *, use_utm: bool = False):
+def geometrize_stops(stops: List[str], *, use_utm: bool = False) -> DataFrame:
     """
     Given a stops DataFrame, convert it to a GeoPandas GeoDataFrame
     and return the result.
@@ -864,7 +872,7 @@ def geometrize_stops(stops: List[str], *, use_utm: bool = False):
     return g
 
 
-def ungeometrize_stops(geo_stops):
+def ungeometrize_stops(geo_stops: DataFrame) -> DataFrame:
     """
     The inverse of :func:`geometrize_stops`.
 
