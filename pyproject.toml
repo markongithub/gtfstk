@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gtfstk"
-version = "9.3.5"
+version = "9.4.0"
 description = "A Python 3.6+ library for analyzing GTFS feeds."
 authors = ["Alex Raichev <araichev@mrcagney.com>"]
 readme = "README.rst"
@@ -14,8 +14,8 @@ python = "^3.6"
 pandas = "^0.23.4"
 shapely = "^1.6"
 pycountry = "^18.5"
-json2html = "^1.2"
 utm = "^0.4.2"
+json2table = "^1.1"
 
 [tool.poetry.dev-dependencies]
 jupyter = "^1.0"
@@ -29,6 +29,7 @@ rtree = "^0.8.3"
 folium = "^0.7.0"
 matplotlib = "^3.0"
 plotnine = "^0.5.1"
+mypy = "^0.670.0"
 
 [tool.black]
 line-length = 79

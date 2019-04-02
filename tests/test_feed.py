@@ -90,14 +90,14 @@ def test_list_gtfs():
 def test_read_gtfs():
     # Bad path
     with pytest.raises(ValueError):
-        read_gtfs("bad_path!")
+        read_gtfs("bad_path!", dist_units="km")
 
     # Bad dist_units:
     with pytest.raises(ValueError):
         read_gtfs(DATA_DIR / "sample_gtfs.zip", dist_units="bingo")
 
     # Requires dist_units:
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         read_gtfs(path=DATA_DIR / "sample_gtfs.zip")
 
     # Success

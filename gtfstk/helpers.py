@@ -2,20 +2,27 @@
 Functions useful across modules.
 """
 import datetime as dt
-import html
+from typing import Optional, Dict, List, Union, Callable
 
 import pandas as pd
+from pandas import DataFrame
 import numpy as np
+from shapely.geometry import LineString, Point
 from shapely.ops import transform
 import utm
-from json2html import json2html as jh
+import json2table as j2t
 
 from . import constants as cs
 
 
-def datestr_to_date(x, format_str="%Y%m%d", *, inverse=False):
+def datestr_to_date(
+    x: Union[dt.date, str],
+    format_str: str = "%Y%m%d",
+    *,
+    inverse: bool = False,
+) -> Union[str, dt.date]:
     """
-    Given a string object ``x`` representing a date in the given format,
+    Given a string ``x`` representing a date in the given format,
     convert it to a Datetime Date object and return the result.
     If ``inverse``, then assume that ``x`` is a date object and return
     its corresponding string in the given format.
@@ -29,7 +36,9 @@ def datestr_to_date(x, format_str="%Y%m%d", *, inverse=False):
     return result
 
 
-def timestr_to_seconds(x, *, inverse=False, mod24=False):
+def timestr_to_seconds(
+    x: Union[dt.date, str], *, inverse: bool = False, mod24: bool = False
+) -> int:
     """
     Given an HH:MM:SS time string ``x``, return the number of seconds
     past midnight that it represents.
@@ -55,27 +64,29 @@ def timestr_to_seconds(x, *, inverse=False, mod24=False):
                 seconds %= 24 * 3600
             hours, remainder = divmod(seconds, 3600)
             mins, secs = divmod(remainder, 60)
-            result = "{:02d}:{:02d}:{:02d}".format(hours, mins, secs)
+            result = f"{hours:02d}:{mins:02d}:{secs:02d}"
         except:
             result = np.nan
     return result
 
 
-def timestr_mod24(timestr):
+def timestr_mod24(timestr: str) -> int:
     """
     Given a GTFS HH:MM:SS time string, return a timestring in the same
     format but with the hours taken modulo 24.
     """
     try:
-        hours, mins, seconds = [int(x) for x in timestr.split(":")]
+        hours, mins, secs = [int(x) for x in timestr.split(":")]
         hours %= 24
-        result = "{:02d}:{:02d}:{:02d}".format(hours, mins, seconds)
+        result = f"{hours:02d}:{mins:02d}:{secs:02d}"
     except:
         result = None
     return result
 
 
-def weekday_to_str(weekday, *, inverse=False):
+def weekday_to_str(
+    weekday: Union[int, str], *, inverse: bool = False
+) -> Union[int, str]:
     """
     Given a weekday number (integer in the range 0, 1, ..., 6),
     return its corresponding weekday name as a lowercase string.
@@ -103,7 +114,9 @@ def weekday_to_str(weekday, *, inverse=False):
             return
 
 
-def get_segment_length(linestring, p, q=None):
+def get_segment_length(
+    linestring: LineString, p: Point, q: Optional[Point] = None
+) -> float:
     """
     Given a Shapely linestring and two Shapely points,
     project the points onto the linestring, and return the distance
@@ -122,7 +135,7 @@ def get_segment_length(linestring, p, q=None):
     return d
 
 
-def get_max_runs(x):
+def get_max_runs(x) -> np.array:
     """
     Given a list of numbers, return a NumPy array of pairs
     (start index, end index + 1) of the runs of max value.
@@ -153,7 +166,7 @@ def get_max_runs(x):
     # return run_starts[idx], run_ends[idx]
 
 
-def get_peak_indices(times, counts):
+def get_peak_indices(times: List, counts: List) -> np.array:
     """
     Given an increasing list of times as seconds past midnight and a
     list of trip counts at those respective times,
@@ -171,7 +184,9 @@ def get_peak_indices(times, counts):
     return max_runs[index]
 
 
-def get_convert_dist(dist_units_in, dist_units_out):
+def get_convert_dist(
+    dist_units_in: str, dist_units_out: str
+) -> Callable[[float], float]:
     """
     Return a function of the form
 
@@ -183,7 +198,7 @@ def get_convert_dist(dist_units_in, dist_units_out):
     di, do = dist_units_in, dist_units_out
     DU = cs.DIST_UNITS
     if not (di in DU and do in DU):
-        raise ValueError("Distance units must lie in {!s}".format(DU))
+        raise ValueError(f"Distance units must lie in {DU}")
 
     d = {
         "ft": {"ft": 1, "m": 0.3048, "mi": 1 / 5280, "km": 0.0003048},
@@ -194,7 +209,7 @@ def get_convert_dist(dist_units_in, dist_units_out):
     return lambda x: d[di][do] * x
 
 
-def almost_equal(f, g):
+def almost_equal(f: DataFrame, g: DataFrame) -> bool:
     """
     Return ``True`` if and only if the given DataFrames are equal after
     sorting their columns names, sorting their values, and
@@ -217,21 +232,23 @@ def almost_equal(f, g):
         return F.equals(G)
 
 
-def is_not_null(data_frame, column_name):
+def is_not_null(df: DataFrame, col_name: str) -> bool:
     """
     Return ``True`` if the given DataFrame has a column of the given
     name (string), and there exists at least one non-NaN value in that
     column; return ``False`` otherwise.
     """
-    f = data_frame
-    c = column_name
-    if isinstance(f, pd.DataFrame) and c in f.columns and f[c].notnull().any():
+    if (
+        isinstance(df, pd.DataFrame)
+        and col_name in df.columns
+        and df[col_name].notnull().any()
+    ):
         return True
     else:
         return False
 
 
-def get_utm_crs(lat, lon):
+def get_utm_crs(lat: float, lon: float) -> Dict:
     """
     Return a GeoPandas coordinate reference system (CRS) dictionary
     corresponding to the UTM projection appropriate to the given WGS84
@@ -250,7 +267,7 @@ def get_utm_crs(lat, lon):
     }
 
 
-def linestring_to_utm(linestring):
+def linestring_to_utm(linestring: LineString) -> LineString:
     """
     Given a Shapely LineString in WGS84 coordinates,
     convert it to the appropriate UTM coordinates.
@@ -260,7 +277,7 @@ def linestring_to_utm(linestring):
     return transform(proj, linestring)
 
 
-def get_active_trips_df(trip_times):
+def get_active_trips_df(trip_times: DataFrame) -> DataFrame:
     """
     Count the number of trips in ``trip_times`` that are active
     at any given time.
@@ -295,7 +312,9 @@ def get_active_trips_df(trip_times):
     return active_trips
 
 
-def combine_time_series(time_series_dict, kind, *, split_directions=False):
+def combine_time_series(
+    time_series_dict: Dict, kind: str, *, split_directions: bool = False
+) -> DataFrame:
     """
     Combine the many time series DataFrames in the given dictionary
     into one time series DataFrame with hierarchical columns.
@@ -360,7 +379,7 @@ def combine_time_series(time_series_dict, kind, *, split_directions=False):
     return result
 
 
-def downsample(time_series, freq):
+def downsample(time_series: DataFrame, freq: str) -> DataFrame:
     """
     Downsample the given route, stop, or feed time series,
     (outputs of :func:`.routes.compute_route_time_series`,
@@ -421,21 +440,11 @@ def downsample(time_series, freq):
     return result
 
 
-def make_html(d):
+def make_html(d: Dict) -> str:
     """
     Convert the given dictionary into an HTML table (string) with
     two columns: keys of dictionary, values of dictionary.
     """
-    # Workaround to better HTML-escape some text, e.g. apostrophes;
-    # see https://github.com/softvar/json2html/issues/33
-    dd = {}
-    for k, v in d.items():
-        try:
-            vv = html.escape(v)
-        except AttributeError:
-            vv = v
-        dd[k] = vv
-
-    return jh.convert(
-        dd, table_attributes='class="table table-condensed table-hover"'
+    return j2t.convert(
+        d, table_attributes={"class": "table table-condensed table-hover"}
     )

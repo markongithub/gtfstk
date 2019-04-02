@@ -2,18 +2,23 @@
 Functions about calendar and calendar_dates.
 """
 import dateutil.relativedelta as rd
+from typing import List, TYPE_CHECKING
 
 from . import helpers as hp
 
+# Help mypy but avoid circular imports
+if TYPE_CHECKING:
+    from .feed import Feed
 
-def get_dates(feed, *, as_date_obj=False):
+
+def get_dates(feed: "Feed", *, as_date_obj: bool = False) -> List[str]:
     """
-    Return a list of dates for which the given Feed is valid, which
-    could be the empty list if the Feed has no calendar information.
+    Return a list of dates for which the given "Feed" is valid, which
+    could be the empty list if the "Feed" has no calendar information.
 
     Parameters
     ----------
-    feed : Feed
+    feed : "Feed"
     as_date_obj : boolean
         If ``True``, then return the dates as ``datetime.date`` objects;
         otherwise return them as strings
@@ -52,7 +57,7 @@ def get_dates(feed, *, as_date_obj=False):
     return result
 
 
-def get_first_week(feed, *, as_date_obj=False):
+def get_first_week(feed: "Feed", *, as_date_obj: bool = False) -> List[str]:
     """
     Return a list of date corresponding to the first Monday--Sunday
     week for which this feed is valid.
@@ -62,7 +67,7 @@ def get_first_week(feed, *, as_date_obj=False):
 
     Parameters
     ----------
-    feed : Feed
+    feed : "Feed"
     as_date_obj : boolean
         If ``True``, then return the dates as ``datetime.date`` objects;
         otherwise return them as strings
@@ -100,9 +105,9 @@ def get_first_week(feed, *, as_date_obj=False):
     return result
 
 
-def restrict_dates(feed, dates):
+def restrict_dates(feed: "Feed", dates: List[str]) -> List[str]:
     """
-    Given a Feed and a date (YYYYMMDD string) or list of dates,
+    Given a "Feed" and a date (YYYYMMDD string) or list of dates,
     coerce the date/dates into a list and drop the dates not in
     ``feed.get_dates()``, preserving the original order of ``dates``.
     Intended as a helper function.

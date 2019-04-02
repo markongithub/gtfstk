@@ -1,7 +1,10 @@
 """
 Functions about shapes.
 """
+from typing import Optional, List, Dict, TYPE_CHECKING
+
 import pandas as pd
+from pandas import DataFrame
 import numpy as np
 import utm
 import shapely.geometry as sg
@@ -9,8 +12,17 @@ import shapely.geometry as sg
 from . import constants as cs
 from . import helpers as hp
 
+# Help mypy but avoid circular imports
+if TYPE_CHECKING:
+    from .feed import Feed
 
-def build_geometry_by_shape(feed, shape_ids=None, *, use_utm=False):
+
+def build_geometry_by_shape(
+    feed: "Feed",
+    shape_ids: Optional[List[str]] = None,
+    *,
+    use_utm: bool = False,
+) -> Dict:
     """
     Return a dictionary with structure shape_id -> Shapely LineString
     of shape.
@@ -64,7 +76,9 @@ def build_geometry_by_shape(feed, shape_ids=None, *, use_utm=False):
     return d
 
 
-def shapes_to_geojson(feed, shape_ids=None):
+def shapes_to_geojson(
+    feed: "Feed", shape_ids: Optional[List[str]] = None
+) -> Dict:
     """
     Return a (decoded) GeoJSON FeatureCollection of LineString features
     representing ``feed.shapes``.
@@ -95,8 +109,8 @@ def shapes_to_geojson(feed, shape_ids=None):
 
 
 def get_shapes_intersecting_geometry(
-    feed, geometry, geo_shapes=None, *, geometrized=False
-):
+    feed: "Feed", geometry, geo_shapes=None, *, geometrized: bool = False
+) -> DataFrame:
     """
     Return the slice of ``feed.shapes`` that contains all shapes that
     intersect the given Shapely geometry, e.g. a Polygon or LineString.
@@ -141,7 +155,7 @@ def get_shapes_intersecting_geometry(
         return ungeometrize_shapes(f)
 
 
-def append_dist_to_shapes(feed):
+def append_dist_to_shapes(feed: "Feed") -> "Feed":
     """
     Calculate and append the optional ``shape_dist_traveled`` field in
     ``feed.shapes`` in terms of the distance units ``feed.dist_units``.
@@ -196,7 +210,9 @@ def append_dist_to_shapes(feed):
     return feed
 
 
-def geometrize_shapes(shapes, *, use_utm=False):
+def geometrize_shapes(
+    shapes: DataFrame, *, use_utm: bool = False
+) -> DataFrame:
     """
     Given a GTFS shapes DataFrame, convert it to a GeoPandas
     GeoDataFrame and return the result.
@@ -231,7 +247,7 @@ def geometrize_shapes(shapes, *, use_utm=False):
     return g
 
 
-def ungeometrize_shapes(geo_shapes):
+def ungeometrize_shapes(geo_shapes) -> DataFrame:
     """
     The inverse of :func:`geometrize_shapes`.
     Produces the columns:

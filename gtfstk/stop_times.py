@@ -1,13 +1,20 @@
 """
 Functions about stop times.
 """
+from typing import Optional, List, TYPE_CHECKING
+
 import pandas as pd
+from pandas import DataFrame
 import numpy as np
 
 from . import helpers as hp
 
+# Help mypy but avoid circular imports
+if TYPE_CHECKING:
+    from .feed import Feed
 
-def get_stop_times(feed, date=None):
+
+def get_stop_times(feed: "Feed", date: Optional[str] = None) -> DataFrame:
     """
     Return a subset of ``feed.stop_times``.
 
@@ -39,7 +46,7 @@ def get_stop_times(feed, date=None):
     return f[f["trip_id"].isin(g["trip_id"])]
 
 
-def append_dist_to_stop_times(feed, trip_stats):
+def append_dist_to_stop_times(feed: "Feed", trip_stats: DataFrame) -> "Feed":
     """
     Calculate and append the optional ``shape_dist_traveled`` field in
     ``feed.stop_times`` in terms of the distance units
@@ -155,7 +162,9 @@ def append_dist_to_stop_times(feed, trip_stats):
     return feed
 
 
-def get_start_and_end_times(feed, date=None):
+def get_start_and_end_times(
+    feed: "Feed", date: Optional[str] = None
+) -> List[str]:
     """
     Return the first departure time and last arrival time
     (HH:MM:SS time strings) listed in ``feed.stop_times``, respectively.

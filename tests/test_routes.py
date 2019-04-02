@@ -12,7 +12,7 @@ from .context import (
 from gtfstk import *
 
 if HAS_FOLIUM:
-    from folium import Map
+    import folium as fl
 
 
 @pytest.mark.slow
@@ -359,4 +359,4 @@ def test_map_routes():
     map0 = map_routes(feed, ["bingo"], date=date)
     map1 = map_routes(feed, rids, date=date, include_stops=True)
     for m in [map0, map1]:
-        assert isinstance(m, Map)
+        assert isinstance(m, fl.Map)
