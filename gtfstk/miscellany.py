@@ -590,7 +590,7 @@ def create_shapes(feed: "Feed", *, all_trips: bool = False) -> "Feed":
 
     if feed.shapes is not None and not all_trips:
         # Update feed shapes with new shapes
-        feed.shapes = pd.concat([feed.shapes, g])
+        feed.shapes = pd.concat([feed.shapes, g], sort=False)
     else:
         # Create all new shapes
         feed.shapes = g
