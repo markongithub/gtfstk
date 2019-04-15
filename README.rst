@@ -34,11 +34,16 @@ Notes
 - Development status is Alpha
 - This project uses semantic versioning
 - Thanks to `MRCagney <http://www.mrcagney.com/>`_ for donating to this project
-- Constructive feedback and code contributions welcome
+- Constructive feedback and code contributions welcome. Please issue pull requests into the ``develop`` branch and include tests.
 
 
 Changes
 =========
+
+9.5.0, 2019-04-16
+-----------------
+- Using `Pull request 11 <https://github.com/mrcagney/gtfstk/pull/11>`_, updated validators to accept pathways according to the lates GTFS.
+
 
 9.4.0, 2019-04-02
 -----------------
