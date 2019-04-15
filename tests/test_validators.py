@@ -407,8 +407,8 @@ def test_check_shapes():
     # Make a nonempty shapes table to check
     feed = sample.copy()
     rows = [
-        ["1100015", -16.743632, 145.668255, 10001, 1.2],
-        ["1100015", -16.743522, 145.668394, 10002, 1.3],
+        ["1100015", -16.743_632, 145.668_255, 10001, 1.2],
+        ["1100015", -16.743_522, 145.668_394, 10002, 1.3],
     ]
     columns = [
         "shape_id",
@@ -497,6 +497,29 @@ def test_check_stops():
     feed.stops["location_type"] = 0
     feed.stops["parent_station"] = feed.stops["stop_id"].iat[1]
     assert check_stops(feed)
+
+    feed = sample.copy()
+    # valid location type
+    feed.stops["location_type"] = 2
+    assert not check_stops(feed)
+    # requires a location
+    feed.stops["stop_lat"] = np.NaN
+    assert check_stops(feed)
+    # valid location_type, does not require location
+    feed.stops["location_type"] = 3
+    assert not check_stops(feed)
+    # valid location_type, does not require location
+    feed.stops["location_type"] = 4
+    assert not check_stops(feed)
+    # location type 4 requires a parent station
+    feed.stops["parent_station"] = np.NaN
+    assert check_stops(feed)
+    # valid parent station for location type 4
+    feed.stops["stop_lat"] = 0.0
+    feed.stops["parent_station"] = feed.stops["stop_id"].iat[1]
+    feed.stops["parent_station"].iat[1] = np.NaN
+    feed.stops["location_type"].iat[1] = 1
+    assert not check_stops(feed)
 
     feed = sample.copy()
     feed.stops["stop_id"].iat[0] = "Flippity flew"
