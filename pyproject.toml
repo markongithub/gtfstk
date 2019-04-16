@@ -11,7 +11,7 @@ exclude = ["tests", "docs"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-pandas = "^0.23.4"
+pandas = "^0.24"
 shapely = "^1.6"
 pycountry = "^18.5"
 utm = "^0.4.2"

@@ -40,6 +40,12 @@ Notes
 Changes
 =========
 
+9.6.0, 2019-
+-----------------
+- Added ``split_route_types`` flag to the function ``compute_feed_stats``.
+- Added function ``unstack_time_series``.
+
+
 9.5.0, 2019-04-16
 -----------------
 - Using `Pull request 11 <https://github.com/mrcagney/gtfstk/pull/11>`_, updated validators to accept pathways according to the lates GTFS.
