@@ -201,10 +201,10 @@ def get_convert_dist(
         raise ValueError(f"Distance units must lie in {DU}")
 
     d = {
-        "ft": {"ft": 1, "m": 0.3048, "mi": 1 / 5280, "km": 0.0003048},
+        "ft": {"ft": 1, "m": 0.3048, "mi": 1 / 5280, "km": 0.000_304_8},
         "m": {"ft": 1 / 0.3048, "m": 1, "mi": 1 / 1609.344, "km": 1 / 1000},
-        "mi": {"ft": 5280, "m": 1609.344, "mi": 1, "km": 1.609344},
-        "km": {"ft": 1 / 0.0003048, "m": 1000, "mi": 1 / 1.609344, "km": 1},
+        "mi": {"ft": 5280, "m": 1609.344, "mi": 1, "km": 1.609_344},
+        "km": {"ft": 1 / 0.000_304_8, "m": 1000, "mi": 1 / 1.609_344, "km": 1},
     }
     return lambda x: d[di][do] * x
 
@@ -436,6 +436,49 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
     # see http://pandas.pydata.org/pandas-docs/stable/advanced.html#sorting-a-multiindex
     result.columns.names = f.columns.names
     result = result.sort_index(axis=1, sort_remaining=True)
+
+    return result
+
+
+def unstack_time_series(time_series):
+    """
+    Given a route, stop, or feed time series of the form output by the functions,
+    :func:`compute_stop_time_series`, :func:`compute_route_time_series`, or
+    :func:`compute_feed_time_series`, respectively, unstack it to return a DataFrame
+    of with the columns:
+    
+    - ``"datetime"``
+    - ``"stop_id"``, ``"route_id"``, or no column in the respective cases
+    - ``"indicator"``: e.g. "num_trips"
+    - ``"value"``: value of the indicator for the datetime and possible id column
+    
+    """
+    if "stop_id" in time_series.columns.names:
+        id_col = "stop_id"
+    elif "route_id" in time_series.columns.names:
+        id_col = "route_id"
+    else:
+        id_col = None
+
+    if id_col:
+        # Route or stop time series
+        result = (
+            time_series.unstack()
+            .pipe(pd.DataFrame)
+            .reset_index()
+            .rename(columns={0: "value", "level_2": "datetime"})
+            # Reorder columns
+            .filter(["datetime", id_col, "indicator", "value"])
+            .sort_values(["datetime", id_col, "indicator"])
+        )
+    else:
+        # Feed time series
+        result = (
+            time_series.reset_index()
+            .rename(columns={"index": "datetime"})
+            .melt(id_vars=["datetime"], var_name="indicator")
+            .sort_values(["datetime", "indicator"])
+        )
 
     return result
 

@@ -6,7 +6,7 @@ from numpy.testing import assert_array_equal
 from pandas.testing import assert_series_equal
 import shapely.geometry as sg
 
-from .context import gtfstk
+from .context import gtfstk, cairns, cairns_dates, cairns_trip_stats
 from gtfstk import *
 
 
@@ -43,7 +43,7 @@ def test_get_convert_dist():
     di = "mi"
     do = "km"
     f = get_convert_dist(di, do)
-    assert f(1) == 1.609344
+    assert f(1) == 1.609_344
 
 
 def test_get_segment_length():
@@ -116,3 +116,19 @@ def test_get_active_trips_df():
     )
     get = get_active_trips_df(f)
     assert_series_equal(get, expect)
+
+
+def test_unstack_time_series():
+    dates = cairns_dates[:2]
+    sts = cairns.compute_stop_time_series(dates, freq="12H")
+    rts = cairns.compute_route_time_series(
+        cairns_trip_stats, dates, freq="12H"
+    )
+    fts = cairns.compute_feed_time_series(cairns_trip_stats, dates, freq="12H")
+    for id_col, ts in [("stop_id", sts), ("route_id", rts), (None, fts)]:
+        f = unstack_time_series(ts)
+        expect_cols = {"datetime", "indicator", "value"}
+        if id_col:
+            expect_cols.add(id_col)
+        assert set(f.columns) == expect_cols
+        assert f.shape[0] == ts.shape[0] * ts.shape[1]

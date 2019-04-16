@@ -287,8 +287,11 @@ def convert_dist(feed: "Feed", new_dist_units: str) -> "Feed":
 
 
 def compute_feed_stats(
-    feed: "Feed", trip_stats: DataFrame, dates: List[str],
-    *, split_route_types=False,
+    feed: "Feed",
+    trip_stats: DataFrame,
+    dates: List[str],
+    *,
+    split_route_types=False,
 ) -> DataFrame:
     """
     Compute some feed stats for the given dates and trip stats.
@@ -382,10 +385,10 @@ def compute_feed_stats(
         "service_duration",
         "service_speed",
     ]
+    null_stats = pd.DataFrame([[np.nan for c in cols]], columns=cols)
 
     if split_route_types:
-        cols = ["route_type"] + cols
-        null_stats = pd.DataFrame([[np.nan for c in cols]], columns=cols)
+        null_stats = null_stats.assign(route_type=np.nan)
         stats_list = []
         for date in dates:
             ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
@@ -421,19 +424,21 @@ def compute_feed_stats(
                     active_trips = hp.get_active_trips_df(
                         g[["start_time", "end_time"]]
                     )
-                    times, counts = active_trips.index.values, active_trips.values
+                    times, counts = (
+                        active_trips.index.values,
+                        active_trips.values,
+                    )
                     start, end = hp.get_peak_indices(times, counts)
                     d["peak_num_trips"] = counts[start]
                     d["peak_start_time"] = times[start]
                     d["peak_end_time"] = times[end]
-  
+
                     stats_list.append(pd.Series(d))
 
                 # Record stats
                 stats = pd.DataFrame(stats_list)
                 stats_and_dates_by_ids[ids] = [stats, [date]]
     else:
-        null_stats = pd.DataFrame([[np.nan for c in cols]], columns=cols)
         for date in dates:
             ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
             if ids in stats_and_dates_by_ids:
@@ -470,7 +475,7 @@ def compute_feed_stats(
                 d["peak_num_trips"] = counts[start]
                 d["peak_start_time"] = times[start]
                 d["peak_end_time"] = times[end]
-   
+
                 # Record stats
                 stats = pd.DataFrame(d, index=[0])
                 stats_and_dates_by_ids[ids] = [stats, [date]]
@@ -481,7 +486,11 @@ def compute_feed_stats(
         for date in dates_:
             s = stats.assign(date=date)
             frames.append(s)
-    f = pd.concat(frames, sort=False).sort_values("date").reset_index(drop=True)
+    f = (
+        pd.concat(frames, sort=False)
+        .sort_values("date")
+        .reset_index(drop=True)
+    )
 
     # Convert seconds back to timestrings
     times = ["peak_start_time", "peak_end_time"]
