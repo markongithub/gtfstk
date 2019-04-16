@@ -76,41 +76,46 @@ def test_compute_feed_stats():
     feed = cairns.copy()
     dates = cairns_dates + ["20010101"]
     trip_stats = cairns_trip_stats
-    f = compute_feed_stats(feed, trip_stats, dates)
-    # Should be a data frame
-    assert isinstance(f, pd.core.frame.DataFrame)
-    # Should have the correct dates
-    assert f.date.tolist() == cairns_dates
-    # Should contain the correct columns
-    expect_cols = {
-        "num_trips",
-        "num_trip_starts",
-        "num_trip_ends",
-        "num_routes",
-        "num_stops",
-        "peak_num_trips",
-        "peak_start_time",
-        "peak_end_time",
-        "service_duration",
-        "service_distance",
-        "service_speed",
-        "date",
-    }
-    assert set(f.columns) == expect_cols
+    feed.routes.route_type.iat[0] = 2  # Another route type besides 3
+    for split_route_types in [True, False]:
+        f = compute_feed_stats(feed, trip_stats, dates, split_route_types=split_route_types)
+        # Should be a data frame
+        assert isinstance(f, pd.core.frame.DataFrame)
+        # Should have the correct dates
+        assert f.date.tolist() == cairns_dates
+        # Should contain the correct columns
+        expect_cols = {
+            "num_trips",
+            "num_trip_starts",
+            "num_trip_ends",
+            "num_routes",
+            "num_stops",
+            "peak_num_trips",
+            "peak_start_time",
+            "peak_end_time",
+            "service_duration",
+            "service_distance",
+            "service_speed",
+            "date",
+        }
+        if split_route_types:
+            expect_cols.add("route_type")
 
-    # Empty dates should yield empty DataFrame
-    f = compute_feed_stats(feed, trip_stats, [])
-    assert f.empty
+        assert set(f.columns) == expect_cols
 
-    # No services should yield null stats
-    feed1 = feed.copy()
-    c = feed1.calendar
-    c["monday"] = 0
-    feed1.calendar = c
-    f = compute_feed_stats(feed1, trip_stats, dates[0])
-    assert set(f.columns) == expect_cols
-    assert f.date.iat[0] == dates[0]
-    assert pd.isnull(f.num_trips.iat[0])
+        # Empty dates should yield empty DataFrame
+        f = compute_feed_stats(feed, trip_stats, [], split_route_types=split_route_types)
+        assert f.empty
+
+        # No services should yield null stats
+        feed1 = feed.copy()
+        c = feed1.calendar
+        c["monday"] = 0
+        feed1.calendar = c
+        f = compute_feed_stats(feed1, trip_stats, dates[0], split_route_types=split_route_types)
+        assert set(f.columns) == expect_cols
+        assert f.date.iat[0] == dates[0]
+        assert pd.isnull(f.num_trips.iat[0])
 
 
 def test_compute_feed_time_series():
