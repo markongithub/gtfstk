@@ -245,7 +245,9 @@ def compute_route_stats_base(
         g = f.groupby("route_id").apply(compute_route_stats).reset_index()
 
     # Compute a few more stats
-    g["service_speed"] = g["service_distance"] / g["service_duration"]
+    g["service_speed"] = (
+        g["service_distance"] / g["service_duration"]
+    ).fillna(0)
     g["mean_trip_distance"] = g["service_distance"] / g["num_trips"]
     g["mean_trip_duration"] = g["service_duration"] / g["num_trips"]
 
@@ -415,8 +417,8 @@ def compute_route_time_series_base(
         else:
             bins_to_fill = bins[start:] + bins[:end]
 
-        # Bin trip
-        # Do num trip starts
+        # Bin trip.
+        # Do num trip starts.
         series_by_route_by_indicator["num_trip_starts"][route][start] += 1
         # Don't mark trip ends for trips that run past midnight;
         # allows for easy resampling of num_trips later
@@ -582,9 +584,7 @@ def compute_route_stats(
     ]
     if split_directions:
         cols.append("direction_id")
-    null_stats = pd.DataFrame(
-        OrderedDict([(c, np.nan) for c in cols]), index=[0]
-    )
+    zero_stats = pd.DataFrame(OrderedDict([(c, 0) for c in cols]), index=[0])
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
         if ids in stats_and_dates_by_ids:
@@ -592,7 +592,7 @@ def compute_route_stats(
             stats_and_dates_by_ids[ids][1].append(date)
         elif not ids:
             # Null stats
-            stats_and_dates_by_ids[ids] = [null_stats, [date]]
+            stats_and_dates_by_ids[ids] = [zero_stats, [date]]
         else:
             # Compute stats
             t = ts[ts["trip_id"].isin(ids)].copy()
@@ -622,7 +622,7 @@ def compute_route_stats(
     return f
 
 
-def build_null_route_time_series(
+def build_zero_route_time_series(
     feed: "Feed",
     date_label: str = "20010101",
     freq: str = "5Min",
@@ -632,7 +632,7 @@ def build_null_route_time_series(
     """
     Return a route time series with the same index and hierarchical columns
     as output by :func:`compute_route_time_series_base`,
-    but fill it full of null values.
+    but fill it full of zero values.
     """
     start = date_label
     end = pd.to_datetime(date_label + " 23:59:00")
@@ -653,9 +653,9 @@ def build_null_route_time_series(
         product = [inds, rids]
         names = ["indicator", "route_id"]
     cols = pd.MultiIndex.from_product(product, names=names)
-    return pd.DataFrame([], index=rng, columns=cols).sort_index(
-        axis=1, sort_remaining=True
-    )
+    return pd.DataFrame(
+        [[0 for c in cols]], index=rng, columns=cols
+    ).sort_index(axis="columns")
 
 
 def compute_route_time_series(
@@ -719,7 +719,7 @@ def compute_route_time_series(
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
     stats_and_dates_by_ids = {}
-    null_stats = build_null_route_time_series(
+    zero_stats = build_zero_route_time_series(
         feed, split_directions=split_directions, freq=freq
     )
     for date in dates:
@@ -729,7 +729,7 @@ def compute_route_time_series(
             stats_and_dates_by_ids[ids][1].append(date)
         elif not ids:
             # Null stats
-            stats_and_dates_by_ids[ids] = [null_stats, [date]]
+            stats_and_dates_by_ids[ids] = [zero_stats, [date]]
         else:
             # Compute stats
             t = ts[ts["trip_id"].isin(ids)].copy()
@@ -755,10 +755,10 @@ def compute_route_time_series(
             )
             frames.append(f)
 
-    f = pd.concat(frames).sort_index().sort_index(axis=1, sort_remaining=True)
+    f = pd.concat(frames).sort_index().sort_index(axis="columns")
 
     if len(dates) > 1:
-        # Insert missing dates and NaNs to complete series index
+        # Insert missing dates and zeros to complete series index
         end_datetime = pd.to_datetime(dates[-1] + " 23:59:59")
         new_index = pd.date_range(dates[0], end_datetime, freq=freq)
         f = f.reindex(new_index)
@@ -766,7 +766,7 @@ def compute_route_time_series(
         # Set frequency
         f.index.freq = pd.tseries.frequencies.to_offset(freq)
 
-    return f
+    return f.rename_axis("datetime", axis="index")
 
 
 def build_route_timetable(

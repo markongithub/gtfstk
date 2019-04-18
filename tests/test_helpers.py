@@ -132,3 +132,10 @@ def test_unstack_time_series():
             expect_cols.add(id_col)
         assert set(f.columns) == expect_cols
         assert f.shape[0] == ts.shape[0] * ts.shape[1]
+
+    fts = cairns.compute_feed_time_series(
+        cairns_trip_stats, dates, freq="12H", split_route_types=True
+    )
+    f = unstack_time_series(fts)
+    assert set(f.columns) == {"datetime", "route_type", "indicator", "value"}
+    assert f.shape[0] == fts.shape[0] * fts.shape[1]

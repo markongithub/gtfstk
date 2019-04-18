@@ -336,7 +336,7 @@ def compute_feed_stats(
         - ``'service_speed'``: service_distance/service_duration on the
           date
 
-        Dates with no trip activity will have null stats.
+        Dates with no trip activity will have null stats (all zeros).
         Exclude dates that lie outside of the Feed's date range.
         If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame.
@@ -385,7 +385,7 @@ def compute_feed_stats(
         "service_duration",
         "service_speed",
     ]
-    null_stats = pd.DataFrame([[np.nan for c in cols]], columns=cols)
+    null_stats = pd.DataFrame([[0 for c in cols]], columns=cols)
 
     if split_route_types:
         null_stats = null_stats.assign(route_type=np.nan)
@@ -416,9 +416,12 @@ def compute_feed_stats(
                     ].count()
                     d["service_distance"] = g.distance.sum()
                     d["service_duration"] = g.duration.sum()
-                    d["service_speed"] = (
-                        d["service_distance"] / d["service_duration"]
-                    )
+                    if d["service_distance"]:
+                        d["service_speed"] = (
+                            d["service_distance"] / d["service_duration"]
+                        )
+                    else:
+                        d["service_speed"] = 0
 
                     # Compute peak stats, which is the slowest part
                     active_trips = hp.get_active_trips_df(
@@ -502,7 +505,12 @@ def compute_feed_stats(
 
 
 def compute_feed_time_series(
-    feed: "Feed", trip_stats: DataFrame, dates: List[str], freq: str = "5Min"
+    feed: "Feed",
+    trip_stats: DataFrame,
+    dates: List[str],
+    freq: str = "5Min",
+    *,
+    split_route_types: bool = False,
 ) -> DataFrame:
     """
     Compute some feed stats in time series form for the given dates
@@ -521,12 +529,14 @@ def compute_feed_time_series(
         Pandas frequency string specifying the frequency of the
         resulting time series, e.g. '5Min'; highest frequency allowable
         is one minute ('Min').
+    split_route_types: boolean
+        If True then split stats by route type; otherwise don't
 
     Returns
     -------
     DataFrame
-        A time series with a timestamp index across the given dates
-        sampled at the given frequency.
+        A time series with a datetime index across the given dates sampled
+        at the given frequency across the given dates.
         The maximum allowable frequency is 1 minute.
 
         The columns are
@@ -546,6 +556,15 @@ def compute_feed_time_series(
         Exclude dates that lie outside of the Feed's date range.
         If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame with the specified columns.
+
+        If ``split_route_types``, then multi-index the columns with
+
+        - top level: name is ``'indicator'``; values are
+          ``'num_trip_starts'``, ``'num_trip_ends'``, ``'num_trips'``,
+          ``'service_distance'``, ``'service_duration'``, and
+          ``'service_speed'``
+        - bottom level: name is ``'route_type'``; values are route type values
+
 
     Notes
     -----
@@ -567,14 +586,36 @@ def compute_feed_time_series(
         "num_trips",
         "service_distance",
         "service_duration",
-        "service_speed",
     ]
-    f = pd.concat(
-        [rts[col].sum(axis=1, min_count=1) for col in cols], axis=1, keys=cols
-    )
-    f["service_speed"] = f["service_distance"] / f["service_duration"]
 
-    return f.sort_index(axis=1)
+    if split_route_types:
+        f = (
+            hp.unstack_time_series(rts)
+            .merge(feed.routes.filter(["route_id", "route_type"]), how="left")
+            .groupby(["datetime", "indicator", "route_type"])
+            .agg({"value": lambda x: x.sum(skipna=False)})  # Preserve NaNs
+            .reset_index("datetime")
+            .pivot_table(
+                index=["datetime"], columns=["indicator", "route_type"]
+            )
+            .value
+        )
+    else:
+        f = (
+            pd.concat(
+                [rts[col].sum(axis=1, min_count=1) for col in cols],
+                axis=1,
+                keys=cols,
+            )
+            .sort_index(axis="columns")
+            .rename_axis(index="datetime")
+        )
+        f.columns.name = "indicator"
+
+    # Calculate service speed
+    f["service_speed"] = (f.service_distance / f.service_duration).fillna(0)
+
+    return f
 
 
 def create_shapes(feed: "Feed", *, all_trips: bool = False) -> "Feed":

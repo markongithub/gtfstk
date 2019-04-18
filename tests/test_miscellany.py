@@ -78,7 +78,9 @@ def test_compute_feed_stats():
     trip_stats = cairns_trip_stats
     feed.routes.route_type.iat[0] = 2  # Another route type besides 3
     for split_route_types in [True, False]:
-        f = compute_feed_stats(feed, trip_stats, dates, split_route_types=split_route_types)
+        f = compute_feed_stats(
+            feed, trip_stats, dates, split_route_types=split_route_types
+        )
         # Should be a data frame
         assert isinstance(f, pd.core.frame.DataFrame)
         # Should have the correct dates
@@ -104,52 +106,58 @@ def test_compute_feed_stats():
         assert set(f.columns) == expect_cols
 
         # Empty dates should yield empty DataFrame
-        f = compute_feed_stats(feed, trip_stats, [], split_route_types=split_route_types)
+        f = compute_feed_stats(
+            feed, trip_stats, [], split_route_types=split_route_types
+        )
         assert f.empty
-
-        # No services should yield null stats
-        feed1 = feed.copy()
-        c = feed1.calendar
-        c["monday"] = 0
-        feed1.calendar = c
-        f = compute_feed_stats(feed1, trip_stats, dates[0], split_route_types=split_route_types)
-        assert set(f.columns) == expect_cols
-        assert f.date.iat[0] == dates[0]
-        assert pd.isnull(f.num_trips.iat[0])
 
 
 def test_compute_feed_time_series():
     feed = cairns.copy()
+    feed.routes.route_type.iat[0] = 2  # Add another route type
     dates = cairns_dates + ["20010101"]
     trip_stats = cairns_trip_stats
-    f = compute_feed_time_series(feed, trip_stats, dates, freq="1H")
-    # Should be a data frame
-    assert isinstance(f, pd.core.frame.DataFrame)
-    # Should have the correct number of rows
-    assert f.shape[0] == 24 * 2
-    # Should have the correct columns
-    expect_cols = {
-        "num_trip_starts",
-        "num_trip_ends",
-        "num_trips",
-        "service_distance",
-        "service_duration",
-        "service_speed",
-    }
-    assert set(f.columns) == expect_cols
 
-    # Empty check
-    f = compute_feed_time_series(feed, trip_stats, [])
-    assert f.empty
+    for split_route_types in [True, False]:
+        f = compute_feed_time_series(
+            feed,
+            trip_stats,
+            dates,
+            freq="1H",
+            split_route_types=split_route_types,
+        )
 
-    # No services should yield null stats
-    feed1 = feed.copy()
-    c = feed1.calendar
-    c["monday"] = 0
-    feed1.calendar = c
-    f = compute_feed_time_series(feed1, trip_stats, dates[0])
-    assert set(f.columns) == expect_cols
-    assert pd.isnull(f.values).all()
+        # Should have correct column level names
+        if split_route_types:
+            assert set(f.columns.names) == {"indicator", "route_type"}
+        else:
+            assert set(f.columns.names) == {"indicator"}
+
+        # Should have the correct level 0 columns
+        expect_cols = {
+            "num_trip_starts",
+            "num_trip_ends",
+            "num_trips",
+            "service_distance",
+            "service_duration",
+            "service_speed",
+        }
+        if split_route_types:
+            assert set(f.columns.levels[0]) == expect_cols
+        else:
+            assert set(f.columns) == expect_cols
+
+        # Should have correct index names
+        assert f.index.name == "datetime"
+
+        # Should have the correct number of rows
+        assert f.shape[0] == 24 * 2
+
+        # Empty check
+        f = compute_feed_time_series(
+            feed, trip_stats, [], split_route_types=split_route_types
+        )
+        assert f.empty
 
 
 def test_create_shapes():

@@ -40,10 +40,13 @@ Notes
 Changes
 =========
 
-9.6.0, 2019-
+9.6.0, 2019-04-18
 -----------------
 - Added ``split_route_types`` flag to the function ``compute_feed_stats``.
-- Added function ``unstack_time_series``.
+- Added helper functions ``unstack_time_series`` and ``restack_time_series``.
+- Named time series axis ``"datetime"``.
+- Bugfixed Feed instance printing.
+- Replaced NaN service speeds in time series with zeros.
 
 
 9.5.0, 2019-04-16

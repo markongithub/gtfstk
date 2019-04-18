@@ -376,7 +376,7 @@ def combine_time_series(
         new_frames, axis=1, keys=list(time_series_dict.keys()), names=names
     )
 
-    return result
+    return result.rename_axis("datetime", axis="index")
 
 
 def downsample(time_series: DataFrame, freq: str) -> DataFrame:
@@ -393,7 +393,9 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
     f = time_series.copy()
 
     # Can't downsample to a shorter frequency
-    if f.empty or pd.tseries.frequencies.to_offset(freq) < f.index.freq:
+    if f.empty or pd.tseries.frequencies.to_offset(
+        freq
+    ) < pd.tseries.frequencies.to_offset(pd.infer_freq(f.index)):
         return f
 
     result = None
@@ -428,7 +430,7 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
         g = pd.concat(frames, axis=1, keys=inds)
 
         # Calculate speed and add it to f. Can't resample it.
-        speed = g["service_distance"] / g["service_duration"]
+        speed = (g.service_distance / g.service_duration).fillna(0)
         speed = pd.concat({"service_speed": speed}, axis=1)
         result = pd.concat([g, speed], axis=1)
 
@@ -440,47 +442,41 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
     return result
 
 
-def unstack_time_series(time_series):
+def unstack_time_series(time_series: DataFrame) -> DataFrame:
     """
     Given a route, stop, or feed time series of the form output by the functions,
     :func:`compute_stop_time_series`, :func:`compute_route_time_series`, or
     :func:`compute_feed_time_series`, respectively, unstack it to return a DataFrame
     of with the columns:
-    
+
     - ``"datetime"``
-    - ``"stop_id"``, ``"route_id"``, or no column in the respective cases
-    - ``"indicator"``: e.g. "num_trips"
-    - ``"value"``: value of the indicator for the datetime and possible id column
-    
+    - the columns ``time_series.columns.names``
+    - ``"value"``: value at the datetime and other columns
+
     """
-    if "stop_id" in time_series.columns.names:
-        id_col = "stop_id"
-    elif "route_id" in time_series.columns.names:
-        id_col = "route_id"
-    else:
-        id_col = None
+    col_names = time_series.columns.names
+    return (
+        time_series.unstack()
+        .pipe(pd.DataFrame)
+        .reset_index()
+        .rename(columns={0: "value", "level_2": "datetime"})
+        # Reorder columns
+        .filter(["datetime"] + col_names + ["value"])
+        .sort_values(["datetime"] + col_names)
+    )
 
-    if id_col:
-        # Route or stop time series
-        result = (
-            time_series.unstack()
-            .pipe(pd.DataFrame)
-            .reset_index()
-            .rename(columns={0: "value", "level_2": "datetime"})
-            # Reorder columns
-            .filter(["datetime", id_col, "indicator", "value"])
-            .sort_values(["datetime", id_col, "indicator"])
-        )
-    else:
-        # Feed time series
-        result = (
-            time_series.reset_index()
-            .rename(columns={"index": "datetime"})
-            .melt(id_vars=["datetime"], var_name="indicator")
-            .sort_values(["datetime", "indicator"])
-        )
 
-    return result
+def restack_time_series(unstacked_time_series: DataFrame) -> DataFrame:
+    """
+    Given an unstacked stop, route, or feed time series in the form
+    output by the function :func:`unstack_time_series`, restack it into
+    its origin time series form.
+    """
+    f = unstacked_time_series
+    columns = [c for c in f.columns if c not in ["datetime", "value"]]
+    return f.pivot_table(index="datetime", columns=columns).value.sort_index(
+        axis="columns"
+    )
 
 
 def make_html(d: Dict) -> str:
