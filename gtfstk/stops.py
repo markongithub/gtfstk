@@ -369,6 +369,8 @@ def build_geometry_by_stop(
     if stop_ids is not None:
         stops = stops[stops["stop_id"].isin(stop_ids)]
 
+    stops = stops[stops.stop_lat.notna() & stops.stop_lon.notna()]
+
     if use_utm:
         for stop, group in stops.groupby("stop_id"):
             lat, lon = group[["stop_lat", "stop_lon"]].values[0]
