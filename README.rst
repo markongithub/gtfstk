@@ -39,7 +39,6 @@ Notes
 
 Changes
 =========
-
 9.6.0, 2019-04-18
 -----------------
 - Added ``split_route_types`` flag to the function ``compute_feed_stats``.
@@ -47,6 +46,11 @@ Changes
 - Named time series axis ``"datetime"``.
 - Bugfixed Feed instance printing.
 - Replaced NaN service speeds in time series with zeros.
+
+
+9.5.1, 2019-04-29
+-----------------
+- Merged `Pull request 13 <https://github.com/mrcagney/gtfstk/pull/13>`_, to handle stops without geocoordinates.
 
 
 9.5.0, 2019-04-16
