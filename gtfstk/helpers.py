@@ -476,9 +476,28 @@ def restack_time_series(unstacked_time_series: DataFrame) -> DataFrame:
     """
     f = unstacked_time_series
     columns = [c for c in f.columns if c not in ["datetime", "value"]]
-    return f.pivot_table(index="datetime", columns=columns).value.sort_index(
+    g = f.pivot_table(index="datetime", columns=columns).value.sort_index(
         axis="columns"
     )
+
+    hours = (g.index[1] - g.index[0]).components.hours
+    if hours != 0:
+        freq = f"{hours}H"
+    else:
+        freq = "D"
+
+    num_dates = len(set(g.index.date))
+    if num_dates > 1:
+        # Insert missing dates and NaNs to complete series index
+        end_datetime = pd.to_datetime(
+            f"{g.index.date[-1]:%Y-%m-%d}" + " 23:59:59"
+        )
+        new_index = pd.date_range(
+            g.index[0], end_datetime, freq=freq, name="datetime"
+        )
+        g = g.reindex(new_index)
+
+    return g
 
 
 def make_html(d: Dict) -> str:
