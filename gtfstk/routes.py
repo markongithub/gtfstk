@@ -247,7 +247,7 @@ def compute_route_stats_base(
     # Compute a few more stats
     g["service_speed"] = (
         g["service_distance"] / g["service_duration"]
-    ).fillna(0)
+    ).fillna(g["service_distance"])
     g["mean_trip_distance"] = g["service_distance"] / g["num_trips"]
     g["mean_trip_duration"] = g["service_duration"] / g["num_trips"]
 

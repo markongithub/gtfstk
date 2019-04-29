@@ -430,7 +430,9 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
         g = pd.concat(frames, axis=1, keys=inds)
 
         # Calculate speed and add it to f. Can't resample it.
-        speed = (g.service_distance / g.service_duration).fillna(0)
+        speed = (g.service_distance / g.service_duration).fillna(
+            g.service_distance
+        )
         speed = pd.concat({"service_speed": speed}, axis=1)
         result = pd.concat([g, speed], axis=1)
 

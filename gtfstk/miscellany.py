@@ -600,6 +600,17 @@ def compute_feed_time_series(
             )
             .value
         )
+
+        num_dates = len(set(f.index.date))
+        if num_dates > 1:
+            # Insert missing dates and NaNs to complete series index
+            end_datetime = pd.to_datetime(
+                f"{f.index.date[-1]:%Y-%m-%d}" + " 23:59:59"
+            )
+            new_index = pd.date_range(
+                f.index[0], end_datetime, freq=freq, name="datetime"
+            )
+            f = f.reindex(new_index)
     else:
         f = (
             pd.concat(
@@ -613,7 +624,9 @@ def compute_feed_time_series(
         f.columns.name = "indicator"
 
     # Calculate service speed
-    f["service_speed"] = (f.service_distance / f.service_duration).fillna(0)
+    f["service_speed"] = (f.service_distance / f.service_duration).fillna(
+        f.service_distance
+    )
 
     return f
 
