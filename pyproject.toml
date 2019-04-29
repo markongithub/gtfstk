@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gtfstk"
-version = "9.5.0"
+version = "9.5.1"
 description = "A Python 3.6+ library for analyzing GTFS feeds."
 authors = ["Alex Raichev <araichev@mrcagney.com>"]
 readme = "README.rst"
@@ -22,7 +22,7 @@ jupyter = "^1.0"
 pytest = "^4.0"
 sphinx = "^1.8"
 pre-commit = "^1.12"
-black = "=18.9b0"
+black = "=19.3b0"
 publish_sphinx_docs = "^1.0"
 geopandas = "^0.4.0"
 rtree = "^0.8.3"
