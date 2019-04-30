@@ -480,15 +480,19 @@ def restack_time_series(unstacked_time_series: DataFrame) -> DataFrame:
         axis="columns"
     )
 
-    hours = (g.index[1] - g.index[0]).components.hours
-    if hours != 0:
-        freq = f"{hours}H"
+    # Get time series frequency
+    if g.index.size > 1:
+        hours = (g.index[1] - g.index[0]).components.hours
+        if hours != 0:
+            freq = f"{hours}H"
+        else:
+            freq = "D"
     else:
         freq = "D"
 
+    # If necessary, insert missing dates and NaNs to complete series index
     num_dates = len(set(g.index.date))
     if num_dates > 1:
-        # Insert missing dates and NaNs to complete series index
         end_datetime = pd.to_datetime(
             f"{g.index.date[-1]:%Y-%m-%d}" + " 23:59:59"
         )
@@ -496,6 +500,8 @@ def restack_time_series(unstacked_time_series: DataFrame) -> DataFrame:
             g.index[0], end_datetime, freq=freq, name="datetime"
         )
         g = g.reindex(new_index)
+
+    g.index.freq = freq
 
     return g
 

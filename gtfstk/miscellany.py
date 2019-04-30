@@ -594,23 +594,29 @@ def compute_feed_time_series(
             .merge(feed.routes.filter(["route_id", "route_type"]), how="left")
             .groupby(["datetime", "indicator", "route_type"])
             .agg({"value": lambda x: x.sum(skipna=False)})  # Preserve NaNs
-            .reset_index("datetime")
-            .pivot_table(
-                index=["datetime"], columns=["indicator", "route_type"]
-            )
-            .value
+            .reset_index()
+            .pipe(hp.restack_time_series)
+            # .reset_index("datetime")
+            # .pivot_table(
+            #     index=["datetime"], columns=["indicator", "route_type"]
+            # )
+            # .value
         )
 
-        num_dates = len(set(f.index.date))
-        if num_dates > 1:
-            # Insert missing dates and NaNs to complete series index
-            end_datetime = pd.to_datetime(
-                f"{f.index.date[-1]:%Y-%m-%d}" + " 23:59:59"
-            )
-            new_index = pd.date_range(
-                f.index[0], end_datetime, freq=freq, name="datetime"
-            )
-            f = f.reindex(new_index)
+        # # Set time series frequency
+        # f.index.freq = freq
+
+        # # If necessary, insert missing dates and NaNs to complete series index
+        # num_dates = len(set(f.index.date))
+        # if num_dates > 1:
+        #     # Insert missing dates and NaNs to complete series index
+        #     end_datetime = pd.to_datetime(
+        #         f"{f.index.date[-1]:%Y-%m-%d}" + " 23:59:59"
+        #     )
+        #     new_index = pd.date_range(
+        #         f.index[0], end_datetime, name="datetime", freq=freq
+        #     )
+        #     f = f.reindex(new_index)
     else:
         f = (
             pd.concat(
@@ -622,6 +628,9 @@ def compute_feed_time_series(
             .rename_axis(index="datetime")
         )
         f.columns.name = "indicator"
+
+        # Set time series frequency
+        f.index.freq = freq
 
     # Calculate service speed
     f["service_speed"] = (f.service_distance / f.service_duration).fillna(
