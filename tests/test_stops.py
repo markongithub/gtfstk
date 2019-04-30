@@ -258,7 +258,7 @@ def test_build_zero_stop_time_series():
 
 def test_compute_stop_time_series():
     feed = cairns.copy()
-    dates = cairns_dates + ["20010101"]
+    dates = cairns_dates + ["20010101"]  # Spans 3 valid dates
     n = 3
     sids = feed.stops.stop_id.loc[:n]
 
@@ -270,7 +270,7 @@ def test_compute_stop_time_series():
             feed,
             dates,
             stop_ids=sids,
-            freq="1H",
+            freq="12H",
             split_directions=split_directions,
         )
 
@@ -278,7 +278,7 @@ def test_compute_stop_time_series():
         assert isinstance(ts, pd.core.frame.DataFrame)
 
         # Should have the correct shape
-        assert ts.shape[0] == 24 * 2
+        assert ts.shape[0] == 3 * 2  # 3 dates at 12H freq
         assert ts.shape[1] == s.shape[0] / 2
 
         # Should have correct column names

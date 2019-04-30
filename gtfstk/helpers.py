@@ -472,7 +472,7 @@ def restack_time_series(unstacked_time_series: DataFrame) -> DataFrame:
     """
     Given an unstacked stop, route, or feed time series in the form
     output by the function :func:`unstack_time_series`, restack it into
-    its origin time series form.
+    its original time series form.
     """
     f = unstacked_time_series
     columns = [c for c in f.columns if c not in ["datetime", "value"]]

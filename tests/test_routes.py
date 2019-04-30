@@ -228,7 +228,7 @@ def test_build_zero_route_time_series():
 
 def test_compute_route_time_series():
     feed = cairns.copy()
-    dates = cairns_dates + ["20010101"]
+    dates = cairns_dates + ["20010101"]  # Spans 3 valid dates
     n = 3
     rids = feed.routes.route_id.loc[:n]
     trip_stats_subset = cairns_trip_stats.loc[
@@ -244,12 +244,12 @@ def test_compute_route_time_series():
             trip_stats_subset,
             dates,
             split_directions=split_directions,
-            freq="1H",
+            freq="12H",
         )
 
         # Should be a data frame of the correct shape
         assert isinstance(rts, pd.core.frame.DataFrame)
-        assert rts.shape[0] == 2 * 24
+        assert rts.shape[0] == 3 * 2  # 3-date span at 12H freq
         print(rts.columns)
         assert rts.shape[1] == 6 * rs.shape[0] / 2
 

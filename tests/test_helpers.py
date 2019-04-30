@@ -119,23 +119,26 @@ def test_get_active_trips_df():
 
 
 def test_unstack_time_series():
-    dates = cairns_dates[:2]
-    sts = cairns.compute_stop_time_series(dates, freq="12H")
-    rts = cairns.compute_route_time_series(
-        cairns_trip_stats, dates, freq="12H"
-    )
-    fts = cairns.compute_feed_time_series(cairns_trip_stats, dates, freq="12H")
-    for id_col, ts in [("stop_id", sts), ("route_id", rts), (None, fts)]:
-        f = unstack_time_series(ts)
-        expect_cols = {"datetime", "indicator", "value"}
-        if id_col:
-            expect_cols.add(id_col)
-        assert set(f.columns) == expect_cols
-        assert f.shape[0] == ts.shape[0] * ts.shape[1]
+    dates = cairns_dates
+    for split_directions in [True, False]:
+        f = cairns.compute_stop_time_series(
+            dates, freq="12H", split_directions=split_directions
+        )
+        g = unstack_time_series(f)
+        expect_cols = {"datetime", "indicator", "value", "stop_id"}
+        if split_directions:
+            expect_cols.add("direction_id")
 
-    fts = cairns.compute_feed_time_series(
-        cairns_trip_stats, dates, freq="12H", split_route_types=True
-    )
-    f = unstack_time_series(fts)
-    assert set(f.columns) == {"datetime", "route_type", "indicator", "value"}
-    assert f.shape[0] == fts.shape[0] * fts.shape[1]
+        assert set(g.columns) == expect_cols
+        assert g.shape[0] == f.shape[0] * f.shape[1]
+
+
+def test_restack_time_series():
+    dates = cairns_dates
+    for split_directions in [True, False]:
+        f = cairns.compute_stop_time_series(
+            dates, freq="12H", split_directions=split_directions
+        )
+        g = restack_time_series(unstack_time_series(f))
+        assert set(g.columns) == set(f.columns)
+        assert f.shape[0] == g.shape[0]

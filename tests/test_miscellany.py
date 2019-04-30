@@ -123,7 +123,7 @@ def test_compute_feed_time_series():
             feed,
             trip_stats,
             dates,
-            freq="1H",
+            freq="12H",
             split_route_types=split_route_types,
         )
 
@@ -150,8 +150,9 @@ def test_compute_feed_time_series():
         # Should have correct index names
         assert f.index.name == "datetime"
 
-        # Should have the correct number of rows
-        assert f.shape[0] == 24 * 2
+        # Should have the correct number of rows: 2 (for the 12H freq) times
+        # 3 (for the three-date span)
+        assert f.shape[0] == 2 * 3
 
         # Empty check
         f = compute_feed_time_series(
