@@ -52,12 +52,12 @@ Changes
 
 9.5.1, 2019-04-29
 -----------------
-- Merged `Pull request 13 <https://github.com/mrcagney/gtfstk/pull/13>`_, to handle stops without geocoordinates.
+- Merged `Pull request 13 <https://github.com/mrcagney/gtfstk/pull/13>`_ to handle stops without geocoordinates.
 
 
 9.5.0, 2019-04-16
 -----------------
-- Using `Pull request 11 <https://github.com/mrcagney/gtfstk/pull/11>`_, updated validators to accept pathways according to the lates GTFS.
+- Merged `Pull request 11 <https://github.com/mrcagney/gtfstk/pull/11>`_ to update validators to accept pathways according to the latest GTFS.
 
 
 9.4.0, 2019-04-02
