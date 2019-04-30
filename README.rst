@@ -40,7 +40,7 @@ Notes
 Changes
 =========
 
-9.6.0, 2019-04-30
+9.6.0, 2019-05-01
 -----------------
 - Added ``split_route_types`` flag to the functions ``compute_feed_stats`` and ``compute_feed_time_series``.
 - Added helper functions ``unstack_time_series`` and ``restack_time_series``.
