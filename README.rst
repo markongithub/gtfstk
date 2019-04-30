@@ -40,6 +40,16 @@ Notes
 Changes
 =========
 
+9.6.0, 2019-05-01
+-----------------
+- Added ``split_route_types`` flag to the functions ``compute_feed_stats`` and ``compute_feed_time_series``.
+- Added helper functions ``unstack_time_series`` and ``restack_time_series``.
+- Named time series axis ``"datetime"``.
+- Bugfixed Feed instance printing.
+- Replaced NaN service speeds in time series with service distance (0 or NaN).
+- Bugfixed function ``downsample`` to preserve all-NaN sections.
+
+
 9.5.1, 2019-04-29
 -----------------
 - Merged `Pull request 13 <https://github.com/mrcagney/gtfstk/pull/13>`_, to handle stops without geocoordinates.
@@ -47,7 +57,7 @@ Changes
 
 9.5.0, 2019-04-16
 -----------------
-- Using `Pull request 11 <https://github.com/mrcagney/gtfstk/pull/11>`_, updated validators to accept pathways according to the latest GTFS.
+- Using `Pull request 11 <https://github.com/mrcagney/gtfstk/pull/11>`_, updated validators to accept pathways according to the lates GTFS.
 
 
 9.4.0, 2019-04-02
