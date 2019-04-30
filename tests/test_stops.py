@@ -117,7 +117,7 @@ def test_compute_stop_time_series_base():
         assert sts.columns.names == expect
 
         # Each stop should have a correct total trip count
-        if split_directions == False:
+        if not split_directions:
             stg = feed.stop_times.groupby("stop_id")
             for stop in set(feed.stop_times["stop_id"].values):
                 get = sts["num_trips"][stop].sum()
@@ -235,20 +235,8 @@ def test_compute_stop_stats():
         f = compute_stop_stats(feed, [], split_directions=split_directions)
         assert f.empty
 
-        # No services should yield null stats
-        feed1 = feed.copy()
-        c = feed1.calendar
-        c["monday"] = 0
-        feed1.calendar = c
-        f = compute_stop_stats(
-            feed1, dates[0], stop_ids=sids, split_directions=split_directions
-        )
-        assert set(f.columns) == expect_cols
-        assert f.date.iat[0] == dates[0]
-        assert pd.isnull(f.stop_id.iat[0])
 
-
-def test_build_null_stop_time_series():
+def test_build_zero_stop_time_series():
     feed = cairns.copy()
     for split_directions in [True, False]:
         if split_directions:
@@ -258,19 +246,19 @@ def test_build_null_stop_time_series():
             expect_names = ["indicator", "stop_id"]
             expect_shape = (2, feed.stops.shape[0])
 
-        f = build_null_stop_time_series(
+        f = build_zero_stop_time_series(
             feed, split_directions=split_directions, freq="12H"
         )
 
         assert isinstance(f, pd.core.frame.DataFrame)
         assert f.shape == expect_shape
         assert f.columns.names == expect_names
-        assert pd.isnull(f.values).all()
+        assert not f.values.any()
 
 
 def test_compute_stop_time_series():
     feed = cairns.copy()
-    dates = cairns_dates + ["20010101"]
+    dates = cairns_dates + ["20010101"]  # Spans 3 valid dates
     n = 3
     sids = feed.stops.stop_id.loc[:n]
 
@@ -282,7 +270,7 @@ def test_compute_stop_time_series():
             feed,
             dates,
             stop_ids=sids,
-            freq="1H",
+            freq="12H",
             split_directions=split_directions,
         )
 
@@ -290,7 +278,7 @@ def test_compute_stop_time_series():
         assert isinstance(ts, pd.core.frame.DataFrame)
 
         # Should have the correct shape
-        assert ts.shape[0] == 24 * 2
+        assert ts.shape[0] == 3 * 2  # 3 dates at 12H freq
         assert ts.shape[1] == s.shape[0] / 2
 
         # Should have correct column names
@@ -299,6 +287,9 @@ def test_compute_stop_time_series():
         else:
             expect_names = ["indicator", "stop_id"]
         assert ts.columns.names == expect_names
+
+        # Should have correct index name
+        assert ts.index.name == "datetime"
 
         # Each stop should have a correct total trip count
         if split_directions == False:
@@ -315,17 +306,6 @@ def test_compute_stop_time_series():
             feed, [], split_directions=split_directions
         )
         assert ts.empty
-
-        # No services should yield null stats
-        feed1 = feed.copy()
-        c = feed1.calendar
-        c["monday"] = 0
-        feed1.calendar = c
-        ts = compute_stop_time_series(
-            feed1, dates[0], stop_ids=sids, split_directions=split_directions
-        )
-        assert ts.columns.names == expect_names
-        assert pd.isnull(ts.values).all()
 
 
 def test_build_stop_timetable():

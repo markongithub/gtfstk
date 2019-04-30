@@ -11,7 +11,7 @@ exclude = ["tests", "docs"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-pandas = "^0.23.4"
+pandas = "^0.24"
 shapely = "^1.6"
 pycountry = "^18.5"
 utm = "^0.4.2"
@@ -28,7 +28,6 @@ geopandas = "^0.4.0"
 rtree = "^0.8.3"
 folium = "^0.7.0"
 matplotlib = "^3.0"
-plotnine = "^0.5.1"
 mypy = "^0.670.0"
 
 [tool.black]

@@ -287,7 +287,11 @@ def convert_dist(feed: "Feed", new_dist_units: str) -> "Feed":
 
 
 def compute_feed_stats(
-    feed: "Feed", trip_stats: DataFrame, dates: List[str]
+    feed: "Feed",
+    trip_stats: DataFrame,
+    dates: List[str],
+    *,
+    split_route_types=False,
 ) -> DataFrame:
     """
     Compute some feed stats for the given dates and trip stats.
@@ -301,6 +305,8 @@ def compute_feed_stats(
     dates : string or list
         A YYYYMMDD date string or list thereof indicating the date(s)
         for which to compute stats
+    split_route_types: boolean
+        If True then split stats by route type; otherwise don't
 
     Returns
     -------
@@ -308,6 +314,7 @@ def compute_feed_stats(
         The columns are
 
         - ``'date'``
+        - ``'route_type'`` (optional): presest if and only if ``split_route_types``
         - ``'num_stops'``: number of stops active on the date
         - ``'num_routes'``: number of routes active on the date
         - ``'num_trips'``: number of trips that start on the date
@@ -329,7 +336,7 @@ def compute_feed_stats(
         - ``'service_speed'``: service_distance/service_duration on the
           date
 
-        Dates with no trip activity will have null stats.
+        Dates with no trip activity will have null stats (all zeros).
         Exclude dates that lie outside of the Feed's date range.
         If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame.
@@ -378,55 +385,115 @@ def compute_feed_stats(
         "service_duration",
         "service_speed",
     ]
-    null_stats = {c: np.nan for c in cols}
-    for date in dates:
-        stats = {}
-        ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
-        if ids in stats_and_dates_by_ids:
-            # Append date to date list
-            stats_and_dates_by_ids[ids][1].append(date)
-        elif not ids:
-            # Null stats
-            stats_and_dates_by_ids[ids] = [null_stats, [date]]
-        else:
-            # Compute stats
-            f = ts[ts["trip_id"].isin(ids)].copy()
-            stats["num_stops"] = stop_times.loc[
-                stop_times["trip_id"].isin(ids), "stop_id"
-            ].nunique()
-            stats["num_routes"] = f["route_id"].nunique()
-            stats["num_trips"] = f.shape[0]
-            stats["num_trip_starts"] = f["start_time"].count()
-            stats["num_trip_ends"] = f.loc[
-                f["end_time"] < 24 * 3600, "end_time"
-            ].count()
-            stats["service_distance"] = f["distance"].sum()
-            stats["service_duration"] = f["duration"].sum()
-            stats["service_speed"] = (
-                stats["service_distance"] / stats["service_duration"]
-            )
+    null_stats = pd.DataFrame([[0 for c in cols]], columns=cols)
 
-            # Compute peak stats, which is the slowest part
-            active_trips = hp.get_active_trips_df(
-                f[["start_time", "end_time"]]
-            )
-            times, counts = active_trips.index.values, active_trips.values
-            start, end = hp.get_peak_indices(times, counts)
-            stats["peak_num_trips"] = counts[start]
-            stats["peak_start_time"] = times[start]
-            stats["peak_end_time"] = times[end]
+    if split_route_types:
+        null_stats = null_stats.assign(route_type=np.nan)
+        stats_list = []
+        for date in dates:
+            ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
+            if ids in stats_and_dates_by_ids:
+                # Append date to date list
+                stats_and_dates_by_ids[ids][1].append(date)
+            elif not ids:
+                # Null stats
+                stats_and_dates_by_ids[ids] = [null_stats, [date]]
+            else:
+                # Compute stats
+                f = ts[ts.trip_id.isin(ids)].copy()
+                stats_list = []
+                for route_type, g in f.groupby("route_type"):
+                    d = {}
+                    d["route_type"] = route_type
+                    d["num_stops"] = stop_times.loc[
+                        stop_times.trip_id.isin(g.trip_id), "stop_id"
+                    ].nunique()
+                    d["num_routes"] = g.route_id.nunique()
+                    d["num_trips"] = g.shape[0]
+                    d["num_trip_starts"] = g.start_time.count()
+                    d["num_trip_ends"] = g.loc[
+                        g.end_time < 24 * 3600, "end_time"
+                    ].count()
+                    d["service_distance"] = g.distance.sum()
+                    d["service_duration"] = g.duration.sum()
+                    if d["service_distance"]:
+                        d["service_speed"] = (
+                            d["service_distance"] / d["service_duration"]
+                        )
+                    else:
+                        d["service_speed"] = 0
 
-            # Record stats
-            stats_and_dates_by_ids[ids] = [stats, [date]]
+                    # Compute peak stats, which is the slowest part
+                    active_trips = hp.get_active_trips_df(
+                        g[["start_time", "end_time"]]
+                    )
+                    times, counts = (
+                        active_trips.index.values,
+                        active_trips.values,
+                    )
+                    start, end = hp.get_peak_indices(times, counts)
+                    d["peak_num_trips"] = counts[start]
+                    d["peak_start_time"] = times[start]
+                    d["peak_end_time"] = times[end]
 
-    # Assemble stats into DataFrame
-    rows = []
+                    stats_list.append(pd.Series(d))
+
+                # Record stats
+                stats = pd.DataFrame(stats_list)
+                stats_and_dates_by_ids[ids] = [stats, [date]]
+    else:
+        for date in dates:
+            ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
+            if ids in stats_and_dates_by_ids:
+                # Append date to date list
+                stats_and_dates_by_ids[ids][1].append(date)
+            elif not ids:
+                # Null stats
+                stats_and_dates_by_ids[ids] = [null_stats, [date]]
+            else:
+                # Compute stats
+                f = ts[ts.trip_id.isin(ids)].copy()
+                d = {}
+                d["num_stops"] = stop_times.loc[
+                    stop_times.trip_id.isin(ids), "stop_id"
+                ].nunique()
+                d["num_routes"] = f.route_id.nunique()
+                d["num_trips"] = f.shape[0]
+                d["num_trip_starts"] = f.start_time.count()
+                d["num_trip_ends"] = f.loc[
+                    f.end_time < 24 * 3600, "end_time"
+                ].count()
+                d["service_distance"] = f.distance.sum()
+                d["service_duration"] = f.duration.sum()
+                d["service_speed"] = (
+                    d["service_distance"] / d["service_duration"]
+                )
+
+                # Compute peak stats, which is the slowest part
+                active_trips = hp.get_active_trips_df(
+                    f[["start_time", "end_time"]]
+                )
+                times, counts = active_trips.index.values, active_trips.values
+                start, end = hp.get_peak_indices(times, counts)
+                d["peak_num_trips"] = counts[start]
+                d["peak_start_time"] = times[start]
+                d["peak_end_time"] = times[end]
+
+                # Record stats
+                stats = pd.DataFrame(d, index=[0])
+                stats_and_dates_by_ids[ids] = [stats, [date]]
+
+    # Combine all stats into one DataFrame
+    frames = []
     for stats, dates_ in stats_and_dates_by_ids.values():
         for date in dates_:
-            s = copy.copy(stats)
-            s["date"] = date
-            rows.append(s)
-    f = pd.DataFrame(rows).sort_values("date")
+            s = stats.assign(date=date)
+            frames.append(s)
+    f = (
+        pd.concat(frames, sort=False)
+        .sort_values("date")
+        .reset_index(drop=True)
+    )
 
     # Convert seconds back to timestrings
     times = ["peak_start_time", "peak_end_time"]
@@ -438,7 +505,12 @@ def compute_feed_stats(
 
 
 def compute_feed_time_series(
-    feed: "Feed", trip_stats: DataFrame, dates: List[str], freq: str = "5Min"
+    feed: "Feed",
+    trip_stats: DataFrame,
+    dates: List[str],
+    freq: str = "5Min",
+    *,
+    split_route_types: bool = False,
 ) -> DataFrame:
     """
     Compute some feed stats in time series form for the given dates
@@ -457,12 +529,14 @@ def compute_feed_time_series(
         Pandas frequency string specifying the frequency of the
         resulting time series, e.g. '5Min'; highest frequency allowable
         is one minute ('Min').
+    split_route_types: boolean
+        If True then split stats by route type; otherwise don't
 
     Returns
     -------
     DataFrame
-        A time series with a timestamp index across the given dates
-        sampled at the given frequency.
+        A time series with a datetime index across the given dates sampled
+        at the given frequency across the given dates.
         The maximum allowable frequency is 1 minute.
 
         The columns are
@@ -482,6 +556,15 @@ def compute_feed_time_series(
         Exclude dates that lie outside of the Feed's date range.
         If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame with the specified columns.
+
+        If ``split_route_types``, then multi-index the columns with
+
+        - top level: name is ``'indicator'``; values are
+          ``'num_trip_starts'``, ``'num_trip_ends'``, ``'num_trips'``,
+          ``'service_distance'``, ``'service_duration'``, and
+          ``'service_speed'``
+        - bottom level: name is ``'route_type'``; values are route type values
+
 
     Notes
     -----
@@ -503,14 +586,40 @@ def compute_feed_time_series(
         "num_trips",
         "service_distance",
         "service_duration",
-        "service_speed",
     ]
-    f = pd.concat(
-        [rts[col].sum(axis=1, min_count=1) for col in cols], axis=1, keys=cols
-    )
-    f["service_speed"] = f["service_distance"] / f["service_duration"]
 
-    return f.sort_index(axis=1)
+    if split_route_types:
+        f = (
+            hp.unstack_time_series(rts)
+            .merge(feed.routes.filter(["route_id", "route_type"]), how="left")
+            .groupby(["datetime", "indicator", "route_type"])
+            .agg(
+                {"value": lambda x: x.sum(min_count=1)}
+            )  # All-NaNs should sum to NaN
+            .reset_index()
+            .pipe(hp.restack_time_series)
+        )
+    else:
+        f = (
+            pd.concat(
+                [rts[col].sum(axis="columns", min_count=1) for col in cols],
+                axis=1,
+                keys=cols,
+            )
+            .sort_index(axis="columns")
+            .rename_axis(index="datetime")
+        )
+        f.columns.name = "indicator"
+
+        # Set time series frequency
+        f.index.freq = freq
+
+    # Calculate service speed
+    f["service_speed"] = (f.service_distance / f.service_duration).fillna(
+        f.service_distance
+    )
+
+    return f
 
 
 def create_shapes(feed: "Feed", *, all_trips: bool = False) -> "Feed":
