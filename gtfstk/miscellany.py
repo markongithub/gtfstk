@@ -593,15 +593,16 @@ def compute_feed_time_series(
             hp.unstack_time_series(rts)
             .merge(feed.routes.filter(["route_id", "route_type"]), how="left")
             .groupby(["datetime", "indicator", "route_type"])
-            .agg({"value": lambda x: x.sum(skipna=False)})  # Preserve NaNs
+            .agg(
+                {"value": lambda x: x.sum(min_count=1)}
+            )  # All-NaNs should sum to NaN
             .reset_index()
-            # .pipe(hp.restack_time_series)
+            .pipe(hp.restack_time_series)
         )
-        return f
     else:
         f = (
             pd.concat(
-                [rts[col].sum(axis=1, min_count=1) for col in cols],
+                [rts[col].sum(axis="columns", min_count=1) for col in cols],
                 axis=1,
                 keys=cols,
             )

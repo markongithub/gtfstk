@@ -401,7 +401,7 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
     result = None
     if "stop_id" in time_series.columns.names:
         # It's a stops time series
-        result = f.resample(freq).sum()
+        result = f.resample(freq).sum(min_count=1)
     else:
         # It's a route or feed time series.
         inds = [
@@ -416,16 +416,20 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
         # Resample num_trips in a custom way that depends on
         # num_trips and num_trip_ends
         def agg_num_trips(group):
-            return (
-                group["num_trips"].iloc[-1]
-                + group["num_trip_ends"].iloc[:-1].sum()
-            )
+            return group["num_trips"].iloc[-1] + group["num_trip_ends"].iloc[
+                :-1
+            ].sum(min_count=1)
 
         num_trips = f.groupby(pd.Grouper(freq=freq)).apply(agg_num_trips)
         frames.append(num_trips)
 
-        # Resample the rest of the indicators via summing
-        frames.extend([f[ind].resample(freq).agg("sum") for ind in inds[1:]])
+        # Resample the rest of the indicators via summing, preserving all-NaNs
+        frames.extend(
+            [
+                f[ind].resample(freq).agg(lambda x: x.sum(min_count=1))
+                for ind in inds[1:]
+            ]
+        )
 
         g = pd.concat(frames, axis=1, keys=inds)
 
