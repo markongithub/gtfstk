@@ -595,9 +595,9 @@ def compute_feed_time_series(
             .groupby(["datetime", "indicator", "route_type"])
             .agg({"value": lambda x: x.sum(skipna=False)})  # Preserve NaNs
             .reset_index()
-            .pipe(hp.restack_time_series)
+            # .pipe(hp.restack_time_series)
         )
-
+        return f
     else:
         f = (
             pd.concat(
