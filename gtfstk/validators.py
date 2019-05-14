@@ -288,6 +288,7 @@ def check_column(
     df: DataFrame,
     column: str,
     checker,
+    message: Optional[str] = None,
     type_: str = "error",
     *,
     column_required: bool = True,
@@ -322,6 +323,9 @@ def check_column(
         (and not optional) by the GTFS
     checker : boolean valued unary function
         Returns ``True`` if and only if no problem is encountered
+    message : string (optional)
+        Problem message, e.g. 'Invalid route_id'.
+        Defaults to 'Invalid ``column``; maybe has extra space characters'
     type_ : string
         ``'error'`` or ``'warning'`` indicating the type of problem
         encountered
@@ -347,14 +351,11 @@ def check_column(
         f = f.dropna(subset=[column])
 
     cond = ~f[column].map(checker)
-    problems = check_table(
-        problems,
-        table,
-        f,
-        cond,
-        f"Invalid {column}; maybe has extra space characters",
-        type_,
-    )
+
+    if not message:
+        message = f"Invalid {column}; maybe has extra space characters"
+
+    problems = check_table(problems, table, f, cond, message, type_)
 
     return problems
 
@@ -1180,6 +1181,19 @@ def check_stops(
                 ]
             )
         else:
+            # Parent stations must be well-defined
+            S = set(f.stop_id) | {np.nan}
+            v = lambda x: x in S
+            problems = check_column(
+                problems,
+                table,
+                f,
+                "parent_station",
+                v,
+                "A parent station must be well-defined",
+                column_required=False,
+            )
+
             # Stations must have location type 1
             station_ids = f.loc[
                 f["parent_station"].notnull(), "parent_station"
