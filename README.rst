@@ -40,6 +40,11 @@ Notes
 Changes
 =========
 
+9.6.1, 2019-05-15
+-----------------
+- Checked for undefined parent stations in the module ``validators.py`` and added functionality to remove them in the module ``cleaners.py``.
+
+
 9.6.0, 2019-05-01
 -----------------
 - Added ``split_route_types`` flag to the functions ``compute_feed_stats`` and ``compute_feed_time_series``.

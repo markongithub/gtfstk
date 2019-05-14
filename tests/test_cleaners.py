@@ -69,6 +69,12 @@ def test_drop_zombies():
     f2 = drop_zombies(f1)
     assert_frame_equal(f2.routes, f1.routes)
 
+    # Create undefined parent stations
+    f1 = sample.copy()
+    f1.stops["parent_station"] = "bingo"
+    f2 = drop_zombies(f1)
+    assert f2.stops.parent_station.isna().all()
+
     # Create all zombie trips for one route
     rid = f1.routes["route_id"].iat[0]
     cond = f1.trips["route_id"] == rid
