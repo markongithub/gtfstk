@@ -50,10 +50,12 @@ def drop_zombies(feed: "Feed") -> "Feed":
 
     # Remove undefined parent stations from the ``parent_station`` column
     if "parent_station" in feed.stops.columns:
-        stop_ids = feed.stops.stop_id.unique()
-        feed.stops.parent_station = feed.stops.parent_station.map(
+        f = feed.stops
+        stop_ids = f.stop_id.unique()
+        f["parent_station"] = f.parent_station.map(
             lambda x: x if x in stop_ids else np.nan
         )
+        feed.stops = f
 
     # Drop trips with no stop times
     ids = feed.stop_times["trip_id"].unique()

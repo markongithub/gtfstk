@@ -40,6 +40,11 @@ Notes
 Changes
 =========
 
+9.6.2, 2019-05-16
+-----------------
+- Bugfixed parent station cleaning in function ``drop_zombies``.
+
+
 9.6.1, 2019-05-15
 -----------------
 - Checked for undefined parent stations in the module ``validators.py`` and added functionality to remove them in the module ``cleaners.py``.
