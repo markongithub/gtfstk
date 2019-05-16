@@ -43,7 +43,7 @@ Changes
 9.6.3, 2019-05-16
 -----------------
 - Bugfixed warning about stops with no stop times in the function ``check_stops``.
-- Bugfixed removing stations in the function ``restrict_to_routes``.
+- Bugfixed removing stations in the ``restrict_to_*`` functions.
 
 
 9.6.2, 2019-05-16

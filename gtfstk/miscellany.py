@@ -797,7 +797,11 @@ def restrict_to_dates(feed: "Feed", dates: List[str]) -> "Feed":
 
     # Slice stops
     stop_ids = feed.stop_times.stop_id.unique()
-    feed.stops = feed.stops.loc[lambda x: x.stop_id.isin(stop_ids)]
+    f = feed.stops.copy()
+    cond = f.stop_id.isin(stop_ids)
+    if "location_type" in f.columns:
+        cond |= ~f.location_type.isin([0, np.nan])
+    feed.stops = f[cond].copy()
 
     # Slice calendar
     service_ids = feed.trips.service_id
@@ -952,9 +956,13 @@ def restrict_to_polygon(feed: "Feed", polygon: Polygon) -> "Feed":
     # Get stop times for trips
     feed.stop_times = st[st["trip_id"].isin(trip_ids)].copy()
 
-    # Get stops for trips
-    stop_ids = feed.stop_times["stop_id"]
-    feed.stops = feed.stops[feed.stops["stop_id"].isin(stop_ids)].copy()
+    # Slice stops
+    stop_ids = feed.stop_times.stop_id.unique()
+    f = feed.stops.copy()
+    cond = f.stop_id.isin(stop_ids)
+    if "location_type" in f.columns:
+        cond |= ~f.location_type.isin([0, np.nan])
+    feed.stops = f[cond].copy()
 
     # Get routes for trips
     route_ids = feed.trips["route_id"]
