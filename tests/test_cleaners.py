@@ -69,6 +69,19 @@ def test_drop_zombies():
     f2 = drop_zombies(f1)
     assert_frame_equal(f2.routes, f1.routes)
 
+    # Should drop stops with no stop times
+    f1 = sample.copy()
+    f1.stops["location_type"] = np.nan
+    stop_id = f1.stops.stop_id.iat[0]
+    st = f1.stop_times.copy()
+    st = st.loc[lambda x: x.stop_id != stop_id]
+    f1.stop_times = st
+    f2 = drop_zombies(f1)
+    assert not stop_id in f2.stops.stop_id.values
+
+    f2 = drop_zombies(f1)
+    assert_frame_equal(f2.routes, f1.routes)
+
     # Create undefined parent stations
     f1 = sample.copy()
     f1.stops["parent_station"] = "bingo"

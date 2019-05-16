@@ -40,9 +40,15 @@ Notes
 Changes
 =========
 
+9.6.3, 2019-05-16
+-----------------
+- Bugfixed warning about stops with no stop times in the function ``check_stops`` and bugfixed removing them in the function ``drop_zombies``.
+- Bugfixed removing stations in the function ``restrict_to_routes``.
+
+
 9.6.2, 2019-05-16
 -----------------
-- Bugfixed parent station cleaning in function ``drop_zombies``.
+- Bugfixed parent station cleaning in the function ``drop_zombies``.
 
 
 9.6.1, 2019-05-15

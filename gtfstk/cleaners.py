@@ -25,66 +25,6 @@ def clean_column_names(df: DataFrame) -> DataFrame:
     return f
 
 
-def drop_zombies(feed: "Feed") -> "Feed":
-    """
-    In the given Feed, do the following in order:
-
-    1. Drop stops of location type 0 with no stop times.
-    2. Remove undefined parent stations from the ``parent_station`` column.
-    3. Drop trips with no stop times.
-    4. Drop shapes with no trips.
-    5. Drop routes with no trips.
-    6. Drop services with no trips.
-
-    Return the resulting Feed.
-    """
-    feed = feed.copy()
-
-    # Drop stops of location type 0 that lack stop times
-    ids = feed.stop_times["stop_id"].unique()
-    f = feed.stops
-    cond = f["stop_id"].isin(ids)
-    if "location_type" in f.columns:
-        cond |= f["location_type"] != 0
-    feed.stops = f[cond].copy()
-
-    # Remove undefined parent stations from the ``parent_station`` column
-    if "parent_station" in feed.stops.columns:
-        f = feed.stops
-        stop_ids = f.stop_id.unique()
-        f["parent_station"] = f.parent_station.map(
-            lambda x: x if x in stop_ids else np.nan
-        )
-        feed.stops = f
-
-    # Drop trips with no stop times
-    ids = feed.stop_times["trip_id"].unique()
-    f = feed.trips
-    feed.trips = f[f["trip_id"].isin(ids)]
-
-    # Drop shapes with no trips
-    ids = feed.trips["shape_id"].unique()
-    f = feed.shapes
-    if f is not None:
-        feed.shapes = f[f["shape_id"].isin(ids)]
-
-    # Drop routes with no trips
-    ids = feed.trips["route_id"].unique()
-    f = feed.routes
-    feed.routes = f[f["route_id"].isin(ids)]
-
-    # Drop services with no trips
-    ids = feed.trips["service_id"].unique()
-    if feed.calendar is not None:
-        f = feed.calendar
-        feed.calendar = f[f["service_id"].isin(ids)]
-    if feed.calendar_dates is not None:
-        f = feed.calendar_dates
-        feed.calendar_dates = f[f["service_id"].isin(ids)]
-
-    return feed
-
-
 def clean_ids(feed: "Feed") -> "Feed":
     """
     In the given Feed, strip whitespace from all string IDs and
@@ -120,7 +60,7 @@ def clean_times(feed: "Feed") -> "Feed":
     """
 
     def reformat(t):
-        if pd.isnull(t):
+        if pd.isna(t):
             return t
         t = t.strip()
         if len(t) == 7:
@@ -137,6 +77,65 @@ def clean_times(feed: "Feed") -> "Feed":
         if f is not None:
             f[columns] = f[columns].applymap(reformat)
         setattr(feed, table, f)
+
+    return feed
+
+
+def drop_zombies(feed: "Feed") -> "Feed":
+    """
+    In the given Feed, do the following in order:
+
+    1. Drop stops of location type 0 or NaN with no stop times.
+    2. Remove undefined parent stations from the ``parent_station`` column.
+    3. Drop trips with no stop times.
+    4. Drop shapes with no trips.
+    5. Drop routes with no trips.
+    6. Drop services with no trips.
+
+    Return the resulting Feed.
+    """
+    feed = feed.copy()
+
+    f = feed.stops.copy()
+    ids = feed.stop_times.stop_id.unique()
+    cond = f.stop_id.isin(ids)
+    if "location_type" in f.columns:
+        cond |= ~f.location_type.isin([0, np.nan])
+    feed.stops = f[cond].copy()
+
+    # Remove undefined parent stations from the ``parent_station`` column
+    if "parent_station" in feed.stops.columns:
+        f = feed.stops.copy()
+        ids = f.stop_id.unique()
+        f["parent_station"] = f.parent_station.map(
+            lambda x: x if x in ids else np.nan
+        )
+        feed.stops = f
+
+    # Drop trips with no stop times
+    ids = feed.stop_times["trip_id"].unique()
+    f = feed.trips
+    feed.trips = f[f["trip_id"].isin(ids)]
+
+    # Drop shapes with no trips
+    ids = feed.trips["shape_id"].unique()
+    f = feed.shapes
+    if f is not None:
+        feed.shapes = f[f["shape_id"].isin(ids)]
+
+    # Drop routes with no trips
+    ids = feed.trips["route_id"].unique()
+    f = feed.routes
+    feed.routes = f[f["route_id"].isin(ids)]
+
+    # Drop services with no trips
+    ids = feed.trips["service_id"].unique()
+    if feed.calendar is not None:
+        f = feed.calendar
+        feed.calendar = f[f["service_id"].isin(ids)]
+    if feed.calendar_dates is not None:
+        f = feed.calendar_dates
+        feed.calendar_dates = f[f["service_id"].isin(ids)]
 
     return feed
 
@@ -241,10 +240,10 @@ def clean(feed: "Feed") -> "Feed":
     """
     Apply
 
-    #. :func:`drop_zombies`
     #. :func:`clean_ids`
     #. :func:`clean_times`
     #. :func:`clean_route_short_names`
+    #. :func:`drop_zombies`
 
     to the given Feed in that order.
     Return the resulting Feed.

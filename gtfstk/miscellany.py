@@ -854,20 +854,24 @@ def restrict_to_routes(feed: "Feed", route_ids: List[str]) -> "Feed":
     feed = feed.copy()
 
     # Slice routes
-    feed.routes = feed.routes[feed.routes["route_id"].isin(route_ids)].copy()
+    feed.routes = feed.routes[lambda x: x.route_id.isin(route_ids)].copy()
 
     # Slice trips
-    feed.trips = feed.trips[feed.trips["route_id"].isin(route_ids)].copy()
+    feed.trips = feed.trips[lambda x: x.route_id.isin(route_ids)].copy()
 
     # Slice stop times
-    trip_ids = feed.trips["trip_id"]
+    trip_ids = feed.trips.trip_id.values
     feed.stop_times = feed.stop_times[
-        feed.stop_times["trip_id"].isin(trip_ids)
+        lambda x: x.trip_id.isin(trip_ids)
     ].copy()
 
     # Slice stops
-    stop_ids = feed.stop_times["stop_id"].unique()
-    feed.stops = feed.stops[feed.stops["stop_id"].isin(stop_ids)].copy()
+    stop_ids = feed.stop_times.stop_id.unique()
+    f = feed.stops.copy()
+    cond = f.stop_id.isin(stop_ids)
+    if "location_type" in f.columns:
+        cond |= ~f.location_type.isin([0, np.nan])
+    feed.stops = f[cond].copy()
 
     # Slice calendar
     service_ids = feed.trips["service_id"]
