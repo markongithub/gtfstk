@@ -538,16 +538,12 @@ def compute_stop_stats(
     ]
     if split_directions:
         cols.append("direction_id")
-    zero_stats = pd.DataFrame({c: 0 for c in cols}, index=[0])
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
         if ids in stats_and_dates_by_ids:
             # Append date to date list
             stats_and_dates_by_ids[ids][1].append(date)
-        elif not ids:
-            # Null stats
-            stats_and_dates_by_ids[ids] = [zero_stats, [date]]
-        else:
+        elif ids:
             # Compute stats
             t = feed.trips
             trips = t[t["trip_id"].isin(ids)].copy()
@@ -569,11 +565,14 @@ def compute_stop_stats(
             f = stats.copy()
             f["date"] = date
             frames.append(f)
-    f = (
-        pd.concat(frames)
-        .sort_values(["date", "stop_id"])
-        .reset_index(drop=True)
-    )
+    if frames:
+        f = (
+            pd.concat(frames)
+            .sort_values(["date", "stop_id"])
+            .reset_index(drop=True)
+        )
+    else:
+        f = pd.DataFrame()
 
     return f
 
