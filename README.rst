@@ -40,6 +40,11 @@ Notes
 Changes
 =========
 
+10.0.1, 2019-05-22
+------------------
+- Added Python 3.7 support (by simply updating the Travis configuration).
+
+
 10.0.0, 2019-05-22
 ------------------
 - Simplified and made more robust the function ``compute_center``.
