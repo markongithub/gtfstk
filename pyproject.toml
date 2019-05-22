@@ -10,7 +10,7 @@ documentation = "https://mrcagney.github.io/gtfstk_docs"
 exclude = ["tests", "docs"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6 || ^3.7"
 pandas = "^0.24"
 shapely = "^1.6"
 pycountry = "^18.5"
