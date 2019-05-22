@@ -3,6 +3,7 @@ notifications:
 addons:
   apt:
     packages:
+    - libgdal1i
     - libgdal1h
     - gdal-bin
     - libgdal-dev
