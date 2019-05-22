@@ -3,17 +3,24 @@ notifications:
 addons:
   apt:
     packages:
-    - libgdal1h
+    - libgdal1i
     - gdal-bin
     - libgdal-dev
     - libspatialindex-dev
 language: python
 python:
   - "3.6"
-# command to install dependencies
+  - "3.7"
+
+# Required for Python 3.7 to work:
+sudo: required
+dist: xenial
+
+# Install dependencies
 before_install:
 - pip install poetry
 install:
 - poetry install -v
-# command to run tests
+
+# Run tests
 script: pytest --runslow
