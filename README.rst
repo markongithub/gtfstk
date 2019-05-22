@@ -40,6 +40,14 @@ Notes
 Changes
 =========
 
+10.0.0, 2019-05-22
+------------------
+- Simplified and made more robust the function ``compute_center``.
+- Simplified the functions ``compute_stop_stats``, ``compute_route_stats``, and ``compute_feed_stats``.
+- Added the function ``get_week``, a generalization of the function ``get_first_week``.
+- Breaking change: renamed the function ``restrict_dates`` to ``subset_dates``, so as not to be confused with the function ``restrict_to_dates``. Also changed the signature of ``restrict_dates``.
+
+
 9.6.3, 2019-05-16
 -----------------
 - Bugfixed warning about stops with no stop times in the function ``check_stops``.

@@ -81,7 +81,7 @@ class Feed(object):
     # Import heaps of methods from modules split by functionality;
     # i learned this trick from
     # https://groups.google.com/d/msg/comp.lang.python/goLBrqcozNY/DPgyaZ6gAwAJ
-    from .calendar import get_dates, get_first_week, restrict_dates
+    from .calendar import get_dates, get_week, get_first_week, subset_dates
     from .routes import (
         get_routes,
         compute_route_stats,
