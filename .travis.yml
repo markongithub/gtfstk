@@ -11,10 +11,16 @@ language: python
 python:
   - "3.6"
   - "3.7"
-# command to install dependencies
+
+# Required for Python 3.7 to work:
+sudo: required
+dist: xenial
+
+# Install dependencies
 before_install:
 - pip install poetry
 install:
 - poetry install -v
-# command to run tests
+
+# Run tests
 script: pytest --runslow
