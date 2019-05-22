@@ -175,7 +175,7 @@ def compute_trip_activity(feed: "Feed", dates: List[str]) -> DataFrame:
     - Those used in :func:`is_active_trip`
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 

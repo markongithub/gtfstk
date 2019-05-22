@@ -286,6 +286,90 @@ def convert_dist(feed: "Feed", new_dist_units: str) -> "Feed":
     return feed
 
 
+def compute_feed_stats_base(
+    feed: "Feed", trip_stats_subset: DataFrame, *, split_route_types=False
+) -> DataFrame:
+    """
+    """
+    ts = trip_stats_subset.copy()
+    stop_times = feed.stop_times.copy()
+
+    # Convert timestrings to seconds for quicker calculations
+    ts[["start_time", "end_time"]] = ts[["start_time", "end_time"]].applymap(
+        hp.timestr_to_seconds
+    )
+
+    if split_route_types:
+        # Compute stats
+        stats_list = []
+        for route_type, g in ts.groupby("route_type"):
+            d = {}
+            d["route_type"] = route_type
+            d["num_stops"] = stop_times.loc[
+                lambda x: x.trip_id.isin(g.trip_id), "stop_id"
+            ].nunique()
+            d["num_routes"] = g.route_id.nunique()
+            d["num_trips"] = g.shape[0]
+            d["num_trip_starts"] = g.start_time.count()
+            d["num_trip_ends"] = g.loc[
+                g.end_time < 24 * 3600, "end_time"
+            ].count()
+            d["service_distance"] = g.distance.sum()
+            d["service_duration"] = g.duration.sum()
+            if d["service_distance"]:
+                d["service_speed"] = (
+                    d["service_distance"] / d["service_duration"]
+                )
+            else:
+                d["service_speed"] = 0
+
+            # Compute peak stats, which is the slowest part
+            active_trips = hp.get_active_trips_df(
+                g[["start_time", "end_time"]]
+            )
+            times, counts = (active_trips.index.values, active_trips.values)
+            start, end = hp.get_peak_indices(times, counts)
+            d["peak_num_trips"] = counts[start]
+            d["peak_start_time"] = times[start]
+            d["peak_end_time"] = times[end]
+
+            stats_list.append(pd.Series(d))
+
+        stats = pd.DataFrame(stats_list)
+
+    else:
+        # Compute stats
+        d = {}
+        d["num_stops"] = stop_times.stop_id.nunique()
+        d["num_routes"] = ts.route_id.nunique()
+        d["num_trips"] = ts.shape[0]
+        d["num_trip_starts"] = ts.start_time.count()
+        d["num_trip_ends"] = ts.loc[
+            ts.end_time < 24 * 3600, "end_time"
+        ].count()
+        d["service_distance"] = ts.distance.sum()
+        d["service_duration"] = ts.duration.sum()
+        d["service_speed"] = d["service_distance"] / d["service_duration"]
+
+        # Compute peak stats, which is the slowest part
+        active_trips = hp.get_active_trips_df(ts[["start_time", "end_time"]])
+        times, counts = active_trips.index.values, active_trips.values
+        start, end = hp.get_peak_indices(times, counts)
+        d["peak_num_trips"] = counts[start]
+        d["peak_start_time"] = times[start]
+        d["peak_end_time"] = times[end]
+
+        stats = pd.DataFrame(d, index=[0])
+
+    # Convert seconds back to timestrings
+    times = ["peak_start_time", "peak_end_time"]
+    stats[times] = stats[times].applymap(
+        lambda t: hp.timestr_to_seconds(t, inverse=True)
+    )
+
+    return stats
+
+
 def compute_feed_stats(
     feed: "Feed",
     trip_stats: DataFrame,
@@ -336,10 +420,7 @@ def compute_feed_stats(
         - ``'service_speed'``: service_distance/service_duration on the
           date
 
-        Dates with no trip activity will have null stats (all zeros).
-        Exclude dates that lie outside of the Feed's date range.
-        If all the dates given lie outside of the Feed's date range,
-        then return an empty DataFrame.
+        Exclude dates with no active stops, which could yield the empty DataFrame.
 
     Notes
     -----
@@ -353,155 +434,48 @@ def compute_feed_stats(
         * Those used in :func:`.stops.get_stops`
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 
-    ts = trip_stats.copy()
-    activity = feed.compute_trip_activity(dates)
-    stop_times = feed.stop_times.copy()
-
-    # Convert timestrings to seconds for quicker calculations
-    ts[["start_time", "end_time"]] = ts[["start_time", "end_time"]].applymap(
-        hp.timestr_to_seconds
-    )
-
-    # Collect stats for each date, memoizing stats by trip ID sequence
+    # Collect stats for each date,
+    # memoizing stats the sequence of trip IDs active on the date
     # to avoid unnecessary recomputations.
-    # Store in dictionary of the form
-    # trip ID sequence ->
-    # [stats dictionary, date list that stats apply]
-    stats_and_dates_by_ids = {}
-    cols = [
-        "num_stops",
-        "num_routes",
-        "num_trips",
-        "num_trip_starts",
-        "num_trip_ends",
-        "peak_num_trips",
-        "peak_start_time",
-        "peak_end_time",
-        "service_distance",
-        "service_duration",
-        "service_speed",
-    ]
-    null_stats = pd.DataFrame([[0 for c in cols]], columns=cols)
+    # Store in a dictionary of the form
+    # trip ID sequence -> stats DataFarme.
+    stats_by_ids = {}
 
-    if split_route_types:
-        null_stats = null_stats.assign(route_type=np.nan)
-        stats_list = []
-        for date in dates:
-            ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
-            if ids in stats_and_dates_by_ids:
-                # Append date to date list
-                stats_and_dates_by_ids[ids][1].append(date)
-            elif not ids:
-                # Null stats
-                stats_and_dates_by_ids[ids] = [null_stats, [date]]
-            else:
-                # Compute stats
-                f = ts[ts.trip_id.isin(ids)].copy()
-                stats_list = []
-                for route_type, g in f.groupby("route_type"):
-                    d = {}
-                    d["route_type"] = route_type
-                    d["num_stops"] = stop_times.loc[
-                        stop_times.trip_id.isin(g.trip_id), "stop_id"
-                    ].nunique()
-                    d["num_routes"] = g.route_id.nunique()
-                    d["num_trips"] = g.shape[0]
-                    d["num_trip_starts"] = g.start_time.count()
-                    d["num_trip_ends"] = g.loc[
-                        g.end_time < 24 * 3600, "end_time"
-                    ].count()
-                    d["service_distance"] = g.distance.sum()
-                    d["service_duration"] = g.duration.sum()
-                    if d["service_distance"]:
-                        d["service_speed"] = (
-                            d["service_distance"] / d["service_duration"]
-                        )
-                    else:
-                        d["service_speed"] = 0
+    activity = feed.compute_trip_activity(dates)
 
-                    # Compute peak stats, which is the slowest part
-                    active_trips = hp.get_active_trips_df(
-                        g[["start_time", "end_time"]]
-                    )
-                    times, counts = (
-                        active_trips.index.values,
-                        active_trips.values,
-                    )
-                    start, end = hp.get_peak_indices(times, counts)
-                    d["peak_num_trips"] = counts[start]
-                    d["peak_start_time"] = times[start]
-                    d["peak_end_time"] = times[end]
-
-                    stats_list.append(pd.Series(d))
-
-                # Record stats
-                stats = pd.DataFrame(stats_list)
-                stats_and_dates_by_ids[ids] = [stats, [date]]
-    else:
-        for date in dates:
-            ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
-            if ids in stats_and_dates_by_ids:
-                # Append date to date list
-                stats_and_dates_by_ids[ids][1].append(date)
-            elif not ids:
-                # Null stats
-                stats_and_dates_by_ids[ids] = [null_stats, [date]]
-            else:
-                # Compute stats
-                f = ts[ts.trip_id.isin(ids)].copy()
-                d = {}
-                d["num_stops"] = stop_times.loc[
-                    stop_times.trip_id.isin(ids), "stop_id"
-                ].nunique()
-                d["num_routes"] = f.route_id.nunique()
-                d["num_trips"] = f.shape[0]
-                d["num_trip_starts"] = f.start_time.count()
-                d["num_trip_ends"] = f.loc[
-                    f.end_time < 24 * 3600, "end_time"
-                ].count()
-                d["service_distance"] = f.distance.sum()
-                d["service_duration"] = f.duration.sum()
-                d["service_speed"] = (
-                    d["service_distance"] / d["service_duration"]
-                )
-
-                # Compute peak stats, which is the slowest part
-                active_trips = hp.get_active_trips_df(
-                    f[["start_time", "end_time"]]
-                )
-                times, counts = active_trips.index.values, active_trips.values
-                start, end = hp.get_peak_indices(times, counts)
-                d["peak_num_trips"] = counts[start]
-                d["peak_start_time"] = times[start]
-                d["peak_end_time"] = times[end]
-
-                # Record stats
-                stats = pd.DataFrame(d, index=[0])
-                stats_and_dates_by_ids[ids] = [stats, [date]]
-
-    # Combine all stats into one DataFrame
     frames = []
-    for stats, dates_ in stats_and_dates_by_ids.values():
-        for date in dates_:
-            s = stats.assign(date=date)
-            frames.append(s)
-    f = (
-        pd.concat(frames, sort=False)
-        .sort_values("date")
-        .reset_index(drop=True)
-    )
+    for date in dates:
+        ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
+        if ids in stats_by_ids:
+            stats = (
+                stats_by_ids[ids]
+                # Assign date
+                .assign(date=date)
+            )
+        elif ids:
+            # Compute stats
+            ts = trip_stats.loc[lambda x: x.trip_id.isin(ids)].copy()
+            stats = (
+                compute_feed_stats_base(
+                    feed, ts, split_route_types=split_route_types
+                )
+                # Assign date
+                .assign(date=date)
+            )
 
-    # Convert seconds back to timestrings
-    times = ["peak_start_time", "peak_end_time"]
-    f[times] = f[times].applymap(
-        lambda t: hp.timestr_to_seconds(t, inverse=True)
-    )
+            # Memoize stats
+            stats_by_ids[ids] = stats
+        else:
+            stats = pd.DataFrame()
 
-    return f
+        frames.append(stats)
+
+    # Assemble stats into a single DataFrame
+    return pd.concat(frames)
 
 
 def compute_feed_time_series(
@@ -726,38 +700,16 @@ def compute_convex_hull(feed: "Feed") -> Polygon:
     return m.convex_hull
 
 
-def compute_center(
-    feed: "Feed", num_busiest_stops: Optional[int] = None
-) -> Tuple:
+def compute_center(feed: "Feed", num_busiest_stops: int = 20) -> Tuple:
     """
-    Return the centroid (WGS84 longitude-latitude pair) of the convex
-    hull of the stops of the given Feed.
-    If ``num_busiest_stops`` (integer) is given,
-    then compute the ``num_busiest_stops`` busiest stops in the feed
-    on the first Monday of the feed and return the mean of the
-    longitudes and the mean of the latitudes of these stops,
-    respectively.
+    Get the ``num_busiest_stops`` (integer) most scheduled stops from ``feed.stop_times``,
+    and return the mean of the longitudes and the mean of the latitudes of these stops,
+    respectively, a kind of center of the feed.
     """
-    s = feed.stops.copy()
-    if num_busiest_stops is None:
-        hull = compute_convex_hull(feed)
-        lon, lat = list(hull.centroid.coords)[0]
-    else:
-        date = feed.get_first_week()[0]
-        ss = feed.compute_stop_stats([date]).sort_values(
-            "num_trips", ascending=False
-        )
-        if ss.stop_id.isnull().all():
-            # No stats, which could happen with a crappy feed.
-            # Fall back to all stops.
-            hull = compute_convex_hull(feed)
-            lon, lat = list(hull.centroid.coords)[0]
-        else:
-            f = ss.head(num_busiest_stops)
-            f = s.merge(f)
-            lon = f["stop_lon"].mean()
-            lat = f["stop_lat"].mean()
-
+    sids = feed.stop_times.stop_id.value_counts()[:num_busiest_stops].index
+    s = feed.stops.loc[lambda x: x.stop_id.isin(sids)]
+    lon = s.stop_lon.mean()
+    lat = s.stop_lat.mean()
     return lon, lat
 
 
@@ -1074,7 +1026,7 @@ def compute_screen_line_counts(
          * ``feed.shapes``, if ``geo_shapes`` is not given
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 

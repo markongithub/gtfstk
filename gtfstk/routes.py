@@ -528,10 +528,7 @@ def compute_route_stats(
         - ``'date'``
         - the columns listed in :func:``compute_route_stats_base``
 
-        Dates with no trip activity will have null stats.
-        Exclude dates that lie outside of the Feed's date range.
-        If all the dates given lie outside of the Feed's date range,
-        then return an empty DataFrame.
+        Exclude dates with no active stops, which could yield the empty DataFrame.
 
     Notes
     -----
@@ -546,80 +543,51 @@ def compute_route_stats(
       direction ID values present
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 
-    ts = trip_stats_subset.copy()
+    # Collect stats for each date,
+    # memoizing stats the sequence of trip IDs active on the date
+    # to avoid unnecessary recomputations.
+    # Store in a dictionary of the form
+    # trip ID sequence -> stats DataFarme.
+    stats_by_ids = {}
+
     activity = feed.compute_trip_activity(dates)
 
-    # Collect stats for each date, memoizing stats by trip ID sequence
-    # to avoid unnecessary recomputations.
-    # Store in dictionary of the form
-    # trip ID sequence ->
-    # [stats DataFarme, date list that stats apply]
-    stats_and_dates_by_ids = {}
-    cols = [
-        "route_id",
-        "route_short_name",
-        "route_type",
-        "num_trips",
-        "num_trip_ends",
-        "num_trip_starts",
-        "is_bidirectional",
-        "is_loop",
-        "start_time",
-        "end_time",
-        "max_headway",
-        "min_headway",
-        "mean_headway",
-        "peak_num_trips",
-        "peak_start_time",
-        "peak_end_time",
-        "service_duration",
-        "service_distance",
-        "service_speed",
-        "mean_trip_distance",
-        "mean_trip_duration",
-    ]
-    if split_directions:
-        cols.append("direction_id")
-    zero_stats = pd.DataFrame(OrderedDict([(c, 0) for c in cols]), index=[0])
+    frames = []
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
-        if ids in stats_and_dates_by_ids:
-            # Append date to date list
-            stats_and_dates_by_ids[ids][1].append(date)
-        elif not ids:
-            # Null stats
-            stats_and_dates_by_ids[ids] = [zero_stats, [date]]
-        else:
+        if ids in stats_by_ids:
+            stats = (
+                stats_by_ids[ids]
+                # Assign date
+                .assign(date=date)
+            )
+        elif ids:
             # Compute stats
-            t = ts[ts["trip_id"].isin(ids)].copy()
-            stats = compute_route_stats_base(
-                t,
-                split_directions=split_directions,
-                headway_start_time=headway_start_time,
-                headway_end_time=headway_end_time,
+            t = trip_stats_subset.loc[lambda x: x.trip_id.isin(ids)].copy()
+            stats = (
+                compute_route_stats_base(
+                    t,
+                    split_directions=split_directions,
+                    headway_start_time=headway_start_time,
+                    headway_end_time=headway_end_time,
+                )
+                # Assign date
+                .assign(date=date)
             )
 
-            # Remember stats
-            stats_and_dates_by_ids[ids] = [stats, [date]]
+            # Memoize stats
+            stats_by_ids[ids] = stats
+        else:
+            stats = pd.DataFrame()
 
-    # Assemble stats into DataFrame
-    frames = []
-    for stats, dates_ in stats_and_dates_by_ids.values():
-        for date in dates_:
-            f = stats.copy()
-            f["date"] = date
-            frames.append(f)
-    f = (
-        pd.concat(frames)
-        .sort_values(["date", "route_id"])
-        .reset_index(drop=True)
-    )
+        frames.append(stats)
 
-    return f
+    # Assemble stats into a single DataFrame
+    return pd.concat(frames)
 
 
 def build_zero_route_time_series(
@@ -706,7 +674,7 @@ def compute_route_time_series(
       direction ID values present
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 
@@ -718,18 +686,18 @@ def compute_route_time_series(
     # Store in dictionary of the form
     # trip ID sequence ->
     # [stats DataFarme, date list that stats apply]
-    stats_and_dates_by_ids = {}
+    stats_by_ids = {}
     zero_stats = build_zero_route_time_series(
         feed, split_directions=split_directions, freq=freq
     )
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
-        if ids in stats_and_dates_by_ids:
+        if ids in stats_by_ids:
             # Append date to date list
-            stats_and_dates_by_ids[ids][1].append(date)
+            stats_by_ids[ids][1].append(date)
         elif not ids:
             # Null stats
-            stats_and_dates_by_ids[ids] = [zero_stats, [date]]
+            stats_by_ids[ids] = [zero_stats, [date]]
         else:
             # Compute stats
             t = ts[ts["trip_id"].isin(ids)].copy()
@@ -741,11 +709,11 @@ def compute_route_time_series(
             )
 
             # Remember stats
-            stats_and_dates_by_ids[ids] = [stats, [date]]
+            stats_by_ids[ids] = [stats, [date]]
 
     # Assemble stats into DataFrame
     frames = []
-    for stats, dates_ in stats_and_dates_by_ids.values():
+    for stats, dates_ in stats_by_ids.values():
         for date in dates_:
             f = stats.copy()
             # Replace date
@@ -805,7 +773,7 @@ def build_route_timetable(
     - Those used in :func:`.trips.get_trips`
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 
