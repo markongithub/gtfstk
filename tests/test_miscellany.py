@@ -72,6 +72,36 @@ def test_convert_dist():
     )
 
 
+def test_compute_feed_stats_base():
+    feed = cairns.copy()
+    trip_stats = cairns_trip_stats
+    feed.routes.route_type.iat[0] = 2  # Another route type besides 3
+    for split_route_types in [True, False]:
+        f = compute_feed_stats_base(
+            feed, trip_stats, split_route_types=split_route_types
+        )
+        # Should be a data frame
+        assert isinstance(f, pd.core.frame.DataFrame)
+        # Should contain the correct columns
+        expect_cols = {
+            "num_trips",
+            "num_trip_starts",
+            "num_trip_ends",
+            "num_routes",
+            "num_stops",
+            "peak_num_trips",
+            "peak_start_time",
+            "peak_end_time",
+            "service_duration",
+            "service_distance",
+            "service_speed",
+        }
+        if split_route_types:
+            expect_cols.add("route_type")
+
+        assert set(f.columns) == expect_cols
+
+
 def test_compute_feed_stats():
     feed = cairns.copy()
     dates = cairns_dates + ["20010101"]

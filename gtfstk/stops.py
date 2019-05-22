@@ -419,7 +419,7 @@ def compute_stop_activity(feed: "Feed", dates: List[str]) -> DataFrame:
         * Those used in :func:`.trips.compute_trip_activity`
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 
@@ -492,10 +492,7 @@ def compute_stop_stats(
         - ``'end_time'``: latest departure time of a trip from this stop on
           the date
 
-        Dates with no trip activity will have null stats (all zeros).
-        Exclude dates that lie outside of the Feed's date range.
-        If all the dates given lie outside of the Feed's date range,
-        then return an empty DataFrame.
+        Exclude dates with no active stops, which could yield the empty DataFrame.
 
     Notes
     -----
@@ -506,9 +503,16 @@ def compute_stop_stats(
       direction ID values present
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
+
+    # Collect stats for each date,
+    # memoizing stats the sequence of trip IDs active on the date
+    # to avoid unnecessary recomputations.
+    # Store in a dictionary of the form
+    # trip ID sequence -> stats DataFarme.
+    stats_by_ids = {}
 
     # Restrict stop times to stop IDs if specified
     if stop_ids is not None:
@@ -520,61 +524,39 @@ def compute_stop_stats(
 
     activity = feed.compute_trip_activity(dates)
 
-    # Collect stats for each date, memoizing stats by trip ID sequence
-    # to avoid unnecessary recomputations.
-    # Store in dictionary of the form
-    # trip ID sequence ->
-    # [stats DataFarme, date list that stats apply]
-    stats_and_dates_by_ids = {}
-    cols = [
-        "stop_id",
-        "num_routes",
-        "num_trips",
-        "max_headway",
-        "min_headway",
-        "mean_headway",
-        "start_time",
-        "end_time",
-    ]
-    if split_directions:
-        cols.append("direction_id")
+    frames = []
     for date in dates:
         ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
-        if ids in stats_and_dates_by_ids:
-            # Append date to date list
-            stats_and_dates_by_ids[ids][1].append(date)
+        if ids in stats_by_ids:
+            stats = (
+                stats_by_ids[ids]
+                # Assign date
+                .assign(date=date)
+            )
         elif ids:
             # Compute stats
             t = feed.trips
             trips = t[t["trip_id"].isin(ids)].copy()
-            stats = compute_stop_stats_base(
-                stop_times_subset,
-                trips,
-                split_directions=split_directions,
-                headway_start_time=headway_start_time,
-                headway_end_time=headway_end_time,
+            stats = (
+                compute_stop_stats_base(
+                    stop_times_subset,
+                    trips,
+                    split_directions=split_directions,
+                    headway_start_time=headway_start_time,
+                    headway_end_time=headway_end_time,
+                )
+                # Assign date
+                .assign(date=date)
             )
+            # Memoize stats
+            stats_by_ids[ids] = stats
+        else:
+            stats = pd.DataFrame()
 
-            # Remember stats
-            stats_and_dates_by_ids[ids] = [stats, [date]]
+        frames.append(stats)
 
-    # Assemble stats into DataFrame
-    frames = []
-    for stats, dates_ in stats_and_dates_by_ids.values():
-        for date in dates_:
-            f = stats.copy()
-            f["date"] = date
-            frames.append(f)
-    if frames:
-        f = (
-            pd.concat(frames)
-            .sort_values(["date", "stop_id"])
-            .reset_index(drop=True)
-        )
-    else:
-        f = pd.DataFrame()
-
-    return f
+    # Assemble stats into a single DataFrame
+    return pd.concat(frames)
 
 
 def build_zero_stop_time_series(
@@ -662,7 +644,7 @@ def compute_stop_time_series(
       direction ID values present
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 
@@ -765,7 +747,7 @@ def build_stop_timetable(
     - Those used in :func:`.stop_times.get_stop_times`
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 

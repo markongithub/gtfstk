@@ -57,30 +57,18 @@ def get_dates(feed: "Feed", *, as_date_obj: bool = False) -> List[str]:
     return result
 
 
-def get_first_week(feed: "Feed", *, as_date_obj: bool = False) -> List[str]:
+def get_week(feed: "Feed", k: int, *, as_date_obj: bool = False) -> List[str]:
     """
-    Return a list of date corresponding to the first Monday--Sunday
-    week for which this feed is valid.
-    If the given feed does not cover a full Monday--Sunday week,
-    then return whatever initial segment of the week it does cover,
-    which could be the empty list.
+    Given a Feed object and a positive integer ``k``,
+    return a list of dates corresponding to the kth Monday--Sunday week
+    (or initial segment thereof) for which the feed is valid.
+    For example, k=1 returns the first Monday--Sunday week (or initial segment thereof).
+    If the feed not have k Mondays, then return the empty list.
 
-    Parameters
-    ----------
-    feed : "Feed"
-    as_date_obj : boolean
-        If ``True``, then return the dates as ``datetime.date`` objects;
-        otherwise return them as strings
-
-    Returns
-    -------
-    list
-        Dates
-
+    If ``as_date_obj``, then return date objects, otherwise return date strings.
     """
     dates = feed.get_dates(as_date_obj=True)
-    if not dates:
-        return []
+    n = len(dates)
 
     # Get first Monday
     monday_index = None
@@ -88,15 +76,12 @@ def get_first_week(feed: "Feed", *, as_date_obj: bool = False) -> List[str]:
         if date.weekday() == 0:
             monday_index = i
             break
-    if monday_index is None:
-        return []
 
-    result = []
-    for j in range(7):
-        try:
-            result.append(dates[monday_index + j])
-        except:
-            break
+    # Get week k
+    if k < 1 or monday_index is None or monday_index + 7 * (k - 1) > n:
+        result = []
+    else:
+        result = dates[monday_index + 7 * (k - 1) : monday_index + 7 * k]
 
     # Convert to date strings if requested
     if not as_date_obj:
@@ -105,16 +90,21 @@ def get_first_week(feed: "Feed", *, as_date_obj: bool = False) -> List[str]:
     return result
 
 
-def restrict_dates(feed: "Feed", dates: List[str]) -> List[str]:
+def get_first_week(feed: "Feed", *, as_date_obj: bool = False) -> List[str]:
     """
-    Given a "Feed" and a date (YYYYMMDD string) or list of dates,
-    coerce the date/dates into a list and drop the dates not in
-    ``feed.get_dates()``, preserving the original order of ``dates``.
-    Intended as a helper function.
-    """
-    # Coerce string to set
-    if isinstance(dates, str):
-        dates = [dates]
+    Return a list of dates for the first Monday--Sunday
+    week (or initial segment thereof) for which this feed is valid.
+    If the feed has no Mondays, then return the empty list.
 
-    # Restrict
+    If ``as_date_obj``, then return date objects, otherwise return date strings.
+    """
+    return get_week(feed, 1, as_date_obj=as_date_obj)
+
+
+def subset_dates(feed: "Feed", dates: List[str]) -> List[str]:
+    """
+    Given a "Feed" and a list of dates (YYYYMMDD date strings),
+    return the sublist of dates that lie in the Feed's dates
+    (the output :func:`feed.get_dates`).
+    """
     return [d for d in dates if d in feed.get_dates()]
