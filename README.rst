@@ -40,6 +40,12 @@ Notes
 Changes
 =========
 
+10.0.2, 2019-05-29
+------------------
+- Changed ``<`` to ``<=`` at the start of the function ``downsample`` as a tiny optimization.
+- Fixed Pytest warning.
+
+
 10.0.1, 2019-05-22
 ------------------
 - Added Python 3.7 support (by simply updating the Travis configuration).
