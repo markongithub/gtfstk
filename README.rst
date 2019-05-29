@@ -40,6 +40,11 @@ Notes
 Changes
 =========
 
+10.0.3, 2019-05-29
+------------------
+- Set the time series frequency at the end of the function ``downsample``.
+
+
 10.0.2, 2019-05-29
 ------------------
 - Changed ``<`` to ``<=`` at the start of the function ``downsample`` as a tiny optimization.

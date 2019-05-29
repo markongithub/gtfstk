@@ -445,6 +445,9 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
     result.columns.names = f.columns.names
     result = result.sort_index(axis=1, sort_remaining=True)
 
+    # Set frequency, which is not automatically set
+    result.index.freq = freq
+
     return result
 
 

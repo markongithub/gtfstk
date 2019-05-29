@@ -118,6 +118,18 @@ def test_get_active_trips_df():
     assert_series_equal(get, expect)
 
 
+def test_downsample():
+    ts = compute_route_time_series(
+        cairns, cairns_trip_stats, cairns_dates, freq="6H"
+    )
+    f = downsample(ts, "6H")
+    assert ts.equals(f)
+
+    f = downsample(ts, "12H")
+    assert f.shape[0] == ts.shape[0] / 2
+    assert pd.tseries.frequencies.to_offset(f.index.freq) == "12H"
+
+
 def test_unstack_time_series():
     dates = cairns_dates
     for split_directions in [True, False]:
