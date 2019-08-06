@@ -3,7 +3,6 @@ Functions about miscellany.
 """
 from collections import OrderedDict
 import math
-import copy
 from typing import List, Optional, Tuple, TYPE_CHECKING
 
 import pandas as pd
@@ -792,7 +791,7 @@ def restrict_to_dates(feed: "Feed", dates: List[str]) -> "Feed":
     if feed.transfers is not None:
         feed.transfers = feed.transfers.loc[
             lambda x: x.from_stop_id.isin(stop_ids)
-            | x.to_stop_id.isin(stop_ids)
+            & x.to_stop_id.isin(stop_ids)
         ]
 
     return feed
@@ -810,14 +809,14 @@ def restrict_to_routes(feed: "Feed", route_ids: List[str]) -> "Feed":
     feed = feed.copy()
 
     # Slice routes
-    feed.routes = feed.routes[lambda x: x.route_id.isin(route_ids)].copy()
+    feed.routes = feed.routes.loc[lambda x: x.route_id.isin(route_ids)].copy()
 
     # Slice trips
-    feed.trips = feed.trips[lambda x: x.route_id.isin(route_ids)].copy()
+    feed.trips = feed.trips.loc[lambda x: x.route_id.isin(route_ids)].copy()
 
     # Slice stop times
-    trip_ids = feed.trips.trip_id.values
-    feed.stop_times = feed.stop_times[
+    trip_ids = feed.trips.trip_id
+    feed.stop_times = feed.stop_times.loc[
         lambda x: x.trip_id.isin(trip_ids)
     ].copy()
 
@@ -830,45 +829,44 @@ def restrict_to_routes(feed: "Feed", route_ids: List[str]) -> "Feed":
     feed.stops = f[cond].copy()
 
     # Slice calendar
-    service_ids = feed.trips["service_id"]
+    service_ids = feed.trips.service_id
     if feed.calendar is not None:
-        feed.calendar = feed.calendar[
-            feed.calendar["service_id"].isin(service_ids)
+        feed.calendar = feed.calendar.loc[
+            lambda x: x.service_id.isin(service_ids)
         ].copy()
 
     # Get agency for trips
     if "agency_id" in feed.routes.columns:
-        agency_ids = feed.routes["agency_id"]
+        agency_ids = feed.routes.agency_id
         if len(agency_ids):
-            feed.agency = feed.agency[
-                feed.agency["agency_id"].isin(agency_ids)
+            feed.agency = feed.agency.loc[
+                lambda x: x.agency_id.isin(agency_ids)
             ].copy()
 
     # Now for the optional files.
     # Get calendar dates for trips.
     if feed.calendar_dates is not None:
-        feed.calendar_dates = feed.calendar_dates[
-            feed.calendar_dates["service_id"].isin(service_ids)
+        feed.calendar_dates = feed.calendar_dates.loc[
+            lambda x: x.service_id.isin(service_ids)
         ].copy()
 
     # Get frequencies for trips
     if feed.frequencies is not None:
-        feed.frequencies = feed.frequencies[
-            feed.frequencies["trip_id"].isin(trip_ids)
+        feed.frequencies = feed.frequencies.loc[
+            lambda x: x.trip_id.isin(trip_ids)
         ].copy()
 
     # Get shapes for trips
     if feed.shapes is not None:
-        shape_ids = feed.trips["shape_id"]
-        feed.shapes = feed.shapes[
-            feed.shapes["shape_id"].isin(shape_ids)
-        ].copy()
+        shape_ids = feed.trips.shape_id
+        feed.shapes = feed.shapes[lambda x: x.shape_id.isin(shape_ids)].copy()
 
     # Get transfers for stops
     if feed.transfers is not None:
-        feed.transfers = feed.transfers[
-            feed.transfers["from_stop_id"].isin(stop_ids)
-            | feed.transfers["to_stop_id"].isin(stop_ids)
+        feed.transfers = feed.transfers.loc[
+            lambda x: (
+                x.from_stop_id.isin(stop_ids) & x.to_stop_id.isin(stop_ids)
+            )
         ].copy()
 
     return feed
@@ -898,15 +896,15 @@ def restrict_to_polygon(feed: "Feed", polygon: Polygon) -> "Feed":
     feed = feed.copy()
 
     # Get IDs of stops within the polygon
-    stop_ids = feed.get_stops_in_polygon(polygon)["stop_id"]
+    stop_ids = feed.get_stops_in_polygon(polygon).stop_id
 
     # Get all trips that stop at at least one of those stops
     st = feed.stop_times.copy()
-    trip_ids = st[st["stop_id"].isin(stop_ids)]["trip_id"]
-    feed.trips = feed.trips[feed.trips["trip_id"].isin(trip_ids)].copy()
+    trip_ids = st.loc[lambda x: x.stop_id.isin(stop_ids), "trip_id"]
+    feed.trips = feed.trips.loc[lambda x: x.trip_id.isin(trip_ids)].copy()
 
     # Get stop times for trips
-    feed.stop_times = st[st["trip_id"].isin(trip_ids)].copy()
+    feed.stop_times = st.loc[lambda x: x.trip_id.isin(trip_ids)].copy()
 
     # Slice stops
     stop_ids = feed.stop_times.stop_id.unique()
@@ -917,48 +915,51 @@ def restrict_to_polygon(feed: "Feed", polygon: Polygon) -> "Feed":
     feed.stops = f[cond].copy()
 
     # Get routes for trips
-    route_ids = feed.trips["route_id"]
-    feed.routes = feed.routes[feed.routes["route_id"].isin(route_ids)].copy()
+    route_ids = feed.trips.route_id
+    feed.routes = feed.routes.loc[lambda x: x.route_id.isin(route_ids)].copy()
 
     # Get calendar for trips
-    service_ids = feed.trips["service_id"]
+    service_ids = feed.trips.service_id
     if feed.calendar is not None:
-        feed.calendar = feed.calendar[
-            feed.calendar["service_id"].isin(service_ids)
+        feed.calendar = feed.calendar.loc[
+            lambda x: x.service_id.isin(service_ids)
         ].copy()
 
     # Get agency for trips
     if "agency_id" in feed.routes.columns:
-        agency_ids = feed.routes["agency_id"]
+        agency_ids = feed.routes.agency_id
         if len(agency_ids):
-            feed.agency = feed.agency[
-                feed.agency["agency_id"].isin(agency_ids)
+            feed.agency = feed.agency.loc[
+                lambda x: x.agency_id.isin(agency_ids)
             ].copy()
 
     # Now for the optional files.
     # Get calendar dates for trips.
     cd = feed.calendar_dates
     if cd is not None:
-        feed.calendar_dates = cd[cd["service_id"].isin(service_ids)].copy()
+        feed.calendar_dates = cd.loc[
+            lambda x: x.service_id.isin(service_ids)
+        ].copy()
 
     # Get frequencies for trips
     if feed.frequencies is not None:
-        feed.frequencies = feed.frequencies[
-            feed.frequencies["trip_id"].isin(trip_ids)
+        feed.frequencies = feed.frequencies.loc[
+            lambda x: x.trip_id.isin(trip_ids)
         ].copy()
 
     # Get shapes for trips
     if feed.shapes is not None:
-        shape_ids = feed.trips["shape_id"]
-        feed.shapes = feed.shapes[
-            feed.shapes["shape_id"].isin(shape_ids)
+        shape_ids = feed.trips.shape_id
+        feed.shapes = feed.shapes.loc[
+            lambda x: x.shape_id.isin(shape_ids)
         ].copy()
 
     # Get transfers for stops
     if feed.transfers is not None:
         t = feed.transfers
-        feed.transfers = t[
-            t["from_stop_id"].isin(stop_ids) | t["to_stop_id"].isin(stop_ids)
+        feed.transfers = t.loc[
+            lambda x: x.from_stop_id.isin(stop_ids)
+            & x.to_stop_id.isin(stop_ids)
         ].copy()
 
     return feed

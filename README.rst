@@ -40,6 +40,13 @@ Notes
 Changes
 =========
 
+10.0.4, 2019-08-07
+------------------
+- Bugfixed the 'restrict_to' functions in ``miscellany.py``.
+  In particular, i fixed the transfers table slices by replacing the logical ors with logical ands.
+- Updated dependencies.
+
+
 10.0.3, 2019-05-29
 ------------------
 - Set the time series frequency at the end of the function ``downsample``.
