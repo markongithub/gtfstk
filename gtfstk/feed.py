@@ -404,7 +404,12 @@ def read_gtfs(path: Path, dist_units: str) -> "Feed":
     for p in src_path.iterdir():
         table = p.stem
         # Skip empty files, irrelevant files, and files with no data
-        if p.is_file() and p.stat().st_size and table in feed_dict:
+        if (
+            p.is_file()
+            and p.stat().st_size
+            and p.suffix == ".txt"
+            and table in feed_dict
+        ):
             # utf-8-sig gets rid of the byte order mark (BOM);
             # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string
             df = pd.read_csv(p, dtype=cs.DTYPE, encoding="utf-8-sig")

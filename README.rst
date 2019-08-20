@@ -40,6 +40,11 @@ Notes
 Changes
 =========
 
+10.0.5, 2019-08-21
+------------------
+- Changed ``read_gtfs`` to ignore files that don't end with ``.txt``.
+
+
 10.0.4, 2019-08-07
 ------------------
 - Bugfixed the 'restrict_to' functions in ``miscellany.py``.
