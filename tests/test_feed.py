@@ -84,7 +84,7 @@ def test_list_gtfs():
         f = list_gtfs(path)
         assert isinstance(f, pd.DataFrame)
         assert set(f.columns) == {"file_name", "file_size"}
-        assert f.shape[0] == 12
+        assert f.shape[0] in [12, 13]
 
 
 def test_read_gtfs():
