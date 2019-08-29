@@ -14,7 +14,10 @@ Installation
 
 Examples
 ========
-You can play with ``ipynb/examples.ipynb`` in a Jupyter notebook
+You can play with ``ipynb/examples.ipynb`` in a Jupyter notebook, for example on Binder.
+
+.. image:: https://mybinder.org/badge_logo.svg
+    :target: https://mybinder.org/v2/gh/mrcagney/gtfstk.git/master?filepath=ipynb%2Fexamples.ipynb
 
 
 Authors
