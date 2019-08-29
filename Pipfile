@@ -16,6 +16,7 @@ pycountry = "*"
 geopandas = "*"
 folium = "*"
 "json2html" = "*"
+json2table = "*"
 pre-commit = "*"
 black = "*"
 
