@@ -40,6 +40,11 @@ Notes
 Changes
 =========
 
+10.0.6, 2019-08-21
+------------------
+- Updated dependencies and loosened their requirements.
+
+
 10.0.5, 2019-08-21
 ------------------
 - Changed ``read_gtfs`` to ignore files that don't end with ``.txt``.
