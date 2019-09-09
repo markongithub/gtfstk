@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 from pandas import DataFrame
+import numpy as np
 
 from . import constants as cs
 
@@ -24,22 +25,92 @@ def clean_column_names(df: DataFrame) -> DataFrame:
     return f
 
 
+def clean_ids(feed: "Feed") -> "Feed":
+    """
+    In the given Feed, strip whitespace from all string IDs and
+    then replace every remaining whitespace chunk with an underscore.
+    Return the resulting Feed.
+    """
+    # Alter feed inputs only, and build a new feed from them.
+    # The derived feed attributes, such as feed.trips_i,
+    # will be automatically handled when creating the new feed.
+    feed = feed.copy()
+
+    for table in cs.GTFS_REF["table"].unique():
+        f = getattr(feed, table)
+        if f is None:
+            continue
+        for column in cs.GTFS_REF.loc[cs.GTFS_REF["table"] == table, "column"]:
+            if column in f.columns and column.endswith("_id"):
+                try:
+                    f[column] = f[column].str.strip().str.replace(r"\s+", "_")
+                    setattr(feed, table, f)
+                except AttributeError:
+                    # Column is not of string type
+                    continue
+
+    return feed
+
+
+def clean_times(feed: "Feed") -> "Feed":
+    """
+    In the given Feed, convert H:MM:SS time strings to HH:MM:SS time
+    strings to make sorting by time work as expected.
+    Return the resulting Feed.
+    """
+
+    def reformat(t):
+        if pd.isna(t):
+            return t
+        t = t.strip()
+        if len(t) == 7:
+            t = "0" + t
+        return t
+
+    feed = feed.copy()
+    tables_and_columns = [
+        ("stop_times", ["arrival_time", "departure_time"]),
+        ("frequencies", ["start_time", "end_time"]),
+    ]
+    for table, columns in tables_and_columns:
+        f = getattr(feed, table)
+        if f is not None:
+            f[columns] = f[columns].applymap(reformat)
+        setattr(feed, table, f)
+
+    return feed
+
+
 def drop_zombies(feed: "Feed") -> "Feed":
     """
-    In the given "Feed", drop stops with no stop times,
-    trips with no stop times, shapes with no trips,
-    routes with no trips, and services with no trips, in that order.
-    Return the resulting "Feed".
+    In the given Feed, do the following in order:
+
+    1. Drop stops of location type 0 or NaN with no stop times.
+    2. Remove undefined parent stations from the ``parent_station`` column.
+    3. Drop trips with no stop times.
+    4. Drop shapes with no trips.
+    5. Drop routes with no trips.
+    6. Drop services with no trips.
+
+    Return the resulting Feed.
     """
     feed = feed.copy()
 
-    # Drop stops of location type 0 that lack stop times
-    ids = feed.stop_times["stop_id"].unique()
-    f = feed.stops
-    cond = f["stop_id"].isin(ids)
+    f = feed.stops.copy()
+    ids = feed.stop_times.stop_id.unique()
+    cond = f.stop_id.isin(ids)
     if "location_type" in f.columns:
-        cond |= f["location_type"] != 0
+        cond |= ~f.location_type.isin([0, np.nan])
     feed.stops = f[cond].copy()
+
+    # Remove undefined parent stations from the ``parent_station`` column
+    if "parent_station" in feed.stops.columns:
+        f = feed.stops.copy()
+        ids = f.stop_id.unique()
+        f["parent_station"] = f.parent_station.map(
+            lambda x: x if x in ids else np.nan
+        )
+        feed.stops = f
 
     # Drop trips with no stop times
     ids = feed.stop_times["trip_id"].unique()
@@ -69,69 +140,13 @@ def drop_zombies(feed: "Feed") -> "Feed":
     return feed
 
 
-def clean_ids(feed: "Feed") -> "Feed":
-    """
-    In the given "Feed", strip whitespace from all string IDs and
-    then replace every remaining whitespace chunk with an underscore.
-    Return the resulting "Feed".
-    """
-    # Alter feed inputs only, and build a new feed from them.
-    # The derived feed attributes, such as feed.trips_i,
-    # will be automatically handled when creating the new feed.
-    feed = feed.copy()
-
-    for table in cs.GTFS_REF["table"].unique():
-        f = getattr(feed, table)
-        if f is None:
-            continue
-        for column in cs.GTFS_REF.loc[cs.GTFS_REF["table"] == table, "column"]:
-            if column in f.columns and column.endswith("_id"):
-                try:
-                    f[column] = f[column].str.strip().str.replace(r"\s+", "_")
-                    setattr(feed, table, f)
-                except AttributeError:
-                    # Column is not of string type
-                    continue
-
-    return feed
-
-
-def clean_times(feed: "Feed") -> "Feed":
-    """
-    In the given "Feed", convert H:MM:SS time strings to HH:MM:SS time
-    strings to make sorting by time work as expected.
-    Return the resulting "Feed".
-    """
-
-    def reformat(t):
-        if pd.isnull(t):
-            return t
-        t = t.strip()
-        if len(t) == 7:
-            t = "0" + t
-        return t
-
-    feed = feed.copy()
-    tables_and_columns = [
-        ("stop_times", ["arrival_time", "departure_time"]),
-        ("frequencies", ["start_time", "end_time"]),
-    ]
-    for table, columns in tables_and_columns:
-        f = getattr(feed, table)
-        if f is not None:
-            f[columns] = f[columns].applymap(reformat)
-        setattr(feed, table, f)
-
-    return feed
-
-
 def clean_route_short_names(feed: "Feed") -> "Feed":
     """
     In ``feed.routes``, assign 'n/a' to missing route short names and
     strip whitespace from route short names.
     Then disambiguate each route short name that is duplicated by
     appending '-' and its route ID.
-    Return the resulting "Feed".
+    Return the resulting Feed.
     """
     feed = feed.copy()
     r = feed.routes
@@ -173,7 +188,7 @@ def aggregate_routes(
     Returns
     -------
     "Feed"
-        The result is built from the given "Feed" as follows.
+        The result is built from the given Feed as follows.
         Group ``feed.routes`` by the ``by`` column, and for each group
 
         1. Choose the first route in the group
@@ -225,13 +240,13 @@ def clean(feed: "Feed") -> "Feed":
     """
     Apply
 
-    #. :func:`drop_zombies`
     #. :func:`clean_ids`
     #. :func:`clean_times`
     #. :func:`clean_route_short_names`
+    #. :func:`drop_zombies`
 
-    to the given "Feed" in that order.
-    Return the resulting "Feed".
+    to the given Feed in that order.
+    Return the resulting Feed.
     """
     feed = feed.copy()
     ops = [
@@ -248,7 +263,7 @@ def clean(feed: "Feed") -> "Feed":
 
 def drop_invalid_columns(feed: "Feed") -> "Feed":
     """
-    Drop all DataFrame columns of the given "Feed" that are not
+    Drop all DataFrame columns of the given Feed that are not
     listed in the GTFS.
     Return the resulting new "Feed".
     """

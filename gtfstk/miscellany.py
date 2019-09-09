@@ -3,7 +3,6 @@ Functions about miscellany.
 """
 from collections import OrderedDict
 import math
-import copy
 from typing import List, Optional, Tuple, TYPE_CHECKING
 
 import pandas as pd
@@ -286,8 +285,96 @@ def convert_dist(feed: "Feed", new_dist_units: str) -> "Feed":
     return feed
 
 
+def compute_feed_stats_base(
+    feed: "Feed", trip_stats_subset: DataFrame, *, split_route_types=False
+) -> DataFrame:
+    """
+    """
+    ts = trip_stats_subset.copy()
+    stop_times = feed.stop_times.copy()
+
+    # Convert timestrings to seconds for quicker calculations
+    ts[["start_time", "end_time"]] = ts[["start_time", "end_time"]].applymap(
+        hp.timestr_to_seconds
+    )
+
+    if split_route_types:
+        # Compute stats
+        stats_list = []
+        for route_type, g in ts.groupby("route_type"):
+            d = {}
+            d["route_type"] = route_type
+            d["num_stops"] = stop_times.loc[
+                lambda x: x.trip_id.isin(g.trip_id), "stop_id"
+            ].nunique()
+            d["num_routes"] = g.route_id.nunique()
+            d["num_trips"] = g.shape[0]
+            d["num_trip_starts"] = g.start_time.count()
+            d["num_trip_ends"] = g.loc[
+                g.end_time < 24 * 3600, "end_time"
+            ].count()
+            d["service_distance"] = g.distance.sum()
+            d["service_duration"] = g.duration.sum()
+            if d["service_distance"]:
+                d["service_speed"] = (
+                    d["service_distance"] / d["service_duration"]
+                )
+            else:
+                d["service_speed"] = 0
+
+            # Compute peak stats, which is the slowest part
+            active_trips = hp.get_active_trips_df(
+                g[["start_time", "end_time"]]
+            )
+            times, counts = (active_trips.index.values, active_trips.values)
+            start, end = hp.get_peak_indices(times, counts)
+            d["peak_num_trips"] = counts[start]
+            d["peak_start_time"] = times[start]
+            d["peak_end_time"] = times[end]
+
+            stats_list.append(pd.Series(d))
+
+        stats = pd.DataFrame(stats_list)
+
+    else:
+        # Compute stats
+        d = {}
+        d["num_stops"] = stop_times.stop_id.nunique()
+        d["num_routes"] = ts.route_id.nunique()
+        d["num_trips"] = ts.shape[0]
+        d["num_trip_starts"] = ts.start_time.count()
+        d["num_trip_ends"] = ts.loc[
+            ts.end_time < 24 * 3600, "end_time"
+        ].count()
+        d["service_distance"] = ts.distance.sum()
+        d["service_duration"] = ts.duration.sum()
+        d["service_speed"] = d["service_distance"] / d["service_duration"]
+
+        # Compute peak stats, which is the slowest part
+        active_trips = hp.get_active_trips_df(ts[["start_time", "end_time"]])
+        times, counts = active_trips.index.values, active_trips.values
+        start, end = hp.get_peak_indices(times, counts)
+        d["peak_num_trips"] = counts[start]
+        d["peak_start_time"] = times[start]
+        d["peak_end_time"] = times[end]
+
+        stats = pd.DataFrame(d, index=[0])
+
+    # Convert seconds back to timestrings
+    times = ["peak_start_time", "peak_end_time"]
+    stats[times] = stats[times].applymap(
+        lambda t: hp.timestr_to_seconds(t, inverse=True)
+    )
+
+    return stats
+
+
 def compute_feed_stats(
-    feed: "Feed", trip_stats: DataFrame, dates: List[str]
+    feed: "Feed",
+    trip_stats: DataFrame,
+    dates: List[str],
+    *,
+    split_route_types=False,
 ) -> DataFrame:
     """
     Compute some feed stats for the given dates and trip stats.
@@ -301,6 +388,8 @@ def compute_feed_stats(
     dates : string or list
         A YYYYMMDD date string or list thereof indicating the date(s)
         for which to compute stats
+    split_route_types: boolean
+        If True then split stats by route type; otherwise don't
 
     Returns
     -------
@@ -308,6 +397,7 @@ def compute_feed_stats(
         The columns are
 
         - ``'date'``
+        - ``'route_type'`` (optional): presest if and only if ``split_route_types``
         - ``'num_stops'``: number of stops active on the date
         - ``'num_routes'``: number of routes active on the date
         - ``'num_trips'``: number of trips that start on the date
@@ -329,10 +419,7 @@ def compute_feed_stats(
         - ``'service_speed'``: service_distance/service_duration on the
           date
 
-        Dates with no trip activity will have null stats.
-        Exclude dates that lie outside of the Feed's date range.
-        If all the dates given lie outside of the Feed's date range,
-        then return an empty DataFrame.
+        Exclude dates with no active stops, which could yield the empty DataFrame.
 
     Notes
     -----
@@ -346,99 +433,57 @@ def compute_feed_stats(
         * Those used in :func:`.stops.get_stops`
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 
-    ts = trip_stats.copy()
-    activity = feed.compute_trip_activity(dates)
-    stop_times = feed.stop_times.copy()
-
-    # Convert timestrings to seconds for quicker calculations
-    ts[["start_time", "end_time"]] = ts[["start_time", "end_time"]].applymap(
-        hp.timestr_to_seconds
-    )
-
-    # Collect stats for each date, memoizing stats by trip ID sequence
+    # Collect stats for each date,
+    # memoizing stats the sequence of trip IDs active on the date
     # to avoid unnecessary recomputations.
-    # Store in dictionary of the form
-    # trip ID sequence ->
-    # [stats dictionary, date list that stats apply]
-    stats_and_dates_by_ids = {}
-    cols = [
-        "num_stops",
-        "num_routes",
-        "num_trips",
-        "num_trip_starts",
-        "num_trip_ends",
-        "peak_num_trips",
-        "peak_start_time",
-        "peak_end_time",
-        "service_distance",
-        "service_duration",
-        "service_speed",
-    ]
-    null_stats = {c: np.nan for c in cols}
+    # Store in a dictionary of the form
+    # trip ID sequence -> stats DataFarme.
+    stats_by_ids = {}
+
+    activity = feed.compute_trip_activity(dates)
+
+    frames = []
     for date in dates:
-        stats = {}
         ids = tuple(activity.loc[activity[date] > 0, "trip_id"])
-        if ids in stats_and_dates_by_ids:
-            # Append date to date list
-            stats_and_dates_by_ids[ids][1].append(date)
-        elif not ids:
-            # Null stats
-            stats_and_dates_by_ids[ids] = [null_stats, [date]]
-        else:
+        if ids in stats_by_ids:
+            stats = (
+                stats_by_ids[ids]
+                # Assign date
+                .assign(date=date)
+            )
+        elif ids:
             # Compute stats
-            f = ts[ts["trip_id"].isin(ids)].copy()
-            stats["num_stops"] = stop_times.loc[
-                stop_times["trip_id"].isin(ids), "stop_id"
-            ].nunique()
-            stats["num_routes"] = f["route_id"].nunique()
-            stats["num_trips"] = f.shape[0]
-            stats["num_trip_starts"] = f["start_time"].count()
-            stats["num_trip_ends"] = f.loc[
-                f["end_time"] < 24 * 3600, "end_time"
-            ].count()
-            stats["service_distance"] = f["distance"].sum()
-            stats["service_duration"] = f["duration"].sum()
-            stats["service_speed"] = (
-                stats["service_distance"] / stats["service_duration"]
+            ts = trip_stats.loc[lambda x: x.trip_id.isin(ids)].copy()
+            stats = (
+                compute_feed_stats_base(
+                    feed, ts, split_route_types=split_route_types
+                )
+                # Assign date
+                .assign(date=date)
             )
 
-            # Compute peak stats, which is the slowest part
-            active_trips = hp.get_active_trips_df(
-                f[["start_time", "end_time"]]
-            )
-            times, counts = active_trips.index.values, active_trips.values
-            start, end = hp.get_peak_indices(times, counts)
-            stats["peak_num_trips"] = counts[start]
-            stats["peak_start_time"] = times[start]
-            stats["peak_end_time"] = times[end]
+            # Memoize stats
+            stats_by_ids[ids] = stats
+        else:
+            stats = pd.DataFrame()
 
-            # Record stats
-            stats_and_dates_by_ids[ids] = [stats, [date]]
+        frames.append(stats)
 
-    # Assemble stats into DataFrame
-    rows = []
-    for stats, dates_ in stats_and_dates_by_ids.values():
-        for date in dates_:
-            s = copy.copy(stats)
-            s["date"] = date
-            rows.append(s)
-    f = pd.DataFrame(rows).sort_values("date")
-
-    # Convert seconds back to timestrings
-    times = ["peak_start_time", "peak_end_time"]
-    f[times] = f[times].applymap(
-        lambda t: hp.timestr_to_seconds(t, inverse=True)
-    )
-
-    return f
+    # Assemble stats into a single DataFrame
+    return pd.concat(frames)
 
 
 def compute_feed_time_series(
-    feed: "Feed", trip_stats: DataFrame, dates: List[str], freq: str = "5Min"
+    feed: "Feed",
+    trip_stats: DataFrame,
+    dates: List[str],
+    freq: str = "5Min",
+    *,
+    split_route_types: bool = False,
 ) -> DataFrame:
     """
     Compute some feed stats in time series form for the given dates
@@ -457,12 +502,14 @@ def compute_feed_time_series(
         Pandas frequency string specifying the frequency of the
         resulting time series, e.g. '5Min'; highest frequency allowable
         is one minute ('Min').
+    split_route_types: boolean
+        If True then split stats by route type; otherwise don't
 
     Returns
     -------
     DataFrame
-        A time series with a timestamp index across the given dates
-        sampled at the given frequency.
+        A time series with a datetime index across the given dates sampled
+        at the given frequency across the given dates.
         The maximum allowable frequency is 1 minute.
 
         The columns are
@@ -482,6 +529,15 @@ def compute_feed_time_series(
         Exclude dates that lie outside of the Feed's date range.
         If all the dates given lie outside of the Feed's date range,
         then return an empty DataFrame with the specified columns.
+
+        If ``split_route_types``, then multi-index the columns with
+
+        - top level: name is ``'indicator'``; values are
+          ``'num_trip_starts'``, ``'num_trip_ends'``, ``'num_trips'``,
+          ``'service_distance'``, ``'service_duration'``, and
+          ``'service_speed'``
+        - bottom level: name is ``'route_type'``; values are route type values
+
 
     Notes
     -----
@@ -503,14 +559,40 @@ def compute_feed_time_series(
         "num_trips",
         "service_distance",
         "service_duration",
-        "service_speed",
     ]
-    f = pd.concat(
-        [rts[col].sum(axis=1, min_count=1) for col in cols], axis=1, keys=cols
-    )
-    f["service_speed"] = f["service_distance"] / f["service_duration"]
 
-    return f.sort_index(axis=1)
+    if split_route_types:
+        f = (
+            hp.unstack_time_series(rts)
+            .merge(feed.routes.filter(["route_id", "route_type"]), how="left")
+            .groupby(["datetime", "indicator", "route_type"])
+            .agg(
+                {"value": lambda x: x.sum(min_count=1)}
+            )  # All-NaNs should sum to NaN
+            .reset_index()
+            .pipe(hp.restack_time_series)
+        )
+    else:
+        f = (
+            pd.concat(
+                [rts[col].sum(axis="columns", min_count=1) for col in cols],
+                axis=1,
+                keys=cols,
+            )
+            .sort_index(axis="columns")
+            .rename_axis(index="datetime")
+        )
+        f.columns.name = "indicator"
+
+        # Set time series frequency
+        f.index.freq = freq
+
+    # Calculate service speed
+    f["service_speed"] = (f.service_distance / f.service_duration).fillna(
+        f.service_distance
+    )
+
+    return f
 
 
 def create_shapes(feed: "Feed", *, all_trips: bool = False) -> "Feed":
@@ -617,38 +699,16 @@ def compute_convex_hull(feed: "Feed") -> Polygon:
     return m.convex_hull
 
 
-def compute_center(
-    feed: "Feed", num_busiest_stops: Optional[int] = None
-) -> Tuple:
+def compute_center(feed: "Feed", num_busiest_stops: int = 20) -> Tuple:
     """
-    Return the centroid (WGS84 longitude-latitude pair) of the convex
-    hull of the stops of the given Feed.
-    If ``num_busiest_stops`` (integer) is given,
-    then compute the ``num_busiest_stops`` busiest stops in the feed
-    on the first Monday of the feed and return the mean of the
-    longitudes and the mean of the latitudes of these stops,
-    respectively.
+    Get the ``num_busiest_stops`` (integer) most scheduled stops from ``feed.stop_times``,
+    and return the mean of the longitudes and the mean of the latitudes of these stops,
+    respectively, a kind of center of the feed.
     """
-    s = feed.stops.copy()
-    if num_busiest_stops is None:
-        hull = compute_convex_hull(feed)
-        lon, lat = list(hull.centroid.coords)[0]
-    else:
-        date = feed.get_first_week()[0]
-        ss = feed.compute_stop_stats([date]).sort_values(
-            "num_trips", ascending=False
-        )
-        if ss.stop_id.isnull().all():
-            # No stats, which could happen with a crappy feed.
-            # Fall back to all stops.
-            hull = compute_convex_hull(feed)
-            lon, lat = list(hull.centroid.coords)[0]
-        else:
-            f = ss.head(num_busiest_stops)
-            f = s.merge(f)
-            lon = f["stop_lon"].mean()
-            lat = f["stop_lat"].mean()
-
+    sids = feed.stop_times.stop_id.value_counts()[:num_busiest_stops].index
+    s = feed.stops.loc[lambda x: x.stop_id.isin(sids)]
+    lon = s.stop_lon.mean()
+    lat = s.stop_lat.mean()
     return lon, lat
 
 
@@ -688,7 +748,11 @@ def restrict_to_dates(feed: "Feed", dates: List[str]) -> "Feed":
 
     # Slice stops
     stop_ids = feed.stop_times.stop_id.unique()
-    feed.stops = feed.stops.loc[lambda x: x.stop_id.isin(stop_ids)]
+    f = feed.stops.copy()
+    cond = f.stop_id.isin(stop_ids)
+    if "location_type" in f.columns:
+        cond |= ~f.location_type.isin([0, np.nan])
+    feed.stops = f[cond].copy()
 
     # Slice calendar
     service_ids = feed.trips.service_id
@@ -727,7 +791,7 @@ def restrict_to_dates(feed: "Feed", dates: List[str]) -> "Feed":
     if feed.transfers is not None:
         feed.transfers = feed.transfers.loc[
             lambda x: x.from_stop_id.isin(stop_ids)
-            | x.to_stop_id.isin(stop_ids)
+            & x.to_stop_id.isin(stop_ids)
         ]
 
     return feed
@@ -745,61 +809,64 @@ def restrict_to_routes(feed: "Feed", route_ids: List[str]) -> "Feed":
     feed = feed.copy()
 
     # Slice routes
-    feed.routes = feed.routes[feed.routes["route_id"].isin(route_ids)].copy()
+    feed.routes = feed.routes.loc[lambda x: x.route_id.isin(route_ids)].copy()
 
     # Slice trips
-    feed.trips = feed.trips[feed.trips["route_id"].isin(route_ids)].copy()
+    feed.trips = feed.trips.loc[lambda x: x.route_id.isin(route_ids)].copy()
 
     # Slice stop times
-    trip_ids = feed.trips["trip_id"]
-    feed.stop_times = feed.stop_times[
-        feed.stop_times["trip_id"].isin(trip_ids)
+    trip_ids = feed.trips.trip_id
+    feed.stop_times = feed.stop_times.loc[
+        lambda x: x.trip_id.isin(trip_ids)
     ].copy()
 
     # Slice stops
-    stop_ids = feed.stop_times["stop_id"].unique()
-    feed.stops = feed.stops[feed.stops["stop_id"].isin(stop_ids)].copy()
+    stop_ids = feed.stop_times.stop_id.unique()
+    f = feed.stops.copy()
+    cond = f.stop_id.isin(stop_ids)
+    if "location_type" in f.columns:
+        cond |= ~f.location_type.isin([0, np.nan])
+    feed.stops = f[cond].copy()
 
     # Slice calendar
-    service_ids = feed.trips["service_id"]
+    service_ids = feed.trips.service_id
     if feed.calendar is not None:
-        feed.calendar = feed.calendar[
-            feed.calendar["service_id"].isin(service_ids)
+        feed.calendar = feed.calendar.loc[
+            lambda x: x.service_id.isin(service_ids)
         ].copy()
 
     # Get agency for trips
     if "agency_id" in feed.routes.columns:
-        agency_ids = feed.routes["agency_id"]
+        agency_ids = feed.routes.agency_id
         if len(agency_ids):
-            feed.agency = feed.agency[
-                feed.agency["agency_id"].isin(agency_ids)
+            feed.agency = feed.agency.loc[
+                lambda x: x.agency_id.isin(agency_ids)
             ].copy()
 
     # Now for the optional files.
     # Get calendar dates for trips.
     if feed.calendar_dates is not None:
-        feed.calendar_dates = feed.calendar_dates[
-            feed.calendar_dates["service_id"].isin(service_ids)
+        feed.calendar_dates = feed.calendar_dates.loc[
+            lambda x: x.service_id.isin(service_ids)
         ].copy()
 
     # Get frequencies for trips
     if feed.frequencies is not None:
-        feed.frequencies = feed.frequencies[
-            feed.frequencies["trip_id"].isin(trip_ids)
+        feed.frequencies = feed.frequencies.loc[
+            lambda x: x.trip_id.isin(trip_ids)
         ].copy()
 
     # Get shapes for trips
     if feed.shapes is not None:
-        shape_ids = feed.trips["shape_id"]
-        feed.shapes = feed.shapes[
-            feed.shapes["shape_id"].isin(shape_ids)
-        ].copy()
+        shape_ids = feed.trips.shape_id
+        feed.shapes = feed.shapes[lambda x: x.shape_id.isin(shape_ids)].copy()
 
     # Get transfers for stops
     if feed.transfers is not None:
-        feed.transfers = feed.transfers[
-            feed.transfers["from_stop_id"].isin(stop_ids)
-            | feed.transfers["to_stop_id"].isin(stop_ids)
+        feed.transfers = feed.transfers.loc[
+            lambda x: (
+                x.from_stop_id.isin(stop_ids) & x.to_stop_id.isin(stop_ids)
+            )
         ].copy()
 
     return feed
@@ -829,63 +896,70 @@ def restrict_to_polygon(feed: "Feed", polygon: Polygon) -> "Feed":
     feed = feed.copy()
 
     # Get IDs of stops within the polygon
-    stop_ids = feed.get_stops_in_polygon(polygon)["stop_id"]
+    stop_ids = feed.get_stops_in_polygon(polygon).stop_id
 
     # Get all trips that stop at at least one of those stops
     st = feed.stop_times.copy()
-    trip_ids = st[st["stop_id"].isin(stop_ids)]["trip_id"]
-    feed.trips = feed.trips[feed.trips["trip_id"].isin(trip_ids)].copy()
+    trip_ids = st.loc[lambda x: x.stop_id.isin(stop_ids), "trip_id"]
+    feed.trips = feed.trips.loc[lambda x: x.trip_id.isin(trip_ids)].copy()
 
     # Get stop times for trips
-    feed.stop_times = st[st["trip_id"].isin(trip_ids)].copy()
+    feed.stop_times = st.loc[lambda x: x.trip_id.isin(trip_ids)].copy()
 
-    # Get stops for trips
-    stop_ids = feed.stop_times["stop_id"]
-    feed.stops = feed.stops[feed.stops["stop_id"].isin(stop_ids)].copy()
+    # Slice stops
+    stop_ids = feed.stop_times.stop_id.unique()
+    f = feed.stops.copy()
+    cond = f.stop_id.isin(stop_ids)
+    if "location_type" in f.columns:
+        cond |= ~f.location_type.isin([0, np.nan])
+    feed.stops = f[cond].copy()
 
     # Get routes for trips
-    route_ids = feed.trips["route_id"]
-    feed.routes = feed.routes[feed.routes["route_id"].isin(route_ids)].copy()
+    route_ids = feed.trips.route_id
+    feed.routes = feed.routes.loc[lambda x: x.route_id.isin(route_ids)].copy()
 
     # Get calendar for trips
-    service_ids = feed.trips["service_id"]
+    service_ids = feed.trips.service_id
     if feed.calendar is not None:
-        feed.calendar = feed.calendar[
-            feed.calendar["service_id"].isin(service_ids)
+        feed.calendar = feed.calendar.loc[
+            lambda x: x.service_id.isin(service_ids)
         ].copy()
 
     # Get agency for trips
     if "agency_id" in feed.routes.columns:
-        agency_ids = feed.routes["agency_id"]
+        agency_ids = feed.routes.agency_id
         if len(agency_ids):
-            feed.agency = feed.agency[
-                feed.agency["agency_id"].isin(agency_ids)
+            feed.agency = feed.agency.loc[
+                lambda x: x.agency_id.isin(agency_ids)
             ].copy()
 
     # Now for the optional files.
     # Get calendar dates for trips.
     cd = feed.calendar_dates
     if cd is not None:
-        feed.calendar_dates = cd[cd["service_id"].isin(service_ids)].copy()
+        feed.calendar_dates = cd.loc[
+            lambda x: x.service_id.isin(service_ids)
+        ].copy()
 
     # Get frequencies for trips
     if feed.frequencies is not None:
-        feed.frequencies = feed.frequencies[
-            feed.frequencies["trip_id"].isin(trip_ids)
+        feed.frequencies = feed.frequencies.loc[
+            lambda x: x.trip_id.isin(trip_ids)
         ].copy()
 
     # Get shapes for trips
     if feed.shapes is not None:
-        shape_ids = feed.trips["shape_id"]
-        feed.shapes = feed.shapes[
-            feed.shapes["shape_id"].isin(shape_ids)
+        shape_ids = feed.trips.shape_id
+        feed.shapes = feed.shapes.loc[
+            lambda x: x.shape_id.isin(shape_ids)
         ].copy()
 
     # Get transfers for stops
     if feed.transfers is not None:
         t = feed.transfers
-        feed.transfers = t[
-            t["from_stop_id"].isin(stop_ids) | t["to_stop_id"].isin(stop_ids)
+        feed.transfers = t.loc[
+            lambda x: x.from_stop_id.isin(stop_ids)
+            & x.to_stop_id.isin(stop_ids)
         ].copy()
 
     return feed
@@ -953,7 +1027,7 @@ def compute_screen_line_counts(
          * ``feed.shapes``, if ``geo_shapes`` is not given
 
     """
-    dates = feed.restrict_dates(dates)
+    dates = feed.subset_dates(dates)
     if not dates:
         return pd.DataFrame()
 

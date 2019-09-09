@@ -81,11 +81,11 @@ class Feed(object):
     # Import heaps of methods from modules split by functionality;
     # i learned this trick from
     # https://groups.google.com/d/msg/comp.lang.python/goLBrqcozNY/DPgyaZ6gAwAJ
-    from .calendar import get_dates, get_first_week, restrict_dates
+    from .calendar import get_dates, get_week, get_first_week, subset_dates
     from .routes import (
         get_routes,
         compute_route_stats,
-        build_null_route_time_series,
+        build_zero_route_time_series,
         compute_route_time_series,
         build_route_timetable,
         route_to_geojson,
@@ -102,7 +102,7 @@ class Feed(object):
         build_geometry_by_stop,
         compute_stop_activity,
         compute_stop_stats,
-        build_null_stop_time_series,
+        build_zero_stop_time_series,
         compute_stop_time_series,
         build_stop_timetable,
         get_stops_in_polygon,
@@ -275,7 +275,7 @@ class Feed(object):
         """
         Print the first five rows of each GTFS table.
         """
-        d = OrderedDict()
+        d = {}
         for table in cs.GTFS_REF["table"].unique():
             try:
                 d[table] = getattr(self, table).head(5)
@@ -284,7 +284,7 @@ class Feed(object):
         d["dist_units"] = self.dist_units
 
         return "\n".join(
-            ["* {k} --------------------\n\t{v}" for k, v in d.items()]
+            [f"* {k} --------------------\n\t{v}" for k, v in d.items()]
         )
 
     def __eq__(self, other):
@@ -404,7 +404,12 @@ def read_gtfs(path: Path, dist_units: str) -> "Feed":
     for p in src_path.iterdir():
         table = p.stem
         # Skip empty files, irrelevant files, and files with no data
-        if p.is_file() and p.stat().st_size and table in feed_dict:
+        if (
+            p.is_file()
+            and p.stat().st_size
+            and p.suffix == ".txt"
+            and table in feed_dict
+        ):
             # utf-8-sig gets rid of the byte order mark (BOM);
             # see http://stackoverflow.com/questions/17912307/u-ufeff-in-python-string
             df = pd.read_csv(p, dtype=cs.DTYPE, encoding="utf-8-sig")

@@ -40,9 +40,81 @@ Notes
 Changes
 =========
 
+10.0.6, 2019-08-21
+------------------
+- Updated dependencies and loosened their requirements.
+
+
+10.0.5, 2019-08-21
+------------------
+- Changed ``read_gtfs`` to ignore files that don't end with ``.txt``.
+
+
+10.0.4, 2019-08-07
+------------------
+- Bugfixed the 'restrict_to' functions in ``miscellany.py``.
+  In particular, i fixed the transfers table slices by replacing the logical ors with logical ands.
+- Updated dependencies.
+
+
+10.0.3, 2019-05-29
+------------------
+- Set the time series frequency at the end of the function ``downsample``.
+
+
+10.0.2, 2019-05-29
+------------------
+- Changed ``<`` to ``<=`` at the start of the function ``downsample`` as a tiny optimization.
+- Fixed Pytest warning.
+
+
+10.0.1, 2019-05-22
+------------------
+- Added Python 3.7 support (by simply updating the Travis configuration).
+
+
+10.0.0, 2019-05-22
+------------------
+- Simplified and made more robust the function ``compute_center``.
+- Simplified the functions ``compute_stop_stats``, ``compute_route_stats``, and ``compute_feed_stats``.
+- Added the function ``get_week``, a generalization of the function ``get_first_week``.
+- Breaking change: renamed the function ``restrict_dates`` to ``subset_dates``, so as not to be confused with the function ``restrict_to_dates``. Also changed the signature of ``restrict_dates``.
+
+
+9.6.3, 2019-05-16
+-----------------
+- Bugfixed warning about stops with no stop times in the function ``check_stops``.
+- Bugfixed removing stations in the ``restrict_to_*`` functions.
+
+
+9.6.2, 2019-05-16
+-----------------
+- Bugfixed parent station cleaning in the function ``drop_zombies``.
+
+
+9.6.1, 2019-05-15
+-----------------
+- Checked for undefined parent stations in the module ``validators.py`` and added functionality to remove them in the module ``cleaners.py``.
+
+
+9.6.0, 2019-05-01
+-----------------
+- Added ``split_route_types`` flag to the functions ``compute_feed_stats`` and ``compute_feed_time_series``.
+- Added helper functions ``unstack_time_series`` and ``restack_time_series``.
+- Named time series axis ``"datetime"``.
+- Bugfixed Feed instance printing.
+- Replaced NaN service speeds in time series with service distance (0 or NaN).
+- Bugfixed function ``downsample`` to preserve all-NaN sections.
+
+
+9.5.1, 2019-04-29
+-----------------
+- Merged `Pull request 13 <https://github.com/mrcagney/gtfstk/pull/13>`_ to handle stops without geocoordinates.
+
+
 9.5.0, 2019-04-16
 -----------------
-- Using `Pull request 11 <https://github.com/mrcagney/gtfstk/pull/11>`_, updated validators to accept pathways according to the lates GTFS.
+- Merged `Pull request 11 <https://github.com/mrcagney/gtfstk/pull/11>`_ to update validators to accept pathways according to the latest GTFS.
 
 
 9.4.0, 2019-04-02

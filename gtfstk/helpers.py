@@ -201,10 +201,10 @@ def get_convert_dist(
         raise ValueError(f"Distance units must lie in {DU}")
 
     d = {
-        "ft": {"ft": 1, "m": 0.3048, "mi": 1 / 5280, "km": 0.0003048},
+        "ft": {"ft": 1, "m": 0.3048, "mi": 1 / 5280, "km": 0.000_304_8},
         "m": {"ft": 1 / 0.3048, "m": 1, "mi": 1 / 1609.344, "km": 1 / 1000},
-        "mi": {"ft": 5280, "m": 1609.344, "mi": 1, "km": 1.609344},
-        "km": {"ft": 1 / 0.0003048, "m": 1000, "mi": 1 / 1.609344, "km": 1},
+        "mi": {"ft": 5280, "m": 1609.344, "mi": 1, "km": 1.609_344},
+        "km": {"ft": 1 / 0.000_304_8, "m": 1000, "mi": 1 / 1.609_344, "km": 1},
     }
     return lambda x: d[di][do] * x
 
@@ -376,7 +376,7 @@ def combine_time_series(
         new_frames, axis=1, keys=list(time_series_dict.keys()), names=names
     )
 
-    return result
+    return result.rename_axis("datetime", axis="index")
 
 
 def downsample(time_series: DataFrame, freq: str) -> DataFrame:
@@ -393,13 +393,15 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
     f = time_series.copy()
 
     # Can't downsample to a shorter frequency
-    if f.empty or pd.tseries.frequencies.to_offset(freq) < f.index.freq:
+    if f.empty or pd.tseries.frequencies.to_offset(
+        freq
+    ) <= pd.tseries.frequencies.to_offset(pd.infer_freq(f.index)):
         return f
 
     result = None
     if "stop_id" in time_series.columns.names:
         # It's a stops time series
-        result = f.resample(freq).sum()
+        result = f.resample(freq).sum(min_count=1)
     else:
         # It's a route or feed time series.
         inds = [
@@ -414,21 +416,27 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
         # Resample num_trips in a custom way that depends on
         # num_trips and num_trip_ends
         def agg_num_trips(group):
-            return (
-                group["num_trips"].iloc[-1]
-                + group["num_trip_ends"].iloc[:-1].sum()
-            )
+            return group["num_trips"].iloc[-1] + group["num_trip_ends"].iloc[
+                :-1
+            ].sum(min_count=1)
 
         num_trips = f.groupby(pd.Grouper(freq=freq)).apply(agg_num_trips)
         frames.append(num_trips)
 
-        # Resample the rest of the indicators via summing
-        frames.extend([f[ind].resample(freq).agg("sum") for ind in inds[1:]])
+        # Resample the rest of the indicators via summing, preserving all-NaNs
+        frames.extend(
+            [
+                f[ind].resample(freq).agg(lambda x: x.sum(min_count=1))
+                for ind in inds[1:]
+            ]
+        )
 
         g = pd.concat(frames, axis=1, keys=inds)
 
         # Calculate speed and add it to f. Can't resample it.
-        speed = g["service_distance"] / g["service_duration"]
+        speed = (g.service_distance / g.service_duration).fillna(
+            g.service_distance
+        )
         speed = pd.concat({"service_speed": speed}, axis=1)
         result = pd.concat([g, speed], axis=1)
 
@@ -437,7 +445,72 @@ def downsample(time_series: DataFrame, freq: str) -> DataFrame:
     result.columns.names = f.columns.names
     result = result.sort_index(axis=1, sort_remaining=True)
 
+    # Set frequency, which is not automatically set
+    result.index.freq = freq
+
     return result
+
+
+def unstack_time_series(time_series: DataFrame) -> DataFrame:
+    """
+    Given a route, stop, or feed time series of the form output by the functions,
+    :func:`compute_stop_time_series`, :func:`compute_route_time_series`, or
+    :func:`compute_feed_time_series`, respectively, unstack it to return a DataFrame
+    of with the columns:
+
+    - ``"datetime"``
+    - the columns ``time_series.columns.names``
+    - ``"value"``: value at the datetime and other columns
+
+    """
+    col_names = time_series.columns.names
+    return (
+        time_series.unstack()
+        .pipe(pd.DataFrame)
+        .reset_index()
+        .rename(columns={0: "value", "level_2": "datetime"})
+        # Reorder columns
+        .filter(["datetime"] + col_names + ["value"])
+        .sort_values(["datetime"] + col_names)
+    )
+
+
+def restack_time_series(unstacked_time_series: DataFrame) -> DataFrame:
+    """
+    Given an unstacked stop, route, or feed time series in the form
+    output by the function :func:`unstack_time_series`, restack it into
+    its original time series form.
+    """
+    f = unstacked_time_series
+    columns = [c for c in f.columns if c not in ["datetime", "value"]]
+    g = f.pivot_table(index="datetime", columns=columns).value.sort_index(
+        axis="columns"
+    )
+
+    # Get time series frequency
+    if g.index.size > 1:
+        hours = (g.index[1] - g.index[0]).components.hours
+        if hours != 0:
+            freq = f"{hours}H"
+        else:
+            freq = "D"
+    else:
+        freq = "D"
+
+    # If necessary, insert missing dates and NaNs to complete series index
+    num_dates = len(set(g.index.date))
+    if num_dates > 1:
+        end_datetime = pd.to_datetime(
+            f"{g.index.date[-1]:%Y-%m-%d}" + " 23:59:59"
+        )
+        new_index = pd.date_range(
+            g.index[0], end_datetime, freq=freq, name="datetime"
+        )
+        g = g.reindex(new_index)
+
+    g.index.freq = freq
+
+    return g
 
 
 def make_html(d: Dict) -> str:

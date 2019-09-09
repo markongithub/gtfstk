@@ -205,23 +205,8 @@ def test_compute_route_stats():
         )
         assert rs.empty
 
-        # No services should yield null stats
-        feed1 = feed.copy()
-        c = feed1.calendar
-        c["monday"] = 0
-        feed1.calendar = c
-        rs = compute_route_stats(
-            feed1,
-            trip_stats_subset,
-            dates[0],
-            split_directions=split_directions,
-        )
-        assert set(rs.columns) == expect_cols
-        assert rs.date.iat[0] == dates[0]
-        assert pd.isnull(rs.route_id.iat[0])
 
-
-def test_build_null_route_time_series():
+def test_build_zero_route_time_series():
     feed = cairns.copy()
     for split_directions in [True, False]:
         if split_directions:
@@ -231,19 +216,19 @@ def test_build_null_route_time_series():
             expect_names = ["indicator", "route_id"]
             expect_shape = (2, 6 * feed.routes.shape[0])
 
-        f = build_null_route_time_series(
+        f = build_zero_route_time_series(
             feed, split_directions=split_directions, freq="12H"
         )
 
         assert isinstance(f, pd.core.frame.DataFrame)
         assert f.shape == expect_shape
         assert f.columns.names == expect_names
-        assert pd.isnull(f.values).all()
+        assert not f.values.any()
 
 
 def test_compute_route_time_series():
     feed = cairns.copy()
-    dates = cairns_dates + ["20010101"]
+    dates = cairns_dates + ["20010101"]  # Spans 3 valid dates
     n = 3
     rids = feed.routes.route_id.loc[:n]
     trip_stats_subset = cairns_trip_stats.loc[
@@ -259,12 +244,12 @@ def test_compute_route_time_series():
             trip_stats_subset,
             dates,
             split_directions=split_directions,
-            freq="1H",
+            freq="12H",
         )
 
         # Should be a data frame of the correct shape
         assert isinstance(rts, pd.core.frame.DataFrame)
-        assert rts.shape[0] == 2 * 24
+        assert rts.shape[0] == 3 * 2  # 3-date span at 12H freq
         print(rts.columns)
         assert rts.shape[1] == 6 * rs.shape[0] / 2
 
@@ -275,8 +260,11 @@ def test_compute_route_time_series():
             expect_names = ["indicator", "route_id"]
         assert rts.columns.names, expect_names
 
+        # Should have correct index name
+        assert rts.index.name == "datetime"
+
         # Each route have a correct num_trip_starts
-        if split_directions == False:
+        if not split_directions:
             rsg = rs.groupby("route_id")
             for route in rs.route_id.values:
                 get = rts["num_trip_starts"][route].sum()
@@ -288,20 +276,6 @@ def test_compute_route_time_series():
             feed, trip_stats_subset, [], split_directions=split_directions
         )
         assert rts.empty
-
-        # No services should yield null stats
-        feed1 = feed.copy()
-        c = feed1.calendar
-        c["monday"] = 0
-        feed1.calendar = c
-        rts = compute_route_time_series(
-            feed1,
-            trip_stats_subset,
-            dates[0],
-            split_directions=split_directions,
-        )
-        assert rts.columns.names == expect_names
-        assert pd.isnull(rts.values).all()
 
 
 def test_build_route_timetable():

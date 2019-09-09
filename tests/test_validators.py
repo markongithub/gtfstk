@@ -489,6 +489,10 @@ def test_check_stops():
         assert check_stops(feed)
 
     feed = sample.copy()
+    feed.stops["parent_station"] = "bingo"
+    assert check_stops(feed)
+
+    feed = sample.copy()
     feed.stops["location_type"] = 1
     feed.stops["parent_station"] = "bingo"
     assert check_stops(feed)

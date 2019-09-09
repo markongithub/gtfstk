@@ -288,6 +288,7 @@ def check_column(
     df: DataFrame,
     column: str,
     checker,
+    message: Optional[str] = None,
     type_: str = "error",
     *,
     column_required: bool = True,
@@ -322,6 +323,9 @@ def check_column(
         (and not optional) by the GTFS
     checker : boolean valued unary function
         Returns ``True`` if and only if no problem is encountered
+    message : string (optional)
+        Problem message, e.g. 'Invalid route_id'.
+        Defaults to 'Invalid ``column``; maybe has extra space characters'
     type_ : string
         ``'error'`` or ``'warning'`` indicating the type of problem
         encountered
@@ -347,14 +351,11 @@ def check_column(
         f = f.dropna(subset=[column])
 
     cond = ~f[column].map(checker)
-    problems = check_table(
-        problems,
-        table,
-        f,
-        cond,
-        f"Invalid {column}; maybe has extra space characters",
-        type_,
-    )
+
+    if not message:
+        message = f"Invalid {column}; maybe has extra space characters"
+
+    problems = check_table(problems, table, f, cond, message, type_)
 
     return problems
 
@@ -741,7 +742,7 @@ def check_fare_attributes(
     problems = check_column(problems, table, f, "payment_method", v)
 
     # Check transfers
-    v = lambda x: pd.isnull(x) or x in range(3)
+    v = lambda x: pd.isna(x) or x in range(3)
     problems = check_column(problems, table, f, "transfers", v)
 
     # Check transfer_duration
@@ -842,7 +843,7 @@ def check_feed_info(
 
     if set(cols) <= set(f.columns):
         d1, d2 = f.loc[0, ["feed_start_date", "feed_end_date"]].values
-        if pd.notnull(d1) and pd.notnull(d2) and d1 > d1:
+        if pd.notna(d1) and pd.notna(d2) and d1 > d1:
             problems.append(
                 [
                     "error",
@@ -977,7 +978,7 @@ def check_routes(
             problems, table, f, column, valid_str, column_required=False
         )
 
-    cond = ~(f["route_short_name"].notnull() | f["route_long_name"].notnull())
+    cond = ~(f["route_short_name"].notna() | f["route_long_name"].notna())
     problems = check_table(
         problems,
         table,
@@ -1049,7 +1050,7 @@ def check_shapes(
 
     # Check shape_pt_lon and shape_pt_lat
     for column, bound in [("shape_pt_lon", 180), ("shape_pt_lat", 90)]:
-        v = lambda x: pd.notnull(x) and -bound <= x <= bound
+        v = lambda x: pd.notna(x) and -bound <= x <= bound
         cond = ~f[column].map(v)
         problems = check_table(
             problems,
@@ -1127,11 +1128,11 @@ def check_stops(
 
     # Check stop_lon and stop_lat
     if "location_type" in f.columns:
-        requires_location = f["location_type"].isin([0, 1, 2])
+        requires_location = f.location_type.isin([0, 1, 2])
     else:
         requires_location = True
     for column, bound in [("stop_lon", 180), ("stop_lat", 90)]:
-        v = lambda x: pd.notnull(x) and -bound <= x <= bound
+        v = lambda x: pd.notna(x) and -bound <= x <= bound
         cond = requires_location & ~f[column].map(v)
         problems = check_table(
             problems,
@@ -1180,17 +1181,28 @@ def check_stops(
                 ]
             )
         else:
+            # Parent stations must be well-defined
+            S = set(f.stop_id) | {np.nan}
+            v = lambda x: x in S
+            problems = check_column(
+                problems,
+                table,
+                f,
+                "parent_station",
+                v,
+                "A parent station must be well-defined",
+                column_required=False,
+            )
+
             # Stations must have location type 1
-            station_ids = f.loc[
-                f["parent_station"].notnull(), "parent_station"
-            ]
-            cond = f["stop_id"].isin(station_ids) & (f["location_type"] != 1)
+            station_ids = f.loc[f.parent_station.notna(), "parent_station"]
+            cond = f.stop_id.isin(station_ids) & (f.location_type != 1)
             problems = check_table(
                 problems, table, f, cond, "A station must have location_type 1"
             )
 
             # Stations must not lie in stations
-            cond = (f["location_type"] == 1) & f["parent_station"].notnull()
+            cond = (f.location_type == 1) & f.parent_station.notna()
             problems = check_table(
                 problems,
                 table,
@@ -1199,11 +1211,9 @@ def check_stops(
                 "A station must not lie in another station",
             )
 
-            # Entrances (type 2), generic nodes (type 3) and boarding areas (type 4) need to be part of a parent
-            cond = (
-                f["location_type"].isin([2, 3, 4])
-                & f["parent_station"].isnull()
-            )
+            # Entrances (type 2), generic nodes (type 3) and boarding areas (type 4)
+            # need to be part of a parent
+            cond = f.location_type.isin([2, 3, 4]) & f.parent_station.isna()
             problems = check_table(
                 problems,
                 table,
@@ -1213,9 +1223,12 @@ def check_stops(
             )
 
     if include_warnings:
-        # Check for stops without trips
-        s = feed.stop_times["stop_id"]
-        cond = ~feed.stops["stop_id"].isin(s)
+        # Check for stops of location type 0 or NaN without stop times
+        ids = feed.stop_times.stop_id.unique()
+        cond = ~feed.stops.stop_id.isin(ids)
+        if "location_type" in feed.stops.columns:
+            cond &= f.location_type.isin([0, np.nan])
+
         problems = check_table(
             problems, table, f, cond, "Stop has no stop times", "warning"
         )
@@ -1250,7 +1263,7 @@ def check_stop_times(
     )
 
     # Check arrival_time and departure_time
-    v = lambda x: pd.isnull(x) or valid_time(x)
+    v = lambda x: pd.isna(x) or valid_time(x)
     for col in ["arrival_time", "departure_time"]:
         problems = check_column(problems, table, f, col, v)
 
@@ -1270,12 +1283,12 @@ def check_stop_times(
     ].itertuples():
         if tid != prev_tid:
             # Check last stop of previous trip
-            if pd.isnull(prev_atime) or pd.isnull(prev_dtime):
+            if pd.isna(prev_atime) or pd.isna(prev_dtime):
                 indices.append(i - 1)
             # Check first stop of current trip
-            if pd.isnull(atime) or pd.isnull(dtime):
+            if pd.isna(atime) or pd.isna(dtime):
                 indices.append(i)
-        elif tp == 1 and (pd.isnull(atime) or pd.isnull(dtime)):
+        elif tp == 1 and (pd.isna(atime) or pd.isna(dtime)):
             # Failure at timepoint
             indices.append(i)
 
@@ -1388,7 +1401,7 @@ def check_transfers(
         )
 
     # Check transfer_type
-    v = lambda x: pd.isnull(x) or x in range(5)
+    v = lambda x: pd.isna(x) or x in range(5)
     problems = check_column(
         problems, table, f, "transfer_type", v, column_required=False
     )
@@ -1447,7 +1460,7 @@ def check_trips(
 
     # Check block_id
     if "block_id" in f.columns:
-        v = lambda x: pd.isnull(x) or valid_str(x)
+        v = lambda x: pd.isna(x) or valid_str(x)
         cond = ~f["block_id"].map(v)
         problems = check_table(problems, table, f, cond, "Blank block_id")
 
